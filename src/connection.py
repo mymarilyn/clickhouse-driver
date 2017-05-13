@@ -109,11 +109,12 @@ class Connection(object):
             self.fin = self.socket.makefile('rb')
             self.fout = self.socket.makefile('wb')
 
-            self.block_in = BlockInputStream(self.fin)
-            self.block_out = BlockOutputStream(self.fout)
-
             self.send_hello()
             self.receive_hello()
+
+            server_revision = self.server_info.revision
+            self.block_in = BlockInputStream(self.fin, server_revision)
+            self.block_out = BlockOutputStream(self.fout, server_revision)
 
         except socket.timeout as e:
             self.disconnect()
