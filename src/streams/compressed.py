@@ -37,8 +37,12 @@ class CompressedBlockOutputStream(BlockOutputStream):
     def get_compressed(self):
         compressed = BytesIO()
 
-        write_binary_uint8(self.compressor.method_byte, compressed)
-        extra_header_size = 1  # method
+        if self.compressor.method_byte is not None:
+            write_binary_uint8(self.compressor.method_byte, compressed)
+            extra_header_size = 1  # method
+        else:
+            extra_header_size = 0
+
         data = self.compressor.get_compressed_data(extra_header_size)
         compressed.write(data)
 
@@ -66,7 +70,11 @@ class CompressedBlockInputStream(BlockInputStream):
         decompressor_cls = get_decompressor_cls(method_byte)
         decompressor = decompressor_cls(self.fin)
 
-        extra_header_size = 1  # method
+        if decompressor.method_byte is not None:
+            extra_header_size = 1  # method
+        else:
+            extra_header_size = 0
+
         decompressed = decompressor.get_decompressed_data(
             method_byte, compressed_hash, extra_header_size
         )

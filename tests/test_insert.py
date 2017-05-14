@@ -230,6 +230,10 @@ class BaseCompressionTestCase(BaseTestCase):
             self.assertEqual(inserted, data)
 
 
+class QuickLZReadWriteTestCase(BaseCompressionTestCase):
+    compression = 'quicklz'
+
+
 class LZ4ReadWriteTestCase(BaseCompressionTestCase):
     compression = 'lz4'
 

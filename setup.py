@@ -67,6 +67,8 @@ setup(
         'six'
     ],
     extras_require={
+        # TODO: fix cityhash version
+        'quicklz': ['pyquicklz', 'cityhash'],
         'lz4': ['lz4', 'cityhash'],
         'zstd': ['zstd', 'cityhash']
     },
