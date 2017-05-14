@@ -7,6 +7,7 @@ class ErrorCodes(object):
     CHECKSUM_DOESNT_MATCH = 40
     LOGICAL_ERROR = 49
     TYPE_MISMATCH = 53
+    UNKNOWN_COMPRESSION_METHOD = 89
     NETWORK_ERROR = 210
     SOCKET_TIMEOUT = 209
     SERVER_REVISION_IS_TOO_OLD = 197
@@ -64,6 +65,10 @@ class ChecksumDoesntMatchError(Error):
 
 class TypeMismatchError(Error):
     code = ErrorCodes.TYPE_MISMATCH
+
+
+class UnknownCompressionMethod(Error):
+    code = ErrorCodes.UNKNOWN_COMPRESSION_METHOD
 
 
 class NetworkError(Error):

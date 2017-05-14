@@ -236,3 +236,7 @@ class LZ4ReadWriteTestCase(BaseCompressionTestCase):
 
 class LZ4HCReadWriteTestCase(BaseCompressionTestCase):
     compression = 'lz4hc'
+
+
+class ZSTDReadWriteTestCase(BaseCompressionTestCase):
+    compression = 'zstd'

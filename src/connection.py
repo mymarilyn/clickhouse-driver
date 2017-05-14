@@ -61,6 +61,10 @@ class Connection(object):
         self.send_receive_timeout = send_receive_timeout
         self.sync_request_timeout = sync_request_timeout
 
+        # Use LZ4 compression by default.
+        if compression is True:
+            compression = 'lz4'
+
         if compression is False:
             self.compression = Compression.DISABLED
             self.compressor_cls = None
