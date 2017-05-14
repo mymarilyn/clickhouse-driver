@@ -66,6 +66,9 @@ setup(
     install_requires=[
         'six'
     ],
+    extras_require={
+        'lz4': ['lz4', 'cityhash']
+    },
     test_suite='nose.collector',
     tests_require=['nose'],
 )

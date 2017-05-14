@@ -79,3 +79,15 @@ class ServerPacketTypes(object):
 class Compression(object):
     DISABLED = 0
     ENABLED = 1
+
+
+class CompressionMethod(object):
+    QUICK_LZ = 0
+    LZ4 = 1
+    LZ4HC = 2
+    ZSTD = 3
+
+
+class CompressionMethodByte(object):
+    LZ4 = 0x82
+    ZSTD = 0x90

@@ -12,7 +12,7 @@ from .protocol import Compression, ClientPacketTypes, ServerPacketTypes
 from .queryprocessingstage import QueryProcessingStage
 from .reader import read_varint, read_binary_str
 from .readhelpers import read_exception
-from .stream import BlockOutputStream, BlockInputStream
+from .compression import get_compressor_cls
 from .writer import write_varint, write_binary_str
 
 
@@ -48,7 +48,8 @@ class Connection(object):
             client_name=defines.CLIENT_NAME,
             connect_timeout=defines.DBMS_DEFAULT_CONNECT_TIMEOUT_SEC,
             send_receive_timeout=defines.DBMS_DEFAULT_TIMEOUT_SEC,
-            sync_request_timeout=defines.DBMS_DEFAULT_SYNC_REQUEST_TIMEOUT_SEC
+            sync_request_timeout=defines.DBMS_DEFAULT_SYNC_REQUEST_TIMEOUT_SEC,
+            compression=False
     ):
         self.host = host
         self.port = port
@@ -60,8 +61,12 @@ class Connection(object):
         self.send_receive_timeout = send_receive_timeout
         self.sync_request_timeout = sync_request_timeout
 
-        # No compression now
-        self.compression = Compression.DISABLED
+        if compression is False:
+            self.compression = Compression.DISABLED
+            self.compressor_cls = None
+        else:
+            self.compression = Compression.ENABLED
+            self.compressor_cls = get_compressor_cls(compression)
 
         self.socket = None
         self.fin = None
@@ -112,9 +117,8 @@ class Connection(object):
             self.send_hello()
             self.receive_hello()
 
-            server_revision = self.server_info.revision
-            self.block_in = BlockInputStream(self.fin, server_revision)
-            self.block_out = BlockOutputStream(self.fout, server_revision)
+            self.block_in = self.get_block_in_stream()
+            self.block_out = self.get_block_out_stream()
 
         except socket.timeout as e:
             self.disconnect()
@@ -251,6 +255,31 @@ class Connection(object):
 
         return packet
 
+    def get_block_in_stream(self):
+        revision = self.server_info.revision
+
+        if self.compression:
+            from .streams.compressed import CompressedBlockInputStream
+
+            return CompressedBlockInputStream(self.fin, revision)
+        else:
+            from .streams.native import BlockInputStream
+
+            return BlockInputStream(self.fin, revision)
+
+    def get_block_out_stream(self):
+        revision = self.server_info.revision
+
+        if self.compression:
+            from .streams.compressed import CompressedBlockOutputStream
+
+            return CompressedBlockOutputStream(self.compressor_cls, self.fout,
+                                               revision)
+        else:
+            from .streams.native import BlockOutputStream
+
+            return BlockOutputStream(self.fout, revision)
+
     def receive_data(self):
         revision = self.server_info.revision
 
@@ -258,6 +287,7 @@ class Connection(object):
             read_binary_str(self.fin)
 
         block = self.block_in.read()
+        self.block_in.reset()
         return block
 
     def receive_exception(self):
@@ -281,7 +311,7 @@ class Connection(object):
             write_binary_str(table_name, self.fout)
 
         self.block_out.write(block)
-        self.fout.flush()
+        self.block_out.reset()
 
     def send_query(self, query):
         if not self.connected:

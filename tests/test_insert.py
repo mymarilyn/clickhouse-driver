@@ -2,7 +2,8 @@ from datetime import date, datetime
 
 from .testcase import BaseTestCase
 from src import errors
-from src.readhelpers import ServerException
+from src.client import Client
+from src.errors import ServerException
 
 
 class ErrorsInsertTestCase(BaseTestCase):
@@ -201,3 +202,37 @@ class ColumnsReadWriteTestCase(BaseTestCase):
 
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
+
+
+class BaseCompressionTestCase(BaseTestCase):
+    compression = False
+
+    @classmethod
+    def create_client(cls):
+        return Client(cls.host, cls.port, cls.database, cls.user, cls.password,
+                      compression=cls.compression)
+
+    def test_read_write_date_datetime(self):
+        if self.compression is None:
+            return
+
+        with self.create_table('a Date, b DateTime'):
+            data = [(date(2012, 10, 25), datetime(2012, 10, 25, 14, 7, 19))]
+            self.client.execute(
+                'INSERT INTO test (a, b) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, '2012-10-25\t2012-10-25 14:07:19')
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
+
+
+class LZ4ReadWriteTestCase(BaseCompressionTestCase):
+    compression = 'lz4'
+
+
+class LZ4HCReadWriteTestCase(BaseCompressionTestCase):
+    compression = 'lz4hc'

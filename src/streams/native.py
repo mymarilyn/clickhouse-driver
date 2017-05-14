@@ -1,9 +1,9 @@
-from .block import Block, BlockInfo
-from .columns.read import read_column
-from .columns.write import write_column
-from .reader import read_varint, read_binary_str
-from .writer import write_varint, write_binary_str
-from . import defines
+from ..block import Block, BlockInfo
+from ..columns.read import read_column
+from ..columns.write import write_column
+from ..reader import read_varint, read_binary_str
+from ..writer import write_varint, write_binary_str
+from .. import defines
 
 
 class BlockOutputStream(object):
@@ -12,6 +12,9 @@ class BlockOutputStream(object):
         self.server_revision = server_revision
 
         super(BlockOutputStream, self).__init__()
+
+    def reset(self):
+        pass
 
     def write(self, block):
         if self.server_revision >= defines.DBMS_MIN_REVISION_WITH_BLOCK_INFO:
@@ -30,6 +33,11 @@ class BlockOutputStream(object):
             if rows:
                 write_column(col_type, block.data[i], self.fout)
 
+        self.finalize()
+
+    def finalize(self):
+        self.fout.flush()
+
 
 class BlockInputStream(object):
     def __init__(self, fin, server_revision):
@@ -37,6 +45,9 @@ class BlockInputStream(object):
         self.server_revision = server_revision
 
         super(BlockInputStream, self).__init__()
+
+    def reset(self):
+        pass
 
     def read(self):
         info = BlockInfo()

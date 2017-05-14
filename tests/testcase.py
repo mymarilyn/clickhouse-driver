@@ -52,14 +52,17 @@ class BaseTestCase(TestCase):
         return out.strip().decode('utf-8')
 
     @classmethod
+    def create_client(cls):
+        return Client(cls.host, cls.port, cls.database, cls.user, cls.password)
+
+    @classmethod
     def setUpClass(cls):
         cls.emit_cli(
             'DROP DATABASE IF EXISTS {}'.format(cls.database), 'default'
         )
         cls.emit_cli('CREATE DATABASE {}'.format(cls.database), 'default')
 
-        cls.client = Client(cls.host, cls.port, cls.database,
-                            cls.user, cls.password)
+        cls.client = cls.create_client()
 
         super(BaseTestCase, cls).setUpClass()
 

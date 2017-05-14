@@ -4,6 +4,7 @@ from six import PY3
 
 class ErrorCodes(object):
     NO_SUCH_COLUMN_IN_TABLE = 16
+    CHECKSUM_DOESNT_MATCH = 40
     LOGICAL_ERROR = 49
     TYPE_MISMATCH = 53
     NETWORK_ERROR = 210
@@ -55,6 +56,10 @@ else:
 
 class LogicalError(Error):
     code = ErrorCodes.LOGICAL_ERROR
+
+
+class ChecksumDoesntMatchError(Error):
+    code = ErrorCodes.CHECKSUM_DOESNT_MATCH
 
 
 class TypeMismatchError(Error):

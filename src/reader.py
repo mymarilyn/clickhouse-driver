@@ -88,3 +88,10 @@ def read_binary_uint32(buf):
 
 def read_binary_uint64(buf):
     return read_binary_int(buf, 'Q')
+
+
+def read_binary_uint128(buf):
+    hi = read_binary_int(buf, 'Q')
+    lo = read_binary_int(buf, 'Q')
+
+    return (hi << 64) + lo

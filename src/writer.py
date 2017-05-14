@@ -69,3 +69,12 @@ def write_binary_uint32(number, buf):
 
 def write_binary_uint64(number, buf):
     write_binary_int(number, buf, 'Q')
+
+
+MAX_UINT64 = (1 << 64) - 1
+
+
+def write_binary_uint128(number, buf):
+    fmt = '<QQ'
+    packed = struct.pack(fmt, (number >> 64) & MAX_UINT64, number & MAX_UINT64)
+    buf.write(packed)
