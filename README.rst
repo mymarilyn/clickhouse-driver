@@ -3,6 +3,16 @@ ClickHouse Python Driver
 
 ClickHouse Python Driver with native (TCP) interface support.
 
+Installation
+============
+
+The package can be installed using ``pip``:
+
+    .. code-block:: bash
+
+       pip install clickhouse-driver
+
+
 Usage example:
 
     .. code-block:: python
