@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 from io import BytesIO
 
-from cityhash import CityHash128
+from ..util.cityhash import CityHash128
 
 from .native import BlockOutputStream, BlockInputStream
 from ..reader import read_binary_uint8, read_binary_uint128

@@ -1,5 +1,8 @@
 from io import BytesIO
 
+from .. import errors
+from ..util.cityhash import CityHash128
+
 
 class BaseCompressor(object):
     """
@@ -27,6 +30,10 @@ class BaseDecompressor(object):
     def __init__(self, real_stream):
         self.stream = real_stream
         super(BaseDecompressor, self).__init__()
+
+    def check_hash(self, compressed_data, compressed_hash):
+        if CityHash128(compressed_data) != compressed_hash:
+            raise errors.ChecksumDoesntMatchError()
 
     def get_decompressed_data(self, method_byte, compressed_hash,
                               extra_header_size):

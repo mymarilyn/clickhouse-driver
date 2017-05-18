@@ -2,10 +2,8 @@ from __future__ import absolute_import
 from io import BytesIO
 
 from lz4 import block
-from cityhash import CityHash128
 
 from .base import BaseCompressor, BaseDecompressor
-from .. import errors
 from ..protocol import CompressionMethod, CompressionMethodByte
 from ..reader import read_binary_uint32
 from ..writer import write_binary_uint32, write_binary_uint8
@@ -47,8 +45,7 @@ class Decompressor(BaseDecompressor):
         write_binary_uint32(size_with_header, block_check)
         block_check.write(compressed.getvalue())
 
-        if CityHash128(block_check.getvalue()) != compressed_hash:
-            raise errors.ChecksumDoesntMatchError()
+        self.check_hash(block_check.getvalue(), compressed_hash)
 
         uncompressed_size = read_binary_uint32(compressed)
 

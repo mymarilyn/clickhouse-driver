@@ -2,10 +2,8 @@ from __future__ import absolute_import
 from io import BytesIO
 
 import quicklz
-from cityhash import CityHash128
 
 from .base import BaseCompressor, BaseDecompressor
-from .. import errors
 from ..protocol import CompressionMethod
 from ..reader import read_binary_uint32, read_binary_uint8
 from ..writer import write_binary_uint32, write_binary_uint8
@@ -57,7 +55,6 @@ class Decompressor(BaseDecompressor):
         compressed = BytesIO(header_bytes)
         compressed.write(self.stream.read(remain_size))
 
-        if CityHash128(compressed.getvalue()) != compressed_hash:
-            raise errors.ChecksumDoesntMatchError()
+        self.check_hash(compressed.getvalue(), compressed_hash)
 
         return quicklz.decompress(compressed)
