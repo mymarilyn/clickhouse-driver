@@ -10,7 +10,7 @@ class Client(object):
         super(Client, self).__init__()
 
     def __del__(self):
-        if self.connection:
+        if getattr(self, 'connection', None):
             self.disconnect()
 
     def disconnect(self):

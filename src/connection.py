@@ -49,6 +49,7 @@ class Connection(object):
             connect_timeout=defines.DBMS_DEFAULT_CONNECT_TIMEOUT_SEC,
             send_receive_timeout=defines.DBMS_DEFAULT_TIMEOUT_SEC,
             sync_request_timeout=defines.DBMS_DEFAULT_SYNC_REQUEST_TIMEOUT_SEC,
+            compress_block_size=defines.DEFAULT_COMPRESS_BLOCK_SIZE,
             compression=False
     ):
         self.host = host
@@ -68,9 +69,11 @@ class Connection(object):
         if compression is False:
             self.compression = Compression.DISABLED
             self.compressor_cls = None
+            self.compress_block_size = None
         else:
             self.compression = Compression.ENABLED
             self.compressor_cls = get_compressor_cls(compression)
+            self.compress_block_size = compress_block_size
 
         self.socket = None
         self.fin = None
@@ -277,8 +280,10 @@ class Connection(object):
         if self.compression:
             from .streams.compressed import CompressedBlockOutputStream
 
-            return CompressedBlockOutputStream(self.compressor_cls, self.fout,
-                                               revision)
+            return CompressedBlockOutputStream(
+                self.compressor_cls, self.compress_block_size,
+                self.fout, revision
+            )
         else:
             from .streams.native import BlockOutputStream
 
