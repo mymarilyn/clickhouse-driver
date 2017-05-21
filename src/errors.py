@@ -1,5 +1,5 @@
 
-from six import PY3
+import six
 
 
 class ErrorCodes(object):
@@ -15,7 +15,7 @@ class ErrorCodes(object):
     UNKNOWN_PACKET_FROM_SERVER = 100
 
 
-if PY3:
+if six.PY3:
     class Error(Exception):
         code = None
 
@@ -40,7 +40,7 @@ else:
             return 'Code: {}.'.format(self.code)
 
         def __str__(self):
-            return unicode(self).encode('utf-8')
+            return six.text_type(self).encode('utf-8')
 
     class ServerException(Error):
         def __init__(self, message, code, nested=None):
@@ -53,7 +53,7 @@ else:
             return 'Code: {}.{}\n{}'.format(self.code, nested, self.message)
 
         def __str__(self):
-            return unicode(self).encode('utf-8')
+            return six.text_type(self).encode('utf-8')
 
 
 class LogicalError(Error):
