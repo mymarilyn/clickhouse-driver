@@ -1,7 +1,8 @@
 from io import BytesIO
 
+from clickhouse_driver.util.cityhash import CityHash128
+
 from .. import errors
-from ..util.cityhash import CityHash128
 
 
 class BaseCompressor(object):

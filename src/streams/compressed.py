@@ -1,6 +1,6 @@
 from io import BytesIO
 
-from ..util.cityhash import CityHash128
+from clickhouse_driver.util.cityhash import CityHash128
 
 from .native import BlockOutputStream, BlockInputStream
 from ..reader import read_binary_uint8, read_binary_uint128

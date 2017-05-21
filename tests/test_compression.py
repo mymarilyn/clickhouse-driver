@@ -1,5 +1,4 @@
 from datetime import date, datetime
-from random import randint
 from src.compression import get_compressor_cls
 
 from .testcase import BaseTestCase, file_config
@@ -27,7 +26,7 @@ class BaseCompressionTestCase(BaseTestCase):
                 'Compression {} is not supported'.format(self.compression)
             )
 
-    def simple_test(self):
+    def run_simple(self):
         with self.create_table('a Date, b DateTime'):
             data = [(date(2012, 10, 25), datetime(2012, 10, 25, 14, 7, 19))]
             self.client.execute(
@@ -45,7 +44,7 @@ class BaseCompressionTestCase(BaseTestCase):
         if self.compression is False:
             return
 
-        self.simple_test()
+        self.run_simple()
 
 
 class QuickLZReadWriteTestCase(BaseCompressionTestCase):
@@ -75,9 +74,11 @@ class UnknownCompressionTestCase(BaseCompressionTestCase):
 
 
 class ReadByBlocksTestCase(BaseCompressionTestCase):
+    compression = 'lz4'
+
     def test(self):
         with self.create_table('a Int32'):
-            data = [(randint(1, 200), ) for _x in range(1000000)]
+            data = [(x % 200, ) for x in range(1000000)]
 
             self.client.execute(
                 'INSERT INTO test (a) VALUES', data
