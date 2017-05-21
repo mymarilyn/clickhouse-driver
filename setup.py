@@ -11,7 +11,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 # ClickHouse comes with built-in old version of
 # cityhash: https://github.com/google/cityhash
 # That's why patched version of python-cityhash is used.
-patched_cityhash = 'git+https://github.com/xzkostyan/python-cityhash@v1.0.2'
+patched_cityhash = 'git+https://github.com/xzkostyan/python-cityhash@1.0.2'
 
 
 setup(
@@ -71,7 +71,7 @@ setup(
     install_requires=[
         'six'
     ],
-    dependency_links = [
+    dependency_links=[
         patched_cityhash + '#egg=clickhouse-cityhash-1.0.2'
     ],
     extras_require={
@@ -80,5 +80,9 @@ setup(
         'zstd': ['zstd', 'clickhouse-cityhash==1.0.2']
     },
     test_suite='nose.collector',
-    tests_require=['nose'],
+    tests_require=[
+        'nose',
+        'pyquicklz', 'lz4', 'zstd',
+        'clickhouse-cityhash==1.0.2'
+    ],
 )

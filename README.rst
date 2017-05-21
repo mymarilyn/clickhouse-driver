@@ -3,6 +3,9 @@ ClickHouse Python Driver
 
 ClickHouse Python Driver with native (TCP) interface support.
 
+.. image:: https://img.shields.io/travis/mymarilyn/clickhouse-driver.svg
+   :target: https://travis-ci.org/mymarilyn/clickhouse-driver
+
 Features
 --------
 

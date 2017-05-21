@@ -14,6 +14,7 @@ class ErrorCodes(object):
     UNEXPECTED_PACKET_FROM_SERVER = 102
     UNKNOWN_PACKET_FROM_SERVER = 100
 
+
 if PY3:
     class Error(Exception):
         code = None
