@@ -8,20 +8,14 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
-# ClickHouse comes with built-in old version of
-# cityhash: https://github.com/google/cityhash
-# That's why patched version of python-cityhash is used.
-patched_cityhash = 'git+https://github.com/xzkostyan/python-cityhash@1.0.2'
-
-
 setup(
     name='clickhouse-driver',
-    version='0.0.2',
+    version='0.0.3',
 
     description='Python driver with native interface for ClickHouse',
     long_description=long_description,
 
-    url='https://github.com/xzkostyan/clickhouse-driver',
+    url='https://github.com/mymarilyn/clickhouse-driver',
 
     author='Konstantin Lebedev',
     author_email='kostyan.lebedev@gmail.com',
@@ -70,9 +64,6 @@ setup(
     },
     install_requires=[
         'six'
-    ],
-    dependency_links=[
-        patched_cityhash + '#egg=clickhouse-cityhash-1.0.2'
     ],
     extras_require={
         'quicklz': ['pyquicklz', 'clickhouse-cityhash==1.0.2'],

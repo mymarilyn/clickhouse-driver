@@ -31,33 +31,19 @@ The package can be installed using ``pip``:
 
        pip install clickhouse-driver
 
-After basic installing you can install extras packages if you need compression
-support. Example of LZ4 compression requirements installation:
+You can install extras packages if you need compression support. Example of
+LZ4 compression requirements installation:
 
     .. code-block:: bash
 
        pip install clickhouse-driver[lz4]
-
-If you are using modern ``pip`` you have to specify
-``--process-dependency-links`` option in this way:
-
-    .. code-block:: bash
-
-       pip install clickhouse-driver[lz4] --process-dependency-links
-
-Unfortunately ClickHouse server comes with built-in old version of CityHash
-hashing algorithm. That's why we can't use original
-`CityHash <http://pypi.python.org/cityhash>`_ package. Downgraded version of
-this algorithm is placed in `github repo <https://github.com/xzkostyan/python-cityhash/tree/v1.0.2>`_
-and isn't uploded to PyPi. And modern ``pip`` disable installing dependencies
-from links.
 
 You also can specify multiple extras by using comma.
 Install LZ4 and ZSTD requirements:
 
     .. code-block:: bash
 
-       pip install clickhouse-driver[lz4,zstd] --process-dependency-links
+       pip install clickhouse-driver[lz4,zstd]
 
 
 Usage example:
@@ -81,6 +67,26 @@ Usage example:
         client.execute('INSERT INTO test (x) VALUES', [[200]])
 
         print(client.execute('SELECT sum(x) FROM test'))
+
+Get client with compression:
+
+    .. code-block:: python
+
+        from clickhouse_driver.client import Client
+
+        client_with_lz4 = Client('localhost', compression=True)
+        client_with_lz4 = Client('localhost', compression='lz4')
+        client_with_zstd = Client('localhost', compression='zstd')
+
+
+CityHash algorithm notes
+------------------------
+
+Unfortunately ClickHouse server comes with built-in old version of CityHash
+hashing algorithm. That's why we can't use original
+`CityHash <http://pypi.python.org/cityhash>`_ package. Downgraded version of
+this algorithm is placed at `PyPy <https://pypi.python.org/pypi/clickhouse-cityhash>`_.
+
 
 Connection Parameters
 ---------------------
