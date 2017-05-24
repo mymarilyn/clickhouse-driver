@@ -1,3 +1,6 @@
+# coding=utf-8
+from __future__ import unicode_literals
+
 from datetime import date, datetime
 
 from .testcase import BaseTestCase
@@ -201,3 +204,65 @@ class ColumnsReadWriteTestCase(BaseTestCase):
 
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
+
+    def test_read_write_string(self):
+        columns = 'a String'
+
+        data = [('яндекс', )]
+        with self.create_table(columns):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, 'яндекс')
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
+
+    def test_read_write_fixed_string(self):
+        columns = 'a FixedString(4)'
+
+        data = [('a', ), ('bb', ), ('ccc', ), ('dddd', ), ('я', )]
+        with self.create_table(columns):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted, (
+                    'a\\0\\0\\0\n'
+                    'bb\\0\\0\n'
+                    'ccc\\0\n'
+                    'dddd\n'
+                    'я\\0\\0'
+                )
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
+
+        data = [('aaaaa', )]
+        with self.create_table(columns):
+            with self.assertRaises(errors.TooLargeStringSize) as e:
+                self.client.execute(
+                    'INSERT INTO test (a) VALUES', data
+                )
+
+            self.assertEqual(
+                e.exception.code, errors.ErrorCodes.TOO_LARGE_STRING_SIZE
+            )
+
+        data = [('тест', )]
+        with self.create_table(columns):
+            with self.assertRaises(errors.TooLargeStringSize) as e:
+                self.client.execute(
+                    'INSERT INTO test (a) VALUES', data
+                )
+
+            self.assertEqual(
+                e.exception.code, errors.ErrorCodes.TOO_LARGE_STRING_SIZE
+            )

@@ -1,9 +1,9 @@
-from .column import column_by_type
+from .column import get_column_by_spec
 from ..errors import TypeMismatchError
 
 
-def write_column(ch_type, data, buf):
-    column = column_by_type[ch_type]
+def write_column(column_spec, data, buf):
+    column = get_column_by_spec(column_spec)
     py_types = column.py_types
     write = column.write
 
@@ -11,7 +11,7 @@ def write_column(ch_type, data, buf):
         if not isinstance(x, py_types):
             raise TypeMismatchError(
                 'Type mismatch in VALUES section. '
-                'Expected {} got {}'.format(ch_type, type(x))
+                'Expected {} got {}'.format(column_spec, type(x))
             )
 
         write(x, buf)

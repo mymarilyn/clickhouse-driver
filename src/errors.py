@@ -8,6 +8,7 @@ class ErrorCodes(object):
     LOGICAL_ERROR = 49
     TYPE_MISMATCH = 53
     UNKNOWN_COMPRESSION_METHOD = 89
+    TOO_LARGE_STRING_SIZE = 131
     NETWORK_ERROR = 210
     SOCKET_TIMEOUT = 209
     SERVER_REVISION_IS_TOO_OLD = 197
@@ -70,6 +71,10 @@ class TypeMismatchError(Error):
 
 class UnknownCompressionMethod(Error):
     code = ErrorCodes.UNKNOWN_COMPRESSION_METHOD
+
+
+class TooLargeStringSize(Error):
+    code = ErrorCodes.TOO_LARGE_STRING_SIZE
 
 
 class NetworkError(Error):

@@ -5,8 +5,8 @@ from calendar import timegm
 import six
 
 from .. import errors
-from ..reader import read_binary_str
-from ..writer import write_binary_str
+from ..reader import read_binary_str, read_binary_str_fixed_len
+from ..writer import write_binary_str, write_binary_str_fixed_len
 from ..util.tzinfo import tzutc
 
 
@@ -56,6 +56,24 @@ class String(Column):
 
     def write(self, value, buf):
         write_binary_str(value, buf)
+
+
+class FixedString(Column):
+    ch_type = 'FixedString'
+    py_types = six.string_types
+
+    def __init__(self, length):
+        self.length = length
+        super(FixedString, self).__init__()
+
+    def read(self, buf):
+        return read_binary_str_fixed_len(buf, self.length).strip('\x00')
+
+    def write(self, value, buf):
+        try:
+            write_binary_str_fixed_len(value, buf, self.length)
+        except ValueError:
+            raise errors.TooLargeStringSize()
 
 
 class DateColumn(Column):
@@ -194,9 +212,19 @@ class Float64(FloatColumn):
 
 
 all_columns = [
-    DateColumn(), DateTimeColumn(), String(), Float32(), Float64(),
-    Int8Column(), Int16Column(), Int32Column(), Int64Column(),
-    UInt8Column(), UInt16Column(), UInt32Column(), UInt64Column(),
+    DateColumn, DateTimeColumn, String, FixedString, Float32, Float64,
+    Int8Column, Int16Column, Int32Column, Int64Column,
+    UInt8Column, UInt16Column, UInt32Column, UInt64Column,
 ]
 
 column_by_type = {c.ch_type: c for c in all_columns}
+
+
+def get_column_by_spec(spec):
+    if spec.startswith('FixedString'):
+        length = int(spec[12:-1])
+        return FixedString(length)
+
+    else:
+        cls = column_by_type[spec]
+        return cls()

@@ -19,7 +19,7 @@ Features
   * Float32/64
   * [U]Int8/16/32/64
   * Date/DateTime
-  * String
+  * String/FixedString(N)
 
 
 Installation

@@ -19,8 +19,12 @@ size_by_format = {
 
 
 def read_binary_str(f):
-    l = read_varint(f)
-    return f.read(l).decode('utf-8')
+    length = read_varint(f)
+    return f.read(length).decode('utf-8')
+
+
+def read_binary_str_fixed_len(f, length):
+    return f.read(length).decode('utf-8')
 
 
 def _read_one(f):

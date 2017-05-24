@@ -17,6 +17,16 @@ def write_binary_str(text, buf):
     buf.write(text)
 
 
+def write_binary_str_fixed_len(text, buf, length):
+    text = text.encode('utf-8')
+    diff = length - len(text)
+    if diff > 0:
+        text += _byte(0) * diff
+    elif diff < 0:
+        raise ValueError
+    buf.write(text)
+
+
 def write_varint(number, buf):
     """
     Writes integer of variable length using LEB128.
