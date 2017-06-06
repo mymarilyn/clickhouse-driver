@@ -49,7 +49,7 @@ class BaseTestCase(TestCase):
                 'Error during communication. {}'.format(err)
             )
 
-        return out.strip().decode('utf-8')
+        return out.decode('utf-8')
 
     @classmethod
     def create_client(cls):

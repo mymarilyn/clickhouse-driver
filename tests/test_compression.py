@@ -35,7 +35,7 @@ class BaseCompressionTestCase(BaseTestCase):
 
             query = 'SELECT * FROM test'
             inserted = self.emit_cli(query)
-            self.assertEqual(inserted, '2012-10-25\t2012-10-25 14:07:19')
+            self.assertEqual(inserted, '2012-10-25\t2012-10-25 14:07:19\n')
 
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)

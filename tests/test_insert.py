@@ -76,7 +76,7 @@ class ColumnsReadWriteTestCase(BaseTestCase):
 
             query = 'SELECT * FROM test'
             inserted = self.emit_cli(query)
-            self.assertEqual(inserted, '2012-10-25\t2012-10-25 14:07:19')
+            self.assertEqual(inserted, '2012-10-25\t2012-10-25 14:07:19\n')
 
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
@@ -100,7 +100,7 @@ class ColumnsReadWriteTestCase(BaseTestCase):
                     '3.4028235e38\t3.4028235e38\n'
                     'inf\t3.4028235e39\n'
                     '-inf\t3.4028235e39\n'
-                    '1\t2'
+                    '1\t2\n'
                 )
             )
 
@@ -121,7 +121,7 @@ class ColumnsReadWriteTestCase(BaseTestCase):
 
             query = 'SELECT * FROM test'
             inserted = self.emit_cli(query)
-            self.assertEqual(inserted, '44')
+            self.assertEqual(inserted, '44\n')
             inserted = self.client.execute(query)
             self.assertEqual(inserted, [(44, )])
 
@@ -133,7 +133,7 @@ class ColumnsReadWriteTestCase(BaseTestCase):
 
             query = 'SELECT * FROM test'
             inserted = self.emit_cli(query)
-            self.assertEqual(inserted, '-44')
+            self.assertEqual(inserted, '-44\n')
             inserted = self.client.execute(query)
             self.assertEqual(inserted, [(-44, )])
 
@@ -169,7 +169,7 @@ class ColumnsReadWriteTestCase(BaseTestCase):
             self.assertEqual(
                 inserted, (
                     '-10\t-300\t-123581321\t-123581321345589144\t'
-                    '10\t300\t123581321\t123581321345589144'
+                    '10\t300\t123581321\t123581321345589144\n'
                 )
             )
 
@@ -198,7 +198,7 @@ class ColumnsReadWriteTestCase(BaseTestCase):
                 inserted, (
                     '-128\t-32768\t-2147483648\t-9223372036854775808\t'
                     '255\t65535\t4294967295\t18446744073709551615\n'
-                    '127\t32767\t2147483647\t9223372036854775807\t0\t0\t0\t0'
+                    '127\t32767\t2147483647\t9223372036854775807\t0\t0\t0\t0\n'
                 )
             )
 
@@ -216,7 +216,7 @@ class ColumnsReadWriteTestCase(BaseTestCase):
 
             query = 'SELECT * FROM test'
             inserted = self.emit_cli(query)
-            self.assertEqual(inserted, 'яндекс')
+            self.assertEqual(inserted, 'яндекс\n')
 
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
@@ -238,7 +238,7 @@ class ColumnsReadWriteTestCase(BaseTestCase):
                     'bb\\0\\0\n'
                     'ccc\\0\n'
                     'dddd\n'
-                    'я\\0\\0'
+                    'я\\0\\0\n'
                 )
             )
 
