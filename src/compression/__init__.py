@@ -10,7 +10,9 @@ def get_compressor_cls(alg):
         return module.Compressor
 
     except ImportError:
-        raise errors.UnknownCompressionMethod()
+        raise errors.UnknownCompressionMethod(
+            "Unknown compression method: '{}'".format(alg)
+        )
 
 
 def get_decompressor_cls(method_type):
