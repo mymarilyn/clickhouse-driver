@@ -20,8 +20,12 @@ if six.PY3:
     class Error(Exception):
         code = None
 
+        def __init__(self, message=None):
+            self.message = message
+
         def __str__(self):
-            return 'Code: {}.'.format(self.code)
+            message = ' ' + self.message if self.message is not None else ''
+            return 'Code: {}.{}'.format(self.code, message)
 
     class ServerException(Error):
         def __init__(self, message, code, nested=None):
@@ -37,8 +41,12 @@ else:
     class Error(Exception):
         code = None
 
+        def __init__(self, message=None):
+            self.message = message
+
         def __unicode__(self):
-            return 'Code: {}.'.format(self.code)
+            message = ' ' + self.message if self.message is not None else ''
+            return 'Code: {}.{}'.format(self.code, message)
 
         def __str__(self):
             return six.text_type(self).encode('utf-8')

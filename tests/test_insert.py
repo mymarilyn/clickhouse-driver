@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 
 from datetime import date, datetime
 
+from enum import Enum
+
 from .testcase import BaseTestCase
 from src import errors
 from src.errors import ServerException
@@ -266,3 +268,85 @@ class ColumnsReadWriteTestCase(BaseTestCase):
             self.assertEqual(
                 e.exception.code, errors.ErrorCodes.TOO_LARGE_STRING_SIZE
             )
+
+    def test_read_write_enum(self):
+        columns = (
+            "a Enum8('hello' = -1, 'world' = 2), "
+            "b Enum16('foo' = -300, 'bar' = 300)"
+        )
+
+        class A(Enum):
+            hello = -1
+            world = 2
+
+        class B(Enum):
+            foo = -300
+            bar = 300
+
+        data = [(A.hello, B.bar), (A.world, B.foo), (-1, 300), (2, -300)]
+        with self.create_table(columns):
+            self.client.execute(
+                'INSERT INTO test (a, b) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted, (
+                    'hello\tbar\n'
+                    'world\tfoo\n'
+                    'hello\tbar\n'
+                    'world\tfoo\n'
+                )
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(
+                inserted, [
+                    ('hello', 'bar'), ('world', 'foo'),
+                    ('hello', 'bar'), ('world', 'foo')
+                ]
+            )
+
+        columns = "a Enum8('test' = 1, 'me' = 2)"
+        data = [(A.world, )]
+        with self.create_table(columns):
+            with self.assertRaises(errors.LogicalError) as e:
+                self.client.execute(
+                    'INSERT INTO test (a) VALUES', data
+                )
+
+            self.assertEqual(
+                e.exception.code, errors.ErrorCodes.LOGICAL_ERROR
+            )
+
+        columns = "a Enum8('test' = 1, 'me' = 2)"
+        data = [(3, )]
+        with self.create_table(columns):
+            with self.assertRaises(errors.LogicalError) as e:
+                self.client.execute(
+                    'INSERT INTO test (a) VALUES', data
+                )
+
+            self.assertEqual(
+                e.exception.code, errors.ErrorCodes.LOGICAL_ERROR
+            )
+
+        columns = "a Enum8(' \\' t = ' = -1, 'test' = 2)"
+        data = [(-1, ), (" \\' t = ", )]
+        with self.create_table(columns):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted, (
+                    " \\' t = \n"
+                    " \\' t = \n"
+                )
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, [(" \\' t = ", ), (" \\' t = ", )])

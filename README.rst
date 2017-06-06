@@ -20,6 +20,7 @@ Features
   * [U]Int8/16/32/64
   * Date/DateTime
   * String/FixedString(N)
+  * Enum8/16
 
 
 Installation
