@@ -35,6 +35,7 @@ class BaseTestCase(TestCase):
         args = [
             'clickhouse-client',
             '--database', database,
+            '--port', str(cls.port),
             '--query', "{}".format(statement)
         ]
 
