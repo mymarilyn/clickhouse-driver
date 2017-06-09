@@ -10,6 +10,10 @@ from ..reader import read_binary_str, read_binary_str_fixed_len
 from ..writer import write_binary_str, write_binary_str_fixed_len
 from ..util.tzinfo import tzutc
 
+if six.PY3:
+    from queue import Queue
+else:
+    from Queue import Queue
 
 size_by_type = {
     'Date': 2,
@@ -261,11 +265,97 @@ class Enum16Column(EnumColumn):
     format = '<h'
 
 
+class ArrayColumn(Column):
+    py_types = (list, tuple)
+
+    def __init__(self, nested_column):
+        self.size_column = UInt64Column()
+        self.nested_column = nested_column
+        super(ArrayColumn, self).__init__()
+
+    def _write_sizes(self, value, buf):
+        q = Queue()
+        q.put((self, value, 0))
+
+        cur_depth = 0
+        offset = 0
+        while not q.empty():
+            column, value, depth = q.get_nowait()
+
+            if cur_depth != depth:
+                cur_depth = depth
+                offset = 0
+
+            offset += len(value)
+            self.size_column.write(offset, buf)
+
+            nested_column = column.nested_column
+            if isinstance(nested_column, ArrayColumn):
+                for x in value:
+                    q.put((nested_column, x, cur_depth + 1))
+
+    def _write_data(self, value, buf):
+        if isinstance(self.nested_column, ArrayColumn):
+            for x in value:
+                self.nested_column._write_data(x, buf)
+        else:
+            for x in value:
+                self.nested_column.write(x, buf)
+
+    def write(self, value, buf):
+        self._write_sizes(value, buf)
+        self._write_data(value, buf)
+
+    def _read_data(self, size, buf):
+        q = Queue()
+        q.put((self, size, 0))
+
+        data = []
+        slices_series = []
+
+        cur_depth = 0
+        prev_offset = 0
+        slices = []
+        # Read and store info about slices.
+        while not q.empty():
+            column, size, depth = q.get_nowait()
+
+            if cur_depth != depth:
+                cur_depth = depth
+                prev_offset = 0
+                slices_series.append(slices)
+                slices = []
+
+            nested_column = column.nested_column
+            if isinstance(nested_column, ArrayColumn):
+                for _i in range(size):
+                    offset = self.size_column.read(buf)
+                    q.put((nested_column, offset - prev_offset, cur_depth + 1))
+                    slices.append((prev_offset, offset))
+                    prev_offset = offset
+
+            # Read data
+            else:
+                data.extend(nested_column.read(buf) for _i in range(size))
+
+        # Build nested tuple structure.
+        for slices in reversed(slices_series):
+            nested_data = []
+            for slice_from, slice_to in slices:
+                nested_data.append(tuple(data[slice_from:slice_to]))
+            data = nested_data
+
+        return tuple(data)
+
+    def read(self, buf):
+        size = self.size_column.read(buf)
+        return self._read_data(size, buf)
+
+
 all_columns = [
-    DateColumn, DateTimeColumn, String, FixedString, Float32, Float64,
+    DateColumn, DateTimeColumn, String, Float32, Float64,
     Int8Column, Int16Column, Int32Column, Int64Column,
-    UInt8Column, UInt16Column, UInt32Column, UInt64Column,
-    Enum8Column, Enum16Column
+    UInt8Column, UInt16Column, UInt32Column, UInt64Column
 ]
 
 column_by_type = {c.ch_type: c for c in all_columns}
@@ -289,6 +379,11 @@ def create_enum_column(spec):
     return cls(Enum(cls.ch_type, d))
 
 
+def create_array_column(spec):
+    inner = spec[6:-1]
+    return ArrayColumn(get_column_by_spec(inner))
+
+
 def get_column_by_spec(spec):
     if spec.startswith('FixedString'):
         length = int(spec[12:-1])
@@ -296,6 +391,9 @@ def get_column_by_spec(spec):
 
     elif spec.startswith('Enum'):
         return create_enum_column(spec)
+
+    elif spec.startswith('Array'):
+        return create_array_column(spec)
 
     else:
         cls = column_by_type[spec]

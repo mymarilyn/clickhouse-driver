@@ -14,13 +14,14 @@ Features
   * `QuickLZ <http://www.quicklz.com/>`_ (isn't fully tested)
   * `LZ4/LZ4HC <http://www.lz4.org/>`_
   * `ZSTD <https://facebook.github.io/zstd/>`_
-- Basic type support:
+- Basic types support:
 
   * Float32/64
   * [U]Int8/16/32/64
   * Date/DateTime
   * String/FixedString(N)
   * Enum8/16
+  * Array(T)
 
 
 Installation

@@ -350,3 +350,90 @@ class ColumnsReadWriteTestCase(BaseTestCase):
 
             inserted = self.client.execute(query)
             self.assertEqual(inserted, [(" \\' t = ", ), (" \\' t = ", )])
+
+    def test_read_write_array(self):
+        def entuple(lst):
+            return tuple(entuple(x) if isinstance(x, list) else x for x in lst)
+
+        columns = 'a Array(Int32)'
+
+        data = [(tuple(), )]
+        with self.create_table(columns):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted, '[]\n'
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
+
+        data = [(entuple([100, 500]), )]
+        with self.create_table(columns):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted, '[100,500]\n'
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
+
+        columns = "a Array(Array(Enum8('hello' = -1, 'world' = 2)))"
+
+        data = [(entuple([['hello', 'world'], ['hello']]), )]
+        with self.create_table(columns):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted, "[['hello','world'],['hello']]\n"
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
+
+        columns = "a Array(Array(Array(Int32)))"
+        data = [(entuple([
+            [[255, 170], [127, 127, 127, 127, 127], [170, 170, 170], [170]],
+            [[255, 255, 255], [255]], [[255], [255], [255]]
+        ]), )]
+
+        with self.create_table(columns):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted,
+                '[[[255,170],[127,127,127,127,127],[170,170,170],[170]],'
+                '[[255,255,255],[255]],[[255],[255],[255]]]\n'
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
+
+        columns = 'a Array(Int32)'
+        data = [('test', )]
+        with self.create_table(columns):
+            with self.assertRaises(errors.TypeMismatchError) as e:
+                self.client.execute(
+                    'INSERT INTO test (a) VALUES', data
+                )
+
+            self.assertEqual(
+                e.exception.code, errors.ErrorCodes.TYPE_MISMATCH
+            )
