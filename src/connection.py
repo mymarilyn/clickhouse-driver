@@ -111,6 +111,7 @@ class Connection(object):
             )
 
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.socket.settimeout(self.connect_timeout)
             self.socket.connect((self.host, self.port))
             self.connected = True
             self.socket.settimeout(self.send_receive_timeout)
