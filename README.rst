@@ -56,7 +56,7 @@ Usage example:
 
         client = Client('localhost')
 
-        client.execute('SHOW TABLES')
+        print(client.execute('SHOW TABLES'))
 
         client.execute('DROP TABLE IF EXISTS test')
 
@@ -69,6 +69,42 @@ Usage example:
         client.execute('INSERT INTO test (x) VALUES', [[200]])
 
         print(client.execute('SELECT sum(x) FROM test'))
+
+Arrays:
+
+    .. code-block:: python
+
+        client.execute('CREATE TABLE test2 (x Array(Int32)) ENGINE = Memory')
+        client.execute(
+            'INSERT INTO test2 (x) VALUES',
+            [{'x': [10, 20, 30]}, {'x': (11, 21, 31)}]
+        )
+
+        print(client.execute('SELECT * FROM test2'))
+
+Enums:
+
+    .. code-block:: python
+
+        from enum import Enum
+
+        class MyEnum(Enum):
+            foo = 1
+            bar = 2
+
+        client.execute('''
+            CREATE TABLE test3
+            (
+                x Enum8('foo' = 1, 'bar' = 2)
+            ) ENGINE = Memory
+        ''')
+        client.execute(
+            'INSERT INTO test3 (x) VALUES',
+            [{'x': MyEnum.foo}, {'x': 'bar'}, {'x': 1}]
+        )
+
+        print(client.execute('SELECT * FROM test3'))
+
 
 Get client with compression:
 
@@ -87,7 +123,7 @@ CityHash algorithm notes
 Unfortunately ClickHouse server comes with built-in old version of CityHash
 hashing algorithm. That's why we can't use original
 `CityHash <http://pypi.python.org/cityhash>`_ package. Downgraded version of
-this algorithm is placed at `PyPy <https://pypi.python.org/pypi/clickhouse-cityhash>`_.
+this algorithm is placed at `PyPi <https://pypi.python.org/pypi/clickhouse-cityhash>`_.
 
 
 Connection Parameters
