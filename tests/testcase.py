@@ -36,7 +36,7 @@ class BaseTestCase(TestCase):
             'clickhouse-client',
             '--database', database,
             '--port', str(cls.port),
-            '--query', "{}".format(statement)
+            '--query', str(statement)
         ]
 
         process = subprocess.Popen(
