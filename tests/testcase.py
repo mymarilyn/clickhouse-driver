@@ -69,6 +69,7 @@ class BaseTestCase(TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        cls.client.disconnect()
         cls.emit_cli('DROP DATABASE {}'.format(cls.database))
         super(BaseTestCase, cls).tearDownClass()
 
