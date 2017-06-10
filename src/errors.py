@@ -6,6 +6,7 @@ class ErrorCodes(object):
     NO_SUCH_COLUMN_IN_TABLE = 16
     CHECKSUM_DOESNT_MATCH = 40
     LOGICAL_ERROR = 49
+    UNKNOWN_TYPE = 50
     TYPE_MISMATCH = 53
     UNKNOWN_COMPRESSION_METHOD = 89
     TOO_LARGE_STRING_SIZE = 131
@@ -67,6 +68,10 @@ else:
 
 class LogicalError(Error):
     code = ErrorCodes.LOGICAL_ERROR
+
+
+class UnknownTypeError(Error):
+    code = ErrorCodes.UNKNOWN_TYPE
 
 
 class ChecksumDoesntMatchError(Error):

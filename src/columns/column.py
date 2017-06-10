@@ -433,5 +433,9 @@ def get_column_by_spec(spec):
         return create_array_column(spec)
 
     else:
-        cls = column_by_type[spec]
-        return cls()
+        try:
+            cls = column_by_type[spec]
+            return cls()
+
+        except KeyError as e:
+            raise errors.UnknownTypeError('Unknown type {}'.format(e.args[0]))
