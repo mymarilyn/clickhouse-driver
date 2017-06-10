@@ -1,6 +1,5 @@
 from ..block import Block, BlockInfo
-from ..columns.read import read_column
-from ..columns.write import write_column
+from ..columns.service import read_column, write_column
 from ..reader import read_varint, read_binary_str
 from ..writer import write_varint, write_binary_str
 from .. import defines
