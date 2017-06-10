@@ -53,6 +53,16 @@ class Column(object):
     def _write(self, x, buf, fmt):
         return buf.write(struct.pack(fmt, x))
 
+    def write_data(self, data, buf):
+        for x in data:
+            if not isinstance(x, self.py_types):
+                raise TypeError(x)
+
+            self.write(x, buf)
+
+    def read_data(self, rows, buf):
+        return tuple(self.read(buf) for _i in range(rows))
+
 
 class String(Column):
     ch_type = 'String'
@@ -266,12 +276,42 @@ class Enum16Column(EnumColumn):
 
 
 class ArrayColumn(Column):
+    """
+    Nested arrays written in flatten form after information about their
+    sizes (offsets really).
+    One element of array of arrays can be represented as tree:
+    (0 depth)          [[3, 4], [5, 6]]
+                      /               \
+    (1 depth)      [3, 4]           [5, 6]
+                   /    \           /    \
+    (leaf)        3      4         5      6
+
+    Offsets (sizes) written in breadth-first search order. In example above
+    following sequence of offset will be written: 4 -> 2 -> 4
+    1) size of whole array: 4
+    2) size of array 1 in depth=1: 2
+    3) size of array 2 plus size of all array before in depth=1: 2 + 2 = 4
+
+    After sizes info comes flatten data: 3 -> 4 -> 5 -> 6
+    """
     py_types = (list, tuple)
 
     def __init__(self, nested_column):
         self.size_column = UInt64Column()
         self.nested_column = nested_column
+        self._write_depth_0_size = True
         super(ArrayColumn, self).__init__()
+
+    def write_data(self, data, buf):
+        # Column of Array(T) is stored in "compact" format and passed to server
+        # wrapped into another Array without size of wrapper array.
+        self.nested_column = ArrayColumn(self.nested_column)
+        self._write_depth_0_size = False
+        super(ArrayColumn, self).write_data((data, ), buf)
+
+    def read_data(self, rows, buf):
+        self.nested_column = ArrayColumn(self.nested_column)
+        return self._read_data(rows, buf)
 
     def _write_sizes(self, value, buf):
         q = Queue()
@@ -287,7 +327,8 @@ class ArrayColumn(Column):
                 offset = 0
 
             offset += len(value)
-            self.size_column.write(offset, buf)
+            if (cur_depth == 0 and self._write_depth_0_size) or cur_depth > 0:
+                self.size_column.write(offset, buf)
 
             nested_column = column.nested_column
             if isinstance(nested_column, ArrayColumn):
@@ -346,10 +387,6 @@ class ArrayColumn(Column):
             data = nested_data
 
         return tuple(data)
-
-    def read(self, buf):
-        size = self.size_column.read(buf)
-        return self._read_data(size, buf)
 
 
 all_columns = [
