@@ -49,29 +49,36 @@ class Client(object):
         else:
             return True
 
-    def execute(self, query, params=None, with_column_types=False):
+    def execute(self, query, params=None, with_column_types=False,
+                external_tables=None):
         self.connection.force_connect()
 
         try:
             is_insert = params is not None
             if is_insert:
-                return self.process_insert_query(query, params)
+                return self.process_insert_query(
+                    query, params, external_tables=external_tables
+                )
             else:
                 return self.process_ordinary_query(
-                    query, with_column_types=with_column_types)
+                    query, with_column_types=with_column_types,
+                    external_tables=external_tables
+                )
 
         except Exception:
             self.connection.disconnect()
             raise
 
-    def process_ordinary_query(self, query, with_column_types=False):
+    def process_ordinary_query(self, query, with_column_types=False,
+                               external_tables=None):
         self.connection.send_query(query)
-        self.connection.send_external_tables()
+        self.connection.send_external_tables(external_tables or [])
         return self.receive_result(with_column_types=with_column_types)
 
-    def process_insert_query(self, query_without_data, data):
+    def process_insert_query(self, query_without_data, data,
+                             external_tables=None):
         self.connection.send_query(query_without_data)
-        self.connection.send_external_tables()
+        self.connection.send_external_tables(external_tables or [])
 
         sample_block = self.receive_sample_block()
         if sample_block:

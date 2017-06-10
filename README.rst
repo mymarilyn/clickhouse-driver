@@ -14,6 +14,7 @@ Features
   * `QuickLZ <http://www.quicklz.com/>`_ (isn't fully tested)
   * `LZ4/LZ4HC <http://www.lz4.org/>`_
   * `ZSTD <https://facebook.github.io/zstd/>`_
+
 - Basic types support:
 
   * Float32/64
@@ -22,6 +23,8 @@ Features
   * String/FixedString(N)
   * Enum8/16
   * Array(T)
+
+- `External data <https://clickhouse.yandex/reference_en.html#External%20data%20for%20query%20processing>`_ for query processing.
 
 
 Installation
@@ -106,7 +109,7 @@ Enums:
         print(client.execute('SELECT * FROM test3'))
 
 
-Get client with compression:
+Data compression:
 
     .. code-block:: python
 
@@ -115,6 +118,22 @@ Get client with compression:
         client_with_lz4 = Client('localhost', compression=True)
         client_with_lz4 = Client('localhost', compression='lz4')
         client_with_zstd = Client('localhost', compression='zstd')
+
+External data for query processing:
+
+    .. code-block:: python
+
+        tables = [{
+            'name': 'ext',
+            'structure': [('x', 'Int32'), ('y', 'Array(Int32)')],
+            'data': [
+                {'x': 100, 'y': [2, 4, 6, 8]},
+                {'x': 500, 'y': [1, 3, 5, 7]},
+            ]
+        }]
+        rv = self.client.execute(
+            'SELECT sum(x) FROM ext', external_tables=tables)
+        print(rv)
 
 
 CityHash algorithm notes

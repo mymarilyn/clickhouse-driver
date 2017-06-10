@@ -355,8 +355,12 @@ class Connection(object):
 
         self.fout.flush()
 
-    def send_external_tables(self):
-        # Tables data empty
+    def send_external_tables(self, tables):
+        for table in tables:
+            block = Block(table['structure'], table['data'])
+            self.send_data(block, table_name=table['name'])
+
+        # Empty block, end of data transfer.
         self.send_data(Block())
 
     @contextmanager
