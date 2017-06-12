@@ -63,7 +63,8 @@ setup(
         'clickhouse_driver': 'src',
     },
     install_requires=[
-        'six'
+        'six',
+        'enum34'
     ],
     extras_require={
         'quicklz': ['pyquicklz', 'clickhouse-cityhash==1.0.2'],
