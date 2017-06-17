@@ -38,7 +38,7 @@ class Client(object):
         packet = self.connection.receive_packet()
 
         if packet.type == ServerPacketTypes.EXCEPTION:
-            return False
+            raise packet.exception
 
         elif packet.type == ServerPacketTypes.END_OF_STREAM:
             return False
