@@ -1,10 +1,10 @@
 import six
 
 from .. import errors
-from .base import Column, size_by_type
+from .base import FormatColumn, size_by_type
 
 
-class IntColumn(Column):
+class IntColumn(FormatColumn):
     py_types = six.integer_types
 
     def __init__(self):
@@ -18,16 +18,10 @@ class IntColumn(Column):
         return sign * (abs(value) & self.mask)
 
     def read(self, buf):
-        return self._read(buf, self.format)
-
-    def _read_null(self, buf):
-        self.read(buf)
+        return self._read(buf)
 
     def write(self, value, buf):
-        self._write(self._prepare(value), buf, self.format)
-
-    def _write_null(self, buf):
-        self.write(0, buf)
+        self._write(self._prepare(value), buf)
 
 
 class UIntColumn(IntColumn):

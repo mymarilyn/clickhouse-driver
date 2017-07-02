@@ -46,14 +46,8 @@ class Column(object):
     def _write_null(self, buf):
         raise NotImplementedError
 
-    def _read(self, buf, fmt):
-        return struct.unpack(fmt, buf.read(self.size))[0]
-
     def _read_nulls_map(self, rows, buf):
         return tuple(read_binary_uint8(buf) for _i in range(rows))
-
-    def _write(self, x, buf, fmt):
-        return buf.write(struct.pack(fmt, x))
 
     def _write_nulls_map(self, data, buf):
         for x in data:
@@ -64,14 +58,17 @@ class Column(object):
             self._write_nulls_map(data, buf)
 
         for x in data:
-            if self.nullable and x is None:
-                self._write_null(buf)
+            self.write_item(x, buf)
 
-            else:
-                if not isinstance(x, self.py_types):
-                    raise TypeError(x)
+    def write_item(self, x, buf):
+        if self.nullable and x is None:
+            self._write_null(buf)
 
-                self.write(x, buf)
+        else:
+            if not isinstance(x, self.py_types):
+                raise TypeError(x)
+
+            self.write(x, buf)
 
     def read_data(self, rows, buf):
         if self.nullable:
@@ -80,6 +77,24 @@ class Column(object):
             nulls_map = [0] * rows
 
         return tuple(
-            self._read_null(buf) if is_null else self.read(buf)
-            for is_null in nulls_map
+            self.read_item(buf, is_null=is_null) for is_null in nulls_map
         )
+
+    def read_item(self, buf, is_null=False):
+        return self._read_null(buf) if is_null else self.read(buf)
+
+
+class FormatColumn(Column):
+    format = None
+
+    def _read(self, buf):
+        return struct.unpack(self.format, buf.read(self.size))[0]
+
+    def _write(self, x, buf):
+        return buf.write(struct.pack(self.format, x))
+
+    def _read_null(self, buf):
+        self._read(buf)
+
+    def _write_null(self, buf):
+        self._write(0, buf)

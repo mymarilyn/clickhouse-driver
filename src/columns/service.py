@@ -53,7 +53,7 @@ def write_column(column_spec, data, buf):
     try:
         column.write_data(data, buf)
 
-    # TODO: Raised different error. This mutes abuses python native error.
+    # TODO: Raise different error. This error abuses python native.
     except TypeError as e:
         raise errors.TypeMismatchError(
             'Type mismatch in VALUES section. '

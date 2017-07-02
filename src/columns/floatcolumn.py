@@ -1,18 +1,15 @@
 import struct
 
-from .base import Column
+from .base import FormatColumn
 
 
-class FloatColumn(Column):
+class FloatColumn(FormatColumn):
     py_types = (float, int)
     format = None
     inf = float('inf')
 
     def read(self, buf):
-        return self._read(buf, self.format)
-
-    def _read_null(self, buf):
-        self.read(buf)
+        return self._read(buf)
 
     def write(self, value, buf):
         try:
@@ -24,9 +21,6 @@ class FloatColumn(Column):
             x = struct.pack(self.format, value)
 
         buf.write(x)
-
-    def _write_null(self, buf):
-        self.write(0, buf)
 
 
 class Float32(FloatColumn):

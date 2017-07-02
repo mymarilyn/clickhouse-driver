@@ -25,7 +25,6 @@ class String(Column):
 
 class FixedString(String):
     ch_type = 'FixedString'
-    py_types = six.string_types
 
     def __init__(self, length):
         self.length = length

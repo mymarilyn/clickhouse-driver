@@ -1,10 +1,10 @@
 from calendar import timegm
 from datetime import date
 
-from .base import Column
+from .base import FormatColumn
 
 
-class DateColumn(Column):
+class DateColumn(FormatColumn):
     ch_type = 'Date'
     # TODO: string
     py_types = (date, )
@@ -13,15 +13,9 @@ class DateColumn(Column):
     offset = 24 * 3600
 
     def read(self, buf):
-        x = self._read(buf, self.format)
+        x = self._read(buf)
         return date.fromtimestamp(x * self.offset)
-
-    def _read_null(self, buf):
-        self._read(buf, self.format)
 
     def write(self, value, buf):
         x = timegm(value.timetuple()) // self.offset
-        self._write(x, buf, self.format)
-
-    def _write_null(self, buf):
-        self._write(0, buf, self.format)
+        self._write(x, buf)

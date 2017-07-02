@@ -81,7 +81,7 @@ class ArrayColumn(Column):
             if isinstance(nested_column, ArrayColumn):
                 for x in value:
                     q.put((nested_column, x, cur_depth + 1))
-                nulls_map.extend(value)
+                    nulls_map.append(None if x is None else False)
 
     def _write_data(self, value, buf):
         if self.nullable:
@@ -92,11 +92,7 @@ class ArrayColumn(Column):
                 self.nested_column._write_data(x, buf)
         else:
             for x in value:
-                if x is None:
-                    self.nested_column._write_null(buf)
-
-                else:
-                    self.nested_column.write(x, buf)
+                self.nested_column.write_item(x, buf)
 
     def _write_nulls_data(self, value, buf):
         if self.nullable:
@@ -159,11 +155,8 @@ class ArrayColumn(Column):
             # Read data
             else:
                 for i in range(size):
-                    if nulls_map[i + prev_offset]:
-                        x = nested_column._read_null(buf)
-                    else:
-                        x = nested_column.read(buf)
-                    data.append(x)
+                    is_null = nulls_map[i + prev_offset]
+                    data.append(nested_column.read_item(buf, is_null=is_null))
 
                 prev_offset += size
 
