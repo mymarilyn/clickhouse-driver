@@ -13,11 +13,17 @@ class String(Column):
     def read(self, buf):
         return read_binary_str(buf)
 
+    def _read_null(self, buf):
+        self.read(buf)
+
     def write(self, value, buf):
         write_binary_str(value, buf)
 
+    def _write_null(self, buf):
+        self.write('', buf)
 
-class FixedString(Column):
+
+class FixedString(String):
     ch_type = 'FixedString'
     py_types = six.string_types
 

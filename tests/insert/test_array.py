@@ -80,7 +80,7 @@ class ArrayTestCase(BaseTestCase):
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
 
-    def test_nesed_of_nested(self):
+    def test_nested_of_nested(self):
         columns = 'a Array(Array(Array(Int32))), b Array(Array(Array(Int32)))'
         data = [(self.entuple([
             [[255, 170], [127, 127, 127, 127, 127], [170, 170, 170], [170]],

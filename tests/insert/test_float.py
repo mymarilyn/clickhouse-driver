@@ -32,3 +32,17 @@ class FloatTestCase(BaseTestCase):
                 (-float('inf'), 3.4028235e39),
                 (1, 2)
             ])
+
+    def test_nullable(self):
+        with self.create_table('a Nullable(Float32)'):
+            data = [(None, ), (0.5, ), (None, ), (1.5, )]
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, '\\N\n0.5\n\\N\n1.5\n')
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)

@@ -102,3 +102,27 @@ class EnumTestCase(BaseTestCase):
 
             inserted = self.client.execute(query)
             self.assertEqual(inserted, [(" \\' t = ", ), (" \\' t = ", )])
+
+    def test_nullable(self):
+        columns = "a Nullable(Enum8('hello' = -1, 'world' = 2))"
+
+        data = [(None, ), (A.hello, ), (None, ), (A.world, )]
+        with self.create_table(columns):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted, (
+                    '\\N\nhello\n\\N\nworld\n'
+                )
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(
+                inserted, [
+                    (None, ), ('hello', ), (None, ), ('world', ),
+                ]
+            )

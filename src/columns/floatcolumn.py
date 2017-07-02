@@ -11,6 +11,9 @@ class FloatColumn(Column):
     def read(self, buf):
         return self._read(buf, self.format)
 
+    def _read_null(self, buf):
+        self.read(buf)
+
     def write(self, value, buf):
         try:
             x = struct.pack(self.format, value)
@@ -21,6 +24,9 @@ class FloatColumn(Column):
             x = struct.pack(self.format, value)
 
         buf.write(x)
+
+    def _write_null(self, buf):
+        self.write(0, buf)
 
 
 class Float32(FloatColumn):

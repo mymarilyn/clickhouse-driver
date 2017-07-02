@@ -8,6 +8,7 @@ from .intcolumn import (
     Int8Column, Int16Column, Int32Column, Int64Column,
     UInt8Column, UInt16Column, UInt32Column, UInt64Column
 )
+from .nullablecolumn import create_nullable_column
 from .stringcolumn import String, FixedString
 
 
@@ -29,6 +30,9 @@ def get_column_by_spec(spec):
     elif spec.startswith('Array'):
         return create_array_column(spec, get_column_by_spec)
 
+    elif spec.startswith('Nullable'):
+        return create_nullable_column(spec, get_column_by_spec)
+
     else:
         try:
             cls = column_by_type[spec]
@@ -49,6 +53,7 @@ def write_column(column_spec, data, buf):
     try:
         column.write_data(data, buf)
 
+    # TODO: Raised different error. This mutes abuses python native error.
     except TypeError as e:
         raise errors.TypeMismatchError(
             'Type mismatch in VALUES section. '

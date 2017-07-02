@@ -5,6 +5,7 @@ import six
 class ErrorCodes(object):
     NO_SUCH_COLUMN_IN_TABLE = 16
     CHECKSUM_DOESNT_MATCH = 40
+    ILLEGAL_COLUMN = 44
     LOGICAL_ERROR = 49
     UNKNOWN_TYPE = 50
     TYPE_MISMATCH = 53

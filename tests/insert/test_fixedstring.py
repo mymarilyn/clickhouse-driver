@@ -46,3 +46,20 @@ class FixedStringTestCase(BaseTestCase):
                 self.client.execute(
                     'INSERT INTO test (a) VALUES', data
                 )
+
+    def test_nullable(self):
+        with self.create_table('a Nullable(FixedString(10))'):
+            data = [(None, ), ('test', ), (None, ), ('nullable', )]
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted,
+                '\\N\ntest\\0\\0\\0\\0\\0\\0\n\\N\nnullable\\0\\0\n'
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)

@@ -91,3 +91,17 @@ class IntTestCase(BaseTestCase):
 
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
+
+    def test_nullable(self):
+        with self.create_table('a Nullable(Int32)'):
+            data = [(2, ), (None, ), (4, ), (None, ), (8, )]
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, '2\n\\N\n4\n\\N\n8\n')
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)

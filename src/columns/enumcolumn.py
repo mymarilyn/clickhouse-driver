@@ -18,6 +18,9 @@ class EnumColumn(IntColumn):
         value = super(EnumColumn, self).read(buf)
         return self.enum_cls(value).name
 
+    def _read_null(self, buf):
+        self._read(buf, self.format)
+
     def write(self, value, buf):
         source_value = value.name if isinstance(value, Enum) else value
         enum_cls = self.enum_cls
@@ -41,6 +44,9 @@ class EnumColumn(IntColumn):
             )
 
         super(EnumColumn, self).write(value, buf)
+
+    def _write_null(self, buf):
+        self._write(0, buf, self.format)
 
 
 class Enum8Column(EnumColumn):

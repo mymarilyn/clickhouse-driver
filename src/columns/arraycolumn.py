@@ -40,11 +40,15 @@ class ArrayColumn(Column):
         # Column of Array(T) is stored in "compact" format and passed to server
         # wrapped into another Array without size of wrapper array.
         self.nested_column = ArrayColumn(self.nested_column)
+        self.nested_column.nullable = self.nullable
+        self.nullable = False
         self._write_depth_0_size = False
         super(ArrayColumn, self).write_data((data, ), buf)
 
     def read_data(self, rows, buf):
         self.nested_column = ArrayColumn(self.nested_column)
+        self.nested_column.nullable = self.nullable
+        self.nullable = False
         return self._read_data(rows, buf)
 
     def _write_sizes(self, value, buf):
@@ -53,12 +57,21 @@ class ArrayColumn(Column):
 
         cur_depth = 0
         offset = 0
+        nulls_map = []
+
         while not q.empty():
             column, value, depth = q.get_nowait()
 
             if cur_depth != depth:
                 cur_depth = depth
                 offset = 0
+                if column.nullable:
+                    self._write_nulls_map(nulls_map, buf)
+
+                nulls_map = []
+
+            if column.nullable:
+                value = value or []
 
             offset += len(value)
             if (cur_depth == 0 and self._write_depth_0_size) or cur_depth > 0:
@@ -68,17 +81,37 @@ class ArrayColumn(Column):
             if isinstance(nested_column, ArrayColumn):
                 for x in value:
                     q.put((nested_column, x, cur_depth + 1))
+                nulls_map.extend(value)
 
     def _write_data(self, value, buf):
+        if self.nullable:
+            value = value or []
+
         if isinstance(self.nested_column, ArrayColumn):
             for x in value:
                 self.nested_column._write_data(x, buf)
         else:
             for x in value:
-                self.nested_column.write(x, buf)
+                if x is None:
+                    self.nested_column._write_null(buf)
+
+                else:
+                    self.nested_column.write(x, buf)
+
+    def _write_nulls_data(self, value, buf):
+        if self.nullable:
+            value = value or []
+
+        if isinstance(self.nested_column, ArrayColumn):
+            for x in value:
+                self.nested_column._write_nulls_data(x, buf)
+        else:
+            if self.nested_column.nullable:
+                self.nested_column._write_nulls_map(value, buf)
 
     def write(self, value, buf):
         self._write_sizes(value, buf)
+        self._write_nulls_data(value, buf)
         self._write_data(value, buf)
 
     def _read_data(self, size, buf):
@@ -91,17 +124,31 @@ class ArrayColumn(Column):
         cur_depth = 0
         prev_offset = 0
         slices = []
+
+        if self.nested_column.nullable:
+            nulls_map = self._read_nulls_map(size, buf)
+        else:
+            nulls_map = [0] * size
+
         # Read and store info about slices.
         while not q.empty():
             column, size, depth = q.get_nowait()
 
+            nested_column = column.nested_column
+
             if cur_depth != depth:
                 cur_depth = depth
+
+                slices_series.append((slices, nulls_map))
+
+                if nested_column.nullable:
+                    nulls_map = self._read_nulls_map(prev_offset, buf)
+                else:
+                    nulls_map = [0] * prev_offset
+
                 prev_offset = 0
-                slices_series.append(slices)
                 slices = []
 
-            nested_column = column.nested_column
             if isinstance(nested_column, ArrayColumn):
                 for _i in range(size):
                     offset = self.size_column.read(buf)
@@ -111,13 +158,23 @@ class ArrayColumn(Column):
 
             # Read data
             else:
-                data.extend(nested_column.read(buf) for _i in range(size))
+                for i in range(size):
+                    if nulls_map[i + prev_offset]:
+                        x = nested_column._read_null(buf)
+                    else:
+                        x = nested_column.read(buf)
+                    data.append(x)
+
+                prev_offset += size
 
         # Build nested tuple structure.
-        for slices in reversed(slices_series):
+        for slices, nulls_map in reversed(slices_series):
             nested_data = []
-            for slice_from, slice_to in slices:
-                nested_data.append(tuple(data[slice_from:slice_to]))
+            for (slice_from, slice_to), is_null in zip(slices, nulls_map):
+                nested_data.append(
+                    None if is_null else tuple(data[slice_from:slice_to])
+                )
+
             data = nested_data
 
         return tuple(data)

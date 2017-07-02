@@ -20,8 +20,14 @@ class IntColumn(Column):
     def read(self, buf):
         return self._read(buf, self.format)
 
+    def _read_null(self, buf):
+        self.read(buf)
+
     def write(self, value, buf):
         self._write(self._prepare(value), buf, self.format)
+
+    def _write_null(self, buf):
+        self.write(0, buf)
 
 
 class UIntColumn(IntColumn):

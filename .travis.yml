@@ -10,7 +10,7 @@ cache: pip
 services:
   - docker
 before_install:
-  - docker run -d -p 127.0.0.1:9000:9000 --name test-clickhouse-server --ulimit nofile=262144:262144 yandex/clickhouse-server:1.1.54159
+  - docker run -d -p 127.0.0.1:9000:9000 --name test-clickhouse-server --ulimit nofile=262144:262144 yandex/clickhouse-server:1.1.54236
   - docker ps -a
   - echo "deb http://repo.yandex.ru/clickhouse/`cat /etc/*release | grep _CODENAME | head -n 1 | cut -d '=' -f 2` stable main" | sudo tee /etc/apt/sources.list.d/clickhouse.list
   - sudo apt-get update
