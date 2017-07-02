@@ -8,6 +8,7 @@ from .intcolumn import (
     Int8Column, Int16Column, Int32Column, Int64Column,
     UInt8Column, UInt16Column, UInt32Column, UInt64Column
 )
+from .nullcolumn import NullColumn
 from .nullablecolumn import create_nullable_column
 from .stringcolumn import String, FixedString
 
@@ -15,7 +16,8 @@ from .stringcolumn import String, FixedString
 column_by_type = {c.ch_type: c for c in [
     DateColumn, DateTimeColumn, String, Float32, Float64,
     Int8Column, Int16Column, Int32Column, Int64Column,
-    UInt8Column, UInt16Column, UInt32Column, UInt64Column
+    UInt8Column, UInt16Column, UInt32Column, UInt64Column,
+    NullColumn
 ]}
 
 
