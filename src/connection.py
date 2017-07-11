@@ -323,14 +323,13 @@ class Connection(object):
         self.block_out.write(block)
         self.block_out.reset()
 
-    def send_query(self, query):
+    def send_query(self, query, query_id=None):
         if not self.connected:
             self.connect()
 
         write_varint(ClientPacketTypes.QUERY, self.fout)
 
-        query_id = ''
-        write_binary_str(query_id, self.fout)
+        write_binary_str(query_id or '', self.fout)
 
         revision = self.server_info.revision
         if revision >= defines.DBMS_MIN_REVISION_WITH_CLIENT_INFO:

@@ -171,6 +171,19 @@ You can also specify timeouts via:
 - *sync_request_timeout*. Default is ``5`` seconds.
 
 
+Miscellaneous
+-------------
+
+Specifying `query_id`:
+
+    .. code-block:: python
+
+        from uuid import uuid1
+
+        query_id = str(uuid1())
+        print(client.execute('SHOW TABLES', query_id=query_id))
+
+
 License
 =======
 
