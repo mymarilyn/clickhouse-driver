@@ -183,6 +183,14 @@ Specifying `query_id`:
         query_id = str(uuid1())
         print(client.execute('SHOW TABLES', query_id=query_id))
 
+Overriding default query settings:
+
+    .. code-block:: python
+
+        # Set lower priority to query and limit max number threads to execute the request.
+        settings = {'max_threads': 2, 'priority': 10}
+        print(client.execute('SHOW TABLES', settings=settings))
+
 
 License
 =======

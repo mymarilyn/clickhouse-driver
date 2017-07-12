@@ -50,7 +50,7 @@ class Client(object):
             return True
 
     def execute(self, query, params=None, with_column_types=False,
-                external_tables=None, query_id=None):
+                external_tables=None, query_id=None, settings=None):
         self.connection.force_connect()
 
         try:
@@ -58,13 +58,13 @@ class Client(object):
             if is_insert:
                 return self.process_insert_query(
                     query, params, external_tables=external_tables,
-                    query_id=query_id
+                    query_id=query_id, settings=settings
                 )
             else:
                 return self.process_ordinary_query(
                     query, with_column_types=with_column_types,
                     external_tables=external_tables,
-                    query_id=query_id
+                    query_id=query_id, settings=settings
                 )
 
         except Exception:
@@ -72,15 +72,23 @@ class Client(object):
             raise
 
     def process_ordinary_query(self, query, with_column_types=False,
-                               external_tables=None, query_id=None):
-        self.connection.send_query(query, query_id=query_id)
-        self.connection.send_external_tables(external_tables or [])
+                               external_tables=None, query_id=None,
+                               settings=None):
+        self.connection.send_query(
+            query,
+            query_id=query_id, settings=settings
+        )
+        self.connection.send_external_tables(external_tables)
         return self.receive_result(with_column_types=with_column_types)
 
     def process_insert_query(self, query_without_data, data,
-                             external_tables=None, query_id=None):
-        self.connection.send_query(query_without_data, query_id=query_id)
-        self.connection.send_external_tables(external_tables or [])
+                             external_tables=None, query_id=None,
+                             settings=None):
+        self.connection.send_query(
+            query_without_data,
+            query_id=query_id, settings=settings
+        )
+        self.connection.send_external_tables(external_tables)
 
         sample_block = self.receive_sample_block()
         if sample_block:

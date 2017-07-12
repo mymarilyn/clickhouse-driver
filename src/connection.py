@@ -13,6 +13,7 @@ from .queryprocessingstage import QueryProcessingStage
 from .reader import read_varint, read_binary_str
 from .readhelpers import read_exception
 from .compression import get_compressor_cls
+from .settings.writer import write_settings
 from .writer import write_varint, write_binary_str
 
 
@@ -323,7 +324,7 @@ class Connection(object):
         self.block_out.write(block)
         self.block_out.reset()
 
-    def send_query(self, query, query_id=None):
+    def send_query(self, query, query_id=None, settings=None):
         if not self.connected:
             self.connect()
 
@@ -338,7 +339,7 @@ class Connection(object):
 
             client_info.write(revision, self.fout)
 
-        write_binary_str('', self.fout)  # query settings
+        write_settings(settings, self.fout)
 
         write_varint(QueryProcessingStage.COMPLETE, self.fout)
         write_varint(self.compression, self.fout)
@@ -355,7 +356,7 @@ class Connection(object):
         self.fout.flush()
 
     def send_external_tables(self, tables):
-        for table in tables:
+        for table in tables or []:
             block = Block(table['structure'], table['data'])
             self.send_data(block, table_name=table['name'])
 
