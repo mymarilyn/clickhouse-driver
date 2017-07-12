@@ -1,3 +1,6 @@
+env:
+  - VERSION=1.1.54236
+
 language: python
 python:
   - "2.7"
@@ -10,11 +13,16 @@ cache: pip
 services:
   - docker
 before_install:
-  - docker run -d -p 127.0.0.1:9000:9000 --name test-clickhouse-server --ulimit nofile=262144:262144 yandex/clickhouse-server:1.1.54236
+  - docker run -d -p 127.0.0.1:9000:9000 --name test-clickhouse-server --ulimit nofile=262144:262144 yandex/clickhouse-server:$VERSION
+  - docker run -d --entrypoint "/bin/sh" --name test-clickhouse-client --link test-clickhouse-server:clickhouse-server yandex/clickhouse-client:$VERSION -c 'while :; do sleep 1; done'
   - docker ps -a
-  - echo "deb http://repo.yandex.ru/clickhouse/`cat /etc/*release | grep _CODENAME | head -n 1 | cut -d '=' -f 2` stable main" | sudo tee /etc/apt/sources.list.d/clickhouse.list
-  - sudo apt-get update
-  - sudo apt-get install --allow-unauthenticated -y clickhouse-client
+  # Faking clickhouse-client real comminitation with container via docker exec.
+  - echo -e '#!/bin/bash\n\ndocker exec test-clickhouse-client clickhouse-client "$@"' | sudo tee /usr/local/bin/clickhouse-client > /dev/null
+  - sudo chmod +x /usr/local/bin/clickhouse-client
+  # Overriding setup.cfg. Set host=clickhouse-server
+  - echo -e '[db]\nhost=clickhouse-server\nport=9000\ndatabase=test\nuser=default\npassword=\ncompression=lz4,lz4hc,zstd' > setup.cfg
+  # Make host think that clickhouse-server is localhost
+  - echo '127.0.0.1 clickhouse-server' | sudo tee /etc/hosts > /dev/null
 install:
   pip install flake8
 before_script:
