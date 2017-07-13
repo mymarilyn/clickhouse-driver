@@ -46,6 +46,12 @@ class Client(object):
         elif packet.type == ServerPacketTypes.DATA:
             return packet.block
 
+        elif packet.type == ServerPacketTypes.TOTALS:
+            return packet.block
+
+        elif packet.type == ServerPacketTypes.EXTREMES:
+            return packet.block
+
         else:
             return True
 
