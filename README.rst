@@ -23,9 +23,11 @@ Features
   * String/FixedString(N)
   * Enum8/16
   * Array(T)
+  * Nullable(T)
 
-- `External data <https://clickhouse.yandex/reference_en.html#External%20data%20for%20query%20processing>`_ for query processing.
+- `External data <https://clickhouse.yandex/docs/en/single/index.html#external-data-for-query-processing>`_ for query processing.
 
+- `Query settings <https://clickhouse.yandex/docs/en/single/index.html#document-operations/settings/index>`_.
 
 Installation
 ------------
@@ -131,7 +133,7 @@ External data for query processing:
                 {'x': 500, 'y': [1, 3, 5, 7]},
             ]
         }]
-        rv = self.client.execute(
+        rv = client.execute(
             'SELECT sum(x) FROM ext', external_tables=tables)
         print(rv)
 
