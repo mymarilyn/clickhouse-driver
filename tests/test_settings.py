@@ -1,4 +1,4 @@
-
+from src.errors import ServerException, ErrorCodes
 from tests.testcase import BaseTestCase
 
 
@@ -49,3 +49,25 @@ class SettingTestCase(BaseTestCase):
             "WHERE name = 'max_threads'",
             settings=settings
         )
+
+
+class LimitsTestCase(BaseTestCase):
+    def test_max_result_rows_apply(self):
+        settings = {'max_result_rows': 5}
+
+        with self.assertRaises(ServerException) as e:
+            self.client.execute(
+                'SELECT arrayJoin(range(10))',
+                settings=settings
+            )
+        self.assertEqual(e.exception.code, ErrorCodes.TOO_MUCH_ROWS)
+
+        settings = {'max_result_rows': 5, 'result_overflow_mode': 'break'}
+        rv = self.client.execute(
+            'SELECT arrayJoin(range(10))',
+            settings=settings
+        )
+        self.assertEqual(len(rv), 10)
+
+        rv = self.client.execute('SELECT arrayJoin(range(10))')
+        self.assertEqual(len(rv), 10)

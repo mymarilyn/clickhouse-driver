@@ -110,3 +110,68 @@ settings = {
     'fallback_to_stale_replicas_for_distributed_queries': SettingBool,
     'distributed_ddl_allow_replicated_alter': SettingBool,
 }
+
+
+# See https://github.com/yandex/ClickHouse/blob/master/dbms/src/
+# Interpreters/Limits.h for all choices.
+limits = {
+    'max_rows_to_read': SettingUInt64,
+    'max_bytes_to_read': SettingUInt64,
+    'read_overflow_mode': SettingString,
+
+    'max_rows_to_group_by': SettingUInt64,
+    'group_by_overflow_mode': SettingString,
+    'max_bytes_before_external_group_by': SettingUInt64,
+
+    'max_rows_to_sort': SettingUInt64,
+    'max_bytes_to_sort': SettingUInt64,
+    'sort_overflow_mode': SettingString,
+    'max_bytes_before_external_sort': SettingUInt64,
+
+    'max_result_rows': SettingUInt64,
+    'max_result_bytes': SettingUInt64,
+    'result_overflow_mode': SettingString,
+
+    'max_execution_time': SettingSeconds,
+    'timeout_overflow_mode': SettingString,
+
+    'min_execution_speed': SettingUInt64,
+
+    'timeout_before_checking_execution_speed': SettingSeconds,
+
+    'max_columns_to_read': SettingUInt64,
+    'max_temporary_columns': SettingUInt64,
+    'max_temporary_non_const_columns': SettingUInt64,
+
+    'max_subquery_depth': SettingUInt64,
+    'max_pipeline_depth': SettingUInt64,
+    'max_ast_depth': SettingUInt64,
+    'max_ast_elements': SettingUInt64,
+
+    'readonly': SettingUInt64,
+
+    'max_rows_in_set': SettingUInt64,
+    'max_bytes_in_set': SettingUInt64,
+    'set_overflow_mode': SettingString,
+
+    'max_rows_in_join': SettingUInt64,
+    'max_bytes_in_join': SettingUInt64,
+    'join_overflow_mode': SettingString,
+
+    'max_rows_to_transfer': SettingUInt64,
+    'max_bytes_to_transfer': SettingUInt64,
+    'transfer_overflow_mode': SettingString,
+
+    'max_rows_in_distinct': SettingUInt64,
+    'max_bytes_in_distinct': SettingUInt64,
+    'distinct_overflow_mode': SettingString,
+
+    'max_memory_usage': SettingUInt64,
+
+    'max_memory_usage_for_user': SettingUInt64,
+
+    'max_memory_usage_for_all_queries': SettingUInt64,
+
+    'max_network_bandwidth': SettingUInt64,
+    'max_network_bytes': SettingUInt64
+}
