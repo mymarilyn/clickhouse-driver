@@ -24,8 +24,17 @@ before_install:
   # Make host think that clickhouse-server is localhost
   - echo '127.0.0.1 clickhouse-server' | sudo tee /etc/hosts > /dev/null
 install:
-  pip install flake8
+  pip install flake8 coveralls
 before_script:
   flake8 .
 script:
-  python setup.py test
+  # Modern coverage doesn't work with 3.2
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "3.2" ]]; then
+      python setup.py test;
+    else
+      coverage run --source=src setup.py test;
+    fi
+after_success:
+  - if [[ "$TRAVIS_PYTHON_VERSION" != "3.2" ]]; then
+      coveralls;
+    fi
