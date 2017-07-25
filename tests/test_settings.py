@@ -50,6 +50,10 @@ class SettingTestCase(BaseTestCase):
             settings=settings
         )
 
+    def test_unknown_setting(self):
+        settings = {'unknown_setting': 100500}
+        self.client.execute('SHOW tables', settings=settings)
+
 
 class LimitsTestCase(BaseTestCase):
     def test_max_result_rows_apply(self):

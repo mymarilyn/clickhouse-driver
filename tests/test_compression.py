@@ -1,9 +1,11 @@
 from datetime import date, datetime
-from src.compression import get_compressor_cls
+from unittest import TestCase
 
-from .testcase import BaseTestCase, file_config
 from src import errors
 from src.client import Client
+from src.compression import get_compressor_cls
+from src.compression.lz4 import Compressor
+from .testcase import BaseTestCase, file_config
 
 
 class BaseCompressionTestCase(BaseTestCase):
@@ -49,6 +51,12 @@ class BaseCompressionTestCase(BaseTestCase):
 
 class QuickLZReadWriteTestCase(BaseCompressionTestCase):
     compression = 'quicklz'
+
+
+class DefaultCompressionReadWriteTestCase(TestCase):
+    def test_default_compression(self):
+        client = Client('localhost', compression=True)
+        self.assertEqual(client.connection.compressor_cls, Compressor)
 
 
 class LZ4ReadWriteTestCase(BaseCompressionTestCase):

@@ -54,8 +54,10 @@ class BaseTestCase(TestCase):
         return out.decode('utf-8')
 
     @classmethod
-    def create_client(cls):
-        return Client(cls.host, cls.port, cls.database, cls.user, cls.password)
+    def create_client(cls, **kwargs):
+        return Client(
+            cls.host, cls.port, cls.database, cls.user, cls.password, **kwargs
+        )
 
     @classmethod
     def setUpClass(cls):

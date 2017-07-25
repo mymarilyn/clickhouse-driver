@@ -74,6 +74,7 @@ setup(
     test_suite='nose.collector',
     tests_require=[
         'nose',
+        'mock',
         'pyquicklz', 'lz4', 'zstd',
         'clickhouse-cityhash==1.0.2'
     ],

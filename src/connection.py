@@ -132,7 +132,7 @@ class Connection(object):
         except socket.timeout as e:
             self.disconnect()
             raise errors.SocketTimeoutError(
-                '{} ({})'.format(e.message, self.get_description())
+                '{} ({})'.format(e.strerror, self.get_description())
             )
 
         except socket.error as e:
