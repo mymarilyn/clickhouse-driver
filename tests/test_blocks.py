@@ -1,3 +1,4 @@
+from src.errors import ServerException
 from tests.testcase import BaseTestCase
 
 
@@ -30,3 +31,29 @@ class BlocksTestCase(BaseTestCase):
             'SELECT CAST(1 AS Int32) AS x', with_column_types=True
         )
         self.assertEqual(rv, ([(1,)], [('x', 'Int32')]))
+
+
+class ProgressTestCase(BaseTestCase):
+    def test_select_with_progress(self):
+        progress = self.client.execute_with_progress('SELECT 2')
+        self.assertEqual(list(progress), [(1, 0)])
+        self.assertEqual(progress.get_result(), [(2,)])
+
+    def test_select_with_progress_error(self):
+        with self.assertRaises(ServerException):
+            progress = self.client.execute_with_progress('SELECT error')
+            list(progress)
+
+    def test_select_with_progress_no_progress_unwind(self):
+        progress = self.client.execute_with_progress('SELECT 2')
+        self.assertEqual(progress.get_result(), [(2,)])
+
+    def test_select_with_progress_cancel(self):
+        self.client.execute_with_progress('SELECT 2')
+        rv = self.client.cancel()
+        self.assertEqual(rv, [(2,)])
+
+    def test_select_with_progress_cancel_with_column_types(self):
+        self.client.execute_with_progress('SELECT CAST(2 AS Int32) as x')
+        rv = self.client.cancel(with_column_types=True)
+        self.assertEqual(rv, ([(2,)], [('x', 'Int32')]))

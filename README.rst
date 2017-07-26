@@ -32,6 +32,9 @@ Features
 
 - `Query settings <https://clickhouse.yandex/docs/en/single/index.html#document-operations/settings/index>`_.
 
+- Query progress information.
+
+
 Installation
 ------------
 
@@ -139,6 +142,29 @@ External data for query processing:
         rv = client.execute(
             'SELECT sum(x) FROM ext', external_tables=tables)
         print(rv)
+
+
+Query progress information:
+
+    .. code-block:: python
+
+        from datetime import datetime
+
+        progress = client.execute_with_progress('LONG AND COMPLICATED QUERY')
+
+        timeout = 20
+        started_at = datetime.now()
+
+        for num_rows, total_rows in progress:
+            done = float(num_rows) / total_rows if total_rows else total_rows
+            now = datetime.now()
+            # Cancel query if it takes more than 20 seconds to process 50% of rows.
+            if (now - started_at).total_seconds() > timeout and done < 0.5:
+                client.cancel()
+                break
+        else:
+            rv = progress.get_result()
+            print(rv)
 
 
 CityHash algorithm notes

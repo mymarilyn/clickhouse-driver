@@ -24,7 +24,7 @@ before_install:
   # Make host think that clickhouse-server is localhost
   - echo '127.0.0.1 clickhouse-server' | sudo tee /etc/hosts > /dev/null
 install:
-  pip install flake8 coveralls
+  pip install flake8 flake8-print coveralls
 before_script:
   flake8 .
 script:

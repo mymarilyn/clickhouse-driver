@@ -1,11 +1,11 @@
 from contextlib import contextmanager
 import subprocess
+from unittest import TestCase
 
 from six import PY3
 
-from unittest import TestCase
-
 from src.client import Client
+from tests import log
 
 
 if PY3:
@@ -13,6 +13,7 @@ if PY3:
 else:
     import ConfigParser as configparser
 
+log.configure()
 
 file_config = configparser.ConfigParser()
 file_config.read(['setup.cfg'])
