@@ -31,33 +31,19 @@ class NullableTestCase(BaseTestCase):
     def test_nullable_inside_nullable(self):
         columns = 'a Nullable(Nullable(Int32))'
 
-        data = [(3, )]
-        with self.create_table(columns):
-            with self.assertRaises(errors.ServerException) as e:
-                self.client.execute('INSERT INTO test (a) VALUES', data)
+        with self.assertRaises(errors.ServerException) as e:
+            self.client.execute(
+                'CREATE TABLE test ({}) ''ENGINE = Memory'.format(columns)
+            )
 
-            self.assertEqual(e.exception.code, ErrorCodes.ILLEGAL_COLUMN)
+        self.assertEqual(e.exception.code, ErrorCodes.ILLEGAL_TYPE_OF_ARGUMENT)
 
     def test_nullable_array(self):
         columns = 'a Nullable(Array(Nullable(Array(Nullable(Int32)))))'
 
-        data = [
-            (self.entuple([[1]]), ),
-            (None, ),
-            (self.entuple([None]), ),
-            (self.entuple([[4]]), ),
-            (self.entuple([[None]]), )
-        ]
-        with self.create_table(columns):
+        with self.assertRaises(errors.ServerException) as e:
             self.client.execute(
-                'INSERT INTO test (a) VALUES', data
+                'CREATE TABLE test ({}) ''ENGINE = Memory'.format(columns)
             )
 
-            query = 'SELECT * FROM test'
-            inserted = self.emit_cli(query)
-            self.assertEqual(
-                inserted, '[[1]]\n\\N\n[NULL]\n[[4]]\n[[NULL]]\n'
-            )
-
-            inserted = self.client.execute(query)
-            self.assertEqual(inserted, data)
+        self.assertEqual(e.exception.code, ErrorCodes.ILLEGAL_TYPE_OF_ARGUMENT)
