@@ -17,6 +17,7 @@ class ErrorCodes(object):
     SERVER_REVISION_IS_TOO_OLD = 197
     SOCKET_TIMEOUT = 209
     NETWORK_ERROR = 210
+    CANNOT_PARSE_UUID = 376
 
 
 if six.PY3:
@@ -106,3 +107,7 @@ class UnexpectedPacketFromServerError(Error):
 
 class UnknownPacketFromServerError(Error):
     code = ErrorCodes.UNKNOWN_PACKET_FROM_SERVER
+
+
+class CannotParseUuidError(Error):
+    code = ErrorCodes.CANNOT_PARSE_UUID

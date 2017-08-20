@@ -1,0 +1,4 @@
+
+
+class ColumnTypeMismatchException(Exception):
+    pass

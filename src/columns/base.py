@@ -2,6 +2,7 @@ import struct
 
 from ..reader import read_binary_uint8
 from ..writer import write_binary_uint8
+from .exceptions import ColumnTypeMismatchException
 
 
 size_by_type = {
@@ -66,7 +67,7 @@ class Column(object):
 
         else:
             if not isinstance(x, self.py_types):
-                raise TypeError(x)
+                raise ColumnTypeMismatchException(x)
 
             self.write(x, buf)
 

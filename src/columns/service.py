@@ -2,6 +2,7 @@ from .. import errors
 from .arraycolumn import create_array_column
 from .datecolumn import DateColumn
 from .datetimecolumn import DateTimeColumn
+from .exceptions import ColumnTypeMismatchException
 from .enumcolumn import create_enum_column
 from .floatcolumn import Float32, Float64
 from .intcolumn import (
@@ -11,13 +12,14 @@ from .intcolumn import (
 from .nullcolumn import NullColumn
 from .nullablecolumn import create_nullable_column
 from .stringcolumn import String, FixedString
+from .uuidcolumn import UUIDColumn
 
 
 column_by_type = {c.ch_type: c for c in [
     DateColumn, DateTimeColumn, String, Float32, Float64,
     Int8Column, Int16Column, Int32Column, Int64Column,
     UInt8Column, UInt16Column, UInt32Column, UInt64Column,
-    NullColumn
+    NullColumn, UUIDColumn
 ]}
 
 
@@ -55,8 +57,7 @@ def write_column(column_spec, data, buf):
     try:
         column.write_data(data, buf)
 
-    # TODO: Raise different error. This error abuses python native.
-    except TypeError as e:
+    except ColumnTypeMismatchException as e:
         raise errors.TypeMismatchError(
             'Type mismatch in VALUES section. '
             'Expected {} got {}'.format(column_spec, type(e.args[0]))
