@@ -13,8 +13,13 @@ class PacketsTestCase(BaseTestCase):
         return Client(cls.host, cls.port, cls.database, 'wrong_user')
 
     def test_exception_on_hello_packet(self):
-        with self.assertRaises(errors.ServerException):
+        with self.assertRaises(errors.ServerException) as e:
             self.client.execute('SHOW TABLES')
+
+        # Simple exception formatting checks
+        exc = e.exception
+        self.assertIn('Code:', str(exc))
+        self.assertIn('Stack trace:', str(exc))
 
 
 class SocketErrorTestCase(BaseTestCase):
