@@ -31,10 +31,12 @@ class IntTestCase(BaseTestCase):
     def test_uint_type_mismatch(self):
         data = [(-1, )]
         with self.create_table('a UInt8'):
-            with self.assertRaises(errors.TypeMismatchError):
+            with self.assertRaises(errors.TypeMismatchError) as e:
                 self.client.execute(
                     'INSERT INTO test (a) VALUES', data
                 )
+
+            self.assertIn('-1 for column "a"', str(e.exception))
 
     def test_all_sizes(self):
         columns = (

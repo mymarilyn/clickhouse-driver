@@ -1,6 +1,6 @@
 import six
 
-from .. import errors
+from .exceptions import ColumnTypeMismatchException
 from .base import FormatColumn, size_by_type
 
 
@@ -27,10 +27,7 @@ class IntColumn(FormatColumn):
 class UIntColumn(IntColumn):
     def write(self, value, buf):
         if value < 0:
-            raise errors.TypeMismatchError(
-                'Type mismatch in VALUES section. '
-                'Expected {} got {}'.format(self.ch_type, value)
-            )
+            raise ColumnTypeMismatchException(value)
 
         super(UIntColumn, self).write(value, buf)
 

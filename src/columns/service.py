@@ -60,7 +60,7 @@ def write_column(column_name, column_spec, data, buf):
     except ColumnTypeMismatchException as e:
         raise errors.TypeMismatchError(
             'Type mismatch in VALUES section. '
-            'Expected {} got {} for column "{}".'.format(
-                column_spec, type(e.args[0]), column_name
+            'Expected {} got {}: {} for column "{}".'.format(
+                column_spec, type(e.args[0]), e.args[0], column_name
             )
         )
