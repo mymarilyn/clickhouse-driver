@@ -7,6 +7,7 @@
 - Code coverage.
 - ClickHouse server and driver version upped to 54276.
 - Changelog.
+- Added column name to `TypeMismatchError`.
 
 ## [0.0.5] - 2017-07-16
 ### Added

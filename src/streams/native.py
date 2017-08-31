@@ -30,7 +30,7 @@ class BlockOutputStream(object):
             write_binary_str(col_type, self.fout)
 
             if rows:
-                write_column(col_type, block.data[i], self.fout)
+                write_column(col_name, col_type, block.data[i], self.fout)
 
         self.finalize()
 

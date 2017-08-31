@@ -51,7 +51,7 @@ def read_column(column_spec, rows, buf):
     return column.read_data(rows, buf)
 
 
-def write_column(column_spec, data, buf):
+def write_column(column_name, column_spec, data, buf):
     column = get_column_by_spec(column_spec)
 
     try:
@@ -60,5 +60,7 @@ def write_column(column_spec, data, buf):
     except ColumnTypeMismatchException as e:
         raise errors.TypeMismatchError(
             'Type mismatch in VALUES section. '
-            'Expected {} got {}'.format(column_spec, type(e.args[0]))
+            'Expected {} got {} for column "{}".'.format(
+                column_spec, type(e.args[0]), column_name
+            )
         )
