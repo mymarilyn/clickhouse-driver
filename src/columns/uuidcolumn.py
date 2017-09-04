@@ -3,9 +3,9 @@ from uuid import UUID
 import six
 
 from .. import errors
+from ..reader import read_binary_uint128
+from ..writer import write_binary_uint128
 from .base import FormatColumn
-from src.reader import read_binary_uint128
-from src.writer import write_binary_uint128
 
 
 class UUIDColumn(FormatColumn):
