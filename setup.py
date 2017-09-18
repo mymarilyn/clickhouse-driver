@@ -3,6 +3,8 @@ from os import path
 
 from setuptools import setup, find_packages
 
+from src import __version__ as version
+
 here = path.abspath(path.dirname(__file__))
 
 with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
@@ -10,7 +12,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='clickhouse-driver',
-    version='0.0.5',
+    version=version,
 
     description='Python driver with native interface for ClickHouse',
     long_description=long_description,

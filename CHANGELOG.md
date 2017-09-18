@@ -9,12 +9,16 @@
 - Changelog.
 - Added column name to `TypeMismatchError`.
 - Query progress information.
+- Version of package.
+
+### Fixed
+- socket.timeout error handling on connect.
 
 ## [0.0.5] - 2017-07-16
 ### Added
 - Nullable(T) type.
 - Return data from TOTALS and EXTREMES packets.
-- Query setting.
+- Query settings.
 - query_id execution option.
 - NULL type.
 - Raise exception on SELECT queries.
