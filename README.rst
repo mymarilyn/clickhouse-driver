@@ -27,6 +27,7 @@ Features
   * Enum8/16
   * Array(T)
   * Nullable(T)
+  * UUID
 
 - `External data <https://clickhouse.yandex/docs/en/single/index.html#external-data-for-query-processing>`_ for query processing.
 

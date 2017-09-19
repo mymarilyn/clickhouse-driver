@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+
+## [0.0.6] - 2017-09-19
 ### Added
 - UUID type.
 - Query limits settings.
@@ -51,7 +53,8 @@
 - Date/DateTime types.
 - String types.
 
-[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.5...HEAD
+[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.6...HEAD
+[0.0.6]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.5...0.0.6
 [0.0.5]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.4...0.0.5
 [0.0.4]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.3...0.0.4
 [0.0.3]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.2...0.0.3
