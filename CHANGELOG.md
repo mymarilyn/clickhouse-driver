@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed
+- Version detection in setup.py
 
 ## [0.0.6] - 2017-09-19
 ### Added

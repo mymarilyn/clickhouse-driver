@@ -1,18 +1,30 @@
+import os
+import re
 from codecs import open
-from os import path
 
 from setuptools import setup, find_packages
 
-from src import __version__ as version
+here = os.path.abspath(os.path.dirname(__file__))
 
-here = path.abspath(path.dirname(__file__))
 
-with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
+def read_version():
+    regexp = re.compile('^VERSION\W*=\W*\(([^\(\)]*)\)')
+    init_py = os.path.join(here, 'src', '__init__.py')
+    with open(init_py, encoding='utf-8') as f:
+        for line in f:
+            match = regexp.match(line)
+            if match is not None:
+                return match.group(1).replace(', ', '.')
+        else:
+            raise RuntimeError('Cannot find version in src/__init__.py')
+
+
+with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
     name='clickhouse-driver',
-    version=version,
+    version=read_version(),
 
     description='Python driver with native interface for ClickHouse',
     long_description=long_description,
