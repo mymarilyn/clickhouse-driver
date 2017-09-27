@@ -49,10 +49,6 @@ class BaseCompressionTestCase(BaseTestCase):
         self.run_simple()
 
 
-class QuickLZReadWriteTestCase(BaseCompressionTestCase):
-    compression = 'quicklz'
-
-
 class DefaultCompressionReadWriteTestCase(TestCase):
     def test_default_compression(self):
         client = Client('localhost', compression=True)

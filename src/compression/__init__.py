@@ -16,10 +16,7 @@ def get_compressor_cls(alg):
 
 
 def get_decompressor_cls(method_type):
-    if method_type < 0x80:
-        module = importlib.import_module('.quicklz', __name__)
-
-    elif method_type == CompressionMethodByte.LZ4:
+    if method_type == CompressionMethodByte.LZ4:
         module = importlib.import_module('.lz4', __name__)
 
     elif method_type == CompressionMethodByte.ZSTD:

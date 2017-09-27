@@ -81,7 +81,6 @@ setup(
         'enum34'
     ],
     extras_require={
-        'quicklz': ['pyquicklz', 'clickhouse-cityhash==1.0.2'],
         'lz4': ['lz4', 'clickhouse-cityhash==1.0.2'],
         'zstd': ['zstd', 'clickhouse-cityhash==1.0.2']
     },
@@ -89,7 +88,7 @@ setup(
     tests_require=[
         'nose',
         'mock',
-        'pyquicklz', 'lz4', 'zstd',
+        'lz4', 'zstd',
         'clickhouse-cityhash==1.0.2'
     ],
 )

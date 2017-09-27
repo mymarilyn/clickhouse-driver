@@ -82,7 +82,6 @@ class Compression(object):
 
 
 class CompressionMethod(object):
-    QUICK_LZ = 0
     LZ4 = 1
     LZ4HC = 2
     ZSTD = 3

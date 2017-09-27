@@ -14,7 +14,6 @@ Features
 
 - Compression support:
 
-  * `QuickLZ <http://www.quicklz.com/>`_ (isn't fully tested)
   * `LZ4/LZ4HC <http://www.lz4.org/>`_
   * `ZSTD <https://facebook.github.io/zstd/>`_
 
@@ -190,7 +189,6 @@ The first parameter *host* is required. There are some optional parameters:
 - *compression*. Whether or not use compression. Default is ``False``.Possible choices:
 
   * ``True`` is equivalent to ``'lz4'``.
-  * ``'quicklz'``.
   * ``'lz4'``.
   * ``'lz4hc'`` high-compression variant of ``'lz4'``.
   * ``'zstd'``.
