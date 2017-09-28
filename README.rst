@@ -9,6 +9,8 @@ ClickHouse Python Driver with native (TCP) interface support.
 .. image:: https://travis-ci.org/mymarilyn/clickhouse-driver.svg?branch=master
    :target: https://travis-ci.org/mymarilyn/clickhouse-driver
 
+Asynchronous wrapper is available here: https://github.com/mymarilyn/aioch
+
 Features
 --------
 
