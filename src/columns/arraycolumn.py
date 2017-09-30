@@ -15,10 +15,10 @@ class ArrayColumn(Column):
     sizes (offsets really).
     One element of array of arrays can be represented as tree:
     (0 depth)          [[3, 4], [5, 6]]
-                      /               \
+                      |               |
     (1 depth)      [3, 4]           [5, 6]
-                   /    \           /    \
-    (leaf)        3      4         5      6
+                   |    |           |    |
+    (leaf)        3     4          5     6
 
     Offsets (sizes) written in breadth-first search order. In example above
     following sequence of offset will be written: 4 -> 2 -> 4

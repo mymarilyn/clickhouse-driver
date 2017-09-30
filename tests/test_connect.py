@@ -10,19 +10,6 @@ from tests.testcase import BaseTestCase
 
 
 class PacketsTestCase(BaseTestCase):
-    @classmethod
-    def create_client(cls):
-        return Client(cls.host, cls.port, cls.database, 'wrong_user')
-
-    def test_exception_on_hello_packet(self):
-        with self.assertRaises(errors.ServerException) as e:
-            self.client.execute('SHOW TABLES')
-
-        # Simple exception formatting checks
-        exc = e.exception
-        self.assertIn('Code:', str(exc))
-        self.assertIn('Stack trace:', str(exc))
-
     def test_packets_to_str(self):
         self.assertEqual(ClientPacketTypes.to_str(2), 'Data')
         self.assertEqual(ClientPacketTypes.to_str(42), 'Unknown packet')
@@ -31,7 +18,20 @@ class PacketsTestCase(BaseTestCase):
         self.assertEqual(ClientPacketTypes.to_str(42), 'Unknown packet')
 
 
-class SocketErrorTestCase(BaseTestCase):
+class ConnectTestCase(BaseTestCase):
+    def test_exception_on_hello_packet(self):
+        client = Client(self.host, self.port, self.database, 'wrong_user')
+
+        with self.assertRaises(errors.ServerException) as e:
+            client.execute('SHOW TABLES')
+
+        client.disconnect()
+
+        # Simple exception formatting checks
+        exc = e.exception
+        self.assertIn('Code:', str(exc))
+        self.assertIn('Stack trace:', str(exc))
+
     def test_network_error(self):
         client = Client('bad-address')
 
@@ -67,6 +67,9 @@ class SocketErrorTestCase(BaseTestCase):
                 # New socket should be created.
                 rv = self.client.execute('SELECT 1')
                 self.assertEqual(rv, [(1, )])
+
+                # Close newly created socket.
+                connection.socket.close()
 
     def test_socket_error_on_ping(self):
         self.client.execute('SELECT 1')

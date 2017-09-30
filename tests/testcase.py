@@ -56,10 +56,10 @@ class BaseTestCase(TestCase):
 
         return out.decode('utf-8')
 
-    @classmethod
-    def create_client(cls, **kwargs):
+    def create_client(self, **kwargs):
         return Client(
-            cls.host, cls.port, cls.database, cls.user, cls.password, **kwargs
+            self.host, self.port, self.database, self.user, self.password,
+            **kwargs
         )
 
     @classmethod
@@ -69,13 +69,18 @@ class BaseTestCase(TestCase):
         )
         cls.emit_cli('CREATE DATABASE {}'.format(cls.database), 'default')
 
-        cls.client = cls.create_client()
-
         super(BaseTestCase, cls).setUpClass()
+
+    def setUp(self):
+        super(BaseTestCase, self).setUp()
+        self.client = self.create_client()
+
+    def tearDown(self):
+        self.client.disconnect()
+        super(BaseTestCase, self).tearDown()
 
     @classmethod
     def tearDownClass(cls):
-        cls.client.disconnect()
         cls.emit_cli('DROP DATABASE {}'.format(cls.database))
         super(BaseTestCase, cls).tearDownClass()
 

@@ -6,6 +6,7 @@
 
 ### Changed
 - Handling only socket-related errors on ping. Errors are logged with `WARNING` level.
+- Client is created per one test.
 
 ### Fixed
 - Version detection in setup.py.
