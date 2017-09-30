@@ -2,7 +2,8 @@
 
 ## [Unreleased]
 ### Fixed
-- Version detection in setup.py
+- Version detection in setup.py.
+- Error handling on socket.shutdown.
 
 ### Removed
 - QuickLZ support

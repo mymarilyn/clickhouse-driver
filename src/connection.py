@@ -155,7 +155,14 @@ class Connection(object):
 
     def disconnect(self):
         if self.connected:
-            self.socket.shutdown(socket.SHUT_RDWR)
+            # There can be errors on shutdown.
+            # We need to close socket and reset state even if it happens.
+            try:
+                self.socket.shutdown(socket.SHUT_RDWR)
+
+            except socket.error as e:
+                logger.warning('Error on socket shutdown: %s', e)
+
             self.socket.close()
 
         self.reset_state()
