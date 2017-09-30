@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- Configurable logging level in tests.
+
 ### Fixed
 - Version detection in setup.py.
 - Error handling on socket.shutdown.

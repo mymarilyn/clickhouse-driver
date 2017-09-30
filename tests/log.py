@@ -1,7 +1,7 @@
 from logging.config import dictConfig
 
 
-def configure():
+def configure(level):
     dictConfig({
         'version': 1,
         'disable_existing_loggers': False,
@@ -12,7 +12,7 @@ def configure():
         },
         'handlers': {
             'default': {
-                'level': 'ERROR',
+                'level': level,
                 'formatter': 'standard',
                 'class': 'logging.StreamHandler',
             },
@@ -20,7 +20,7 @@ def configure():
         'loggers': {
             '': {
                 'handlers': ['default'],
-                'level': 'ERROR',
+                'level': level,
                 'propagate': True
             },
         }

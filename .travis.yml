@@ -20,7 +20,7 @@ before_install:
   - echo -e '#!/bin/bash\n\ndocker exec test-clickhouse-client clickhouse-client "$@"' | sudo tee /usr/local/bin/clickhouse-client > /dev/null
   - sudo chmod +x /usr/local/bin/clickhouse-client
   # Overriding setup.cfg. Set host=clickhouse-server
-  - echo -e '[db]\nhost=clickhouse-server\nport=9000\ndatabase=test\nuser=default\npassword=\ncompression=lz4,lz4hc,zstd' > setup.cfg
+  - sed -i 's/^host=localhost$/host=clickhouse-server/' setup.cfg
   # Make host think that clickhouse-server is localhost
   - echo '127.0.0.1 clickhouse-server' | sudo tee /etc/hosts > /dev/null
 install:

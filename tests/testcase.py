@@ -13,15 +13,17 @@ if PY3:
 else:
     import ConfigParser as configparser
 
-log.configure()
 
 file_config = configparser.ConfigParser()
 file_config.read(['setup.cfg'])
 
 
+log.configure(file_config.get('log', 'level'))
+
+
 class BaseTestCase(TestCase):
     host = file_config.get('db', 'host')
-    port = int(file_config.get('db', 'port'))
+    port = file_config.getint('db', 'port')
     database = file_config.get('db', 'database')
     user = file_config.get('db', 'user')
     password = file_config.get('db', 'password')
