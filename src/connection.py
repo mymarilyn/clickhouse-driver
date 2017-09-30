@@ -229,8 +229,15 @@ class Connection(object):
                     msg = self.unexpected_packet_message('Pong', packet_type)
                     raise errors.UnexpectedPacketFromServerError(msg)
 
-            except Exception as e:
-                logger.exception(e)
+            except errors.Error:
+                raise
+
+            except (socket.error, EOFError) as e:
+                # It's just a warning now.
+                # Current connection will be closed, new will be established.
+                logger.warning(
+                    'Error on %s ping: %s', self.get_description(), e
+                )
                 return False
 
         return True

@@ -4,6 +4,9 @@
 ### Added
 - Configurable logging level in tests.
 
+### Changed
+- Handling only socket-related errors on ping. Errors are logged with `WARNING` level.
+
 ### Fixed
 - Version detection in setup.py.
 - Error handling on socket.shutdown.
