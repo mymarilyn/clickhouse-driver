@@ -6,6 +6,7 @@
 - Full error codes list.
 - Force check clickhouse-cityhash is installed if compression is used.
 - `Client` can be directly imported from package.
+- `insert_block_size` parameter - maximum rows in block (default is 1048576).
 
 ### Changed
 - Handling only socket-related errors on ping. Errors are logged with `WARNING` level.

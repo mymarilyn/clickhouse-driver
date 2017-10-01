@@ -1,7 +1,8 @@
+from . import errors, defines
 from .block import Block
 from .connection import Connection
-from . import errors
 from .protocol import ServerPacketTypes
+from .util.helpers import chunks
 
 
 class QueryResult(object):
@@ -52,6 +53,9 @@ class Progress(object):
 
 class Client(object):
     def __init__(self, *args, **kwargs):
+        self.insert_block_size = kwargs.pop(
+            'insert_block_size', defines.DEFAULT_INSERT_BLOCK_SIZE
+        )
         self.connection = Connection(*args, **kwargs)
         super(Client, self).__init__()
 
@@ -228,10 +232,11 @@ class Client(object):
             raise errors.UnexpectedPacketFromServerError(message)
 
     def send_data(self, sample_block, data):
-        Block.check_data_sanity(sample_block.columns_with_types, data)
+        for chunk in chunks(data, self.insert_block_size):
+            Block.check_data_sanity(sample_block.columns_with_types, chunk)
 
-        block = Block(sample_block.columns_with_types, data)
-        self.connection.send_data(block)
+            block = Block(sample_block.columns_with_types, chunk)
+            self.connection.send_data(block)
 
         # Empty block means end of data.
         self.connection.send_data(Block())
