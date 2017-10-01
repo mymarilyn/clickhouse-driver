@@ -51,12 +51,6 @@ class BaseCompressionTestCase(BaseTestCase):
         self.run_simple()
 
 
-class DefaultCompressionReadWriteTestCase(TestCase):
-    def test_default_compression(self):
-        client = Client('localhost', compression=True)
-        self.assertEqual(client.connection.compressor_cls, Compressor)
-
-
 class LZ4ReadWriteTestCase(BaseCompressionTestCase):
     compression = 'lz4'
 
@@ -69,8 +63,12 @@ class ZSTDReadWriteTestCase(BaseCompressionTestCase):
     compression = 'zstd'
 
 
-class UnknownCompressionTestCase(BaseCompressionTestCase):
-    def test(self):
+class MiscCompressionTestCase(TestCase):
+    def test_default_compression(self):
+        client = Client('localhost', compression=True)
+        self.assertEqual(client.connection.compressor_cls, Compressor)
+
+    def test_unknown_compressor(self):
         with self.assertRaises(errors.UnknownCompressionMethod) as e:
             get_compressor_cls('hello')
 

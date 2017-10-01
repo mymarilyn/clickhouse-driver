@@ -1,6 +1,11 @@
 from io import BytesIO
 
-from clickhouse_driver.util.cityhash import CityHash128
+try:
+    from clickhouse_driver.util.cityhash import CityHash128
+except ImportError:
+    raise RuntimeError(
+        'Package clickhouse-cityhash is required to use compression'
+    )
 
 from .. import errors
 
