@@ -14,6 +14,7 @@
 ### Fixed
 - Version detection in setup.py.
 - Error handling on socket.shutdown.
+- Install `enum34` only if required.
 
 ### Removed
 - QuickLZ support

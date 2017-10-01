@@ -1,10 +1,18 @@
 import os
+import sys
 import re
 from codecs import open
 
 from setuptools import setup, find_packages
 
 here = os.path.abspath(os.path.dirname(__file__))
+
+
+PY34 = sys.version_info[0:2] >= (3, 4)
+
+install_requires = []
+if not PY34:
+    install_requires.append('enum34')
 
 
 def read_version():
@@ -76,9 +84,7 @@ setup(
     package_dir={
         'clickhouse_driver': 'src',
     },
-    install_requires=[
-        'enum34'
-    ],
+    install_requires=install_requires,
     extras_require={
         'lz4': ['lz4', 'clickhouse-cityhash==1.0.2'],
         'zstd': ['zstd', 'clickhouse-cityhash==1.0.2']
