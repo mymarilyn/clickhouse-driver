@@ -1,16 +1,15 @@
 from uuid import UUID
 
-import six
-
 from .. import errors
 from ..reader import read_binary_uint128
 from ..writer import write_binary_uint128
+from ..util import compat
 from .base import FormatColumn
 
 
 class UUIDColumn(FormatColumn):
     ch_type = 'UUID'
-    py_types = six.string_types + (UUID, )
+    py_types = compat.string_types + (UUID, )
 
     def read(self, buf):
         i = self._read(buf)

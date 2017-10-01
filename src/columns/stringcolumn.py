@@ -1,14 +1,14 @@
-import six
 
 from .. import errors
 from ..reader import read_binary_str, read_binary_str_fixed_len
 from ..writer import write_binary_str, write_binary_str_fixed_len
+from ..util import compat
 from .base import Column
 
 
 class String(Column):
     ch_type = 'String'
-    py_types = six.string_types
+    py_types = compat.string_types
 
     def read(self, buf):
         return read_binary_str(buf)

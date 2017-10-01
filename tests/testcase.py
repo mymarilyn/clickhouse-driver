@@ -2,13 +2,12 @@ from contextlib import contextmanager
 import subprocess
 from unittest import TestCase
 
-from six import PY3
-
 from src.client import Client
+from src.util import compat
 from tests import log
 
 
-if PY3:
+if compat.PY3:
     import configparser
 else:
     import ConfigParser as configparser

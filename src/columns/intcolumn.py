@@ -1,11 +1,11 @@
-import six
 
+from ..util import compat
 from .exceptions import ColumnTypeMismatchException
 from .base import FormatColumn, size_by_type
 
 
 class IntColumn(FormatColumn):
-    py_types = six.integer_types
+    py_types = compat.integer_types
 
     def __init__(self):
         super(IntColumn, self).__init__()

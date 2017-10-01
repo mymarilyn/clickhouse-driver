@@ -15,6 +15,7 @@
 
 ### Removed
 - QuickLZ support
+- six dependency
 
 ## [0.0.6] - 2017-09-19
 ### Added

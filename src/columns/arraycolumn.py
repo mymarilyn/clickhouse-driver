@@ -1,9 +1,9 @@
-import six
 
+from ..util import compat
 from .base import Column
 from .intcolumn import UInt64Column
 
-if six.PY3:
+if compat.PY3:
     from queue import Queue
 else:
     from Queue import Queue

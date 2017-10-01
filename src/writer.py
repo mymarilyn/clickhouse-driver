@@ -1,9 +1,9 @@
 import struct
 
-from six import PY3
+from .util import compat
 
 
-if PY3:
+if compat.PY3:
     def _byte(b):
         return bytes((b, ))
 else:

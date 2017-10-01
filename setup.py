@@ -77,7 +77,6 @@ setup(
         'clickhouse_driver': 'src',
     },
     install_requires=[
-        'six',
         'enum34'
     ],
     extras_require={

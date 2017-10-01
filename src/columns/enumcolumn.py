@@ -1,13 +1,12 @@
 from enum import Enum
 
-import six
-
 from .. import errors
+from ..util import compat
 from .intcolumn import IntColumn
 
 
 class EnumColumn(IntColumn):
-    py_types = (Enum, ) + six.integer_types + six.string_types
+    py_types = (Enum, ) + compat.integer_types + compat.string_types
     format = '<b'
 
     def __init__(self, enum_cls):
@@ -24,7 +23,7 @@ class EnumColumn(IntColumn):
 
         # Check real enum value
         try:
-            if isinstance(source_value, six.string_types):
+            if isinstance(source_value, compat.string_types):
                 value = enum_cls[source_value].value
             else:
                 value = enum_cls(source_value).value

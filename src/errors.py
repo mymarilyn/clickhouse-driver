@@ -1,5 +1,5 @@
 
-import six
+from .util import compat
 
 
 class ErrorCodes(object):
@@ -384,7 +384,7 @@ class ErrorCodes(object):
     UNKNOWN_EXCEPTION = 1002
 
 
-if six.PY3:
+if compat.PY3:
     class Error(Exception):
         code = None
 
@@ -417,7 +417,7 @@ else:
             return 'Code: {}.{}'.format(self.code, message)
 
         def __str__(self):
-            return six.text_type(self).encode('utf-8')
+            return compat.text_type(self).encode('utf-8')
 
     class ServerException(Error):
         def __init__(self, message, code, nested=None):
@@ -430,7 +430,7 @@ else:
             return 'Code: {}.{}\n{}'.format(self.code, nested, self.message)
 
         def __str__(self):
-            return six.text_type(self).encode('utf-8')
+            return compat.text_type(self).encode('utf-8')
 
 
 class LogicalError(Error):
