@@ -5,6 +5,7 @@
 - Configurable logging level in tests.
 - Full error codes list.
 - Force check clickhouse-cityhash is installed if compression is used.
+- `Client` can be directly imported from package.
 
 ### Changed
 - Handling only socket-related errors on ping. Errors are logged with `WARNING` level.
