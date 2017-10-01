@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Added
 - Configurable logging level in tests.
+- Full error codes list.
 
 ### Changed
 - Handling only socket-related errors on ping. Errors are logged with `WARNING` level.
