@@ -30,7 +30,8 @@ class BlockInfo(object):
 
 
 class Block(object):
-    def __init__(self, columns_with_types=None, data=None, info=None):
+    def __init__(self, columns_with_types=None, data=None, info=None,
+                 check_sanity=False):
         self.columns_with_types = columns_with_types or []
         self.data = data or []
 
@@ -42,28 +43,31 @@ class Block(object):
             if isinstance(data[0], dict):
                 data = [tuple(row[c] for c in columns) for row in data]
 
-            self.data = list(zip(*data))
+            if check_sanity:
+                # For checking that each row has the same length.
+                first_row_len = len(data[0])
+                first_j = first_row_len - 1
+
+                columns_expected = len(columns_with_types)
+                if columns_expected != first_row_len:
+                    msg = 'Expected {} columns, got {}'.format(
+                        columns_expected, first_row_len)
+                    raise ValueError(msg)
+
+            self.data = [[None] * len(data) for row in data[0]]
+            for i, row in enumerate(data):
+                j = 0
+                for j, x in enumerate(row):
+                    self.data[j][i] = x
+
+                if check_sanity and j != first_j:
+                    raise ValueError('Different rows length')
+
+            self.data = [tuple(x) for x in self.data]
 
         self.info = info or BlockInfo()
 
         super(Block, self).__init__()
-
-    @classmethod
-    def check_data_sanity(cls, columns_with_types, data):
-        if not data:
-            return
-
-        # Check each row has the same length.
-        row_len = len(data[0])
-        for row in data:
-            if len(row) != row_len:
-                raise ValueError('Different rows length')
-
-        columns_expected = len(columns_with_types)
-        if columns_expected != row_len:
-            raise ValueError(
-                'Expected {} columns, got {}'.format(columns_expected, row_len)
-            )
 
     @property
     def columns(self):

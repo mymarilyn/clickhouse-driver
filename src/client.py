@@ -233,9 +233,8 @@ class Client(object):
 
     def send_data(self, sample_block, data):
         for chunk in chunks(data, self.insert_block_size):
-            Block.check_data_sanity(sample_block.columns_with_types, chunk)
-
-            block = Block(sample_block.columns_with_types, chunk)
+            block = Block(sample_block.columns_with_types, chunk,
+                          check_sanity=True)
             self.connection.send_data(block)
 
         # Empty block means end of data.
