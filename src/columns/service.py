@@ -2,7 +2,7 @@ from .. import errors
 from .arraycolumn import create_array_column
 from .datecolumn import DateColumn
 from .datetimecolumn import DateTimeColumn
-from .exceptions import ColumnTypeMismatchException
+from . import exceptions as column_exceptions
 from .enumcolumn import create_enum_column
 from .floatcolumn import Float32, Float64
 from .intcolumn import (
@@ -23,7 +23,12 @@ column_by_type = {c.ch_type: c for c in [
 ]}
 
 
-def get_column_by_spec(spec):
+def get_column_by_spec(spec, column_options=None):
+    column_options = column_options or {}
+
+    def create_column_with_options(x):
+        return get_column_by_spec(x, column_options)
+
     if spec.startswith('FixedString'):
         length = int(spec[12:-1])
         return FixedString(length)
@@ -32,35 +37,44 @@ def get_column_by_spec(spec):
         return create_enum_column(spec)
 
     elif spec.startswith('Array'):
-        return create_array_column(spec, get_column_by_spec)
+        return create_array_column(spec, create_column_with_options)
 
     elif spec.startswith('Nullable'):
-        return create_nullable_column(spec, get_column_by_spec)
+        return create_nullable_column(spec, create_column_with_options)
 
     else:
         try:
             cls = column_by_type[spec]
-            return cls()
+            return cls(**column_options)
 
         except KeyError as e:
             raise errors.UnknownTypeError('Unknown type {}'.format(e.args[0]))
 
 
-def read_column(column_spec, rows, buf):
+def read_column(column_spec, n_items, buf):
     column = get_column_by_spec(column_spec)
-    return column.read_data(rows, buf)
+    return column.read_data(n_items, buf)
 
 
-def write_column(column_name, column_spec, data, buf):
-    column = get_column_by_spec(column_spec)
+def write_column(column_name, column_spec, items, buf, types_check=False):
+    column_options = {'types_check': types_check}
+    column = get_column_by_spec(column_spec, column_options)
 
     try:
-        column.write_data(data, buf)
+        column.write_data(items, buf)
 
-    except ColumnTypeMismatchException as e:
+    except column_exceptions.ColumnTypeMismatchException as e:
         raise errors.TypeMismatchError(
             'Type mismatch in VALUES section. '
             'Expected {} got {}: {} for column "{}".'.format(
                 column_spec, type(e.args[0]), e.args[0], column_name
+            )
+        )
+
+    except (column_exceptions.StructPackException, OverflowError) as e:
+        error = e.args[0]
+        raise errors.TypeMismatchError(
+            'Type mismatch in VALUES section. Column {}: {}'.format(
+                column_name, str(error)
             )
         )

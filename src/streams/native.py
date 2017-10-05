@@ -19,18 +19,20 @@ class BlockOutputStream(object):
         if self.server_revision >= defines.DBMS_MIN_REVISION_WITH_BLOCK_INFO:
             block.info.write(self.fout)
 
-        columns = block.columns
-        rows = block.rows
+        n_columns = block.columns
+        n_rows = block.rows
 
-        write_varint(columns, self.fout)
-        write_varint(rows, self.fout)
+        write_varint(n_columns, self.fout)
+        write_varint(n_rows, self.fout)
 
         for i, (col_name, col_type) in enumerate(block.columns_with_types):
             write_binary_str(col_name, self.fout)
             write_binary_str(col_type, self.fout)
 
-            if rows:
-                write_column(col_name, col_type, block.data[i], self.fout)
+            if n_rows:
+                items = [row[i] for row in block.data]
+                write_column(col_name, col_type, items, self.fout,
+                             types_check=block.types_check)
 
         self.finalize()
 
@@ -54,24 +56,27 @@ class BlockInputStream(object):
         if self.server_revision >= defines.DBMS_MIN_REVISION_WITH_BLOCK_INFO:
             info.read(self.fin)
 
-        columns = read_varint(self.fin)
-        rows = read_varint(self.fin)
+        n_columns = read_varint(self.fin)
+        n_rows = read_varint(self.fin)
 
         data, names, types = [], [], []
 
-        for i in range(columns):
+        for i in range(n_columns):
             column_name = read_binary_str(self.fin)
             column_type = read_binary_str(self.fin)
 
             names.append(column_name)
             types.append(column_type)
 
-            if rows:
-                column = read_column(column_type, rows, self.fin)
+            if n_rows:
+                column = read_column(column_type, n_rows, self.fin)
                 data.append(column)
 
-        return Block(
+        block = Block(
             columns_with_types=list(zip(names, types)),
             data=data,
-            info=info
+            info=info,
+            received_from_server=True
         )
+
+        return block

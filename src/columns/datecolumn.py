@@ -6,16 +6,13 @@ from .base import FormatColumn
 
 class DateColumn(FormatColumn):
     ch_type = 'Date'
-    # TODO: string
     py_types = (date, )
-    format = '<H'
+    format = 'H'
 
     offset = 24 * 3600
 
-    def read(self, buf):
-        x = self._read(buf)
-        return date.fromtimestamp(x * self.offset)
+    def before_write_item(self, value):
+        return timegm(value.timetuple()) // self.offset
 
-    def write(self, value, buf):
-        x = timegm(value.timetuple()) // self.offset
-        self._write(x, buf)
+    def after_read_item(self, value):
+        return date.fromtimestamp(value * self.offset)

@@ -1,30 +1,13 @@
-import struct
-
-size_by_format = {
-    'c': 1,
-    'b': 1,
-    'B': 1,
-    '?': 1,
-    'h': 2,
-    'H': 2,
-    'i': 4,
-    'I': 4,
-    'l': 4,
-    'L': 4,
-    'q': 8,
-    'Q': 8,
-    'f': 4,
-    'd': 8
-}
+from struct import Struct
 
 
-def read_binary_str(f):
-    length = read_varint(f)
-    return f.read(length).decode('utf-8')
+def read_binary_str(buf):
+    length = read_varint(buf)
+    return buf.read(length).decode('utf-8')
 
 
-def read_binary_str_fixed_len(f, length):
-    return f.read(length).decode('utf-8')
+def read_binary_str_fixed_len(buf, length):
+    return buf.read(length).decode('utf-8')
 
 
 def _read_one(f):
@@ -56,10 +39,9 @@ def read_binary_int(buf, fmt):
     """
     Reads int from buffer with provided format.
     """
-    size = size_by_format[fmt]
     # Little endian.
-    fmt = '<' + fmt
-    return struct.unpack(fmt, buf.read(size))[0]
+    s = Struct('<' + fmt)
+    return s.unpack(buf.read(s.size))[0]
 
 
 def read_binary_int8(buf):

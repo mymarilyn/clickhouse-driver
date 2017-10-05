@@ -1,33 +1,28 @@
-import struct
+from ctypes import c_float
 
 from .base import FormatColumn
 
 
 class FloatColumn(FormatColumn):
     py_types = (float, int)
-    format = None
-    inf = float('inf')
-
-    def read(self, buf):
-        return self._read(buf)
-
-    def write(self, value, buf):
-        try:
-            x = struct.pack(self.format, value)
-        except OverflowError:
-            # Write +/- inf if float overflows
-            # Client has it's behaviour now.
-            value = self.inf if value > 0 else -self.inf
-            x = struct.pack(self.format, value)
-
-        buf.write(x)
 
 
 class Float32(FloatColumn):
     ch_type = 'Float32'
-    format = '<f'
+    format = 'f'
+
+    def __init__(self, types_check=False, **kwargs):
+        super(Float32, self).__init__(types_check=types_check, **kwargs)
+
+        if types_check:
+            # Chop only bytes that fit current type.
+            # Cast to -nan or nan if overflows.
+            def before_write_item(value):
+                return c_float(value).value
+
+            self.before_write_item = before_write_item
 
 
 class Float64(FloatColumn):
     ch_type = 'Float64'
-    format = '<d'
+    format = 'd'

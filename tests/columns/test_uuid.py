@@ -31,6 +31,10 @@ class UUIDTestCase(BaseTestCase):
         with self.create_table('a UUID'):
             with self.assertRaises(errors.TypeMismatchError):
                 self.client.execute(
+                    'INSERT INTO test (a) VALUES', data, types_check=True
+                )
+            with self.assertRaises(AttributeError):
+                self.client.execute(
                     'INSERT INTO test (a) VALUES', data
                 )
 

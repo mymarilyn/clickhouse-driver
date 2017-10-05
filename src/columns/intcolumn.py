@@ -1,72 +1,88 @@
 
 from ..util import compat
 from .exceptions import ColumnTypeMismatchException
-from .base import FormatColumn, size_by_type
+from .base import FormatColumn
 
 
 class IntColumn(FormatColumn):
     py_types = compat.integer_types
+    int_size = None
 
-    def __init__(self):
-        super(IntColumn, self).__init__()
+    def __init__(self, types_check=False, **kwargs):
+        super(IntColumn, self).__init__(types_check=types_check, **kwargs)
 
-        self.mask = (1 << 8 * size_by_type[self.ch_type]) - 1
+        if types_check:
+            self.mask = (1 << 8 * self.int_size) - 1
 
-    # Chop only bytes that fit current type
-    def _prepare(self, value):
-        sign = 1 if value > 0 else -1
-        return sign * (abs(value) & self.mask)
+            # Chop only bytes that fit current type.
+            # ctypes.c_intXX is slower.
+            def before_write_item(value):
+                if value >= 0:
+                    sign = 1
+                else:
+                    sign = -1
+                    value = -value
 
-    def read(self, buf):
-        return self._read(buf)
+                return sign * (value & self.mask)
 
-    def write(self, value, buf):
-        self._write(self._prepare(value), buf)
+            self.before_write_item = before_write_item
 
 
 class UIntColumn(IntColumn):
-    def write(self, value, buf):
-        if value < 0:
-            raise ColumnTypeMismatchException(value)
+    def __init__(self, types_check=False, **kwargs):
+        super(UIntColumn, self).__init__(types_check=types_check, **kwargs)
 
-        super(UIntColumn, self).write(value, buf)
+        if types_check:
+            def check_item(value):
+                if value < 0:
+                    raise ColumnTypeMismatchException(value)
+
+            self.check_item = check_item
 
 
 class Int8Column(IntColumn):
     ch_type = 'Int8'
-    format = '<b'
+    format = 'b'
+    int_size = 1
 
 
 class Int16Column(IntColumn):
     ch_type = 'Int16'
-    format = '<h'
+    format = 'h'
+    int_size = 2
 
 
 class Int32Column(IntColumn):
     ch_type = 'Int32'
-    format = '<i'
+    format = 'i'
+    int_size = 4
 
 
 class Int64Column(IntColumn):
     ch_type = 'Int64'
-    format = '<q'
+    format = 'q'
+    int_size = 8
 
 
 class UInt8Column(UIntColumn):
     ch_type = 'UInt8'
-    format = '<B'
+    format = 'B'
+    int_size = 1
 
 
 class UInt16Column(UIntColumn):
     ch_type = 'UInt16'
-    format = '<H'
+    format = 'H'
+    int_size = 2
 
 
 class UInt32Column(UIntColumn):
     ch_type = 'UInt32'
-    format = '<I'
+    format = 'I'
+    int_size = 4
 
 
 class UInt64Column(UIntColumn):
     ch_type = 'UInt64'
-    format = '<Q'
+    format = 'Q'
+    int_size = 8

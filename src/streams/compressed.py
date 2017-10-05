@@ -76,10 +76,16 @@ class CompressedBlockReader(object):
         rv = self.block.read(n)
         read = len(rv)
 
-        if n != -1 and read != n:
-            self.block = BytesIO(self.read_block())
+        if n != -1:
             unread = n - read
-            rv += self.block.read(unread)
+        else:
+            unread = 0
+
+        while unread > 0:
+            self.block = BytesIO(self.read_block())
+            part = self.block.read(unread)
+            unread -= len(part)
+            rv += part
 
         return rv
 

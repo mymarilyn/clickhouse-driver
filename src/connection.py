@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+from datetime import datetime
 import logging
 import socket
 
@@ -340,6 +341,7 @@ class Connection(object):
         return profile_info
 
     def send_data(self, block, table_name=''):
+        start = datetime.now()
         write_varint(ClientPacketTypes.DATA, self.fout)
 
         revision = self.server_info.revision
@@ -348,6 +350,9 @@ class Connection(object):
 
         self.block_out.write(block)
         self.block_out.reset()
+        logger.debug(
+            'Block send time: %s', (datetime.now() - start).total_seconds()
+        )
 
     def send_query(self, query, query_id=None, settings=None):
         if not self.connected:
@@ -380,9 +385,10 @@ class Connection(object):
 
         self.fout.flush()
 
-    def send_external_tables(self, tables):
+    def send_external_tables(self, tables, types_check=False):
         for table in tables or []:
-            block = Block(table['structure'], table['data'])
+            block = Block(table['structure'], table['data'],
+                          types_check=types_check)
             self.send_data(block, table_name=table['name'])
 
         # Empty block, end of data transfer.

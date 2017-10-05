@@ -30,49 +30,103 @@ class BlockInfo(object):
 
 
 class Block(object):
+    dict_row_types = (dict, )
+    tuple_row_types = (list, tuple)
+    supported_row_types = dict_row_types + tuple_row_types
+
     def __init__(self, columns_with_types=None, data=None, info=None,
-                 check_sanity=False):
+                 types_check=False, received_from_server=False):
         self.columns_with_types = columns_with_types or []
         self.data = data or []
+        self.types_check = types_check
 
-        # Transpose data rows->columns
-        if data:
+        if data and not received_from_server:
             # Guessing about whole data format by first row.
-            # Converting dicts to lists.
-            columns = [x[0] for x in self.columns_with_types]
-            if isinstance(data[0], dict):
-                data = [tuple(row[c] for c in columns) for row in data]
+            first_row = data[0]
 
-            if check_sanity:
-                # For checking that each row has the same length.
-                first_row_len = len(data[0])
-                first_j = first_row_len - 1
+            if self.types_check:
+                self.check_row_type(first_row)
 
-                columns_expected = len(columns_with_types)
-                if columns_expected != first_row_len:
-                    msg = 'Expected {} columns, got {}'.format(
-                        columns_expected, first_row_len)
-                    raise ValueError(msg)
-
-            self.data = [[None] * len(data) for row in data[0]]
-            for i, row in enumerate(data):
-                j = 0
-                for j, x in enumerate(row):
-                    self.data[j][i] = x
-
-                if check_sanity and j != first_j:
-                    raise ValueError('Different rows length')
-
-            self.data = [tuple(x) for x in self.data]
+            if isinstance(first_row, dict):
+                self.dicts_to_rows(data)
+            else:
+                self.check_rows(data)
 
         self.info = info or BlockInfo()
 
         super(Block, self).__init__()
 
-    @property
-    def columns(self):
-        return len(self.data)
+    def dicts_to_rows(self, data):
+        column_names = [x[0] for x in self.columns_with_types]
+
+        check_row_type = False
+        if self.types_check:
+            check_row_type = self.check_dict_row_type
+
+        for i, row in enumerate(data):
+            if check_row_type:
+                check_row_type(row)
+
+            self.data[i] = [row[name] for name in column_names]
+
+    def check_rows(self, data):
+        expected_row_len = len(self.columns_with_types)
+
+        got = len(data[0])
+        if expected_row_len != got:
+            msg = 'Expected {} columns, got {}'.format(expected_row_len, got)
+            raise ValueError(msg)
+
+        check_row_type = False
+        if self.types_check:
+            check_row_type = self.check_tuple_row_type
+
+        for row in data:
+            if check_row_type:
+                check_row_type(row)
+
+            if len(row) != expected_row_len:
+                raise ValueError('Different rows length')
+
+    def get_rows(self):
+        if not self.data:
+            return self.data
+
+        n_rows = self.rows
+        n_columns = self.columns
+        # Preallocate memory to avoid .append calls.
+        rv = [None] * n_columns
+
+        for i in range(n_columns):
+            rv[i] = tuple([self.data[j][i] for j in range(n_rows)])
+
+        return rv
+
+    def check_row_type(self, row):
+        if not isinstance(row, self.supported_row_types):
+            raise TypeError(
+                'Unsupported row type: {}. dict, list or tuple is expected.'
+                .format(type(row))
+            )
+
+    def check_tuple_row_type(self, row):
+        if not isinstance(row, self.tuple_row_types):
+            raise TypeError(
+                'Unsupported row type: {}. list or tuple is expected.'
+                .format(type(row))
+            )
+
+    def check_dict_row_type(self, row):
+        if not isinstance(row, self.dict_row_types):
+            raise TypeError(
+                'Unsupported row type: {}. dict is expected.'
+                .format(type(row))
+            )
 
     @property
     def rows(self):
-        return len(self.data[0]) if self.columns else 0
+        return len(self.data)
+
+    @property
+    def columns(self):
+        return len(self.data[0]) if self.rows else 0

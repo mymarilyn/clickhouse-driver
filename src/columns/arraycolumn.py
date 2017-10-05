@@ -1,4 +1,6 @@
 
+from struct import Struct
+
 from ..util import compat
 from .base import Column
 from .intcolumn import UInt64Column
@@ -29,12 +31,19 @@ class ArrayColumn(Column):
     After sizes info comes flatten data: 3 -> 4 -> 5 -> 6
     """
     py_types = (list, tuple)
+    size_struct = Struct('<Q')
 
-    def __init__(self, nested_column):
+    def __init__(self, nested_column, **kwargs):
         self.size_column = UInt64Column()
         self.nested_column = nested_column
         self._write_depth_0_size = True
-        super(ArrayColumn, self).__init__()
+        super(ArrayColumn, self).__init__(**kwargs)
+
+    def size_pack(self, value):
+        return self.size_struct.pack(value)
+
+    def size_unpack(self, buf):
+        return self.size_struct.unpack(buf.read(self.size_struct.size))[0]
 
     def write_data(self, data, buf):
         # Column of Array(T) is stored in "compact" format and passed to server
@@ -43,13 +52,13 @@ class ArrayColumn(Column):
         self.nested_column.nullable = self.nullable
         self.nullable = False
         self._write_depth_0_size = False
-        super(ArrayColumn, self).write_data((data, ), buf)
+        self._write(data, buf)
 
     def read_data(self, rows, buf):
         self.nested_column = ArrayColumn(self.nested_column)
         self.nested_column.nullable = self.nullable
         self.nullable = False
-        return self._read_data(rows, buf)
+        return self._read(rows, buf)
 
     def _write_sizes(self, value, buf):
         q = Queue()
@@ -75,7 +84,7 @@ class ArrayColumn(Column):
 
             offset += len(value)
             if (cur_depth == 0 and self._write_depth_0_size) or cur_depth > 0:
-                self.size_column.write(offset, buf)
+                buf.write(self.size_pack(offset))
 
             nested_column = column.nested_column
             if isinstance(nested_column, ArrayColumn):
@@ -91,8 +100,7 @@ class ArrayColumn(Column):
             for x in value:
                 self.nested_column._write_data(x, buf)
         else:
-            for x in value:
-                self.nested_column.write_item(x, buf)
+            self.nested_column._write_data(value, buf)
 
     def _write_nulls_data(self, value, buf):
         if self.nullable:
@@ -105,12 +113,12 @@ class ArrayColumn(Column):
             if self.nested_column.nullable:
                 self.nested_column._write_nulls_map(value, buf)
 
-    def write(self, value, buf):
+    def _write(self, value, buf):
         self._write_sizes(value, buf)
         self._write_nulls_data(value, buf)
         self._write_data(value, buf)
 
-    def _read_data(self, size, buf):
+    def _read(self, size, buf):
         q = Queue()
         q.put((self, size, 0))
 
@@ -147,17 +155,19 @@ class ArrayColumn(Column):
 
             if isinstance(nested_column, ArrayColumn):
                 for _i in range(size):
-                    offset = self.size_column.read(buf)
+                    offset = self.size_unpack(buf)
                     q.put((nested_column, offset - prev_offset, cur_depth + 1))
                     slices.append((prev_offset, offset))
                     prev_offset = offset
 
             # Read data
             else:
-                for i in range(size):
-                    is_null = nulls_map[i + prev_offset]
-                    data.append(nested_column.read_item(buf, is_null=is_null))
-
+                data.extend(
+                    nested_column._read_data(
+                        size, buf,
+                        nulls_map=nulls_map[prev_offset:prev_offset + size]
+                    )
+                )
                 prev_offset += size
 
         # Build nested tuple structure.

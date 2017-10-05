@@ -3,11 +3,11 @@ from src import errors
 
 
 class IntTestCase(BaseTestCase):
-    def test_simple(self):
+    def test_chop_to_type(self):
         with self.create_table('a UInt8'):
             data = [(300, )]
             self.client.execute(
-                'INSERT INTO test (a) VALUES', data
+                'INSERT INTO test (a) VALUES', data, types_check=True
             )
 
             query = 'SELECT * FROM test'
@@ -17,9 +17,9 @@ class IntTestCase(BaseTestCase):
             self.assertEqual(inserted, [(44, )])
 
         with self.create_table('a Int8'):
-            data = [(-300, )]
+            data = [(-300,)]
             self.client.execute(
-                'INSERT INTO test (a) VALUES', data
+                'INSERT INTO test (a) VALUES', data, types_check=True
             )
 
             query = 'SELECT * FROM test'
@@ -28,15 +28,32 @@ class IntTestCase(BaseTestCase):
             inserted = self.client.execute(query)
             self.assertEqual(inserted, [(-44, )])
 
+    def test_raise_struct_error(self):
+        with self.create_table('a UInt8'):
+            with self.assertRaises(errors.TypeMismatchError) as e:
+                data = [(300, )]
+                self.client.execute(
+                    'INSERT INTO test (a) VALUES', data
+                )
+
+                self.assertIn('Column a', str(e.exception))
+
     def test_uint_type_mismatch(self):
         data = [(-1, )]
         with self.create_table('a UInt8'):
             with self.assertRaises(errors.TypeMismatchError) as e:
                 self.client.execute(
-                    'INSERT INTO test (a) VALUES', data
+                    'INSERT INTO test (a) VALUES', data, types_check=True
                 )
 
             self.assertIn('-1 for column "a"', str(e.exception))
+
+            with self.assertRaises(errors.TypeMismatchError) as e:
+                self.client.execute(
+                    'INSERT INTO test (a) VALUES', data
+                )
+
+            self.assertIn('Column a', str(e.exception))
 
     def test_all_sizes(self):
         columns = (

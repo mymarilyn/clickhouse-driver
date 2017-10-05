@@ -3,6 +3,9 @@ import struct
 from .util import compat
 
 
+MAX_UINT64 = (1 << 64) - 1
+
+
 if compat.PY3:
     def _byte(b):
         return bytes((b, ))
@@ -79,9 +82,6 @@ def write_binary_uint32(number, buf):
 
 def write_binary_uint64(number, buf):
     write_binary_int(number, buf, 'Q')
-
-
-MAX_UINT64 = (1 << 64) - 1
 
 
 def write_binary_uint128(number, buf):

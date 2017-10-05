@@ -7,26 +7,21 @@ from .intcolumn import IntColumn
 
 class EnumColumn(IntColumn):
     py_types = (Enum, ) + compat.integer_types + compat.string_types
-    format = '<b'
 
-    def __init__(self, enum_cls):
+    def __init__(self, enum_cls, **kwargs):
         self.enum_cls = enum_cls
-        super(EnumColumn, self).__init__()
+        super(EnumColumn, self).__init__(**kwargs)
 
-    def read(self, buf):
-        value = super(EnumColumn, self).read(buf)
-        return self.enum_cls(value).name
-
-    def write(self, value, buf):
+    def before_write_item(self, value):
         source_value = value.name if isinstance(value, Enum) else value
         enum_cls = self.enum_cls
 
         # Check real enum value
         try:
             if isinstance(source_value, compat.string_types):
-                value = enum_cls[source_value].value
+                return enum_cls[source_value].value
             else:
-                value = enum_cls(source_value).value
+                return enum_cls(source_value).value
 
         except (ValueError, KeyError):
             choices = ', '.join(
@@ -39,17 +34,20 @@ class EnumColumn(IntColumn):
                 .format(source_value, enum_str)
             )
 
-        super(EnumColumn, self).write(value, buf)
+    def after_read_item(self, value):
+        return self.enum_cls(value).name
 
 
 class Enum8Column(EnumColumn):
     ch_type = 'Enum8'
-    format = '<b'
+    format = 'b'
+    int_size = 1
 
 
 class Enum16Column(EnumColumn):
     ch_type = 'Enum16'
-    format = '<h'
+    format = 'h'
+    int_size = 2
 
 
 def create_enum_column(spec):

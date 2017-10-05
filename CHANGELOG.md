@@ -11,6 +11,7 @@
 ### Changed
 - Handling only socket-related errors on ping. Errors are logged with `WARNING` level.
 - Client is created per one test.
+- Sending/receiving data speed significantly increased.
 
 ### Fixed
 - Version detection in setup.py.

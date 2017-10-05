@@ -1,7 +1,24 @@
 from tests.testcase import BaseTestCase
+from src import errors
 
 
 class FloatTestCase(BaseTestCase):
+    def test_chop_to_type(self):
+        with self.create_table('a Float32, b Float64'):
+            data = [
+                (3.4028235e38, 3.4028235e38),
+                (3.4028235e39, 3.4028235e39),
+                (-3.4028235e39, 3.4028235e39),
+                (1, 2)
+            ]
+
+            with self.assertRaises(errors.TypeMismatchError) as e:
+                self.client.execute(
+                    'INSERT INTO test (a, b) VALUES', data
+                )
+
+                self.assertIn('Column a', str(e.exception))
+
     def test_simple(self):
         with self.create_table('a Float32, b Float64'):
             data = [
@@ -11,7 +28,7 @@ class FloatTestCase(BaseTestCase):
                 (1, 2)
             ]
             self.client.execute(
-                'INSERT INTO test (a, b) VALUES', data
+                'INSERT INTO test (a, b) VALUES', data, types_check=True
             )
 
             query = 'SELECT * FROM test'

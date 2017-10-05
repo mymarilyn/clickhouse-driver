@@ -113,7 +113,7 @@ class Client(object):
 
         # Header block contains no rows. Pick columns from it.
         if block.rows:
-            result.data.extend(block.data)
+            result.data.extend(block.get_rows())
         elif not result.columns_with_types:
             result.columns_with_types = block.columns_with_types
 
@@ -142,7 +142,8 @@ class Client(object):
             return True
 
     def execute(self, query, params=None, with_column_types=False,
-                external_tables=None, query_id=None, settings=None):
+                external_tables=None, query_id=None, settings=None,
+                types_check=False):
         self.connection.force_connect()
 
         try:
@@ -150,13 +151,15 @@ class Client(object):
             if is_insert:
                 return self.process_insert_query(
                     query, params, external_tables=external_tables,
-                    query_id=query_id, settings=settings
+                    query_id=query_id, settings=settings,
+                    types_check=types_check
                 )
             else:
                 return self.process_ordinary_query(
                     query, with_column_types=with_column_types,
                     external_tables=external_tables,
-                    query_id=query_id, settings=settings
+                    query_id=query_id, settings=settings,
+                    types_check=types_check
                 )
 
         except Exception:
@@ -165,14 +168,14 @@ class Client(object):
 
     def execute_with_progress(self, query, with_column_types=False,
                               external_tables=None, query_id=None,
-                              settings=None):
+                              settings=None, types_check=False):
         self.connection.force_connect()
 
         try:
             return self.process_ordinary_query_with_progress(
                 query, with_column_types=with_column_types,
                 external_tables=external_tables,
-                query_id=query_id, settings=settings
+                query_id=query_id, settings=settings, types_check=types_check
             )
 
         except Exception:
@@ -181,38 +184,41 @@ class Client(object):
 
     def process_ordinary_query_with_progress(
             self, query, with_column_types=False, external_tables=None,
-            query_id=None, settings=None):
+            query_id=None, settings=None, types_check=False):
         self.connection.send_query(
             query,
             query_id=query_id, settings=settings
         )
-        self.connection.send_external_tables(external_tables)
+        self.connection.send_external_tables(external_tables,
+                                             types_check=types_check)
         return self.receive_result(
             with_column_types=with_column_types, progress=True
         )
 
     def process_ordinary_query(self, query, with_column_types=False,
                                external_tables=None, query_id=None,
-                               settings=None):
+                               settings=None, types_check=False):
         self.connection.send_query(
             query,
             query_id=query_id, settings=settings
         )
-        self.connection.send_external_tables(external_tables)
+        self.connection.send_external_tables(external_tables,
+                                             types_check=types_check)
         return self.receive_result(with_column_types=with_column_types)
 
     def process_insert_query(self, query_without_data, data,
                              external_tables=None, query_id=None,
-                             settings=None):
+                             settings=None, types_check=False):
         self.connection.send_query(
             query_without_data,
             query_id=query_id, settings=settings
         )
-        self.connection.send_external_tables(external_tables)
+        self.connection.send_external_tables(external_tables,
+                                             types_check=types_check)
 
         sample_block = self.receive_sample_block()
         if sample_block:
-            self.send_data(sample_block, data)
+            self.send_data(sample_block, data, types_check=types_check)
             packet = self.connection.receive_packet()
             if packet.exception:
                 raise packet.exception
@@ -231,10 +237,10 @@ class Client(object):
                                                                 packet.type)
             raise errors.UnexpectedPacketFromServerError(message)
 
-    def send_data(self, sample_block, data):
+    def send_data(self, sample_block, data, types_check=False):
         for chunk in chunks(data, self.insert_block_size):
             block = Block(sample_block.columns_with_types, chunk,
-                          check_sanity=True)
+                          types_check=types_check)
             self.connection.send_data(block)
 
         # Empty block means end of data.
