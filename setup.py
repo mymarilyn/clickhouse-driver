@@ -86,14 +86,14 @@ setup(
     },
     install_requires=install_requires,
     extras_require={
-        'lz4': ['lz4', 'clickhouse-cityhash==1.0.2'],
-        'zstd': ['zstd', 'clickhouse-cityhash==1.0.2']
+        'lz4': ['lz4', 'clickhouse-cityhash==1.0.2.1'],
+        'zstd': ['zstd', 'clickhouse-cityhash==1.0.2.1']
     },
     test_suite='nose.collector',
     tests_require=[
         'nose',
         'mock',
         'lz4', 'zstd',
-        'clickhouse-cityhash==1.0.2'
+        'clickhouse-cityhash==1.0.2.1'
     ],
 )

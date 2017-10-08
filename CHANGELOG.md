@@ -17,6 +17,7 @@
 - Version detection in setup.py.
 - Error handling on socket.shutdown.
 - Install `enum34` only if required.
+- `clickhouse-cityhash` import issue [#10](https://github.com/mymarilyn/clickhouse-driver/issues/10).
 
 ### Removed
 - QuickLZ support
