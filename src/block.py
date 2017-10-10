@@ -77,16 +77,10 @@ class Block(object):
             msg = 'Expected {} columns, got {}'.format(expected_row_len, got)
             raise ValueError(msg)
 
-        check_row_type = False
         if self.types_check:
             check_row_type = self.check_tuple_row_type
-
-        for row in data:
-            if check_row_type:
+            for row in data:
                 check_row_type(row)
-
-            if len(row) != expected_row_len:
-                raise ValueError('Different rows length')
 
     def get_columns(self):
         return self.data

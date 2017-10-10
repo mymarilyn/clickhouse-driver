@@ -30,7 +30,11 @@ class BlockOutputStream(object):
             write_binary_str(col_type, self.fout)
 
             if n_rows:
-                items = [row[i] for row in block.data]
+                try:
+                    items = [row[i] for row in block.data]
+                except IndexError:
+                    raise ValueError('Different rows length')
+
                 write_column(col_name, col_type, items, self.fout,
                              types_check=block.types_check)
 
