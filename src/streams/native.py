@@ -19,8 +19,9 @@ class BlockOutputStream(object):
         if self.server_revision >= defines.DBMS_MIN_REVISION_WITH_BLOCK_INFO:
             block.info.write(self.fout)
 
-        n_columns = block.columns
-        n_rows = block.rows
+        # We write transposed data.
+        n_columns = block.rows
+        n_rows = block.columns
 
         write_varint(n_columns, self.fout)
         write_varint(n_rows, self.fout)
@@ -29,7 +30,7 @@ class BlockOutputStream(object):
             write_binary_str(col_name, self.fout)
             write_binary_str(col_type, self.fout)
 
-            if n_rows:
+            if n_columns:
                 try:
                     items = [row[i] for row in block.data]
                 except IndexError:

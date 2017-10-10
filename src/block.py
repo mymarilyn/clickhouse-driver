@@ -89,13 +89,23 @@ class Block(object):
         if not self.data:
             return self.data
 
-        n_rows = self.rows
+        # Transpose results: columns -> rows.
         n_columns = self.columns
-        # Preallocate memory to avoid .append calls.
-        rv = [None] * n_columns
+        n_rows = self.rows
 
-        for i in range(n_columns):
-            rv[i] = tuple([self.data[j][i] for j in range(n_rows)])
+        flat_data = [None] * n_columns * n_rows
+
+        for j in range(n_columns):
+            column = self.data[j]
+
+            for i in range(n_rows):
+                flat_data[i * n_columns + j] = column[i]
+
+        # Make rows from slices.
+        rv = [None] * n_rows
+        for i in range(n_rows):
+            offset = i * n_columns
+            rv[i] = tuple(flat_data[offset:offset + n_columns])
 
         return rv
 
@@ -121,9 +131,9 @@ class Block(object):
             )
 
     @property
-    def rows(self):
+    def columns(self):
         return len(self.data)
 
     @property
-    def columns(self):
-        return len(self.data[0]) if self.rows else 0
+    def rows(self):
+        return len(self.data[0]) if self.columns else 0
