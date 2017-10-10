@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Added
 - Parameters substitution for SELECT queries.
+- SSL support.
 
 ### Fixed
 - Columnar result returning from multiple blocks. Columns must be concatenated.

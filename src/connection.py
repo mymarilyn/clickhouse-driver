@@ -2,6 +2,7 @@ from contextlib import contextmanager
 from datetime import datetime
 import logging
 import socket
+import ssl
 
 from .block import Block
 from .blockstreamprofileinfo import BlockStreamProfileInfo
@@ -45,17 +46,25 @@ class ServerInfo(object):
 
 class Connection(object):
     def __init__(
-            self, host, port=defines.DEFAULT_PORT,
+            self, host, port=None,
             database='default', user='default', password='',
             client_name=defines.CLIENT_NAME,
             connect_timeout=defines.DBMS_DEFAULT_CONNECT_TIMEOUT_SEC,
             send_receive_timeout=defines.DBMS_DEFAULT_TIMEOUT_SEC,
             sync_request_timeout=defines.DBMS_DEFAULT_SYNC_REQUEST_TIMEOUT_SEC,
             compress_block_size=defines.DEFAULT_COMPRESS_BLOCK_SIZE,
-            compression=False
+            compression=False,
+            secure=False,
+            # Secure socket parameters.
+            verify=True, ssl_version=None, ca_certs=None, ciphers=None
     ):
         self.host = host
-        self.port = port
+
+        if secure:
+            self.port = port or defines.DEFAULT_SECURE_PORT
+        else:
+            self.port = port or defines.DEFAULT_PORT
+
         self.database = database
         self.user = user
         self.password = password
@@ -63,6 +72,19 @@ class Connection(object):
         self.connect_timeout = connect_timeout
         self.send_receive_timeout = send_receive_timeout
         self.sync_request_timeout = sync_request_timeout
+
+        self.secure_socket = secure
+        self.verify_cert = verify
+
+        ssl_options = {}
+        if ssl_version is not None:
+            ssl_options['ssl_version'] = ssl_version
+        if ca_certs is not None:
+            ssl_options['ca_certs'] = ca_certs
+        if ciphers is not None:
+            ssl_options['ciphers'] = ciphers
+
+        self.ssl_options = ssl_options
 
         # Use LZ4 compression by default.
         if compression is True:
@@ -103,6 +125,46 @@ class Connection(object):
             logger.info('Connection was closed, reconnecting.')
             self.connect()
 
+    def _create_socket(self):
+        """
+        Acts like socket.create_connection, but wraps socket with SSL
+        if connection is secure.
+        """
+        ssl_options = {}
+        if self.secure_socket:
+            if self.verify_cert:
+                cert_reqs = ssl.CERT_REQUIRED
+            else:
+                cert_reqs = ssl.CERT_NONE
+
+            ssl_options = self.ssl_options.copy()
+            ssl_options['cert_reqs'] = cert_reqs
+
+        host, port = self.host, self.port
+        err = None
+        for res in socket.getaddrinfo(host, port, 0, socket.SOCK_STREAM):
+            af, socktype, proto, canonname, sa = res
+            sock = None
+            try:
+                sock = socket.socket(af, socktype, proto)
+                sock.settimeout(self.connect_timeout)
+
+                if self.secure_socket:
+                    sock = ssl.wrap_socket(sock, **ssl_options)
+
+                sock.connect(sa)
+                return sock
+
+            except socket.error as _:
+                err = _
+                if sock is not None:
+                    sock.close()
+
+        if err is not None:
+            raise err
+        else:
+            raise socket.error("getaddrinfo returns an empty list")
+
     def connect(self):
         try:
             if self.connected:
@@ -112,9 +174,7 @@ class Connection(object):
                 'Connecting. Database: %s. User: %s', self.database, self.user
             )
 
-            self.socket = socket.create_connection(
-                (self.host, self.port), timeout=self.connect_timeout
-            )
+            self.socket = self._create_socket()
             self.connected = True
             self.socket.settimeout(self.send_receive_timeout)
 
