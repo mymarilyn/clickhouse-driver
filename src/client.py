@@ -62,18 +62,19 @@ class Client(object):
     def disconnect(self):
         self.connection.disconnect()
 
-    def receive_result(self, with_column_types=False, progress=False):
+    def receive_result(self, with_column_types=False, progress=False,
+                       columnar=False):
         result = QueryResult(with_column_types=with_column_types)
 
         if progress:
-            progress_gen = self.receive_progress_result(result)
+            progress_gen = self.receive_progress_result(result, columnar)
             return Progress(self.connection, result, progress_gen)
 
         else:
-            self.receive_no_progress_result(result)
+            self.receive_no_progress_result(result, columnar)
             return result.get_result()
 
-    def receive_progress_result(self, result):
+    def receive_progress_result(self, result, columnar=False):
         rows_read, approx_rows_to_read = 0, 0
         while True:
             packet = self.receive_packet()
@@ -93,9 +94,9 @@ class Client(object):
                 yield rows_read, approx_rows_to_read
 
             else:
-                self.store_query_result(packet, result)
+                self.store_query_result(packet, result, columnar)
 
-    def receive_no_progress_result(self, result):
+    def receive_no_progress_result(self, result, columnar=False):
         while True:
             packet = self.receive_packet()
             if not packet:
@@ -104,16 +105,19 @@ class Client(object):
             if packet is True:
                 continue
 
-            self.store_query_result(packet, result)
+            self.store_query_result(packet, result, columnar)
 
-    def store_query_result(self, packet, result):
+    def store_query_result(self, packet, result, columnar=False):
         block = getattr(packet, 'block', None)
         if block is None:
             return
 
         # Header block contains no rows. Pick columns from it.
         if block.rows:
-            result.data.extend(block.get_rows())
+            if columnar:
+                result.data.extend(block.get_columns())
+            else:
+                result.data.extend(block.get_rows())
         elif not result.columns_with_types:
             result.columns_with_types = block.columns_with_types
 
@@ -143,7 +147,7 @@ class Client(object):
 
     def execute(self, query, params=None, with_column_types=False,
                 external_tables=None, query_id=None, settings=None,
-                types_check=False):
+                types_check=False, columnar=False):
         self.connection.force_connect()
 
         try:
@@ -159,7 +163,7 @@ class Client(object):
                     query, with_column_types=with_column_types,
                     external_tables=external_tables,
                     query_id=query_id, settings=settings,
-                    types_check=types_check
+                    types_check=types_check, columnar=columnar
                 )
 
         except Exception:
@@ -184,35 +188,28 @@ class Client(object):
 
     def process_ordinary_query_with_progress(
             self, query, with_column_types=False, external_tables=None,
-            query_id=None, settings=None, types_check=False):
-        self.connection.send_query(
-            query,
-            query_id=query_id, settings=settings
-        )
+            query_id=None, settings=None, types_check=False, columnar=False):
+        self.connection.send_query(query, query_id=query_id, settings=settings)
         self.connection.send_external_tables(external_tables,
                                              types_check=types_check)
-        return self.receive_result(
-            with_column_types=with_column_types, progress=True
-        )
+        return self.receive_result(with_column_types=with_column_types,
+                                   progress=True, columnar=columnar)
 
     def process_ordinary_query(self, query, with_column_types=False,
                                external_tables=None, query_id=None,
-                               settings=None, types_check=False):
-        self.connection.send_query(
-            query,
-            query_id=query_id, settings=settings
-        )
+                               settings=None, types_check=False,
+                               columnar=False):
+        self.connection.send_query(query, query_id=query_id, settings=settings)
         self.connection.send_external_tables(external_tables,
                                              types_check=types_check)
-        return self.receive_result(with_column_types=with_column_types)
+        return self.receive_result(with_column_types=with_column_types,
+                                   columnar=columnar)
 
     def process_insert_query(self, query_without_data, data,
                              external_tables=None, query_id=None,
                              settings=None, types_check=False):
-        self.connection.send_query(
-            query_without_data,
-            query_id=query_id, settings=settings
-        )
+        self.connection.send_query(query_without_data, query_id=query_id,
+                                   settings=settings)
         self.connection.send_external_tables(external_tables,
                                              types_check=types_check)
 

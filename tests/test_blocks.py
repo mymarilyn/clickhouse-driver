@@ -3,6 +3,7 @@ from tests.testcase import BaseTestCase
 
 
 class BlocksTestCase(BaseTestCase):
+
     def test_return_totals_extremes(self):
         rv = self.client.execute(
             'SELECT a, sum(b + a) FROM ('
@@ -24,6 +25,21 @@ class BlocksTestCase(BaseTestCase):
             # EXTREMES
             (-1, 2),
             (1, 10)
+        ])
+
+    def test_columnar_result(self):
+        rv = self.client.execute(
+            'SELECT a, sum(b + a) FROM ('
+            'SELECT arrayJoin(range(3)) - 1 AS a,'
+            'arrayJoin(range(4)) AS b'
+            ') AS t '
+            'GROUP BY a '
+            'ORDER BY a',
+            columnar=True
+        )
+        self.assertEqual(rv, [
+            (-1, 0, 1),
+            (2, 6, 10)
         ])
 
     def test_select_with_column_types(self):
