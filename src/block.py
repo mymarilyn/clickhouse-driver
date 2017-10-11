@@ -88,6 +88,9 @@ class Block(object):
             if len(row) != expected_row_len:
                 raise ValueError('Different rows length')
 
+    def get_columns(self):
+        return self.data
+
     def get_rows(self):
         if not self.data:
             return self.data
