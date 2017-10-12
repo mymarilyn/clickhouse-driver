@@ -36,7 +36,9 @@ class IntTestCase(BaseTestCase):
                     'INSERT INTO test (a) VALUES', data
                 )
 
-                self.assertIn('Column a', str(e.exception))
+                exc = str(e.exception)
+                self.assertIn('Column a', exc)
+                self.assertIn('types_check=True', exc)
 
     def test_uint_type_mismatch(self):
         data = [(-1, )]

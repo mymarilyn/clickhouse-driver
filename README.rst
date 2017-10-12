@@ -65,7 +65,7 @@ Usage example:
 
     .. code-block:: python
 
-        from clickhouse_driver.client import Client
+        from clickhouse_driver import Client
 
         client = Client('localhost')
 
@@ -123,7 +123,7 @@ Data compression:
 
     .. code-block:: python
 
-        from clickhouse_driver.client import Client
+        from clickhouse_driver import Client
 
         client_with_lz4 = Client('localhost', compression=True)
         client_with_lz4 = Client('localhost', compression='lz4')
@@ -175,11 +175,11 @@ CityHash algorithm notes
 Unfortunately ClickHouse server comes with built-in old version of CityHash
 hashing algorithm. That's why we can't use original
 `CityHash <http://pypi.python.org/cityhash>`_ package. Downgraded version of
-this algorithm is placed at `PyPi <https://pypi.python.org/pypi/clickhouse-cityhash>`_.
+this algorithm is placed at `PyPI <https://pypi.python.org/pypi/clickhouse-cityhash>`_.
 
 
-Connection Parameters
----------------------
+Client Parameters
+-----------------
 
 The first parameter *host* is required. There are some optional parameters:
 
@@ -187,13 +187,14 @@ The first parameter *host* is required. There are some optional parameters:
 - *database* is database connect to. Default is ``'default'``.
 - *user*. Default is ``'default'``.
 - *password*. Default is ``''`` (no password).
-- *client_name*. This name will appear in server logs. Default is ``'pyclient'``.
-- *compression*. Whether or not use compression. Default is ``False``.Possible choices:
+- *client_name*. This name will appear in server logs. Default is ``'python-driver'``.
+- *compression*. Whether or not use compression. Default is ``False``. Possible choices:
 
   * ``True`` is equivalent to ``'lz4'``.
   * ``'lz4'``.
   * ``'lz4hc'`` high-compression variant of ``'lz4'``.
   * ``'zstd'``.
+- *insert_block_size*. Chunk size to split rows for ``INSERT``. Default is ``1048576``.
 
 
 You can also specify timeouts via:
@@ -223,6 +224,18 @@ Overriding default query settings:
         settings = {'max_threads': 2, 'priority': 10}
         print(client.execute('SHOW TABLES', settings=settings))
 
+Retrieving results in columnar form. This is also more faster:
+
+    .. code-block:: python
+
+        print(client.execute('SELECT arrayJoin(range(3))', columnar=True)
+
+Data types check is disabled for performance on ``INSERT`` queries.
+You can turn it on by *types_check* option:
+
+    .. code-block:: python
+
+        client.execute('INSERT INTO test (x) VALUES', [('abc', )], types_check=True)
 
 License
 =======

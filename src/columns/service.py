@@ -74,7 +74,9 @@ def write_column(column_name, column_spec, items, buf, types_check=False):
     except (column_exceptions.StructPackException, OverflowError) as e:
         error = e.args[0]
         raise errors.TypeMismatchError(
-            'Type mismatch in VALUES section. Column {}: {}'.format(
+            'Type mismatch in VALUES section. '
+            'Repeat query with types_check=True for detailed info. '
+            'Column {}: {}'.format(
                 column_name, str(error)
             )
         )

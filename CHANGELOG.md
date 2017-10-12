@@ -1,12 +1,16 @@
 # Changelog
 
 ## [Unreleased]
+
+## [0.0.7] - 2017-10-12
 ### Added
 - Configurable logging level in tests.
 - Full error codes list.
 - Force check clickhouse-cityhash is installed if compression is used.
 - `Client` can be directly imported from package.
 - `insert_block_size` parameter - maximum rows in block (default is 1048576).
+- Columnar result returning (`columnar=True`). Pull request [#11](https://github.com/mymarilyn/clickhouse-driver/pull/11) by [kszucs](https://github.com/kszucs).
+- Tunable types check (`types_check=True`). Off by default.
 
 ### Changed
 - Handling only socket-related errors on ping. Errors are logged with `WARNING` level.
