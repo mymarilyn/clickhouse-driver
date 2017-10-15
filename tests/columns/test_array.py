@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from tests.testcase import BaseTestCase
 from src import errors
 
@@ -121,3 +123,87 @@ class ArrayTestCase(BaseTestCase):
         with self.create_table(columns):
             with self.assertRaises(errors.TypeMismatchError):
                 self.client.execute('INSERT INTO test (a) VALUES', data)
+
+    def test_string_array(self):
+        columns = 'a Array(String)'
+        data = [(self.entuple(['aaa', 'bbb']), )]
+
+        with self.create_table(columns):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted, "['aaa','bbb']\n"
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
+
+    def test_string_nullable_array(self):
+        columns = 'a Array(Nullable(String))'
+        data = [(self.entuple(['aaa', None, 'bbb']), )]
+
+        with self.create_table(columns):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted, "['aaa',NULL,'bbb']\n"
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
+
+    def test_uuid_array(self):
+        columns = 'a Array(UUID)'
+        data = [(self.entuple([
+            UUID('c0fcbba9-0752-44ed-a5d6-4dfb4342b89d'),
+            UUID('2efcead4-ff55-4db5-bdb4-6b36a308d8e0')
+        ]), )]
+
+        with self.create_table(columns):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted,
+                "['c0fcbba9-0752-44ed-a5d6-4dfb4342b89d',"
+                "'2efcead4-ff55-4db5-bdb4-6b36a308d8e0']\n"
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
+
+    def test_uuid_nullable_array(self):
+        columns = 'a Array(Nullable(UUID))'
+        data = [(self.entuple([
+            UUID('c0fcbba9-0752-44ed-a5d6-4dfb4342b89d'),
+            None,
+            UUID('2efcead4-ff55-4db5-bdb4-6b36a308d8e0')
+        ]), )]
+
+        with self.create_table(columns):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted,
+                "['c0fcbba9-0752-44ed-a5d6-4dfb4342b89d',"
+                "NULL,"
+                "'2efcead4-ff55-4db5-bdb4-6b36a308d8e0']\n"
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)

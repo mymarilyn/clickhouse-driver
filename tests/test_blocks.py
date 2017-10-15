@@ -47,7 +47,7 @@ class BlocksTestCase(BaseTestCase):
             self.client.execute('INSERT INTO test (a) VALUES', [(1, )])
             self.client.execute('INSERT INTO test (a) VALUES', [(2, )])
 
-            query = 'SELECT * FROM test'
+            query = 'SELECT * FROM test ORDER BY a'
 
             inserted = self.client.execute(query, columnar=True)
             self.assertEqual(inserted, [(1, 2)])

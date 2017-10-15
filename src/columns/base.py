@@ -161,14 +161,11 @@ class CustomItemColumn(Column):
     def _write_null(self, buf):
         raise NotImplementedError
 
-    def write_data(self, items, buf):
+    def _write_data(self, items, buf):
         if self.types_check_enabled:
             check_item_type = self.check_item_type
         else:
             check_item_type = False
-
-        if self.nullable:
-            self._write_nulls_map(items, buf)
 
         for x in items:
             self.write_item(x, buf, check_item_type)
@@ -183,15 +180,14 @@ class CustomItemColumn(Column):
 
             self.write(x, buf)
 
-    def read_data(self, n_items, buf):
-        if self.nullable:
-            nulls_map = self._read_nulls_map(n_items, buf)
-        else:
-            nulls_map = [0] * n_items
+    def _read_data(self, n_items, buf, nulls_map=None):
+        if nulls_map is not None:
+            return tuple(
+                self.read_item(buf, is_null=is_null) for is_null in nulls_map
+            )
 
-        return tuple(
-            self.read_item(buf, is_null=is_null) for is_null in nulls_map
-        )
+        else:
+            return tuple(self.read(buf) for i in range(n_items))
 
     def read_item(self, buf, is_null=False):
         return self._read_null(buf) if is_null else self.read(buf)
