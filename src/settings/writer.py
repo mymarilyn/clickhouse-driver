@@ -17,7 +17,7 @@ def write_settings(settings, buf):
         )
 
         if not setting_writer:
-            logging.warning('Unknown setting %s. Skipping', setting)
+            logger.warning('Unknown setting %s. Skipping', setting)
             continue
 
         write_binary_str(setting, buf)
