@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- Parameters substitution for SELECT queries.
+
 ### Fixed
 - Columnar result returning from multiple blocks. Columns must be concatenated.
 

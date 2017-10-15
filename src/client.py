@@ -2,6 +2,7 @@ from . import errors, defines
 from .block import Block
 from .connection import Connection
 from .protocol import ServerPacketTypes
+from .util.escape import escape_params
 from .util.helpers import chunks
 
 
@@ -158,7 +159,9 @@ class Client(object):
         self.connection.force_connect()
 
         try:
-            is_insert = params is not None
+            # INSERT queries can use list or tuple of list/tuples/dicts.
+            # For SELECT parameters can be passed in only in dict right now.
+            is_insert = isinstance(params, (list, tuple))
             if is_insert:
                 return self.process_insert_query(
                     query, params, external_tables=external_tables,
@@ -167,7 +170,7 @@ class Client(object):
                 )
             else:
                 return self.process_ordinary_query(
-                    query, with_column_types=with_column_types,
+                    query, params=params, with_column_types=with_column_types,
                     external_tables=external_tables,
                     query_id=query_id, settings=settings,
                     types_check=types_check, columnar=columnar
@@ -177,14 +180,16 @@ class Client(object):
             self.connection.disconnect()
             raise
 
-    def execute_with_progress(self, query, with_column_types=False,
-                              external_tables=None, query_id=None,
-                              settings=None, types_check=False):
+    def execute_with_progress(
+            self, query, params=None, with_column_types=False,
+            external_tables=None, query_id=None, settings=None,
+            types_check=False):
+
         self.connection.force_connect()
 
         try:
             return self.process_ordinary_query_with_progress(
-                query, with_column_types=with_column_types,
+                query, params=params, with_column_types=with_column_types,
                 external_tables=external_tables,
                 query_id=query_id, settings=settings, types_check=types_check
             )
@@ -194,18 +199,27 @@ class Client(object):
             raise
 
     def process_ordinary_query_with_progress(
-            self, query, with_column_types=False, external_tables=None,
-            query_id=None, settings=None, types_check=False, columnar=False):
+            self, query, params=None, with_column_types=False,
+            external_tables=None, query_id=None, settings=None,
+            types_check=False, columnar=False):
+
+        if params:
+            query = self.substitute_params(query, params)
+
         self.connection.send_query(query, query_id=query_id, settings=settings)
         self.connection.send_external_tables(external_tables,
                                              types_check=types_check)
         return self.receive_result(with_column_types=with_column_types,
                                    progress=True, columnar=columnar)
 
-    def process_ordinary_query(self, query, with_column_types=False,
-                               external_tables=None, query_id=None,
-                               settings=None, types_check=False,
-                               columnar=False):
+    def process_ordinary_query(
+            self, query, params=None, with_column_types=False,
+            external_tables=None, query_id=None, settings=None,
+            types_check=False, columnar=False):
+
+        if params:
+            query = self.substitute_params(query, params)
+
         self.connection.send_query(query, query_id=query_id, settings=settings)
         self.connection.send_external_tables(external_tables,
                                              types_check=types_check)
@@ -255,3 +269,10 @@ class Client(object):
         self.connection.send_cancel()
         # Client must still read until END_OF_STREAM packet.
         return self.receive_result(with_column_types=with_column_types)
+
+    def substitute_params(self, query, params):
+        if not isinstance(params, dict):
+            raise ValueError('Parameters are expected in dict form')
+
+        escaped = escape_params(params)
+        return query % escaped
