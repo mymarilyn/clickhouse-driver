@@ -224,7 +224,7 @@ Overriding default query settings:
         settings = {'max_threads': 2, 'priority': 10}
         print(client.execute('SHOW TABLES', settings=settings))
 
-Retrieving results in columnar form. This is also more faster:
+Retrieving results in columnar form. This is also faster:
 
     .. code-block:: python
 
