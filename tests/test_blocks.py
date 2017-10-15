@@ -42,6 +42,16 @@ class BlocksTestCase(BaseTestCase):
             (2, 6, 10)
         ])
 
+    def test_columnar_block_extend(self):
+        with self.create_table('a Int32'):
+            self.client.execute('INSERT INTO test (a) VALUES', [(1, )])
+            self.client.execute('INSERT INTO test (a) VALUES', [(2, )])
+
+            query = 'SELECT * FROM test'
+
+            inserted = self.client.execute(query, columnar=True)
+            self.assertEqual(inserted, [(1, 2)])
+
     def test_select_with_column_types(self):
         rv = self.client.execute(
             'SELECT CAST(1 AS Int32) AS x', with_column_types=True

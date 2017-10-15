@@ -114,8 +114,16 @@ class Client(object):
 
         # Header block contains no rows. Pick columns from it.
         if block.rows:
-            block_data = block.get_columns() if columnar else block.get_rows()
-            result.data.extend(block_data)
+            if columnar:
+                columns = block.get_columns()
+                if result.data:
+                    # Extend corresponding column.
+                    for i, column in enumerate(columns):
+                        result.data[i] += column
+                else:
+                    result.data.extend(columns)
+            else:
+                result.data.extend(block.get_rows())
 
         elif not result.columns_with_types:
             result.columns_with_types = block.columns_with_types
