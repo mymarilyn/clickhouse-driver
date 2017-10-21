@@ -1,15 +1,15 @@
-from enum import Enum
+from enum import IntEnum
 
 from tests.testcase import BaseTestCase
 from src import errors
 
 
-class A(Enum):
+class A(IntEnum):
     hello = -1
     world = 2
 
 
-class B(Enum):
+class B(IntEnum):
     foo = -300
     bar = 300
 

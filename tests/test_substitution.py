@@ -3,7 +3,9 @@ from __future__ import unicode_literals
 
 from datetime import date, datetime
 from decimal import Decimal
-from enum import Enum
+from uuid import UUID
+
+from enum import IntEnum
 
 from tests.testcase import BaseTestCase
 
@@ -120,7 +122,7 @@ class ParametersSubstitutionTestCase(BaseTestCase):
 
     def test_enum(self):
 
-        class A(Enum):
+        class A(IntEnum):
             hello = -1
             world = 2
 
@@ -146,6 +148,15 @@ class ParametersSubstitutionTestCase(BaseTestCase):
 
         rv = self.client.execute(self.double_tpl, params)
         self.assertEqual(rv, [(0.01, 123.45)])
+
+    def test_uuid(self):
+        params = {'x': UUID('c0fcbba9-0752-44ed-a5d6-4dfb4342b89d')}
+
+        self.assert_subst(self.single_tpl, params,
+                          "SELECT 'c0fcbba9-0752-44ed-a5d6-4dfb4342b89d'")
+
+        rv = self.client.execute(self.single_tpl, params)
+        self.assertEqual(rv, [('c0fcbba9-0752-44ed-a5d6-4dfb4342b89d', )])
 
     def test_substitute_object(self):
         params = object()

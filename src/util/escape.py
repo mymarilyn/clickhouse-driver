@@ -1,6 +1,6 @@
 from datetime import date, datetime
-
 from enum import Enum
+from uuid import UUID
 
 from .compat import text_type, string_types
 
@@ -37,6 +37,9 @@ def escape_param(item):
 
     elif isinstance(item, Enum):
         return item.value
+
+    elif isinstance(item, UUID):
+        return "'%s'" % str(item)
 
     else:
         return item

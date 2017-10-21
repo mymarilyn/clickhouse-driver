@@ -99,9 +99,9 @@ Enums:
 
     .. code-block:: python
 
-        from enum import Enum
+        from enum import IntEnum
 
-        class MyEnum(Enum):
+        class MyEnum(IntEnum):
             foo = 1
             bar = 2
 
