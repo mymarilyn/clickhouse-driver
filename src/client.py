@@ -203,7 +203,7 @@ class Client(object):
             external_tables=None, query_id=None, settings=None,
             types_check=False, columnar=False):
 
-        if params:
+        if params is not None:
             query = self.substitute_params(query, params)
 
         self.connection.send_query(query, query_id=query_id, settings=settings)
@@ -217,7 +217,7 @@ class Client(object):
             external_tables=None, query_id=None, settings=None,
             types_check=False, columnar=False):
 
-        if params:
+        if params is not None:
             query = self.substitute_params(query, params)
 
         self.connection.send_query(query, query_id=query_id, settings=settings)
