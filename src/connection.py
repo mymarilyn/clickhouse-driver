@@ -112,9 +112,9 @@ class Connection(object):
                 'Connecting. Database: %s. User: %s', self.database, self.user
             )
 
-            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.socket.settimeout(self.connect_timeout)
-            self.socket.connect((self.host, self.port))
+            self.socket = socket.create_connection(
+                (self.host, self.port), timeout=self.connect_timeout
+            )
             self.connected = True
             self.socket.settimeout(self.send_receive_timeout)
 
