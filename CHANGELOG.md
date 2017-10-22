@@ -1,12 +1,17 @@
 # Changelog
 
 ## [Unreleased]
+
+## [0.0.8] - 2017-10-23
 ### Added
 - Parameters substitution for SELECT queries.
 - SSL support.
 
 ### Fixed
 - Columnar result returning from multiple blocks. Columns must be concatenated.
+- Settings logger was root.
+- Reading/writing Array(String) NotImplementedError raise.
+- IPv6 support issue [#12](https://github.com/mymarilyn/clickhouse-driver/issues/12).
 
 ## [0.0.7] - 2017-10-12
 ### Added
@@ -84,7 +89,8 @@
 - Date/DateTime types.
 - String types.
 
-[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.7...HEAD
+[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.8...HEAD
+[0.0.8]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.7...0.0.8
 [0.0.7]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.6...0.0.7
 [0.0.6]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.5...0.0.6
 [0.0.5]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.4...0.0.5
