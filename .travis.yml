@@ -26,7 +26,10 @@ before_install:
 install:
   pip install flake8 flake8-print coveralls
 before_script:
-  flake8 .
+  # Modern flake8 doesn't work with 3.2
+  - if [[ "$TRAVIS_PYTHON_VERSION" != "3.2" ]]; then
+      flake8 .;
+    fi
 script:
   # Modern coverage doesn't work with 3.2
   - if [[ "$TRAVIS_PYTHON_VERSION" == "3.2" ]]; then

@@ -19,6 +19,8 @@ Features
   * `LZ4/LZ4HC <http://www.lz4.org/>`_
   * `ZSTD <https://facebook.github.io/zstd/>`_
 
+- TLS support (since server version 1.1.54304).
+
 - Basic types support:
 
   * Float32/64
@@ -129,6 +131,18 @@ Data compression:
         client_with_lz4 = Client('localhost', compression='lz4')
         client_with_zstd = Client('localhost', compression='zstd')
 
+Secure connection:
+
+    .. code-block:: python
+
+        from clickhouse_driver import Client
+
+        client = Client('localhost', secure=True)
+        # Using self-signed certificate.
+        self_signed_client = Client('localhost', secure=True, ca_certs='/etc/clickhouse-server/server.crt')
+        # Disable verification.
+        no_verifyed_client = Client('localhost', secure=True, verify=False)
+
 External data for query processing:
 
     .. code-block:: python
@@ -196,6 +210,13 @@ The first parameter *host* is required. There are some optional parameters:
   * ``'zstd'``.
 - *insert_block_size*. Chunk size to split rows for ``INSERT``. Default is ``1048576``.
 
+SSL/TLS parameters:
+
+- *secure*. Establish secure connection. Default is ``False``.
+- *verify*. Specifies whether a certificate is required and whether it will be validated after connection.
+  Default is ``True``.
+- other parameters: *ssl_version*, *ca_certs*, *ciphers*.
+  See `ssl.wrap_socket <https://docs.python.org/3/library/ssl.html#ssl.wrap_socket>`_ documentation.
 
 You can also specify timeouts via:
 
@@ -206,6 +227,18 @@ You can also specify timeouts via:
 
 Miscellaneous
 -------------
+
+Passing parameters to SELECT SQL queries:
+
+    .. code-block:: python
+
+        from datetime import date
+
+        rv = client.execute(
+            'SELECT %(date)s, %(a)s + %(b)s',
+            {'date': date.today(), 'a': 1, 'b': 2}
+        )
+        print(rv)
 
 Specifying `query_id`:
 
@@ -228,7 +261,7 @@ Retrieving results in columnar form. This is also faster:
 
     .. code-block:: python
 
-        print(client.execute('SELECT arrayJoin(range(3))', columnar=True)
+        print(client.execute('SELECT arrayJoin(range(3))', columnar=True))
 
 Data types check is disabled for performance on ``INSERT`` queries.
 You can turn it on by *types_check* option:
