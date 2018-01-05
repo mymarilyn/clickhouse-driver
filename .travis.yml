@@ -4,7 +4,6 @@ env:
 language: python
 python:
   - "2.7"
-  - "3.2"
   - "3.3"
   - "3.4"
   - "3.5"
@@ -26,18 +25,8 @@ before_install:
 install:
   pip install flake8 flake8-print coveralls
 before_script:
-  # Modern flake8 doesn't work with 3.2
-  - if [[ "$TRAVIS_PYTHON_VERSION" != "3.2" ]]; then
-      flake8 .;
-    fi
+  flake8
 script:
-  # Modern coverage doesn't work with 3.2
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "3.2" ]]; then
-      python setup.py test;
-    else
-      coverage run --source=src setup.py test;
-    fi
+  coverage run --source=src setup.py test
 after_success:
-  - if [[ "$TRAVIS_PYTHON_VERSION" != "3.2" ]]; then
-      coveralls;
-    fi
+  coveralls

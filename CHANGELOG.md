@@ -4,6 +4,9 @@
 ### Fixed
 - Raise EOFError when no data is read in `_read_one` in Python 3.
 
+### Changed
+- Drop Python 3.2 support due to lz4 issues.
+
 ## [0.0.8] - 2017-10-23
 ### Added
 - Parameters substitution for SELECT queries.
