@@ -12,7 +12,7 @@ def read_binary_str_fixed_len(buf, length):
 
 def _read_one(f):
     c = f.read(1)
-    if c == '':
+    if c == b'':
         raise EOFError("Unexpected EOF while reading bytes")
 
     return ord(c)

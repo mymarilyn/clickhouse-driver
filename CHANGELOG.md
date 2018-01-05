@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed
+- Raise EOFError when no data is read in `_read_one` in Python 3.
 
 ## [0.0.8] - 2017-10-23
 ### Added

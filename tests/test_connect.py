@@ -93,6 +93,16 @@ class ConnectTestCase(BaseTestCase):
             with self.assertRaises(errors.UnexpectedPacketFromServerError):
                 self.client.execute('SELECT 1')
 
+    def test_eof_on_receive_packet(self):
+        self.client.execute('SELECT 1')
+
+        with patch.object(self.client.connection, 'fin') as mocked_fin:
+            # Emulate Exception packet on ping.
+            mocked_fin.read.side_effect = [b'\x04', b'']
+
+            with self.assertRaises(EOFError):
+                self.client.execute('SELECT 1')
+
     def test_eof_error_on_ping(self):
         self.client.execute('SELECT 1')
 
