@@ -21,4 +21,4 @@ class IntervalTestCase(BaseTestCase):
         self.assertEqual(cli_result, '1\t2\t3\t4\t5\t6\t7\n')
 
         client_result = self.client.execute(query)
-        self.assertEqual(client_result, cli_result)
+        self.assertEqual(client_result, [(1, 2, 3, 4, 5, 6, 7)])
