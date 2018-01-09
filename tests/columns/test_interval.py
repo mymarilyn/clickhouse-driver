@@ -4,17 +4,17 @@ from tests.testcase import BaseTestCase
 class IntervalTestCase(BaseTestCase):
 
     def test_all(self):
-        interval = {
-            'YEAR': 1,
-            'MONTH': 2,
-            'WEEK': 3,
-            'DAY': 4,
-            'HOUR': 5,
-            'MINUTE': 6,
-            'SECOND': 7
-        }
+        interval = [
+            ('YEAR', 1),
+            ('MONTH', 2),
+            ('WEEK', 3),
+            ('DAY', 4),
+            ('HOUR', 5),
+            ('MINUTE', 6),
+            ('SECOND', 7)
+        ]
         columns = ', '.join(['INTERVAL {} {}'.format(v, k)
-                             for k, v in interval.items()])
+                             for k, v in interval])
         query = 'SELECT {} FROM system.numbers LIMIT 1'.format(columns)
 
         cli_result = self.emit_cli(query)
