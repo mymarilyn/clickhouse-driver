@@ -218,10 +218,18 @@ class Connection(object):
         if self.connected:
             # Close file descriptors before socket closing.
             if self.fin:
-                self.fin.close()
+                try:
+                    self.fin.close()
+
+                except socket.error as e:
+                    logger.warning('Error on in file close: %s', e)
 
             if self.fout:
-                self.fout.close()
+                try:
+                    self.fout.close()
+
+                except socket.error as e:
+                    logger.warning('Error on out file close: %s', e)
 
             # There can be errors on shutdown.
             # We need to close socket and reset state even if it happens.

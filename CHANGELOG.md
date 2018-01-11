@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Fixed
 - Raise EOFError when no data is read in `_read_one` in Python 3.
+- SSL file descriptors closing in Python 2.7.
 
 ### Changed
 - Drop Python 3.2 support due to lz4 issues.
