@@ -15,7 +15,7 @@ class IntervalTestCase(BaseTestCase):
         ]
         columns = ', '.join(['INTERVAL {} {}'.format(v, k)
                              for k, v in interval])
-        query = 'SELECT {} FROM system.numbers LIMIT 1'.format(columns)
+        query = 'SELECT {}'.format(columns)
 
         cli_result = self.emit_cli(query)
         self.assertEqual(cli_result, '1\t2\t3\t4\t5\t6\t7\n')
