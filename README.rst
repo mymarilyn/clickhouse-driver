@@ -143,6 +143,11 @@ Secure connection:
         # Disable verification.
         no_verifyed_client = Client('localhost', secure=True, verify=False)
 
+        # Example of secured client with Let's Encrypt certificate.
+        import certifi
+
+        client = Client('remote-host', secure=True, ca_certs=certifi.where())
+
 External data for query processing:
 
     .. code-block:: python

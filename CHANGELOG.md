@@ -1,12 +1,18 @@
 # Changelog
 
 ## [Unreleased]
+
+## [0.0.9] - 2018-01-17
+### Added
+- Interval type. Pull request [#16](https://github.com/mymarilyn/clickhouse-driver/pull/16) by [kszucs](https://github.com/kszucs).
+
 ### Fixed
 - Raise EOFError when no data is read in `_read_one` in Python 3.
 - SSL file descriptors closing in Python 2.7.
 
 ### Changed
 - Drop Python 3.2 support due to lz4 issues.
+- Log level for normal operations raised to DEBUG. Pull request [#17](https://github.com/mymarilyn/clickhouse-driver/pull/17) by [kmatt](https://github.com/kmatt).
 
 ## [0.0.8] - 2017-10-23
 ### Added
@@ -95,7 +101,8 @@
 - Date/DateTime types.
 - String types.
 
-[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.8...HEAD
+[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.9...HEAD
+[0.0.9]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.8...0.0.9
 [0.0.8]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.7...0.0.8
 [0.0.7]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.6...0.0.7
 [0.0.6]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.5...0.0.6
