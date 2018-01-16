@@ -122,7 +122,7 @@ class Connection(object):
             self.connect()
 
         elif not self.ping():
-            logger.info('Connection was closed, reconnecting.')
+            logger.warning('Connection was closed, reconnecting.')
             self.connect()
 
     def _create_socket(self):
@@ -170,7 +170,7 @@ class Connection(object):
             if self.connected:
                 self.disconnect()
 
-            logger.info(
+            logger.debug(
                 'Connecting. Database: %s. User: %s', self.database, self.user
             )
 
@@ -270,7 +270,7 @@ class Connection(object):
                 server_revision, server_timezone
             )
 
-            logger.info(
+            logger.debug(
                 'Connected to %s server version %s.%s.%s', server_name,
                 server_version_major, server_version_minor, server_revision
             )
@@ -436,7 +436,7 @@ class Connection(object):
 
         write_binary_str(query, self.fout)
 
-        logger.info('Query: %s', query)
+        logger.debug('Query: %s', query)
 
         self.fout.flush()
 
