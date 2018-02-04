@@ -7,7 +7,8 @@ class SettingTestCase(BaseTestCase):
         settings = {'max_query_size': 142}
 
         rv = self.client.execute(
-            "SELECT * FROM system.settings WHERE name = 'max_query_size'",
+            "SELECT name, value, changed FROM system.settings "
+            "WHERE name = 'max_query_size'",
             settings=settings
         )
         self.assertEqual(rv, [('max_query_size', '142', 1)])
@@ -16,7 +17,7 @@ class SettingTestCase(BaseTestCase):
         settings = {'totals_auto_threshold': 1.23}
 
         rv = self.client.execute(
-            "SELECT * FROM system.settings "
+            "SELECT name, value, changed FROM system.settings "
             "WHERE name = 'totals_auto_threshold'",
             settings=settings
         )
@@ -26,7 +27,7 @@ class SettingTestCase(BaseTestCase):
         settings = {'force_index_by_date': 2}
 
         rv = self.client.execute(
-            "SELECT * FROM system.settings "
+            "SELECT name, value, changed FROM system.settings "
             "WHERE name = 'force_index_by_date'",
             settings=settings
         )
@@ -36,7 +37,7 @@ class SettingTestCase(BaseTestCase):
         settings = {'max_threads': 100500}
 
         rv = self.client.execute(
-            "SELECT * FROM system.settings "
+            "SELECT name, value, changed FROM system.settings "
             "WHERE name = 'max_threads'",
             settings=settings
         )
@@ -45,7 +46,7 @@ class SettingTestCase(BaseTestCase):
         settings = {'max_threads': 'auto'}
 
         self.client.execute(
-            "SELECT * FROM system.settings "
+            "SELECT name, value, changed FROM system.settings "
             "WHERE name = 'max_threads'",
             settings=settings
         )
