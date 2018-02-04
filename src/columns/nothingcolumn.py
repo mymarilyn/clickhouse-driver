@@ -1,10 +1,8 @@
 from .intcolumn import FormatColumn
 
 
-# TODO: Drop Null column support in future.
-# Compatibility with old servers.
-class NullColumn(FormatColumn):
-    ch_type = 'Null'
+class NothingColumn(FormatColumn):
+    ch_type = 'Nothing'
     format = 'B'
 
     @property
