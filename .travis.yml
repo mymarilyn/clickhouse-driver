@@ -1,5 +1,11 @@
 env:
   - VERSION=1.1.54327
+  - VERSION=1.1.54310
+  - VERSION=1.1.54304
+  - VERSION=1.1.54292
+  - VERSION=1.1.54289
+  - VERSION=1.1.54284
+  - VERSION=1.1.54282
 
 language: python
 python:
