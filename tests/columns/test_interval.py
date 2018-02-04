@@ -1,8 +1,10 @@
 from tests.testcase import BaseTestCase
+from tests.util import require_server_version
 
 
 class IntervalTestCase(BaseTestCase):
 
+    @require_server_version(1, 1, 54310)
     def test_all(self):
         interval = [
             ('YEAR', 1),
