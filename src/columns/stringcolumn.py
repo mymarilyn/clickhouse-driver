@@ -60,3 +60,8 @@ class FixedString(String):
             write_binary_bytes_fixed_len(value, buf, self.length)
         except ValueError:
             raise errors.TooLargeStringSize()
+
+
+def create_fixed_string_column(spec):
+    length = int(spec[12:-1])
+    return FixedString(length)

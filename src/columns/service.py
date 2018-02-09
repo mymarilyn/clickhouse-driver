@@ -12,7 +12,7 @@ from .intcolumn import (
 from .nothingcolumn import NothingColumn
 from .nullcolumn import NullColumn
 from .nullablecolumn import create_nullable_column
-from .stringcolumn import String, FixedString
+from .stringcolumn import String, create_fixed_string_column
 from .uuidcolumn import UUIDColumn
 from .intervalcolumn import (
     IntervalYearColumn, IntervalMonthColumn, IntervalWeekColumn,
@@ -39,8 +39,7 @@ def get_column_by_spec(spec, column_options=None):
         return get_column_by_spec(x, column_options)
 
     if spec.startswith('FixedString'):
-        length = int(spec[12:-1])
-        return FixedString(length)
+        return create_fixed_string_column(spec)
 
     elif spec.startswith('Enum'):
         return create_enum_column(spec, column_options)
