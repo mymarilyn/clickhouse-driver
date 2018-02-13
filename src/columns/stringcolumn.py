@@ -33,7 +33,12 @@ class FixedString(String):
         super(FixedString, self).__init__(**kwargs)
 
     def read(self, buf):
-        return read_binary_str_fixed_len(buf, self.length).strip('\x00')
+        text = read_binary_str_fixed_len(buf, self.length)
+        if isinstance(text, bytes):
+            strip = b'\x00'
+        else:
+            strip = '\x00'
+        return text.strip(strip)
 
     def write(self, value, buf):
         try:
