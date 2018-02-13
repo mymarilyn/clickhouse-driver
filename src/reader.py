@@ -3,11 +3,15 @@ from struct import Struct
 
 def read_binary_str(buf):
     length = read_varint(buf)
-    return buf.read(length).decode('utf-8')
+    return read_binary_str_fixed_len(buf, length)
 
 
 def read_binary_str_fixed_len(buf, length):
-    return buf.read(length).decode('utf-8')
+    try:
+        text = buf.read(length).decode('utf-8')
+    except UnicodeDecodeError:    
+        text = buf.read(length)
+    return text
 
 
 def _read_one(f):
