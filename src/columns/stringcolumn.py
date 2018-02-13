@@ -1,7 +1,7 @@
 
 from .. import errors
-from ..reader import read_binary_str, read_binary_str_fixed_len
-from ..writer import write_binary_str, write_binary_str_fixed_len
+from ..reader import read_bytes, read_bytes_fixed_len
+from ..writer import write_bytes, write_bytes_fixed_len
 from ..util import compat
 from .base import CustomItemColumn
 
@@ -13,13 +13,13 @@ class String(CustomItemColumn):
     # TODO: pass user encoding here
 
     def read(self, buf):
-        return read_binary_str(buf)
+        return read_bytes(buf)
 
     def _read_null(self, buf):
         self.read(buf)
 
     def write(self, value, buf):
-        write_binary_str(value, buf)
+        write_bytes(value, buf)
 
     def _write_null(self, buf):
         self.write('', buf)
@@ -33,7 +33,7 @@ class FixedString(String):
         super(FixedString, self).__init__(**kwargs)
 
     def read(self, buf):
-        text = read_binary_str_fixed_len(buf, self.length)
+        text = read_bytes_fixed_len(buf, self.length)
         if isinstance(text, bytes):
             strip = b'\x00'
         else:
@@ -42,6 +42,6 @@ class FixedString(String):
 
     def write(self, value, buf):
         try:
-            write_binary_str_fixed_len(value, buf, self.length)
+            write_bytes_fixed_len(value, buf, self.length)
         except ValueError:
             raise errors.TooLargeStringSize()

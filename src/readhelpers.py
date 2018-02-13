@@ -1,12 +1,12 @@
 from .errors import ServerException
-from .reader import read_binary_str, read_binary_uint8, read_binary_int32
+from .reader import read_bytes, read_binary_uint8, read_binary_int32
 
 
 def read_exception(buf, additional_message=None):
     code = read_binary_int32(buf)
-    name = read_binary_str(buf)
-    message = read_binary_str(buf)
-    stack_trace = read_binary_str(buf)
+    name = read_bytes(buf)
+    message = read_bytes(buf)
+    stack_trace = read_bytes(buf)
     has_nested = bool(read_binary_uint8(buf))
 
     new_message = ''

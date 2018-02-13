@@ -12,11 +12,11 @@ from . import errors
 from .progress import Progress
 from .protocol import Compression, ClientPacketTypes, ServerPacketTypes
 from .queryprocessingstage import QueryProcessingStage
-from .reader import read_varint, read_binary_str
+from .reader import read_varint, read_bytes
 from .readhelpers import read_exception
 from .compression import get_compressor_cls
 from .settings.writer import write_settings
-from .writer import write_varint, write_binary_str
+from .writer import write_varint, write_bytes
 
 
 logger = logging.getLogger(__name__)
@@ -249,13 +249,13 @@ class Connection(object):
 
     def send_hello(self):
         write_varint(ClientPacketTypes.HELLO, self.fout)
-        write_binary_str(self.client_name, self.fout)
+        write_bytes(self.client_name, self.fout)
         write_varint(defines.DBMS_VERSION_MAJOR, self.fout)
         write_varint(defines.DBMS_VERSION_MINOR, self.fout)
         write_varint(defines.CLIENT_VERSION, self.fout)
-        write_binary_str(self.database, self.fout)
-        write_binary_str(self.user, self.fout)
-        write_binary_str(self.password, self.fout)
+        write_bytes(self.database, self.fout)
+        write_bytes(self.user, self.fout)
+        write_bytes(self.password, self.fout)
 
         self.fout.flush()
 
@@ -263,7 +263,7 @@ class Connection(object):
         packet_type = read_varint(self.fin)
 
         if packet_type == ServerPacketTypes.HELLO:
-            server_name = read_binary_str(self.fin)
+            server_name = read_bytes(self.fin)
             server_version_major = read_varint(self.fin)
             server_version_minor = read_varint(self.fin)
             server_revision = read_varint(self.fin)
@@ -271,7 +271,7 @@ class Connection(object):
             server_timezone = None
             if server_revision >= \
                     defines.DBMS_MIN_REVISION_WITH_SERVER_TIMEZONE:
-                server_timezone = read_binary_str(self.fin)
+                server_timezone = read_bytes(self.fin)
 
             self.server_info = ServerInfo(
                 server_name, server_version_major, server_version_minor,
@@ -389,7 +389,7 @@ class Connection(object):
         revision = self.server_info.revision
 
         if revision >= defines.DBMS_MIN_REVISION_WITH_TEMPORARY_TABLES:
-            read_binary_str(self.fin)
+            read_bytes(self.fin)
 
         block = self.block_in.read()
         self.block_in.reset()
@@ -414,7 +414,7 @@ class Connection(object):
 
         revision = self.server_info.revision
         if revision >= defines.DBMS_MIN_REVISION_WITH_TEMPORARY_TABLES:
-            write_binary_str(table_name, self.fout)
+            write_bytes(table_name, self.fout)
 
         self.block_out.write(block)
         self.block_out.reset()
@@ -426,7 +426,7 @@ class Connection(object):
 
         write_varint(ClientPacketTypes.QUERY, self.fout)
 
-        write_binary_str(query_id or '', self.fout)
+        write_bytes(query_id or '', self.fout)
 
         revision = self.server_info.revision
         if revision >= defines.DBMS_MIN_REVISION_WITH_CLIENT_INFO:
@@ -440,7 +440,7 @@ class Connection(object):
         write_varint(QueryProcessingStage.COMPLETE, self.fout)
         write_varint(self.compression, self.fout)
 
-        write_binary_str(query, self.fout)
+        write_bytes(query, self.fout)
 
         logger.debug('Query: %s', query)
 

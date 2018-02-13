@@ -1,5 +1,5 @@
 
-from ..writer import write_binary_str, write_varint
+from ..writer import write_bytes, write_varint
 
 
 class SettingType(object):
@@ -23,7 +23,7 @@ class SettingBool(SettingType):
 class SettingString(SettingType):
     @classmethod
     def write(cls, value, buf):
-        write_binary_str(value, buf)
+        write_bytes(value, buf)
 
 
 class SettingFloat(SettingType):
@@ -32,7 +32,7 @@ class SettingFloat(SettingType):
         """
         Float is written in string representation.
         """
-        write_binary_str(str(value), buf)
+        write_bytes(str(value), buf)
 
 
 class SettingMaxThreads(SettingUInt64):
