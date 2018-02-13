@@ -7,10 +7,12 @@ def read_binary_str(buf):
 
 
 def read_binary_str_fixed_len(buf, length):
+    text = buf.read(length)
     try:
-        text = buf.read(length).decode('utf-8')
-    except UnicodeDecodeError:    
-        text = buf.read(length)
+        text = text.decode('utf-8')
+    except UnicodeDecodeError:
+        # Do nothing. Just return bytes.
+        pass
     return text
 
 
