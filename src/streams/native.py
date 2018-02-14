@@ -1,7 +1,7 @@
 from ..block import Block, BlockInfo
 from ..columns.service import read_column, write_column
-from ..reader import read_varint, read_bytes
-from ..writer import write_varint, write_bytes
+from ..reader import read_varint, read_binary_str
+from ..writer import write_varint, write_binary_str
 from .. import defines
 
 
@@ -27,8 +27,8 @@ class BlockOutputStream(object):
         write_varint(n_rows, self.fout)
 
         for i, (col_name, col_type) in enumerate(block.columns_with_types):
-            write_bytes(col_name, self.fout)
-            write_bytes(col_type, self.fout)
+            write_binary_str(col_name, self.fout)
+            write_binary_str(col_type, self.fout)
 
             if n_columns:
                 try:
@@ -67,8 +67,8 @@ class BlockInputStream(object):
         data, names, types = [], [], []
 
         for i in range(n_columns):
-            column_name = read_bytes(self.fin)
-            column_type = read_bytes(self.fin)
+            column_name = read_binary_str(self.fin)
+            column_type = read_binary_str(self.fin)
 
             names.append(column_name)
             types.append(column_type)

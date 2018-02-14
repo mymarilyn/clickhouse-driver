@@ -3,7 +3,7 @@ import getpass
 
 from . import defines
 from . import errors
-from .writer import write_bytes, write_varint, write_binary_uint8
+from .writer import write_binary_str, write_varint, write_binary_uint8
 
 
 class ClientInfo(object):
@@ -55,18 +55,18 @@ class ClientInfo(object):
         if self.empty:
             return
 
-        write_bytes(self.initial_user, fout)
-        write_bytes(self.initial_query_id, fout)
-        write_bytes(self.initial_address, fout)
+        write_binary_str(self.initial_user, fout)
+        write_binary_str(self.initial_query_id, fout)
+        write_binary_str(self.initial_address, fout)
 
         write_binary_uint8(self.interface, fout)
 
-        write_bytes(self.os_user, fout)
-        write_bytes(self.client_hostname, fout)
-        write_bytes(self.client_name, fout)
+        write_binary_str(self.os_user, fout)
+        write_binary_str(self.client_hostname, fout)
+        write_binary_str(self.client_name, fout)
         write_varint(self.client_version_major, fout)
         write_varint(self.client_version_minor, fout)
         write_varint(self.client_revision, fout)
 
         if revision >= defines.DBMS_MIN_REVISION_WITH_QUOTA_KEY_IN_CLIENT_INFO:
-            write_bytes(self.quota_key, fout)
+            write_binary_str(self.quota_key, fout)

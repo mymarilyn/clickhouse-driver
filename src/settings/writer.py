@@ -1,6 +1,6 @@
 import logging
 
-from ..writer import write_bytes
+from ..writer import write_binary_str
 from .available import (
     settings as available_settings,
     limits as available_limits
@@ -20,7 +20,7 @@ def write_settings(settings, buf):
             logger.warning('Unknown setting %s. Skipping', setting)
             continue
 
-        write_bytes(setting, buf)
+        write_binary_str(setting, buf)
         setting_writer.write(value, buf)
 
-    write_bytes('', buf)  # end of settings
+    write_binary_str('', buf)  # end of settings

@@ -14,14 +14,14 @@ else:
         return chr(b)
 
 
-def write_bytes(text, buf):
+def write_binary_str(text, buf):
     if not isinstance(text, bytes):
         text = text.encode('utf-8')
     write_varint(len(text), buf)
     buf.write(text)
 
 
-def write_bytes_fixed_len(text, buf, length):
+def write_binary_str_fixed_len(text, buf, length):
     if not isinstance(text, bytes):
         text = text.encode('utf-8')
     diff = length - len(text)
