@@ -92,7 +92,7 @@ Arrays:
         client.execute('CREATE TABLE test2 (x Array(Int32)) ENGINE = Memory')
         client.execute(
             'INSERT INTO test2 (x) VALUES',
-            [{'x': [10, 20, 30]}, {'x': (11, 21, 31)}]
+            [{'x': [10, 20, 30]}, {'x': [11, 21, 31]}]
         )
 
         print(client.execute('SELECT * FROM test2'))

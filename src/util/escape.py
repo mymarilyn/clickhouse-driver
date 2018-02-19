@@ -32,8 +32,11 @@ def escape_param(item):
     elif isinstance(item, string_types):
         return "'%s'" % ''.join(escape_chars_map.get(c, c) for c in item)
 
-    elif isinstance(item, (list, tuple)):
+    elif isinstance(item, list):
         return "[%s]" % ', '.join(text_type(escape_param(x)) for x in item)
+
+    elif isinstance(item, tuple):
+        return "(%s)" % ', '.join(text_type(escape_param(x)) for x in item)
 
     elif isinstance(item, Enum):
         return item.value
