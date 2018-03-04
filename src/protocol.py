@@ -29,7 +29,7 @@ class ClientPacketTypes(object):
 
     @classmethod
     def to_str(cls, packet):
-        return 'Unknown packet' if packet > 6 else cls._types_str[packet]
+        return 'Unknown packet' if packet > 5 else cls._types_str[packet]
 
 
 class ServerPacketTypes(object):
@@ -73,7 +73,7 @@ class ServerPacketTypes(object):
 
     @classmethod
     def to_str(cls, packet):
-        return 'Unknown packet' if packet > 10 else cls._types_str[packet]
+        return 'Unknown packet' if packet > 9 else cls._types_str[packet]
 
 
 class Compression(object):
