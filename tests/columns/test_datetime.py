@@ -3,7 +3,7 @@ from datetime import date, datetime
 from tests.testcase import BaseTestCase
 
 
-class DatetimeTestCase(BaseTestCase):
+class DateTimeTestCase(BaseTestCase):
     def test_simple(self):
         with self.create_table('a Date, b DateTime'):
             data = [(date(2012, 10, 25), datetime(2012, 10, 25, 14, 7, 19))]

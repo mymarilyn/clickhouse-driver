@@ -95,6 +95,7 @@ setup(
     tests_require=[
         'nose',
         'mock',
+        'freezegun',
         'lz4', 'zstd',
         'clickhouse-cityhash==1.0.2.1'
     ],
