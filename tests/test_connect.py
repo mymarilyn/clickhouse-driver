@@ -12,10 +12,12 @@ from tests.testcase import BaseTestCase
 class PacketsTestCase(BaseTestCase):
     def test_packets_to_str(self):
         self.assertEqual(ClientPacketTypes.to_str(2), 'Data')
+        self.assertEqual(ClientPacketTypes.to_str(6), 'Unknown packet')
         self.assertEqual(ClientPacketTypes.to_str(42), 'Unknown packet')
 
         self.assertEqual(ServerPacketTypes.to_str(4), 'Pong')
-        self.assertEqual(ClientPacketTypes.to_str(42), 'Unknown packet')
+        self.assertEqual(ServerPacketTypes.to_str(10), 'Unknown packet')
+        self.assertEqual(ServerPacketTypes.to_str(42), 'Unknown packet')
 
 
 class ConnectTestCase(BaseTestCase):
