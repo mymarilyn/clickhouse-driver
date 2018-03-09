@@ -88,7 +88,7 @@ class Client(object):
             progress = getattr(packet, 'progress', None)
             if progress:
                 if progress.new_total_rows:
-                    approx_rows_to_read = progress.new_total_rows
+                    approx_rows_to_read += progress.new_total_rows
 
                 rows_read += progress.new_rows
 
