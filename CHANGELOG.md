@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+## [0.0.10] - 2018-03-14
+### Added
+- Server version specific tests.
+- Nothing type.
+- Travis CI build matrix.
+
+### Fixed
+- Possible IndexError in packet types string representation. Pull request [#28](https://github.com/mymarilyn/clickhouse-driver/pull/28) by [WouldYouKindly](https://github.com/WouldYouKindly).
+- Do not use timezone in Date columns. Issue [#29](https://github.com/mymarilyn/clickhouse-driver/issues/29).
+- Approximate rows to read calculation in `execute_with_progress`. Pull request [#30](https://github.com/mymarilyn/clickhouse-driver/pull/30) by [b1naryth1ef](https://github.com/b1naryth1ef).
+
+### Changed
+- List and Tuple types rendering in parameters substitution. Pull request [#27](https://github.com/mymarilyn/clickhouse-driver/pull/27) by [silentsokolov](https://github.com/silentsokolov).
+
 ## [0.0.9] - 2018-01-17
 ### Added
 - Interval type. Pull request [#16](https://github.com/mymarilyn/clickhouse-driver/pull/16) by [kszucs](https://github.com/kszucs).
@@ -101,7 +115,8 @@
 - Date/DateTime types.
 - String types.
 
-[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.9...HEAD
+[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.10...HEAD
+[0.0.10]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.9...0.0.10
 [0.0.9]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.8...0.0.9
 [0.0.8]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.7...0.0.8
 [0.0.7]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.6...0.0.7
