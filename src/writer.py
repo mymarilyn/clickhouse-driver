@@ -15,15 +15,21 @@ else:
 
 
 def write_binary_str(text, buf):
-    if not isinstance(text, bytes):
-        text = text.encode('utf-8')
+    text = text.encode('utf-8')
+    write_binary_bytes(text, buf)
+
+
+def write_binary_bytes(text, buf):
     write_varint(len(text), buf)
     buf.write(text)
 
 
 def write_binary_str_fixed_len(text, buf, length):
-    if not isinstance(text, bytes):
-        text = text.encode('utf-8')
+    text = text.encode('utf-8')
+    write_binary_bytes_fixed_len(text, buf, length)
+
+
+def write_binary_bytes_fixed_len(text, buf, length):
     diff = length - len(text)
     if diff > 0:
         text += _byte(0) * diff

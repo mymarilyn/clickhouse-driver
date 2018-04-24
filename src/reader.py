@@ -6,14 +6,17 @@ def read_binary_str(buf):
     return read_binary_str_fixed_len(buf, length)
 
 
+def read_binary_bytes(buf):
+    length = read_varint(buf)
+    return read_binary_bytes_fixed_len(buf, length)
+
+
 def read_binary_str_fixed_len(buf, length):
-    text = buf.read(length)
-    try:
-        text = text.decode('utf-8')
-    except UnicodeDecodeError:
-        # Do nothing. Just return bytes.
-        pass
-    return text
+    return read_binary_bytes_fixed_len(buf, length).decode('utf-8')
+
+
+def read_binary_bytes_fixed_len(buf, length):
+    return buf.read(length)
 
 
 def _read_one(f):

@@ -30,7 +30,7 @@ class BaseTestCase(TestCase):
     client = None
 
     @classmethod
-    def emit_cli(cls, statement, database=None):
+    def emit_cli(cls, statement, database=None, encoding='utf-8'):
         if database is None:
             database = cls.database
 
@@ -53,7 +53,7 @@ class BaseTestCase(TestCase):
                 'Error during communication. {}'.format(err)
             )
 
-        return out.decode('utf-8')
+        return out.decode(encoding)
 
     def create_client(self, **kwargs):
         return Client(

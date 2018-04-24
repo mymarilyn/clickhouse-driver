@@ -21,6 +21,22 @@ class StringTestCase(BaseTestCase):
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
 
+    def test_non_utf(self):
+        columns = 'a String'
+
+        data = [('яндекс'.encode('cp1251'), )]
+        with self.create_table(columns):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query, encoding='cp1251')
+            self.assertEqual(inserted, 'яндекс\n')
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
+
     def test_nullable(self):
         with self.create_table('a Nullable(String)'):
             data = [(None, ), ('test', ), (None, ), ('nullable', )]
