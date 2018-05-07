@@ -54,10 +54,17 @@ class Progress(object):
 
 class Client(object):
     def __init__(self, *args, **kwargs):
-        self.insert_block_size = kwargs.pop(
-            'insert_block_size', defines.DEFAULT_INSERT_BLOCK_SIZE
-        )
+        self.settings = kwargs.pop('settings', {})
+
+        client_settings = {
+            'insert_block_size': self.settings.pop(
+                'insert_block_size', defines.DEFAULT_INSERT_BLOCK_SIZE
+            )
+        }
+
         self.connection = Connection(*args, **kwargs)
+        self.connection.context.settings = self.settings
+        self.connection.context.client_settings = client_settings
         super(Client, self).__init__()
 
     def disconnect(self):
@@ -156,6 +163,12 @@ class Client(object):
     def execute(self, query, params=None, with_column_types=False,
                 external_tables=None, query_id=None, settings=None,
                 types_check=False, columnar=False):
+
+        query_settings = self.settings.copy()
+        query_settings.update(settings or {})
+
+        self.connection.context.settings = query_settings
+
         self.connection.force_connect()
 
         try:
@@ -165,14 +178,14 @@ class Client(object):
             if is_insert:
                 return self.process_insert_query(
                     query, params, external_tables=external_tables,
-                    query_id=query_id, settings=settings,
+                    query_id=query_id, settings=query_settings,
                     types_check=types_check
                 )
             else:
                 return self.process_ordinary_query(
                     query, params=params, with_column_types=with_column_types,
                     external_tables=external_tables,
-                    query_id=query_id, settings=settings,
+                    query_id=query_id, settings=query_settings,
                     types_check=types_check, columnar=columnar
                 )
 
@@ -185,13 +198,19 @@ class Client(object):
             external_tables=None, query_id=None, settings=None,
             types_check=False):
 
+        query_settings = self.settings.copy()
+        query_settings.update(settings or {})
+
+        self.connection.context.settings = query_settings
+
         self.connection.force_connect()
 
         try:
             return self.process_ordinary_query_with_progress(
                 query, params=params, with_column_types=with_column_types,
                 external_tables=external_tables,
-                query_id=query_id, settings=settings, types_check=types_check
+                query_id=query_id, settings=query_settings,
+                types_check=types_check
             )
 
         except Exception:
@@ -256,7 +275,8 @@ class Client(object):
             raise errors.UnexpectedPacketFromServerError(message)
 
     def send_data(self, sample_block, data, types_check=False):
-        for chunk in chunks(data, self.insert_block_size):
+        client_settings = self.connection.context.client_settings
+        for chunk in chunks(data, client_settings['insert_block_size']):
             block = Block(sample_block.columns_with_types, chunk,
                           types_check=types_check)
             self.connection.send_data(block)

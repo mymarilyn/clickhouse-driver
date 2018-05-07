@@ -55,6 +55,30 @@ class SettingTestCase(BaseTestCase):
         settings = {'unknown_setting': 100500}
         self.client.execute('SHOW tables', settings=settings)
 
+    def test_client_settings(self):
+        settings = {'max_query_size': 142}
+        client = self.create_client(settings=settings)
+
+        rv = client.execute(
+            "SELECT name, value, changed FROM system.settings "
+            "WHERE name = 'max_query_size'"
+        )
+        client.disconnect()
+        self.assertEqual(rv, [('max_query_size', '142', 1)])
+
+    def test_query_settings_override_client_settings(self):
+        client_settings = {'max_query_size': 142}
+        query_settings = {'max_query_size': 242}
+        client = self.create_client(settings=client_settings)
+
+        rv = client.execute(
+            "SELECT name, value, changed FROM system.settings "
+            "WHERE name = 'max_query_size'",
+            settings=query_settings
+        )
+        client.disconnect()
+        self.assertEqual(rv, [('max_query_size', '242', 1)])
+
 
 class LimitsTestCase(BaseTestCase):
     def test_max_result_rows_apply(self):

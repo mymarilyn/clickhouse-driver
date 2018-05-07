@@ -7,6 +7,7 @@ from time import time
 from .block import Block
 from .blockstreamprofileinfo import BlockStreamProfileInfo
 from .clientinfo import ClientInfo
+from .context import Context
 from . import defines
 from . import errors
 from .progress import Progress
@@ -106,6 +107,7 @@ class Connection(object):
         self.connected = False
 
         self.server_info = None
+        self.context = Context()
 
         # Block writer/reader
         self.block_in = None
@@ -277,6 +279,7 @@ class Connection(object):
                 server_name, server_version_major, server_version_minor,
                 server_revision, server_timezone
             )
+            self.context.server_info = self.server_info
 
             logger.debug(
                 'Connected to %s server version %s.%s.%s', server_name,
@@ -359,31 +362,27 @@ class Connection(object):
         return packet
 
     def get_block_in_stream(self):
-        revision = self.server_info.revision
-
         if self.compression:
             from .streams.compressed import CompressedBlockInputStream
 
-            return CompressedBlockInputStream(self.fin, revision)
+            return CompressedBlockInputStream(self.fin, self.context)
         else:
             from .streams.native import BlockInputStream
 
-            return BlockInputStream(self.fin, revision)
+            return BlockInputStream(self.fin, self.context)
 
     def get_block_out_stream(self):
-        revision = self.server_info.revision
-
         if self.compression:
             from .streams.compressed import CompressedBlockOutputStream
 
             return CompressedBlockOutputStream(
                 self.compressor_cls, self.compress_block_size,
-                self.fout, revision
+                self.fout, self.context
             )
         else:
             from .streams.native import BlockOutputStream
 
-            return BlockOutputStream(self.fout, revision)
+            return BlockOutputStream(self.fout, self.context)
 
     def receive_data(self):
         revision = self.server_info.revision

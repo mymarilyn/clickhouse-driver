@@ -50,7 +50,7 @@ class Enum16Column(EnumColumn):
     int_size = 2
 
 
-def create_enum_column(spec):
+def create_enum_column(spec, column_options):
     if spec.startswith('Enum8'):
         params = spec[6:-1]
         cls = Enum8Column
@@ -65,4 +65,4 @@ def create_enum_column(spec):
         value = int(param[pos + 1:].lstrip(' ='))
         d[name] = value
 
-    return cls(Enum(cls.ch_type, d))
+    return cls(Enum(cls.ch_type, d), **column_options)

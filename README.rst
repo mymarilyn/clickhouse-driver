@@ -214,6 +214,7 @@ The first parameter *host* is required. There are some optional parameters:
   * ``'lz4hc'`` high-compression variant of ``'lz4'``.
   * ``'zstd'``.
 - *insert_block_size*. Chunk size to split rows for ``INSERT``. Default is ``1048576``.
+- *settings*. Dictionary of settings that passed to every query. Default is empty.
 
 SSL/TLS parameters:
 

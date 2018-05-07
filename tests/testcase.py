@@ -30,7 +30,7 @@ class BaseTestCase(TestCase):
     client = None
 
     @classmethod
-    def emit_cli(cls, statement, database=None, encoding='utf-8'):
+    def emit_cli(cls, statement, database=None, encoding='utf-8', **kwargs):
         if database is None:
             database = cls.database
 
@@ -41,6 +41,9 @@ class BaseTestCase(TestCase):
             '--port', str(cls.port),
             '--query', str(statement)
         ]
+
+        for key, value in kwargs.items():
+            args.extend(['--' + key, str(value)])
 
         process = subprocess.Popen(
             args, stdout=subprocess.PIPE, stderr=subprocess.PIPE

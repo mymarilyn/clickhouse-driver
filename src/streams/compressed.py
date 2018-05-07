@@ -14,15 +14,14 @@ from ..compression import get_decompressor_cls
 
 
 class CompressedBlockOutputStream(BlockOutputStream):
-    def __init__(self, compressor_cls, compress_block_size, fout,
-                 server_revision):
+    def __init__(self, compressor_cls, compress_block_size, fout, context):
         self.compressor_cls = compressor_cls
         self.compress_block_size = compress_block_size
         self.raw_fout = fout
 
         self.compressor = self.compressor_cls()
         super(CompressedBlockOutputStream, self).__init__(self.compressor,
-                                                          server_revision)
+                                                          context)
 
     def reset(self):
         self.compressor = self.compressor_cls()
@@ -91,10 +90,10 @@ class CompressedBlockReader(object):
 
 
 class CompressedBlockInputStream(BlockInputStream):
-    def __init__(self, fin, server_revision):
+    def __init__(self, fin, context):
         self.raw_fin = fin
         fin = CompressedBlockReader(self.read_block)
-        super(CompressedBlockInputStream, self).__init__(fin, server_revision)
+        super(CompressedBlockInputStream, self).__init__(fin, context)
 
     def get_compressed_hash(self, data):
         return CityHash128(data)

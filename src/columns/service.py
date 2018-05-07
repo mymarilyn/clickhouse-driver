@@ -43,7 +43,7 @@ def get_column_by_spec(spec, column_options=None):
         return FixedString(length)
 
     elif spec.startswith('Enum'):
-        return create_enum_column(spec)
+        return create_enum_column(spec, column_options)
 
     elif spec.startswith('Array'):
         return create_array_column(spec, create_column_with_options)
@@ -60,13 +60,18 @@ def get_column_by_spec(spec, column_options=None):
             raise errors.UnknownTypeError('Unknown type {}'.format(e.args[0]))
 
 
-def read_column(column_spec, n_items, buf):
-    column = get_column_by_spec(column_spec)
+def read_column(context, column_spec, n_items, buf):
+    column_options = {'context': context}
+    column = get_column_by_spec(column_spec, column_options=column_options)
     return column.read_data(n_items, buf)
 
 
-def write_column(column_name, column_spec, items, buf, types_check=False):
-    column_options = {'types_check': types_check}
+def write_column(context, column_name, column_spec, items, buf,
+                 types_check=False):
+    column_options = {
+        'context': context,
+        'types_check': types_check
+    }
     column = get_column_by_spec(column_spec, column_options)
 
     try:

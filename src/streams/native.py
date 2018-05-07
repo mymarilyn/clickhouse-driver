@@ -6,9 +6,9 @@ from .. import defines
 
 
 class BlockOutputStream(object):
-    def __init__(self, fout, server_revision):
+    def __init__(self, fout, context):
         self.fout = fout
-        self.server_revision = server_revision
+        self.context = context
 
         super(BlockOutputStream, self).__init__()
 
@@ -16,7 +16,8 @@ class BlockOutputStream(object):
         pass
 
     def write(self, block):
-        if self.server_revision >= defines.DBMS_MIN_REVISION_WITH_BLOCK_INFO:
+        revision = self.context.server_info.revision
+        if revision >= defines.DBMS_MIN_REVISION_WITH_BLOCK_INFO:
             block.info.write(self.fout)
 
         # We write transposed data.
@@ -36,8 +37,8 @@ class BlockOutputStream(object):
                 except IndexError:
                     raise ValueError('Different rows length')
 
-                write_column(col_name, col_type, items, self.fout,
-                             types_check=block.types_check)
+                write_column(self.context, col_name, col_type, items,
+                             self.fout, types_check=block.types_check)
 
         self.finalize()
 
@@ -46,9 +47,9 @@ class BlockOutputStream(object):
 
 
 class BlockInputStream(object):
-    def __init__(self, fin, server_revision):
+    def __init__(self, fin, context):
         self.fin = fin
-        self.server_revision = server_revision
+        self.context = context
 
         super(BlockInputStream, self).__init__()
 
@@ -58,7 +59,8 @@ class BlockInputStream(object):
     def read(self):
         info = BlockInfo()
 
-        if self.server_revision >= defines.DBMS_MIN_REVISION_WITH_BLOCK_INFO:
+        revision = self.context.server_info.revision
+        if revision >= defines.DBMS_MIN_REVISION_WITH_BLOCK_INFO:
             info.read(self.fin)
 
         n_columns = read_varint(self.fin)
@@ -74,7 +76,8 @@ class BlockInputStream(object):
             types.append(column_type)
 
             if n_rows:
-                column = read_column(column_type, n_rows, self.fin)
+                column = read_column(self.context, column_type, n_rows,
+                                     self.fin)
                 data.append(column)
 
         block = Block(

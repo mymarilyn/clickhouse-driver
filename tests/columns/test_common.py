@@ -6,7 +6,7 @@ class CommonTestCase(BaseTestCase):
     def test_insert_block_size(self):
         client = Client(
             self.host, self.port, self.database, self.user, self.password,
-            insert_block_size=1
+            settings={'insert_block_size': 1}
         )
 
         with self.create_table('a UInt8'):
