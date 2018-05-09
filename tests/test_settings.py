@@ -89,7 +89,13 @@ class LimitsTestCase(BaseTestCase):
                 'SELECT arrayJoin(range(10))',
                 settings=settings
             )
-        self.assertEqual(e.exception.code, ErrorCodes.TOO_MUCH_ROWS)
+        # New servers return TOO_MANY_ROWS_OR_BYTES.
+        # Old servers return TOO_MANY_ROWS.
+        error_codes = {
+            ErrorCodes.TOO_MANY_ROWS_OR_BYTES,
+            ErrorCodes.TOO_MANY_ROWS
+        }
+        self.assertIn(e.exception.code, error_codes)
 
         settings = {'max_result_rows': 5, 'result_overflow_mode': 'break'}
         rv = self.client.execute(
