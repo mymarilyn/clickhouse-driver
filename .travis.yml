@@ -1,4 +1,9 @@
 env:
+  - VERSION=1.1.54380
+#  - VERSION=1.1.54378 client's image miss tzdata package: https://github.com/yandex/ClickHouse/commit/1bf49fe8446c7dea95beaef2b131e6c6708b0b62#diff-cc737435a5ba74620a889b7718f39a80
+  - VERSION=1.1.54343
+  - VERSION=1.1.54342
+#  - VERSION=1.1.54337 Broken network
   - VERSION=1.1.54327
   - VERSION=1.1.54310
   - VERSION=1.1.54304
@@ -17,11 +22,11 @@ cache: pip
 services:
   - docker
 before_install:
-  - docker run -d -p 127.0.0.1:9000:9000 --name test-clickhouse-server --ulimit nofile=262144:262144 yandex/clickhouse-server:$VERSION
+  - docker run -e "TZ=Europe/Moscow" -d -p 127.0.0.1:9000:9000 --name test-clickhouse-server --ulimit nofile=262144:262144 yandex/clickhouse-server:$VERSION
   - docker run -d --entrypoint "/bin/sh" --name test-clickhouse-client --link test-clickhouse-server:clickhouse-server yandex/clickhouse-client:$VERSION -c 'while :; do sleep 1; done'
   - docker ps -a
-  # Faking clickhouse-client real comminitation with container via docker exec.
-  - echo -e '#!/bin/bash\n\ndocker exec test-clickhouse-client clickhouse-client "$@"' | sudo tee /usr/local/bin/clickhouse-client > /dev/null
+  # Faking clickhouse-client real communication with container via docker exec.
+  - echo -e '#!/bin/bash\n\ndocker exec -e "`env | grep ^TZ=`" test-clickhouse-client clickhouse-client "$@"' | sudo tee /usr/local/bin/clickhouse-client > /dev/null
   - sudo chmod +x /usr/local/bin/clickhouse-client
   # Overriding setup.cfg. Set host=clickhouse-server
   - sed -i 's/^host=localhost$/host=clickhouse-server/' setup.cfg

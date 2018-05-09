@@ -10,7 +10,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 PY34 = sys.version_info[0:2] >= (3, 4)
 
-install_requires = []
+install_requires = ['pytz']
 if not PY34:
     install_requires.append('enum34')
 

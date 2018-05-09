@@ -20,6 +20,6 @@ class DateTestCase(BaseTestCase):
             inserted = self.emit_cli(query)
             self.assertEqual(inserted, '1970-01-02\n')
 
-            with patch.dict(os.environ, {'TZ': 'US/Hawaii'}, clear=True):
+            with patch.dict(os.environ, {'TZ': 'US/Hawaii'}):
                 inserted = self.client.execute(query)
                 self.assertEqual(inserted, data)

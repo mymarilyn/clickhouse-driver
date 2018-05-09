@@ -1,7 +1,7 @@
 from .. import errors
 from .arraycolumn import create_array_column
 from .datecolumn import DateColumn
-from .datetimecolumn import DateTimeColumn
+from .datetimecolumn import create_datetime_column
 from . import exceptions as column_exceptions
 from .enumcolumn import create_enum_column
 from .floatcolumn import Float32, Float64
@@ -22,7 +22,7 @@ from .intervalcolumn import (
 
 
 column_by_type = {c.ch_type: c for c in [
-    DateColumn, DateTimeColumn, String, Float32, Float64,
+    DateColumn, String, Float32, Float64,
     Int8Column, Int16Column, Int32Column, Int64Column,
     UInt8Column, UInt16Column, UInt32Column, UInt64Column,
     NothingColumn, NullColumn, UUIDColumn,
@@ -44,6 +44,9 @@ def get_column_by_spec(spec, column_options=None):
 
     elif spec.startswith('Enum'):
         return create_enum_column(spec, column_options)
+
+    elif spec.startswith('DateTime'):
+        return create_datetime_column(spec, column_options)
 
     elif spec.startswith('Array'):
         return create_array_column(spec, create_column_with_options)
