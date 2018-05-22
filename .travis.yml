@@ -18,6 +18,9 @@ python:
   - "3.4"
   - "3.5"
   - "3.6"
+  - "3.7-dev"
+  - "pypy2.7-5.8.0"
+  - "pypy3.5"
 cache: pip
 services:
   - docker
@@ -33,7 +36,8 @@ before_install:
   # Make host think that clickhouse-server is localhost
   - echo '127.0.0.1 clickhouse-server' | sudo tee /etc/hosts > /dev/null
 install:
-  pip install flake8 flake8-print coveralls
+  - pip install --upgrade pip setuptools
+  - pip install flake8 flake8-print coveralls
 before_script:
   flake8
 script:
