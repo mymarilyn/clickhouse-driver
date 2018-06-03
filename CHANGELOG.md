@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.0.11] - 2018-06-03
+### Added
+- Timezone support in DateTime type.
+- Python 3.7 and PyPy in Travis CI build matrix.
+- Direct bytes support in FixedString. Pull request [#26](https://github.com/mymarilyn/clickhouse-driver/pull/26) by [lidalei](https://github.com/lidalei).
+
+### Removed
+- Python 3.3 support.
+
 ## [0.0.10] - 2018-03-14
 ### Added
 - Server version specific tests.
@@ -25,8 +34,10 @@
 - SSL file descriptors closing in Python 2.7.
 
 ### Changed
-- Drop Python 3.2 support due to lz4 issues.
 - Log level for normal operations raised to DEBUG. Pull request [#17](https://github.com/mymarilyn/clickhouse-driver/pull/17) by [kmatt](https://github.com/kmatt).
+
+### Removed
+- Drop Python 3.2 support due to lz4 issues.
 
 ## [0.0.8] - 2017-10-23
 ### Added
@@ -115,7 +126,8 @@
 - Date/DateTime types.
 - String types.
 
-[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.10...HEAD
+[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.11...HEAD
+[0.0.11]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.10...0.0.11
 [0.0.10]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.9...0.0.10
 [0.0.9]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.8...0.0.9
 [0.0.8]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.7...0.0.8

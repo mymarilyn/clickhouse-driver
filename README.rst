@@ -255,6 +255,14 @@ Specifying `query_id`:
         query_id = str(uuid1())
         print(client.execute('SHOW TABLES', query_id=query_id))
 
+Client settings:
+
+    .. code-block:: python
+
+        # Set max number threads for all queries execution.
+        settings = {'max_threads': 2}
+        client = Client('localhost', settings=settings)
+
 Overriding default query settings:
 
     .. code-block:: python
