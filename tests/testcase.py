@@ -2,8 +2,8 @@ from contextlib import contextmanager
 import subprocess
 from unittest import TestCase
 
-from src.client import Client
-from src.util import compat
+from clickhouse_driver.client import Client
+from clickhouse_driver.util import compat
 from tests import log
 
 

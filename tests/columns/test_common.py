@@ -1,4 +1,4 @@
-from src import Client
+from clickhouse_driver import Client
 from tests.testcase import BaseTestCase
 
 
