@@ -1,3 +1,5 @@
+import types
+
 from clickhouse_driver.errors import ServerException
 from tests.testcase import BaseTestCase
 
@@ -100,3 +102,44 @@ class ProgressTestCase(BaseTestCase):
         rv = self.client.cancel(with_column_types=True)
         self.assertEqual(rv, ([(2,)], [('x', 'Int32')]))
         self.assertTrue(self.client.connection.connected)
+
+    def test_select_with_progress_with_params(self):
+        progress = self.client.execute_with_progress(
+            'SELECT %(x)s', params={'x': 2}
+        )
+        self.assertEqual(progress.get_result(), [(2,)])
+        self.assertTrue(self.client.connection.connected)
+
+
+class IteratorTestCase(BaseTestCase):
+    def test_select_with_iter(self):
+        result = self.client.execute_iter(
+            'SELECT number FROM system.numbers LIMIT 10'
+        )
+        self.assertIsInstance(result, types.GeneratorType)
+
+        self.assertEqual(list(result), list(zip(range(10))))
+        self.assertEqual(list(result), [])
+
+    def test_select_with_iter_with_column_types(self):
+        result = self.client.execute_iter(
+            'SELECT CAST(number AS UInt32) as number '
+            'FROM system.numbers LIMIT 10',
+            with_column_types=True
+        )
+        self.assertIsInstance(result, types.GeneratorType)
+
+        self.assertEqual(
+            list(result),
+            [[('number', 'UInt32')]] + list(zip(range(10)))
+        )
+        self.assertEqual(list(result), [])
+
+    def test_select_with_iter_error(self):
+        with self.assertRaises(ServerException):
+            result = self.client.execute_iter('SELECT error')
+
+            self.assertIsInstance(result, types.GeneratorType)
+            list(result)
+
+        self.assertFalse(self.client.connection.connected)

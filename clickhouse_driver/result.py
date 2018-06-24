@@ -82,3 +82,34 @@ class ProgressQueryResult(QueryResult):
             pass
 
         return super(ProgressQueryResult, self).get_result()
+
+
+class IterQueryResult(object):
+    def __init__(
+            self, packet_generator,
+            with_column_types=False):
+        self.packet_generator = packet_generator
+        self.with_column_types = with_column_types
+
+        self.first_block = True
+        super(IterQueryResult, self).__init__()
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        packet = next(self.packet_generator)
+        block = getattr(packet, 'block', None)
+        if block is None:
+            return []
+
+        if self.first_block and self.with_column_types:
+            self.first_block = False
+            rv = [block.columns_with_types]
+            rv.extend(block.get_rows())
+            return rv
+        else:
+            return block.get_rows()
+
+    # For Python 3.
+    __next__ = next

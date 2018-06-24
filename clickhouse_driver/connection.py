@@ -419,7 +419,7 @@ class Connection(object):
         self.block_out.reset()
         logger.debug('Block send time: %f', time() - start)
 
-    def send_query(self, query, query_id=None, settings=None):
+    def send_query(self, query, query_id=None):
         if not self.connected:
             self.connect()
 
@@ -434,7 +434,7 @@ class Connection(object):
 
             client_info.write(revision, self.fout)
 
-        write_settings(settings, self.fout)
+        write_settings(self.context.settings, self.fout)
 
         write_varint(QueryProcessingStage.COMPLETE, self.fout)
         write_varint(self.compression, self.fout)

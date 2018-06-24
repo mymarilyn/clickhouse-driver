@@ -47,6 +47,8 @@ Features
 
 - Query progress information.
 
+- Block by block results streaming.
+
 
 Installation
 ------------
@@ -195,6 +197,17 @@ Query progress information:
         else:
             rv = progress.get_result()
             print(rv)
+
+
+Block by block results streaming:
+
+    .. code-block:: python
+
+        settings = {'max_block_size': 100000}
+        rows_gen = client.execute_iter('QUERY WITH MANY ROWS', settings=settings)
+
+        for row in rows_gen:
+            print(row)
 
 
 CityHash algorithm notes
