@@ -1,45 +1,83 @@
 from . import errors, defines
 from .block import Block
 from .connection import Connection
+from .progress import Progress
 from .protocol import ServerPacketTypes
 from .util.escape import escape_params
 from .util.helpers import chunks
 
 
 class QueryResult(object):
-    def __init__(self, with_column_types=False):
+    def __init__(
+            self, packet_generator,
+            with_column_types=False, columnar=False):
+        self.packet_generator = packet_generator
         self.with_column_types = with_column_types
 
         self.data = []
         self.columns_with_types = []
+        self.columnar = columnar
 
         super(QueryResult, self).__init__()
 
+    def store(self, packet):
+        block = getattr(packet, 'block', None)
+        if block is None:
+            return
+
+        # Header block contains no rows. Pick columns from it.
+        if block.rows:
+            if self.columnar:
+                columns = block.get_columns()
+                if self.data:
+                    # Extend corresponding column.
+                    for i, column in enumerate(columns):
+                        self.data[i] += column
+                else:
+                    self.data.extend(columns)
+            else:
+                self.data.extend(block.get_rows())
+
+        elif not self.columns_with_types:
+            self.columns_with_types = block.columns_with_types
+
     def get_result(self):
+        for packet in self.packet_generator:
+            self.store(packet)
+
         if self.with_column_types:
             return self.data, self.columns_with_types
         else:
             return self.data
 
 
-class Progress(object):
-    def __init__(self, client_connection, result, progress_gen):
-        self.connection = client_connection
-        self.result = result
-        self.progress_gen = progress_gen
+class ProgressQueryResult(QueryResult):
+    def __init__(
+            self, packet_generator,
+            with_column_types=False, columnar=False):
+        self.progress_totals = Progress()
 
-        super(Progress, self).__init__()
+        super(ProgressQueryResult, self).__init__(
+            packet_generator, with_column_types, columnar
+        )
+
+    def store_progress(self, progress_packet):
+        self.progress_totals.rows += progress_packet.rows
+        self.progress_totals.bytes += progress_packet.bytes
+        self.progress_totals.total_rows += progress_packet.total_rows
+        return self.progress_totals.rows, self.progress_totals.total_rows
 
     def __iter__(self):
         return self
 
     def next(self):
-        try:
-            return next(self.progress_gen)
-        except Exception as ex:
-            if not isinstance(ex, StopIteration):
-                self.connection.disconnect()
-            raise
+        while True:
+            packet = next(self.packet_generator)
+            progress_packet = getattr(packet, 'progress', None)
+            if progress_packet:
+                return self.store_progress(progress_packet)
+            else:
+                self.store(packet)
 
     # For Python 3.
     __next__ = next
@@ -49,7 +87,7 @@ class Progress(object):
         for _ in self:
             pass
 
-        return self.result.get_result()
+        return super(ProgressQueryResult, self).get_result()
 
 
 class Client(object):
@@ -72,69 +110,32 @@ class Client(object):
 
     def receive_result(self, with_column_types=False, progress=False,
                        columnar=False):
-        result = QueryResult(with_column_types=with_column_types)
+
+        gen = self.packet_generator()
 
         if progress:
-            progress_gen = self.receive_progress_result(result, columnar)
-            return Progress(self.connection, result, progress_gen)
+            prog_result = ProgressQueryResult(gen, with_column_types, columnar)
+            return prog_result
 
         else:
-            self.receive_no_progress_result(result, columnar)
+            result = QueryResult(gen, with_column_types, columnar)
             return result.get_result()
 
-    def receive_progress_result(self, result, columnar=False):
-        rows_read, approx_rows_to_read = 0, 0
+    def packet_generator(self):
         while True:
-            packet = self.receive_packet()
-            if not packet:
-                break
+            try:
+                packet = self.receive_packet()
+                if not packet:
+                    break
 
-            if packet is True:
-                continue
+                if packet is True:
+                    continue
 
-            progress = getattr(packet, 'progress', None)
-            if progress:
-                if progress.new_total_rows:
-                    approx_rows_to_read += progress.new_total_rows
+                yield packet
 
-                rows_read += progress.new_rows
-
-                yield rows_read, approx_rows_to_read
-
-            else:
-                self.store_query_result(packet, result, columnar)
-
-    def receive_no_progress_result(self, result, columnar=False):
-        while True:
-            packet = self.receive_packet()
-            if not packet:
-                break
-
-            if packet is True:
-                continue
-
-            self.store_query_result(packet, result, columnar)
-
-    def store_query_result(self, packet, result, columnar=False):
-        block = getattr(packet, 'block', None)
-        if block is None:
-            return
-
-        # Header block contains no rows. Pick columns from it.
-        if block.rows:
-            if columnar:
-                columns = block.get_columns()
-                if result.data:
-                    # Extend corresponding column.
-                    for i, column in enumerate(columns):
-                        result.data[i] += column
-                else:
-                    result.data.extend(columns)
-            else:
-                result.data.extend(block.get_rows())
-
-        elif not result.columns_with_types:
-            result.columns_with_types = block.columns_with_types
+            except Exception:
+                self.connection.disconnect()
+                raise
 
     def receive_packet(self):
         packet = self.connection.receive_packet()

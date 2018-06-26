@@ -65,6 +65,18 @@ class ProgressTestCase(BaseTestCase):
         self.assertEqual(list(progress), [(1, 0)])
         self.assertEqual(progress.get_result(), [(2,)])
 
+    def test_progress_totals(self):
+        progress = self.client.execute_with_progress('SELECT 2')
+        self.assertEqual(progress.progress_totals.rows, 0)
+        self.assertEqual(progress.progress_totals.bytes, 0)
+        self.assertEqual(progress.progress_totals.total_rows, 0)
+
+        self.assertEqual(progress.get_result(), [(2,)])
+
+        self.assertEqual(progress.progress_totals.rows, 1)
+        self.assertEqual(progress.progress_totals.bytes, 1)
+        self.assertEqual(progress.progress_totals.total_rows, 0)
+
     def test_select_with_progress_error(self):
         with self.assertRaises(ServerException):
             progress = self.client.execute_with_progress('SELECT error')
