@@ -149,6 +149,31 @@ class DateTimeTimezonesTestCase(BaseTestCase):
                 inserted = self.client.execute(query, settings=settings)
                 self.assertEqual(inserted, [(self.dt, ), (self.dt, )])
 
+    def test_insert_integers(self):
+        settings = {'use_client_time_zone': True}
+
+        with self.patch_env_tz('Europe/Moscow'):
+            with self.create_table('a DateTime'):
+                self.client.execute(
+                    'INSERT INTO test (a) VALUES', [(1530211034, )],
+                    settings=settings
+                )
+
+                query = 'SELECT toUInt32(a), a FROM test'
+                inserted = self.emit_cli(query, use_client_time_zone=1)
+                self.assertEqual(inserted, '1530211034\t2018-06-28 21:37:14\n')
+
+    def test_insert_integer_bounds(self):
+        with self.create_table('a DateTime'):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES',
+                [(0, ), (1, ), (1500000000, ), (2**32-1, )]
+            )
+
+            query = 'SELECT toUInt32(a) FROM test ORDER BY a'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, '0\n1\n1500000000\n4294967295\n')
+
     @require_server_version(1, 1, 54337)
     def test_datetime_with_timezone_use_server_timezone(self):
         server_tz_name = self.client.execute('SELECT timezone()')[0][0]
