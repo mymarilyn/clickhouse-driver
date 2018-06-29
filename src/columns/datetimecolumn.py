@@ -9,7 +9,7 @@ from .base import FormatColumn
 
 class DateTimeColumn(FormatColumn):
     ch_type = 'DateTime'
-    py_types = (datetime, )
+    py_types = (datetime, int)
     format = 'I'
 
     def __init__(self, timezone=None, **kwargs):
@@ -21,6 +21,11 @@ class DateTimeColumn(FormatColumn):
         return dt.replace(tzinfo=None)
 
     def before_write_item(self, value):
+        if isinstance(value, int):
+            # support supplying raw integers to avoid
+            # costly timezone conversions when using datetime
+            return value
+
         if self.timezone:
             # Set server's timezone for offset-naive datetime.
             if value.tzinfo is None:
