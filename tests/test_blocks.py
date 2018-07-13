@@ -64,6 +64,7 @@ class ProgressTestCase(BaseTestCase):
         progress = self.client.execute_with_progress('SELECT 2')
         self.assertEqual(list(progress), [(1, 0)])
         self.assertEqual(progress.get_result(), [(2,)])
+        self.assertTrue(self.client.connection.connected)
 
     def test_progress_totals(self):
         progress = self.client.execute_with_progress('SELECT 2')
@@ -81,17 +82,21 @@ class ProgressTestCase(BaseTestCase):
         with self.assertRaises(ServerException):
             progress = self.client.execute_with_progress('SELECT error')
             list(progress)
+        self.assertFalse(self.client.connection.connected)
 
     def test_select_with_progress_no_progress_unwind(self):
         progress = self.client.execute_with_progress('SELECT 2')
         self.assertEqual(progress.get_result(), [(2,)])
+        self.assertTrue(self.client.connection.connected)
 
     def test_select_with_progress_cancel(self):
         self.client.execute_with_progress('SELECT 2')
         rv = self.client.cancel()
         self.assertEqual(rv, [(2,)])
+        self.assertTrue(self.client.connection.connected)
 
     def test_select_with_progress_cancel_with_column_types(self):
         self.client.execute_with_progress('SELECT CAST(2 AS Int32) as x')
         rv = self.client.cancel(with_column_types=True)
         self.assertEqual(rv, ([(2,)], [('x', 'Int32')]))
+        self.assertTrue(self.client.connection.connected)
