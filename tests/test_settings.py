@@ -1,4 +1,4 @@
-from src.errors import ServerException, ErrorCodes
+from clickhouse_driver.errors import ServerException, ErrorCodes
 from tests.testcase import BaseTestCase
 
 

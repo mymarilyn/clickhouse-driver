@@ -2,10 +2,10 @@ import socket
 
 from mock import patch
 
-from src import errors
-from src.client import Client
-from src.protocol import ClientPacketTypes, ServerPacketTypes
-from src.reader import _read_one
+from clickhouse_driver import errors
+from clickhouse_driver.client import Client
+from clickhouse_driver.protocol import ClientPacketTypes, ServerPacketTypes
+from clickhouse_driver.reader import _read_one
 from tests.testcase import BaseTestCase
 
 
@@ -118,7 +118,7 @@ class ConnectTestCase(BaseTestCase):
             else:
                 return _read_one(*args, **kwargs)
 
-        with patch('src.reader._read_one') as mocked_fin:
+        with patch('clickhouse_driver.reader._read_one') as mocked_fin:
             mocked_fin.side_effect = side_effect
 
             rv = self.client.execute('SELECT 1')

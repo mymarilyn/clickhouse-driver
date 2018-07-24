@@ -51,7 +51,7 @@ class Client(object):
                 yield packet
 
             except Exception:
-                self.connection.disconnect()
+                self.disconnect()
                 raise
 
     def receive_packet(self):
@@ -112,7 +112,7 @@ class Client(object):
                 )
 
         except Exception:
-            self.connection.disconnect()
+            self.disconnect()
             raise
 
     def execute_with_progress(
@@ -136,7 +136,7 @@ class Client(object):
             )
 
         except Exception:
-            self.connection.disconnect()
+            self.disconnect()
             raise
 
     def process_ordinary_query_with_progress(

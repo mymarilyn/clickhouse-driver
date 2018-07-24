@@ -3,6 +3,15 @@ ClickHouse Python Driver
 
 ClickHouse Python Driver with native (TCP) interface support.
 
+.. image:: https://img.shields.io/pypi/v/clickhouse-driver.svg
+    :target: https://pypi.org/project/clickhouse-driver
+
+.. image:: https://img.shields.io/pypi/l/clickhouse-driver.svg
+    :target: https://pypi.org/project/clickhouse-driver
+
+.. image:: https://img.shields.io/pypi/pyversions/clickhouse-driver.svg
+    :target: https://pypi.org/project/clickhouse-driver
+
 .. image:: https://coveralls.io/repos/github/mymarilyn/clickhouse-driver/badge.svg?branch=master
     :target: https://coveralls.io/github/mymarilyn/clickhouse-driver?branch=master
 
@@ -289,3 +298,11 @@ License
 
 ClickHouse Python Driver is distributed under the `MIT license
 <http://www.opensource.org/licenses/mit-license.php>`_.
+
+How to Contribute
+=================
+
+#. Check for open issues or open a fresh issue to start a discussion around a feature idea or a bug.
+#. Fork `the repository <https://github.com/mymarilyn/clickhouse-driver>`_ on GitHub to start making your changes to the **master** branch (or branch off of it).
+#. Write a test which shows that the bug was fixed or that the feature works as expected.
+#. Send a pull request and bug the maintainer until it gets merged and published.

@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from tests.testcase import BaseTestCase
-from src import errors
+from clickhouse_driver import errors
 
 
 class ArrayTestCase(BaseTestCase):
