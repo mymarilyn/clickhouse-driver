@@ -122,4 +122,7 @@ class InsertTestCase(BaseTestCase):
                 self.client.execute(
                     'INSERT INTO test (a, b) VALUES (5, 6)'
                 )
-            self.assertEqual(str(e.exception), 'For use INSERT queries set params argument')
+            self.assertEqual(
+                str(e.exception),
+                'For use INSERT queries set params argument'
+            )
