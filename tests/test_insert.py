@@ -115,3 +115,14 @@ class InsertTestCase(BaseTestCase):
             self.assertEqual(inserted, '')
             inserted = self.client.execute(query)
             self.assertEqual(inserted, [])
+
+    def test_insert_without_params(self):
+        with self.create_table('a Int8, b Int8'):
+            with self.assertRaises(ValueError) as e:
+                self.client.execute(
+                    'INSERT INTO test (a, b) VALUES (5, 6)'
+                )
+            self.assertEqual(
+                str(e.exception),
+                'For use INSERT queries set params argument'
+            )

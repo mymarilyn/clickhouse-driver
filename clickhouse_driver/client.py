@@ -93,6 +93,10 @@ class Client(object):
             # INSERT queries can use list or tuple of list/tuples/dicts.
             # For SELECT parameters can be passed in only in dict right now.
             is_insert = isinstance(params, (list, tuple))
+
+            if not is_insert and query.strip().startswith('INSERT INTO'):
+                raise ValueError('For use INSERT queries set params argument')
+
             if is_insert:
                 return self.process_insert_query(
                     query, params, external_tables=external_tables,
