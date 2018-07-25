@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [0.0.12] - 2018-07-25
+### Added
+- Allow for access of final progress stats. Pull request [#41](https://github.com/mymarilyn/clickhouse-driver/pull/41) by [alex-hofsteede](https://github.com/alex-hofsteede).
+- Supplying raw integers in DateTime columns. Pull request [#42](https://github.com/mymarilyn/clickhouse-driver/pull/42) by [wawaka](https://github.com/wawaka).
+
+### Fixed
+- Pip install in editable mode.
+
+### Changed
+- Raise ValueError instead of timeout for INSERT queries without params. Pull request [#45](https://github.com/mymarilyn/clickhouse-driver/pull/45) by [shotInLeg](https://github.com/shotInLeg).
+
 ## [0.0.11] - 2018-06-03
 ### Added
 - Timezone support in DateTime type.
@@ -126,7 +137,8 @@
 - Date/DateTime types.
 - String types.
 
-[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.11...HEAD
+[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.12...HEAD
+[0.0.12]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.11...0.0.12
 [0.0.11]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.10...0.0.11
 [0.0.10]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.9...0.0.10
 [0.0.9]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.8...0.0.9
