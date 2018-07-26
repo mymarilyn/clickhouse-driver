@@ -117,7 +117,7 @@ class InsertTestCase(BaseTestCase):
             self.assertEqual(inserted, [])
 
     def test_insert_from_select(self):
-        with self.create_table('a Int8'):
+        with self.create_table('a UInt64'):
             inserted = self.client.execute(
                 'INSERT INTO test (a) '
                 'SELECT number FROM system.numbers LIMIT 5'
