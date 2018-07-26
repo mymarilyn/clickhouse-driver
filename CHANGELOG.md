@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.0.13] - 2018-07-26
+### Fixed
+- Revert pull request [#45](https://github.com/mymarilyn/clickhouse-driver/pull/45) by [shotInLeg](https://github.com/shotInLeg) due to `INSERT FROM SELECT` breaking.
+
 ## [0.0.12] - 2018-07-25
 ### Added
 - Allow for access of final progress stats. Pull request [#41](https://github.com/mymarilyn/clickhouse-driver/pull/41) by [alex-hofsteede](https://github.com/alex-hofsteede).
@@ -137,7 +141,8 @@
 - Date/DateTime types.
 - String types.
 
-[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.12...HEAD
+[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.13...HEAD
+[0.0.13]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.12...0.0.13
 [0.0.12]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.11...0.0.12
 [0.0.11]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.10...0.0.11
 [0.0.10]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.9...0.0.10
