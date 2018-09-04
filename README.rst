@@ -215,8 +215,8 @@ CityHash algorithm notes
 
 Unfortunately ClickHouse server comes with built-in old version of CityHash
 hashing algorithm. That's why we can't use original
-`CityHash <http://pypi.python.org/cityhash>`_ package. Downgraded version of
-this algorithm is placed at `PyPI <https://pypi.python.org/pypi/clickhouse-cityhash>`_.
+`CityHash <https://pypi.org/project/cityhash>`_ package. Downgraded version of
+this algorithm is placed at `PyPI <https://pypi.org/project/clickhouse-cityhash>`_.
 
 
 Client Parameters
