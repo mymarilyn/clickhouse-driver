@@ -36,12 +36,14 @@ class Packet(object):
 
 
 class ServerInfo(object):
-    def __init__(self, name, version_major, version_minor, revision, timezone):
+    def __init__(self, name, version_major, version_minor, revision, timezone,
+                 display_name):
         self.name = name
         self.version_major = version_major
         self.version_minor = version_minor
         self.revision = revision
         self.timezone = timezone
+        self.display_name = display_name
 
         super(ServerInfo, self).__init__()
 
@@ -269,9 +271,14 @@ class Connection(object):
                     defines.DBMS_MIN_REVISION_WITH_SERVER_TIMEZONE:
                 server_timezone = read_binary_str(self.fin)
 
+            server_display_name = ''
+            if server_revision >= \
+                    defines.DBMS_MIN_REVISION_WITH_SERVER_DISPLAY_NAME:
+                server_display_name = read_binary_str(self.fin)
+
             self.server_info = ServerInfo(
                 server_name, server_version_major, server_version_minor,
-                server_revision, server_timezone
+                server_revision, server_timezone, server_display_name
             )
             self.context.server_info = self.server_info
 
