@@ -26,6 +26,12 @@ class SettingString(SettingType):
         write_binary_str(value, buf)
 
 
+class SettingChar(SettingType):
+    @classmethod
+    def write(cls, value, buf):
+        write_binary_str(value[0], buf)
+
+
 class SettingFloat(SettingType):
     @classmethod
     def write(cls, value, buf):

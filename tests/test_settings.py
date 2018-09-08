@@ -1,5 +1,6 @@
 from clickhouse_driver.errors import ServerException, ErrorCodes
 from tests.testcase import BaseTestCase
+from tests.util import require_server_version
 
 
 class SettingTestCase(BaseTestCase):
@@ -32,6 +33,17 @@ class SettingTestCase(BaseTestCase):
             settings=settings
         )
         self.assertEqual(rv, [('force_index_by_date', '1', 1)])
+
+    @require_server_version(1, 1, 54388)
+    def test_char_apply(self):
+        settings = {'format_csv_delimiter': 'delimiter'}
+
+        rv = self.client.execute(
+            "SELECT name, value, changed FROM system.settings "
+            "WHERE name = 'format_csv_delimiter'",
+            settings=settings
+        )
+        self.assertEqual(rv, [('format_csv_delimiter', 'd', 1)])
 
     def test_max_threads_apply(self):
         settings = {'max_threads': 100500}
