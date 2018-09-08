@@ -9,12 +9,13 @@ SettingSeconds = SettingMilliseconds = SettingUInt64
 
 # Server cares about possible choices validation.
 # See https://github.com/yandex/ClickHouse/blob/master/dbms/src/
-# Interpreters/SettingsCommon.h for all choices.
+# Interpreters/Settings.h for all choices.
 SettingLoadBalancing = SettingTotalsMode = SettingCompressionMethod = \
     SettingDistributedProductMode = SettingGlobalSubqueriesMethod = \
     SettingString
 
 settings = {
+    # Settings
     'min_compress_block_size': SettingUInt64,
     'max_compress_block_size': SettingUInt64,
     'max_block_size': SettingUInt64,
@@ -109,12 +110,8 @@ settings = {
     'max_replica_delay_for_distributed_queries': SettingUInt64,
     'fallback_to_stale_replicas_for_distributed_queries': SettingBool,
     'distributed_ddl_allow_replicated_alter': SettingBool,
-}
 
-
-# See https://github.com/yandex/ClickHouse/blob/master/dbms/src/
-# Interpreters/Limits.h for all choices.
-limits = {
+    # Limits
     'max_rows_to_read': SettingUInt64,
     'max_bytes_to_read': SettingUInt64,
     'read_overflow_mode': SettingString,
