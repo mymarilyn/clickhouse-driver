@@ -36,11 +36,12 @@ class Packet(object):
 
 
 class ServerInfo(object):
-    def __init__(self, name, version_major, version_minor, revision, timezone,
-                 display_name):
+    def __init__(self, name, version_major, version_minor, version_patch,
+                 revision, timezone, display_name):
         self.name = name
         self.version_major = version_major
         self.version_minor = version_minor
+        self.version_patch = version_patch
         self.revision = revision
         self.timezone = timezone
         self.display_name = display_name
@@ -248,9 +249,11 @@ class Connection(object):
     def send_hello(self):
         write_varint(ClientPacketTypes.HELLO, self.fout)
         write_binary_str(self.client_name, self.fout)
-        write_varint(defines.DBMS_VERSION_MAJOR, self.fout)
-        write_varint(defines.DBMS_VERSION_MINOR, self.fout)
-        write_varint(defines.CLIENT_VERSION, self.fout)
+        write_varint(defines.CLIENT_VERSION_MAJOR, self.fout)
+        write_varint(defines.CLIENT_VERSION_MINOR, self.fout)
+        # NOTE For backward compatibility of the protocol,
+        # client cannot send its version_patch.
+        write_varint(defines.CLIENT_REVISION, self.fout)
         write_binary_str(self.database, self.fout)
         write_binary_str(self.user, self.fout)
         write_binary_str(self.password, self.fout)
@@ -276,15 +279,22 @@ class Connection(object):
                     defines.DBMS_MIN_REVISION_WITH_SERVER_DISPLAY_NAME:
                 server_display_name = read_binary_str(self.fin)
 
+            server_version_patch = server_revision
+            if server_revision >= \
+                    defines.DBMS_MIN_REVISION_WITH_VERSION_PATCH:
+                server_version_patch = read_varint(self.fin)
+
             self.server_info = ServerInfo(
                 server_name, server_version_major, server_version_minor,
-                server_revision, server_timezone, server_display_name
+                server_version_patch, server_revision,
+                server_timezone, server_display_name
             )
             self.context.server_info = self.server_info
 
             logger.debug(
-                'Connected to %s server version %s.%s.%s', server_name,
-                server_version_major, server_version_minor, server_revision
+                'Connected to %s server version %s.%s.%s, revision: %s',
+                server_name, server_version_major, server_version_minor,
+                server_version_patch, server_revision
             )
 
         elif packet_type == ServerPacketTypes.EXCEPTION:

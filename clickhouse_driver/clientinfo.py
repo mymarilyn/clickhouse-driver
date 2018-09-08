@@ -21,9 +21,10 @@ class ClientInfo(object):
         # execution.
         SECONDARY_QUERY = 2
 
-    client_version_major = defines.DBMS_VERSION_MAJOR
-    client_version_minor = defines.DBMS_VERSION_MINOR
-    client_revision = defines.CLIENT_VERSION
+    client_version_major = defines.CLIENT_VERSION_MAJOR
+    client_version_minor = defines.CLIENT_VERSION_MINOR
+    client_version_patch = defines.CLIENT_VERSION_PATCH
+    client_revision = defines.CLIENT_REVISION
     interface = Interface.TCP
 
     initial_user = ''
@@ -70,3 +71,6 @@ class ClientInfo(object):
 
         if revision >= defines.DBMS_MIN_REVISION_WITH_QUOTA_KEY_IN_CLIENT_INFO:
             write_binary_str(self.quota_key, fout)
+
+        if revision >= defines.DBMS_MIN_REVISION_WITH_VERSION_PATCH:
+            write_varint(self.client_version_patch, fout)
