@@ -86,8 +86,8 @@ setup(
     python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
     install_requires=install_requires,
     extras_require={
-        'lz4': ['lz4', 'clickhouse-cityhash==1.0.2.1'],
-        'zstd': ['zstd', 'clickhouse-cityhash==1.0.2.1']
+        'lz4': ['lz4', 'clickhouse-cityhash>=1.0.2.1'],
+        'zstd': ['zstd', 'clickhouse-cityhash>=1.0.2.1']
     },
     test_suite='nose.collector',
     tests_require=[
@@ -95,6 +95,6 @@ setup(
         'mock',
         'freezegun',
         'lz4', 'zstd',
-        'clickhouse-cityhash==1.0.2.1'
+        'clickhouse-cityhash>=1.0.2.1'
     ],
 )
