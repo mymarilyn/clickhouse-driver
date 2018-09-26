@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.0.15] - 2018-09-26
+### Fixed
+- Unpin `clickhouse-cityhash` dependency.
+
 ## [0.0.14] - 2018-08-16
 ### Added
 - Block by block results streaming.
@@ -145,7 +149,8 @@
 - Date/DateTime types.
 - String types.
 
-[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.14...HEAD
+[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.15...HEAD
+[0.0.15]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.14...0.0.15
 [0.0.14]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.13...0.0.14
 [0.0.13]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.12...0.0.13
 [0.0.12]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.11...0.0.12
