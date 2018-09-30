@@ -37,15 +37,17 @@ class ConnectTestCase(BaseTestCase):
     def test_network_error(self):
         client = Client('bad-address')
 
-        with self.assertRaises(errors.NetworkError):
-            client.execute('SHOW TABLES')
+        with patch('socket.getaddrinfo') as mocked_getaddrinfo:
+            mocked_getaddrinfo.side_effect = socket.error(
+                -2, 'Name or service not known'
+            )
+
+            with self.assertRaises(errors.NetworkError):
+                client.execute('SHOW TABLES')
 
     def test_timeout_error(self):
-        def side_effect(*args, **kwargs):
-            raise socket.timeout
-
         with patch('socket.socket') as mocked_socket:
-            mocked_socket.return_value.connect.side_effect = side_effect
+            mocked_socket.return_value.connect.side_effect = socket.timeout
 
             with self.assertRaises(errors.SocketTimeoutError):
                 self.client.execute('SHOW TABLES')
@@ -54,17 +56,15 @@ class ConnectTestCase(BaseTestCase):
         # Create connection.
         self.client.execute('SELECT 1')
 
-        def side_effect(*args, **kwargs):
-            # Exception should be caught in graceful disconnect.
-            raise socket.error(107, 'Transport endpoint is not connected')
-
         connection = self.client.connection
 
         with patch.object(connection, 'ping') as mocked_ping:
             mocked_ping.return_value = False
 
             with patch.object(connection, 'socket') as mocked_socket:
-                mocked_socket.shutdown.side_effect = side_effect
+                mocked_socket.shutdown.side_effect = socket.error(
+                    107, 'Transport endpoint is not connected'
+                )
 
                 # New socket should be created.
                 rv = self.client.execute('SELECT 1')
@@ -76,11 +76,8 @@ class ConnectTestCase(BaseTestCase):
     def test_socket_error_on_ping(self):
         self.client.execute('SELECT 1')
 
-        def side_effect(*args, **kwargs):
-            raise socket.error(32, 'Broken pipe')
-
         with patch.object(self.client.connection, 'fout') as mocked_fout:
-            mocked_fout.flush.side_effect = side_effect
+            mocked_fout.flush.side_effect = socket.error(32, 'Broken pipe')
 
             rv = self.client.execute('SELECT 1')
             self.assertEqual(rv, [(1, )])
