@@ -9,7 +9,7 @@ from .util.helpers import chunks
 
 class Client(object):
     def __init__(self, *args, **kwargs):
-        self.settings = kwargs.pop('settings', {})
+        self.settings = kwargs.pop('settings', {}).copy()
 
         client_settings = {
             'insert_block_size': self.settings.pop(
