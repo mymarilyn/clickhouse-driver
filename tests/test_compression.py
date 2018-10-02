@@ -12,7 +12,7 @@ class BaseCompressionTestCase(BaseTestCase):
     compression = False
     supported_compressions = file_config.get('db', 'compression').split(',')
 
-    def create_client(self):
+    def _create_client(self):
         return Client(
             self.host, self.port, self.database, self.user, self.password,
             compression=self.compression

@@ -57,26 +57,26 @@ class SettingTestCase(BaseTestCase):
 
     def test_client_settings(self):
         settings = {'max_query_size': 142}
-        client = self.create_client(settings=settings)
 
-        rv = client.execute(
-            "SELECT name, value, changed FROM system.settings "
-            "WHERE name = 'max_query_size'"
-        )
-        client.disconnect()
+        with self.created_client(settings=settings) as client:
+            rv = client.execute(
+                "SELECT name, value, changed FROM system.settings "
+                "WHERE name = 'max_query_size'"
+            )
+
         self.assertEqual(rv, [('max_query_size', '142', 1)])
 
     def test_query_settings_override_client_settings(self):
         client_settings = {'max_query_size': 142}
         query_settings = {'max_query_size': 242}
-        client = self.create_client(settings=client_settings)
 
-        rv = client.execute(
-            "SELECT name, value, changed FROM system.settings "
-            "WHERE name = 'max_query_size'",
-            settings=query_settings
-        )
-        client.disconnect()
+        with self.created_client(settings=client_settings) as client:
+            rv = client.execute(
+                "SELECT name, value, changed FROM system.settings "
+                "WHERE name = 'max_query_size'",
+                settings=query_settings
+            )
+
         self.assertEqual(rv, [('max_query_size', '242', 1)])
 
 

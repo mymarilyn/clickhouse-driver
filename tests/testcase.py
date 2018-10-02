@@ -58,11 +58,20 @@ class BaseTestCase(TestCase):
 
         return out.decode(encoding)
 
-    def create_client(self, **kwargs):
+    def _create_client(self, **kwargs):
         return Client(
             self.host, self.port, self.database, self.user, self.password,
             **kwargs
         )
+
+    @contextmanager
+    def created_client(self, **kwargs):
+        client = self._create_client(**kwargs)
+
+        try:
+            yield client
+        finally:
+            client.disconnect()
 
     @classmethod
     def setUpClass(cls):
@@ -75,7 +84,7 @@ class BaseTestCase(TestCase):
 
     def setUp(self):
         super(BaseTestCase, self).setUp()
-        self.client = self.create_client()
+        self.client = self._create_client()
 
     def tearDown(self):
         self.client.disconnect()
