@@ -30,6 +30,22 @@ class FixedStringTestCase(BaseTestCase):
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
 
+    def test_non_utf(self):
+        columns = 'a FixedString(6)'
+
+        data = [('яндекс'.encode('koi8-r'), )]
+        with self.create_table(columns):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query, encoding='koi8-r')
+            self.assertEqual(inserted, 'яндекс\n')
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
+
     def test_oversized(self):
         columns = 'a FixedString(4)'
 
@@ -63,3 +79,53 @@ class FixedStringTestCase(BaseTestCase):
 
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
+
+
+class ByteFixedStringTestCase(BaseTestCase):
+    client_kwargs = {'settings': {'strings_as_bytes': True}}
+
+    def test_oversized(self):
+        columns = 'a FixedString(4)'
+
+        data = [(bytes('aaaaa'.encode('utf-8')), )]
+        with self.create_table(columns):
+            with self.assertRaises(errors.TooLargeStringSize):
+                self.client.execute(
+                    'INSERT INTO test (a) VALUES', data
+                )
+
+        data = [(bytes('тест'.encode('utf-8')), )]
+        with self.create_table(columns):
+            with self.assertRaises(errors.TooLargeStringSize):
+                self.client.execute(
+                    'INSERT INTO test (a) VALUES', data
+                )
+
+    def test_not_decoded(self):
+        columns = 'a FixedString(8)'
+
+        data = [
+            (bytearray('яндекс'.encode('cp1251')), ),
+            (bytes('test'.encode('cp1251')), ),
+        ]
+        with self.create_table(columns):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query, encoding='cp1251')
+            self.assertEqual(
+                inserted, 'яндекс\\0\\0\ntest\\0\\0\\0\\0\n'
+            )
+
+            inserted = self.client.execute(query)
+            # Assert items with trailing zeros
+            self.assertEqual(
+                inserted, [
+                    ('яндекс'.encode('cp1251') + b'\x00' * 2, ),
+                    ('test'.encode('cp1251') + b'\x00' * 4, )
+                ]
+            )
+            self.assertIsInstance(inserted[0][0], bytes)
+            self.assertIsInstance(inserted[1][0], bytes)

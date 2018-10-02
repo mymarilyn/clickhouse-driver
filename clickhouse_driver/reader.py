@@ -19,14 +19,6 @@ def read_binary_bytes_fixed_len(buf, length):
     return buf.read(length)
 
 
-def _read_one(f):
-    c = f.read(1)
-    if c == b'':
-        raise EOFError("Unexpected EOF while reading bytes")
-
-    return ord(c)
-
-
 def read_varint(f):
     """
     Reads integer of variable length using LEB128.
@@ -35,10 +27,10 @@ def read_varint(f):
     result = 0
 
     while True:
-        i = _read_one(f)
+        i = f.read_one()
         result |= (i & 0x7f) << shift
         shift += 7
-        if not (i & 0x80):
+        if i < 0x80:
             break
 
     return result

@@ -6,6 +6,7 @@ from time import time
 
 from .block import Block
 from .blockstreamprofileinfo import BlockStreamProfileInfo
+from .bufferedreader import BufferedSocketReader
 from .clientinfo import ClientInfo
 from .context import Context
 from . import defines
@@ -183,7 +184,7 @@ class Connection(object):
             # performance tweak
             self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
-            self.fin = self.socket.makefile('rb')
+            self.fin = BufferedSocketReader(self.socket, defines.BUFFER_SIZE)
             self.fout = self.socket.makefile('wb')
 
             self.send_hello()
@@ -219,13 +220,6 @@ class Connection(object):
     def disconnect(self):
         if self.connected:
             # Close file descriptors before socket closing.
-            if self.fin:
-                try:
-                    self.fin.close()
-
-                except socket.error as e:
-                    logger.warning('Error on in file close: %s', e)
-
             if self.fout:
                 try:
                     self.fout.close()

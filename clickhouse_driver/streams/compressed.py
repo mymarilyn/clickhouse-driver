@@ -8,9 +8,11 @@ except ImportError:
     )
 
 from .native import BlockOutputStream, BlockInputStream
+from ..bufferedreader import CompressedBufferedReader
+from ..compression import get_decompressor_cls
+from .. import defines
 from ..reader import read_binary_uint8, read_binary_uint128
 from ..writer import write_binary_uint8, write_binary_uint128
-from ..compression import get_decompressor_cls
 
 
 class CompressedBlockOutputStream(BlockOutputStream):
@@ -61,38 +63,10 @@ class CompressedBlockOutputStream(BlockOutputStream):
         return compressed.getvalue()
 
 
-class CompressedBlockReader(object):
-    def __init__(self, read_block):
-        self.read_block = read_block
-        self.block = None
-
-        super(CompressedBlockReader, self).__init__()
-
-    def read(self, n=-1):
-        if not self.block:
-            self.block = BytesIO(self.read_block())
-
-        rv = self.block.read(n)
-        read = len(rv)
-
-        if n != -1:
-            unread = n - read
-        else:
-            unread = 0
-
-        while unread > 0:
-            self.block = BytesIO(self.read_block())
-            part = self.block.read(unread)
-            unread -= len(part)
-            rv += part
-
-        return rv
-
-
 class CompressedBlockInputStream(BlockInputStream):
     def __init__(self, fin, context):
         self.raw_fin = fin
-        fin = CompressedBlockReader(self.read_block)
+        fin = CompressedBufferedReader(self.read_block, defines.BUFFER_SIZE)
         super(CompressedBlockInputStream, self).__init__(fin, context)
 
     def get_compressed_hash(self, data):

@@ -28,6 +28,7 @@ class BaseTestCase(TestCase):
     password = file_config.get('db', 'password')
 
     client = None
+    client_kwargs = None
 
     @classmethod
     def emit_cli(cls, statement, database=None, encoding='utf-8', **kwargs):
@@ -84,7 +85,8 @@ class BaseTestCase(TestCase):
 
     def setUp(self):
         super(BaseTestCase, self).setUp()
-        self.client = self._create_client()
+        client_kwargs = self.client_kwargs or {}
+        self.client = self._create_client(**client_kwargs)
 
     def tearDown(self):
         self.client.disconnect()

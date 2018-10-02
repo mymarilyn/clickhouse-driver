@@ -12,6 +12,7 @@ if PY3:
     class_types = type,
     text_type = str
     binary_type = bytes
+    range = range
 
 else:
     string_types = basestring,    # noqa: F821
@@ -19,3 +20,4 @@ else:
     class_types = (type, types.ClassType)
     text_type = unicode  # noqa: F821
     binary_type = str
+    range = xrange  # noqa: F821

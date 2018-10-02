@@ -8,18 +8,26 @@ from .util.helpers import chunks
 
 
 class Client(object):
+    available_client_settings = (
+        'insert_block_size',
+        'strings_as_bytes'
+    )
+
     def __init__(self, *args, **kwargs):
         self.settings = kwargs.pop('settings', {}).copy()
 
-        client_settings = {
+        self.client_settings = {
             'insert_block_size': self.settings.pop(
-                'insert_block_size', defines.DEFAULT_INSERT_BLOCK_SIZE
+                'insert_block_size', defines.DEFAULT_INSERT_BLOCK_SIZE,
+            ),
+            'strings_as_bytes': self.settings.pop(
+                'strings_as_bytes', False
             )
         }
 
         self.connection = Connection(*args, **kwargs)
         self.connection.context.settings = self.settings
-        self.connection.context.client_settings = client_settings
+        self.connection.context.client_settings = self.client_settings
         super(Client, self).__init__()
 
     def disconnect(self):
@@ -89,16 +97,26 @@ class Client(object):
             return True
 
     def make_query_settings(self, settings):
+        settings = settings or {}
+
+        # Pick client-related settings.
+        client_settings = self.client_settings.copy()
+        for key in self.available_client_settings:
+            if key in settings:
+                client_settings[key] = settings.pop(key)
+
+        self.connection.context.client_settings = client_settings
+
+        # The rest of settings are ClickHouse-related.
         query_settings = self.settings.copy()
-        query_settings.update(settings or {})
-        return query_settings
+        query_settings.update(settings)
+        self.connection.context.settings = query_settings
 
     def execute(self, query, params=None, with_column_types=False,
                 external_tables=None, query_id=None, settings=None,
                 types_check=False, columnar=False):
 
-        self.connection.context.settings = self.make_query_settings(settings)
-
+        self.make_query_settings(settings)
         self.connection.force_connect()
 
         try:
@@ -128,8 +146,7 @@ class Client(object):
             external_tables=None, query_id=None, settings=None,
             types_check=False):
 
-        self.connection.context.settings = self.make_query_settings(settings)
-
+        self.make_query_settings(settings)
         self.connection.force_connect()
 
         try:
@@ -148,8 +165,7 @@ class Client(object):
             external_tables=None, query_id=None, settings=None,
             types_check=False):
 
-        self.connection.context.settings = self.make_query_settings(settings)
-
+        self.make_query_settings(settings)
         self.connection.force_connect()
 
         try:

@@ -5,7 +5,6 @@ from mock import patch
 from clickhouse_driver import errors
 from clickhouse_driver.client import Client
 from clickhouse_driver.protocol import ClientPacketTypes, ServerPacketTypes
-from clickhouse_driver.reader import _read_one
 from tests.testcase import BaseTestCase
 
 
@@ -87,7 +86,7 @@ class ConnectTestCase(BaseTestCase):
 
         with patch.object(self.client.connection, 'fin') as mocked_fin:
             # Emulate Exception packet on ping.
-            mocked_fin.read.return_value = b'\x02'
+            mocked_fin.read_one.return_value = 2
 
             with self.assertRaises(errors.UnexpectedPacketFromServerError):
                 self.client.execute('SELECT 1')
@@ -97,7 +96,7 @@ class ConnectTestCase(BaseTestCase):
 
         with patch.object(self.client.connection, 'fin') as mocked_fin:
             # Emulate Exception packet on ping.
-            mocked_fin.read.side_effect = [b'\x04', b'']
+            mocked_fin.read_one.side_effect = [4, EOFError]
 
             with self.assertRaises(EOFError):
                 self.client.execute('SELECT 1')
@@ -106,6 +105,7 @@ class ConnectTestCase(BaseTestCase):
         self.client.execute('SELECT 1')
 
         self.raised = False
+        read_one = self.client.connection.fin.read_one
 
         def side_effect(*args, **kwargs):
             if not self.raised:
@@ -113,10 +113,10 @@ class ConnectTestCase(BaseTestCase):
                 raise EOFError('Unexpected EOF while reading bytes')
 
             else:
-                return _read_one(*args, **kwargs)
+                return read_one(*args, **kwargs)
 
-        with patch('clickhouse_driver.reader._read_one') as mocked_fin:
-            mocked_fin.side_effect = side_effect
+        with patch.object(self.client.connection, 'fin') as mocked_fin:
+            mocked_fin.read_one.side_effect = side_effect
 
             rv = self.client.execute('SELECT 1')
             self.assertEqual(rv, [(1, )])
