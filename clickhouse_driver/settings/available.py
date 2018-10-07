@@ -132,7 +132,7 @@ settings = {
     'add_http_cors_header': SettingBool,
 
     'input_format_skip_unknown_fields': SettingBool,
-
+    'input_format_import_nested_json': SettingBool,
     'input_format_values_interpret_expressions': SettingBool,
 
     'output_format_json_quote_64bit_integers': SettingBool,
@@ -142,6 +142,7 @@ settings = {
     'output_format_json_escape_forward_slashes': SettingBool,
 
     'output_format_pretty_max_rows': SettingUInt64,
+    'output_format_pretty_max_column_pad_width': SettingUInt64,
     'output_format_pretty_color': SettingBool,
 
     'use_client_time_zone': SettingBool,
@@ -156,7 +157,7 @@ settings = {
     'input_format_allow_errors_ratio': SettingFloat,
 
     'join_use_nulls': SettingBool,
-
+    'join_default_strictness': SettingString,
     'preferred_block_size_bytes': SettingUInt64,
 
     'max_replica_delay_for_distributed_queries': SettingUInt64,
@@ -191,7 +192,7 @@ settings = {
     'max_bytes_to_sort': SettingUInt64,
     'sort_overflow_mode': SettingString,
     'max_bytes_before_external_sort': SettingUInt64,
-
+    'max_bytes_before_remerge_sort': SettingUInt64,
     'max_result_rows': SettingUInt64,
     'max_result_bytes': SettingUInt64,
     'result_overflow_mode': SettingString,
@@ -245,6 +246,21 @@ settings = {
     'enable_conditional_computation': SettingUInt64,
 
     'date_time_input_format': SettingDateTimeInputFormat,
+    'log_profile_events': SettingBool,
+    'log_query_settings': SettingBool,
+    'log_query_threads': SettingBool,
+    'send_logs_level': SettingString,
+    'enable_optimize_predicate_expression': SettingBool,
+    'low_cardinality_max_dictionary_size': SettingUInt64,
+    'low_cardinality_use_single_dictionary_for_part': SettingBool,
+    'allow_experimental_low_cardinality_type': SettingBool,
+    'allow_experimental_decimal_type': SettingBool,
+    'decimal_check_overflow': SettingBool,
     'prefer_localhost_replica': SettingBool,
     'max_fetch_partition_retries_count': SettingUInt64,
+    'asterisk_left_columns_only': SettingBool,
+    'http_max_multipart_form_data_size': SettingUInt64,
+    'calculate_text_stack_trace': SettingBool,
+    'allow_ddl': SettingBool,
+    'parallel_view_processing': SettingBool,
 }
