@@ -1,5 +1,4 @@
 from .progress import Progress
-from .protocol import ServerPacketTypes
 
 
 class QueryResult(object):
@@ -120,6 +119,5 @@ class QueryInfo(object):
     def __init__(self):
         self.profile_info = None
 
-    def store(self, packet):
-        if packet.type == ServerPacketTypes.PROFILE_INFO:
-            self.profile_info = packet.profile_info
+    def store_profile(self, packet):
+        self.profile_info = packet.profile_info

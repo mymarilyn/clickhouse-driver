@@ -42,10 +42,8 @@ class QueryInfoTestCase(BaseTestCase):
     def test_store_profile_info_after_execute_with_progress(self):
         with self.sample_table():
             progress = self.client.execute_with_progress(self.sample_query)
-            for num_rows, total_rows in progress:
-                pass
-            else:
-                progress.get_result()
+            list(progress)
+            progress.get_result()
 
         last_query = self.client.last_query
         assert last_query is not None

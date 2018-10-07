@@ -35,6 +35,7 @@ class Client(object):
 
     def disconnect(self):
         self.connection.disconnect()
+        self.reset_last_query()
 
     def reset_last_query(self):
         self.last_query = None
@@ -100,7 +101,7 @@ class Client(object):
             return packet
 
         elif packet.type == ServerPacketTypes.PROFILE_INFO:
-            self.last_query.store(packet)
+            self.last_query.store_profile(packet)
             return True
 
         else:
@@ -150,7 +151,6 @@ class Client(object):
 
         except Exception:
             self.disconnect()
-            self.reset_last_query()
             raise
 
     def execute_with_progress(
@@ -171,7 +171,6 @@ class Client(object):
 
         except Exception:
             self.disconnect()
-            self.reset_last_query()
             raise
 
     def execute_iter(
@@ -192,7 +191,6 @@ class Client(object):
 
         except Exception:
             self.disconnect()
-            self.reset_last_query()
             raise
 
     def process_ordinary_query_with_progress(
