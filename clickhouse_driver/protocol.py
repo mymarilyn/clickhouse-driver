@@ -66,14 +66,17 @@ class ServerPacketTypes(object):
     # A response to TablesStatus request.
     TABLES_STATUS_RESPONSE = 9
 
+    # System logs of the query execution
+    LOG = 10
+
     _types_str = [
         'Hello', 'Data', 'Exception', 'Progress', 'Pong', 'EndOfStream',
-        'ProfileInfo', 'Totals', 'Extremes', 'TablesStatusResponse'
+        'ProfileInfo', 'Totals', 'Extremes', 'TablesStatusResponse', 'Log'
     ]
 
     @classmethod
     def to_str(cls, packet):
-        return 'Unknown packet' if packet > 9 else cls._types_str[packet]
+        return 'Unknown packet' if packet > 10 else cls._types_str[packet]
 
 
 class Compression(object):

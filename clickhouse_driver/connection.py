@@ -1,22 +1,23 @@
-from contextlib import contextmanager
 import logging
 import socket
 import ssl
+from contextlib import contextmanager
 from time import time
 
+from . import defines
+from . import errors
 from .block import Block
 from .blockstreamprofileinfo import BlockStreamProfileInfo
 from .bufferedreader import BufferedSocketReader
 from .clientinfo import ClientInfo
+from .compression import get_compressor_cls
 from .context import Context
-from . import defines
-from . import errors
+from .log import log_block
 from .progress import Progress
 from .protocol import Compression, ClientPacketTypes, ServerPacketTypes
 from .queryprocessingstage import QueryProcessingStage
 from .reader import read_varint, read_binary_str
 from .readhelpers import read_exception
-from .compression import get_compressor_cls
 from .settings.writer import write_settings
 from .writer import write_varint, write_binary_str
 
@@ -358,6 +359,10 @@ class Connection(object):
 
         elif packet_type == ServerPacketTypes.EXTREMES:
             packet.block = self.receive_data()
+
+        elif packet_type == ServerPacketTypes.LOG:
+            block = self.receive_data()
+            log_block(block)
 
         elif packet_type == ServerPacketTypes.END_OF_STREAM:
             pass

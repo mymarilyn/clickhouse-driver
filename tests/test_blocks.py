@@ -2,6 +2,7 @@ import types
 
 from clickhouse_driver.errors import ServerException
 from tests.testcase import BaseTestCase
+from tests.util import capture_logging, require_server_version
 
 
 class BlocksTestCase(BaseTestCase):
@@ -143,3 +144,13 @@ class IteratorTestCase(BaseTestCase):
             list(result)
 
         self.assertFalse(self.client.connection.connected)
+
+
+class LogTestCase(BaseTestCase):
+    @require_server_version(18, 12, 13)
+    def test_logs(self):
+        with capture_logging('clickhouse_driver.log', 'INFO') as buffer:
+            settings = {'send_logs_level': 'debug'}
+            query = 'SELECT 1'
+            self.client.execute(query, settings=settings)
+            self.assertIn(query, buffer.getvalue())
