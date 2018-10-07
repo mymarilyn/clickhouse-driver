@@ -2,6 +2,7 @@ from .. import errors
 from .arraycolumn import create_array_column
 from .datecolumn import DateColumn
 from .datetimecolumn import create_datetime_column
+from .decimalcolumn import create_decimal_column
 from . import exceptions as column_exceptions
 from .enumcolumn import create_enum_column
 from .floatcolumn import Float32, Float64
@@ -46,6 +47,9 @@ def get_column_by_spec(spec, column_options=None):
 
     elif spec.startswith('DateTime'):
         return create_datetime_column(spec, column_options)
+
+    elif spec.startswith('Decimal'):
+        return create_decimal_column(spec, column_options)
 
     elif spec.startswith('Array'):
         return create_array_column(spec, create_column_with_options)

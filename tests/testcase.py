@@ -98,9 +98,10 @@ class BaseTestCase(TestCase):
         super(BaseTestCase, cls).tearDownClass()
 
     @contextmanager
-    def create_table(self, columns):
+    def create_table(self, columns, **kwargs):
         self.emit_cli(
-            'CREATE TABLE test ({}) ''ENGINE = Memory'.format(columns)
+            'CREATE TABLE test ({}) ''ENGINE = Memory'.format(columns),
+            **kwargs
         )
         try:
             yield

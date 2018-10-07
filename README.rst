@@ -40,6 +40,7 @@ Features
   * Array(T)
   * Nullable(T)
   * UUID
+  * Decimal
 
 - `External data <https://clickhouse.yandex/docs/en/single/index.html#external-data-for-query-processing>`_ for query processing.
 
