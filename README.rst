@@ -306,6 +306,14 @@ You can turn it on by *types_check* option:
 
         client.execute('INSERT INTO test (x) VALUES', [('abc', )], types_check=True)
 
+Accessing `ProfileInfo` of the last query (e.g. to read `rows_before_limit`):
+
+    .. code-block:: python
+
+        rows = client.execute('SELECT * FROM test ORDER BY foo LIMIT 5')
+        total_rows_count = client.last_query.profile_info.rows_before_limit
+
+
 License
 =======
 

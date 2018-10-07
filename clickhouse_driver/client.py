@@ -2,7 +2,9 @@ from . import errors, defines
 from .block import Block
 from .connection import Connection
 from .protocol import ServerPacketTypes
-from .result import IterQueryResult, ProgressQueryResult, QueryResult
+from .result import (
+    IterQueryResult, ProgressQueryResult, QueryResult, QueryInfo
+)
 from .util.escape import escape_params
 from .util.helpers import chunks
 
@@ -28,10 +30,15 @@ class Client(object):
         self.connection = Connection(*args, **kwargs)
         self.connection.context.settings = self.settings
         self.connection.context.client_settings = self.client_settings
+        self.reset_last_query()
         super(Client, self).__init__()
 
     def disconnect(self):
         self.connection.disconnect()
+        self.reset_last_query()
+
+    def reset_last_query(self):
+        self.last_query = None
 
     def receive_result(self, with_column_types=False, progress=False,
                        columnar=False):
@@ -93,6 +100,10 @@ class Client(object):
         elif packet.type == ServerPacketTypes.EXTREMES:
             return packet
 
+        elif packet.type == ServerPacketTypes.PROFILE_INFO:
+            self.last_query.store_profile(packet)
+            return True
+
         else:
             return True
 
@@ -118,6 +129,7 @@ class Client(object):
 
         self.make_query_settings(settings)
         self.connection.force_connect()
+        self.last_query = QueryInfo()
 
         try:
             # INSERT queries can use list or tuple of list/tuples/dicts.
@@ -148,6 +160,7 @@ class Client(object):
 
         self.make_query_settings(settings)
         self.connection.force_connect()
+        self.last_query = QueryInfo()
 
         try:
             return self.process_ordinary_query_with_progress(
@@ -167,6 +180,7 @@ class Client(object):
 
         self.make_query_settings(settings)
         self.connection.force_connect()
+        self.last_query = QueryInfo()
 
         try:
             return self.iter_process_ordinary_query(
@@ -176,7 +190,7 @@ class Client(object):
             )
 
         except Exception:
-            self.connection.disconnect()
+            self.disconnect()
             raise
 
     def process_ordinary_query_with_progress(

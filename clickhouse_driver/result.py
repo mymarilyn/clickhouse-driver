@@ -113,3 +113,11 @@ class IterQueryResult(object):
 
     # For Python 3.
     __next__ = next
+
+
+class QueryInfo(object):
+    def __init__(self):
+        self.profile_info = None
+
+    def store_profile(self, packet):
+        self.profile_info = packet.profile_info
