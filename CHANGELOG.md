@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- Option to access profile info about the last executed query.
 
 ## [0.0.15] - 2018-09-26
 ### Fixed
