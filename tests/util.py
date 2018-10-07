@@ -8,14 +8,16 @@ def require_server_version(*version_required):
             self = args[0]
             self.client.connection.connect()
 
-            info = self.client.connection.server_info
-            current = (info.version_major, info.version_minor, info.revision)
+            i = self.client.connection.server_info
+            current = (i.version_major, i.version_minor, i.version_patch)
 
             if version_required <= current:
                 return f(*args, **kwargs)
             else:
                 self.skipTest(
-                    'Mininum revision required: {}'.format(version_required)
+                    'Mininum revision required: {}'.format(
+                        '.'.join(str(x) for x in version_required)
+                    )
                 )
 
         return wrapper
