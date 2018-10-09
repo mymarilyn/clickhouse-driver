@@ -314,6 +314,12 @@ Accessing `ProfileInfo` of the last query (e.g. to read `rows_before_limit`):
         rows = client.execute('SELECT * FROM test ORDER BY foo LIMIT 5')
         total_rows_count = client.last_query.profile_info.rows_before_limit
 
+Processing `String` columns without decoding. Return values are `bytes`.
+
+    .. code-block:: python
+
+        settings = {'strings_as_bytes': True}
+        rows = client.execute('SELECT * FROM huge_table_with_strings', settings=settings)
 
 License
 =======

@@ -1,8 +1,19 @@
 # Changelog
 
 ## [Unreleased]
+
+## [0.0.16] - 2018-10-09
 ### Added
-- Option to access profile info about the last executed query.
+- Option to access profile info about the last executed query. Pull request [#57](https://github.com/mymarilyn/clickhouse-driver/pull/57) by [vanzi](https://github.com/vanzi)
+- Decimal type.
+- Settings update to 18.14.2 server version.
+
+### Changed
+- String column read/write optimizations.
+- Protocol version bumped to 54401.
+
+### Fixed
+- Client settings are not mutable now.
 
 ## [0.0.15] - 2018-09-26
 ### Fixed
@@ -151,7 +162,8 @@
 - Date/DateTime types.
 - String types.
 
-[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.15...HEAD
+[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.16...HEAD
+[0.0.16]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.15...0.0.16
 [0.0.15]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.14...0.0.15
 [0.0.14]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.13...0.0.14
 [0.0.13]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.12...0.0.13
