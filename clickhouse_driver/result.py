@@ -2,6 +2,10 @@ from .progress import Progress
 
 
 class QueryResult(object):
+    """
+    Stores query result from multiple blocks.
+    """
+
     def __init__(
             self, packet_generator,
             with_column_types=False, columnar=False):
@@ -36,6 +40,10 @@ class QueryResult(object):
             self.columns_with_types = block.columns_with_types
 
     def get_result(self):
+        """
+        :return: Stored query result.
+        """
+
         for packet in self.packet_generator:
             self.store(packet)
 
@@ -46,6 +54,11 @@ class QueryResult(object):
 
 
 class ProgressQueryResult(QueryResult):
+    """
+    Stores query result and progress information from multiple blocks.
+    Provides iteration over query progress.
+    """
+
     def __init__(
             self, packet_generator,
             with_column_types=False, columnar=False):
@@ -85,6 +98,10 @@ class ProgressQueryResult(QueryResult):
 
 
 class IterQueryResult(object):
+    """
+    Provides iteration over returned data by chunks (streaming by chunks).
+    """
+
     def __init__(
             self, packet_generator,
             with_column_types=False):

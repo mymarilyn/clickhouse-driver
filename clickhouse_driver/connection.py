@@ -51,6 +51,43 @@ class ServerInfo(object):
 
 
 class Connection(object):
+    """
+    Represents connection between client and ClickHouse server.
+
+    :param host: host with running ClickHouse server.
+    :param port: port ClickHouse server is bound to. Defaults to ``9000``.
+    :param database: database connect to. Defaults to ``'default'``.
+    :param user: database user. Defaults to ``'default'``.
+    :param password: user's password. Defaults to ``''`` (no password).
+    :param client_name: this name will appear in server logs.
+                        Defaults to ``'python-driver'``.
+    :param connect_timeout: timeout for establishing connection.
+                            Defaults to ``10`` seconds.
+    :param send_receive_timeout: timeout for sending and receiving data.
+                                 Defaults to ``300`` seconds.
+    :param sync_request_timeout: timeout for server ping.
+                                 Defaults to ``5`` seconds.
+    :param compress_block_size: size of compressed block to send.
+                                Defaults to ``1048576``.
+    :param compression: specifies whether or not use compression.
+                        Defaults to ``False``. Possible choices:
+
+                            * ``True`` is equivalent to ``'lz4'``.
+                            * ``'lz4'``.
+                            * ``'lz4hc'`` high-compression variant of
+                              ``'lz4'``.
+                            * ``'zstd'``.
+
+    :param secure: establish secure connection. Defaults to ``False``.
+    :param verify: specifies whether a certificate is required and whether it
+                   will be validated after connection.
+                   Defaults to ``True``.
+    :param ssl_version: see :func:`ssl.wrap_socket` docs.
+    :param ca_certs: see :func:`ssl.wrap_socket` docs.
+    :param ciphers: see :func:`ssl.wrap_socket` docs.
+
+    """
+
     def __init__(
             self, host, port=None,
             database='default', user='default', password='',
@@ -222,6 +259,11 @@ class Connection(object):
         self.block_out = None
 
     def disconnect(self):
+        """
+        Closes connection between server and client.
+        Frees resources: e.g. closes socket.
+        """
+
         if self.connected:
             # Close file descriptors before socket closing.
             if self.fout:

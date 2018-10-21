@@ -12,8 +12,26 @@ from .util.helpers import chunks
 
 
 class Client(object):
+    """
+    Client for communication with the ClickHouse server.
+    Single connection is established per each connected instance of the client.
+
+    :param settings: Dictionary of settings that passed to every query.
+                     Defaults to ``None`` (no additional settings). See all
+                     available settings in `ClickHouse docs
+                     <https://clickhouse.yandex/docs/en/single/#settings>`_.
+
+    Driver's settings:
+
+        * insert_block_size -- chunk size to split rows for ``INSERT``.
+          Defaults to ``1048576``.
+
+        * strings_as_bytes -- turns off string column encoding/decoding.
+
+    """
+
     available_client_settings = (
-        'insert_block_size',
+        'insert_block_size',  # TODO: rename to max_insert_block_size
         'strings_as_bytes'
     )
 
@@ -36,6 +54,9 @@ class Client(object):
         super(Client, self).__init__()
 
     def disconnect(self):
+        """
+        Disconnects from the server.
+        """
         self.connection.disconnect()
         self.reset_last_query()
 
@@ -128,6 +149,43 @@ class Client(object):
     def execute(self, query, params=None, with_column_types=False,
                 external_tables=None, query_id=None, settings=None,
                 types_check=False, columnar=False):
+        """
+        Executes query.
+
+        Establishes new connection if it wasn't established yet.
+        After query execution connection remains intact for next queries.
+        If connection can't be reused it will be closed and new connection will
+        be created.
+
+        :param query: query that will be send to server.
+        :param params: substitution parameters for SELECT queries and data for
+                       INSERT queries. Data for INSERT can be `list`, `tuple`
+                       or :data:`~types.GeneratorType`.
+                       Defaults to ``None`` (no parameters  or data).
+        :param with_column_types: if specified column names and types will be
+                                  returned alongside with result.
+                                  Defaults to ``False``.
+        :param external_tables: external tables to send.
+                                Defaults to ``None`` (no external tables).
+        :param query_id: the query identifier. If no query id specified
+                         ClickHouse server will generate it.
+        :param settings: dictionary of query settings.
+                         Defaults to ``None`` (no additional settings).
+        :param types_check: enables type checking of data for INSERT queries.
+                            Causes additional overhead. Defaults to ``False``.
+        :param columnar: if specified the result will be returned in
+                         column-oriented form.
+                         Defaults to ``False`` (row-like form).
+
+        :return: * ``None`` for INSERT queries.
+                 * If `with_column_types=False`: `list` of `tuples` with
+                   rows/columns.
+                 * If `with_column_types=True`: `tuple` of 2 elements:
+                    * The first element is `list` of `tuples` with
+                      rows/columns.
+                    * The second element information is about columns: names
+                      and types.
+        """
 
         self.make_query_settings(settings)
         self.connection.force_connect()
@@ -159,6 +217,28 @@ class Client(object):
             self, query, params=None, with_column_types=False,
             external_tables=None, query_id=None, settings=None,
             types_check=False):
+        """
+        Executes SELECT query with progress information.
+        See, :ref:`execute-with-progress`.
+
+        :param query: query that will be send to server.
+        :param params: substitution parameters for SELECT queries and data for
+                       INSERT queries. Data for INSERT can be `list`, `tuple`
+                       or :data:`~types.GeneratorType`.
+                       Defaults to ``None`` (no parameters  or data).
+        :param with_column_types: if specified column names and types will be
+                                  returned alongside with result.
+                                  Defaults to ``False``.
+        :param external_tables: external tables to send.
+                                Defaults to ``None`` (no external tables).
+        :param query_id: the query identifier. If no query id specified
+                         ClickHouse server will generate it.
+        :param settings: dictionary of query settings.
+                         Defaults to ``None`` (no additional settings).
+        :param types_check: enables type checking of data for INSERT queries.
+                            Causes additional overhead. Defaults to ``False``.
+        :return: :ref:`progress-query-result` proxy.
+        """
 
         self.make_query_settings(settings)
         self.connection.force_connect()
@@ -179,6 +259,29 @@ class Client(object):
             self, query, params=None, with_column_types=False,
             external_tables=None, query_id=None, settings=None,
             types_check=False):
+        """
+        *New in version 0.0.14.*
+
+        Executes SELECT query with results streaming. See, :ref:`execute-iter`.
+
+        :param query: query that will be send to server.
+        :param params: substitution parameters for SELECT queries and data for
+                       INSERT queries. Data for INSERT can be `list`, `tuple`
+                       or :data:`~types.GeneratorType`.
+                       Defaults to ``None`` (no parameters  or data).
+        :param with_column_types: if specified column names and types will be
+                                  returned alongside with result.
+                                  Defaults to ``False``.
+        :param external_tables: external tables to send.
+                                Defaults to ``None`` (no external tables).
+        :param query_id: the query identifier. If no query id specified
+                         ClickHouse server will generate it.
+        :param settings: dictionary of query settings.
+                         Defaults to ``None`` (no additional settings).
+        :param types_check: enables type checking of data for INSERT queries.
+                            Causes additional overhead. Defaults to ``False``.
+        :return: :ref:`iter-query-result` proxy.
+        """
 
         self.make_query_settings(settings)
         self.connection.force_connect()
