@@ -86,6 +86,18 @@ class InsertTestCase(BaseTestCase):
             inserted = self.client.execute(query)
             self.assertEqual(inserted, [(1, 2), (3, 4)])
 
+    def test_data_generator_type(self):
+        with self.create_table('a Int8'):
+            data = ((x, ) for x in range(3))
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, '0\n1\n2\n')
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, [(0,), (1, ), (2, )])
+
     def test_data_dicts_mixed_with_lists(self):
         with self.create_table('a Int8'):
             with self.assertRaises(TypeError) as e:

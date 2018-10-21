@@ -1,3 +1,5 @@
+import types
+
 from . import errors, defines
 from .block import Block
 from .connection import Connection
@@ -132,9 +134,9 @@ class Client(object):
         self.last_query = QueryInfo()
 
         try:
-            # INSERT queries can use list or tuple of list/tuples/dicts.
+            # INSERT queries can use list/tuple/generator of list/tuples/dicts.
             # For SELECT parameters can be passed in only in dict right now.
-            is_insert = isinstance(params, (list, tuple))
+            is_insert = isinstance(params, (list, tuple, types.GeneratorType))
 
             if is_insert:
                 return self.process_insert_query(
