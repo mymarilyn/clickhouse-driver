@@ -158,7 +158,7 @@ class Connection(object):
         err = None
         for host_port in self.hosts:
             host, port = host_port.split(':')
-            
+
             logger.debug(
                 'Trying connection on %s:%s', host, port
             )
