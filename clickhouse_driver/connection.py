@@ -71,9 +71,9 @@ class Connection(object):
         else:
             self.port = port or defines.DEFAULT_PORT
 
-        self.hosts = ['{}:{}'.format(host,self.port)]
+        self.hosts = ['{}:{}'.format(host, self.port)]
         if alt_hosts:
-            self.hosts += alt_hosts.strip().replace(' ','').split(',')
+            self.hosts += alt_hosts.strip().replace(' ', '').split(',')
 
         self.database = database
         self.user = user
