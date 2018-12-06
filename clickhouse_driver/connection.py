@@ -176,7 +176,6 @@ class Connection(object):
                     sock.connect(sa)
                     return sock
 
-                #except errors.SocketTimeoutError:
                 except socket.timeout as _:
                     err = _
                     logger.warning('Connection timeout on %s:%s', host, port)
