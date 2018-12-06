@@ -21,7 +21,7 @@ from .readhelpers import read_exception
 from .settings.writer import write_settings
 from .writer import write_varint, write_binary_str
 
-
+logging.basicConfig()
 logger = logging.getLogger(__name__)
 
 
@@ -62,14 +62,18 @@ class Connection(object):
             compression=False,
             secure=False,
             # Secure socket parameters.
-            verify=True, ssl_version=None, ca_certs=None, ciphers=None
+            verify=True, ssl_version=None, ca_certs=None, ciphers=None,
+            alt_hosts=None
     ):
-        self.host = host
 
         if secure:
             self.port = port or defines.DEFAULT_SECURE_PORT
         else:
             self.port = port or defines.DEFAULT_PORT
+
+        self.hosts = ['{}:{}'.format(host,self.port)]
+        if alt_hosts:
+            self.hosts += alt_hosts.strip().replace(' ','').split(',')
 
         self.database = database
         self.user = user
@@ -121,7 +125,11 @@ class Connection(object):
         super(Connection, self).__init__()
 
     def get_description(self):
-        return '{}:{}'.format(self.host, self.port)
+        alt_hosts = ''
+        if len(self.hosts) > 1:
+            alt_hosts = ' [{}]'.format(', '.join(self.hosts[1:]))
+
+        return '{}{}'.format(self.hosts[0], alt_hosts)
 
     def force_connect(self):
 
@@ -147,25 +155,36 @@ class Connection(object):
             ssl_options = self.ssl_options.copy()
             ssl_options['cert_reqs'] = cert_reqs
 
-        host, port = self.host, self.port
         err = None
-        for res in socket.getaddrinfo(host, port, 0, socket.SOCK_STREAM):
-            af, socktype, proto, canonname, sa = res
-            sock = None
-            try:
-                sock = socket.socket(af, socktype, proto)
-                sock.settimeout(self.connect_timeout)
+        for host_port in self.hosts:
+            host, port = host_port.split(':')
+            
+            logger.debug(
+                'Trying connection on %s:%s', host, port
+            )
 
-                if self.secure_socket:
-                    sock = ssl.wrap_socket(sock, **ssl_options)
+            for res in socket.getaddrinfo(host, port, 0, socket.SOCK_STREAM):
+                af, socktype, proto, canonname, sa = res
+                sock = None
+                try:
+                    sock = socket.socket(af, socktype, proto)
+                    sock.settimeout(self.connect_timeout)
 
-                sock.connect(sa)
-                return sock
+                    if self.secure_socket:
+                        sock = ssl.wrap_socket(sock, **ssl_options)
 
-            except socket.error as _:
-                err = _
-                if sock is not None:
-                    sock.close()
+                    sock.connect(sa)
+                    return sock
+
+                except socket.timeout as _:
+                    err = _
+                    logger.warning('Connection timeout on %s:%s', host, port)
+                    continue
+
+                except socket.error as _:
+                    err = _
+                    if sock is not None:
+                        sock.close()
 
         if err is not None:
             raise err
