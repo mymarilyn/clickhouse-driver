@@ -103,3 +103,17 @@ class ByteStringTestCase(BaseTestCase):
                 )
 
                 self.assertIn('Column a', str(e.exception))
+
+    def test_nullable(self):
+        with self.create_table('a Nullable(String)'):
+            data = [(None, ), (b'test', ), (None, ), (b'nullable', )]
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, '\\N\ntest\n\\N\nnullable\n')
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
