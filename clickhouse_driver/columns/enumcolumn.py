@@ -1,8 +1,11 @@
 from enum import Enum
+from typing import Dict
 
 from .. import errors
 from ..util import compat
 from .intcolumn import IntColumn
+
+OPTION_NAME_QUOTES = ("'",)  # Quotes when parsing options
 
 
 class EnumColumn(IntColumn):
@@ -22,7 +25,6 @@ class EnumColumn(IntColumn):
                 return enum_cls[source_value].value
             else:
                 return enum_cls(source_value).value
-
         except (ValueError, KeyError):
             choices = ', '.join(
                 "'{}' = {}".format(x.name, x.value) for x in enum_cls
@@ -58,11 +60,47 @@ def create_enum_column(spec, column_options):
         params = spec[7:-1]
         cls = Enum16Column
 
-    d = {}
-    for param in params.split(", '"):
-        pos = param.rfind("'")
-        name = param[:pos].lstrip("'")
-        value = int(param[pos + 1:].lstrip(' ='))
-        d[name] = value
+    return cls(Enum(cls.ch_type, _parse_options(params)), **column_options)
 
-    return cls(Enum(cls.ch_type, d), **column_options)
+
+def _parse_options(option_string: str) -> Dict[str, int]:
+    options = dict()
+    after_name = False
+    escaped = False
+    quote_character = None
+    name = ''
+    value = ''
+
+    for ch in option_string:
+        if escaped:
+            name += ch
+            escaped = False  # accepting escaped character
+
+        elif after_name:
+            if ch in (' ', '='):
+                pass
+            elif ch == ',':
+                options.setdefault(name, int(value))
+                after_name = False
+                name = ''
+                value = ''  # reset before collecting new option
+            else:
+                value += ch
+
+        elif quote_character:
+            if ch == '\\':
+                escaped = True
+            elif ch == quote_character:
+                quote_character = None
+                after_name = True  # start collecting option value
+            else:
+                name += ch
+
+        else:
+            if ch in OPTION_NAME_QUOTES:
+                quote_character = ch
+
+    if after_name:
+        options.setdefault(name, int(value))  # append word after last comma
+
+    return options
