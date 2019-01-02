@@ -129,3 +129,25 @@ class ByteFixedStringTestCase(BaseTestCase):
             )
             self.assertIsInstance(inserted[0][0], bytes)
             self.assertIsInstance(inserted[1][0], bytes)
+
+    def test_nullable(self):
+        with self.create_table('a Nullable(FixedString(10))'):
+            data = [
+                (None, ),
+                (b'test\x00\x00\x00\x00\x00\x00', ),
+                (None, ),
+                (b'nullable\x00\x00', )
+            ]
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted,
+                '\\N\ntest\\0\\0\\0\\0\\0\\0\n\\N\nnullable\\0\\0\n'
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
