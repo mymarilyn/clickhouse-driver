@@ -27,7 +27,8 @@ class EnumColumn(IntColumn):
                 return enum_cls(source_value).value
         except (ValueError, KeyError):
             choices = ', '.join(
-                "'{}' = {}".format(x.name, x.value) for x in enum_cls
+                "'{}' = {}".format(x.name.replace("'", r"\'"), x.value)
+                for x in enum_cls
             )
             enum_str = '{}({})'.format(enum_cls.__name__, choices)
 
