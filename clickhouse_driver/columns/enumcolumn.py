@@ -1,5 +1,4 @@
 from enum import Enum
-from typing import Dict
 
 from .. import errors
 from ..util import compat
@@ -64,7 +63,7 @@ def create_enum_column(spec, column_options):
     return cls(Enum(cls.ch_type, _parse_options(params)), **column_options)
 
 
-def _parse_options(option_string: str) -> Dict[str, int]:
+def _parse_options(option_string):
     options = dict()
     after_name = False
     escaped = False
