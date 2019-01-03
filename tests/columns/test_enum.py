@@ -85,7 +85,7 @@ class EnumTestCase(BaseTestCase):
 
     def test_quote_in_name(self):
         columns = "a Enum8(' \\' t = ' = -1, 'test' = 2)"
-        data = [(-1, ), (" \\' t = ", )]
+        data = [(-1, ), (" ' t = ", )]
         with self.create_table(columns):
             self.client.execute(
                 'INSERT INTO test (a) VALUES', data
@@ -101,7 +101,28 @@ class EnumTestCase(BaseTestCase):
             )
 
             inserted = self.client.execute(query)
-            self.assertEqual(inserted, [(" \\' t = ", ), (" \\' t = ", )])
+            self.assertEqual(inserted, [(" ' t = ", ), (" ' t = ", )])
+
+    def test_comma_and_space_in_name(self):
+        columns = "a Enum8('one' = 1, 'two_with_comma, ' = 2, 'three' = 3)"
+        data = [(2, ), ('two_with_comma, ', )]
+        with self.create_table(columns):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+
+            self.assertEqual(
+                inserted, (
+                    'two_with_comma, \n'
+                    'two_with_comma, \n'
+                )
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, [('two_with_comma, ', ), ('two_with_comma, ', )])
 
     def test_nullable(self):
         columns = "a Nullable(Enum8('hello' = -1, 'world' = 2))"
