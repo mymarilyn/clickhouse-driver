@@ -122,7 +122,9 @@ class EnumTestCase(BaseTestCase):
             )
 
             inserted = self.client.execute(query)
-            self.assertEqual(inserted, [('two_with_comma, ', ), ('two_with_comma, ', )])
+            self.assertEqual(
+                inserted, [('two_with_comma, ',), ('two_with_comma, ',)]
+            )
 
     def test_nullable(self):
         columns = "a Nullable(Enum8('hello' = -1, 'world' = 2))"
