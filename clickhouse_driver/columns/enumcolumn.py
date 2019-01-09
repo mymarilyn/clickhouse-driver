@@ -4,8 +4,6 @@ from .. import errors
 from ..util import compat
 from .intcolumn import IntColumn
 
-OPTION_NAME_QUOTES = ("'",)  # Quotes when parsing options
-
 
 class EnumColumn(IntColumn):
     py_types = (Enum, ) + compat.integer_types + compat.string_types
@@ -80,7 +78,7 @@ def _parse_options(option_string):
             if ch in (' ', '='):
                 pass
             elif ch == ',':
-                options.setdefault(name, int(value))
+                options[name] = int(value)
                 after_name = False
                 name = ''
                 value = ''  # reset before collecting new option
@@ -97,7 +95,7 @@ def _parse_options(option_string):
                 name += ch
 
         else:
-            if ch in OPTION_NAME_QUOTES:
+            if ch == "'":
                 quote_character = ch
 
     if after_name:
