@@ -2,9 +2,23 @@
 
 ## [Unreleased]
 
+## [0.0.17] - 2019-01-09
+### Added
+- Server logs displaying.
+- Documentation on Read the Docs: https://clickhouse-driver.readthedocs.io
+
+### Changed
+- Protocol version bumped to 54406.
+
+### Fixed
+- INSERT generators support as data parameter.
+- INSERT null value on ByteString column. Pull request [#65](https://github.com/mymarilyn/clickhouse-driver/pull/65) by [vivienm](https://github.com/vivienm).
+- Integer types support in FloatColumn.
+- Handle quotes and equation signs in Enum options. Pull request [#67](https://github.com/mymarilyn/clickhouse-driver/pull/67) by [sochi](https://github.com/sochi).
+
 ## [0.0.16] - 2018-10-09
 ### Added
-- Option to access profile info about the last executed query. Pull request [#57](https://github.com/mymarilyn/clickhouse-driver/pull/57) by [vanzi](https://github.com/vanzi)
+- Option to access profile info about the last executed query. Pull request [#57](https://github.com/mymarilyn/clickhouse-driver/pull/57) by [vanzi](https://github.com/vanzi).
 - Decimal type.
 - Settings update to 18.14.2 server version.
 
@@ -162,7 +176,8 @@
 - Date/DateTime types.
 - String types.
 
-[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.16...HEAD
+[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.17...HEAD
+[0.0.17]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.16...0.0.17
 [0.0.16]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.15...0.0.16
 [0.0.15]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.14...0.0.15
 [0.0.14]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.13...0.0.14
