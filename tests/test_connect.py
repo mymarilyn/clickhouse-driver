@@ -1,11 +1,16 @@
+# coding: utf-8
 import socket
 
 from mock import patch
+from io import BytesIO
 
 from clickhouse_driver import errors
 from clickhouse_driver.client import Client
 from clickhouse_driver.protocol import ClientPacketTypes, ServerPacketTypes
+from clickhouse_driver.bufferedreader import BufferedReader
+from clickhouse_driver.writer import write_binary_str
 from tests.testcase import BaseTestCase
+from unittest import TestCase
 
 
 class PacketsTestCase(BaseTestCase):
@@ -120,3 +125,87 @@ class ConnectTestCase(BaseTestCase):
 
             rv = self.client.execute('SELECT 1')
             self.assertEqual(rv, [(1, )])
+
+
+class FakeBufferedReader(BufferedReader):
+    def __init__(self, inputs, bufsize=128):
+        super(FakeBufferedReader, self).__init__(bufsize)
+        self._inputs = inputs
+        self._counter = 0
+
+    def read_into_buffer(self):
+        try:
+            value = self._inputs[self._counter]
+        except IndexError:
+            value = b''
+        else:
+            self._counter += 1
+
+        self.current_buffer_size = len(value)
+        self.buffer[:len(value)] = value
+
+        if self.current_buffer_size == 0:
+            raise EOFError('Unexpected EOF while reading bytes')
+
+
+class TestBufferedReader(TestCase):
+
+    def test_corner_case_read(self):
+        rdr = FakeBufferedReader([
+            b'\x00' * 10,
+            b'\xff' * 10,
+        ])
+
+        self.assertEqual(rdr.read(5), b'\x00' * 5)
+        self.assertEqual(rdr.read(10), b'\x00' * 5 + b'\xff' * 5)
+        self.assertEqual(rdr.read(5), b'\xff' * 5)
+
+        self.assertRaises(EOFError, rdr.read, 10)
+
+    def test_cornder_case_read_to_end_of_buffer(self):
+        rdr = FakeBufferedReader([
+            b'\x00' * 10,
+            b'\xff' * 10,
+        ])
+
+        self.assertEqual(rdr.read(5), b'\x00' * 5)
+        self.assertEqual(rdr.read(5), b'\x00' * 5)
+        self.assertEqual(rdr.read(5), b'\xff' * 5)
+        self.assertEqual(rdr.read(5), b'\xff' * 5)
+
+        self.assertRaises(EOFError, rdr.read, 10)
+
+    def test_corner_case_exact_buffer(self):
+        rdr = FakeBufferedReader([
+            b'\x00' * 10,
+            b'\xff' * 10,
+        ], bufsize=10)
+
+        self.assertEqual(rdr.read(5), b'\x00' * 5)
+        self.assertEqual(rdr.read(10), b'\x00' * 5 + b'\xff' * 5)
+        self.assertEqual(rdr.read(5), b'\xff' * 5)
+
+    def test_read_strings(self):
+        strings = [
+            u'Yoyodat' * 10,
+            u'Peter Maffay' * 10,
+        ]
+
+        buf = BytesIO()
+        for name in strings:
+            write_binary_str(name, buf)
+        buf = buf.getvalue()
+
+        ref_values = [x.encode('utf-8') for x in strings]
+
+        for split in range(1, len(buf) - 1):
+            for split_2 in range(split + 1, len(buf) - 2):
+                assert buf[:split] + buf[split:split_2] + buf[split_2:] == buf
+                bufs = [
+                    buf[:split],
+                    buf[split:split_2],
+                    buf[split_2:],
+                ]
+                rdr = FakeBufferedReader(bufs, bufsize=4096)
+                read_values = rdr.read_strings(2)
+                self.assertEqual(repr(ref_values), repr(read_values))

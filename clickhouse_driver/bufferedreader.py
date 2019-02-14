@@ -108,6 +108,7 @@ class BufferedReader(object):
                     buffer = self.buffer
                     buffer_view = self.buffer_view
                     current_buffer_size = self.current_buffer_size
+                    position = min(position, current_buffer_size)
                     rv += buffer_view[0:position].tobytes()
 
             else:
