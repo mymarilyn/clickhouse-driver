@@ -42,6 +42,7 @@ Features
   * Nullable(T)
   * UUID
   * Decimal
+  * IPv4/IPv6
 
 - Query progress information.
 

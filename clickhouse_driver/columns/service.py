@@ -20,6 +20,7 @@ from .intervalcolumn import (
     IntervalDayColumn, IntervalHourColumn, IntervalMinuteColumn,
     IntervalSecondColumn
 )
+from .ipcolumn import IPv4Column, IPv6Column
 
 
 column_by_type = {c.ch_type: c for c in [
@@ -29,7 +30,7 @@ column_by_type = {c.ch_type: c for c in [
     NothingColumn, NullColumn, UUIDColumn,
     IntervalYearColumn, IntervalMonthColumn, IntervalWeekColumn,
     IntervalDayColumn, IntervalHourColumn, IntervalMinuteColumn,
-    IntervalSecondColumn
+    IntervalSecondColumn, IPv4Column, IPv6Column
 ]}
 
 

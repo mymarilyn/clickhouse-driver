@@ -1,4 +1,5 @@
 env:
+  - VERSION=19.3.3
   - VERSION=18.12.17
   - VERSION=18.12.13
   - VERSION=18.10.3
