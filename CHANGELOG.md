@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.0.18] - 2019-02-19
+### Fixed
+- Strings mishandling read from buffer. Pull request [#72](https://github.com/mymarilyn/clickhouse-driver/pull/72) by [mitsuhiko](https://github.com/mitsuhiko).
+
 ## [0.0.17] - 2019-01-09
 ### Added
 - Server logs displaying.
@@ -176,7 +180,8 @@
 - Date/DateTime types.
 - String types.
 
-[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.17...HEAD
+[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.18...HEAD
+[0.0.18]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.17...0.0.18
 [0.0.17]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.16...0.0.17
 [0.0.16]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.15...0.0.16
 [0.0.15]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.14...0.0.15
