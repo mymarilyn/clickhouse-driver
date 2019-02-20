@@ -11,7 +11,7 @@ class DateColumn(FormatColumn):
     epoch_start = date(1970, 1, 1)
 
     def before_write_item(self, value):
-        if type(value) is not type(epoch):
+        if type(value) is not type(self.epoch_start):
             value = value.date()
         diff = (value - self.epoch_start).days
         if diff > (0x7fff * 2 + 1) or diff < 0:
