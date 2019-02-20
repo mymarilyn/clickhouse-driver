@@ -23,3 +23,25 @@ class DateTestCase(BaseTestCase):
             with patch.dict(os.environ, {'TZ': 'US/Hawaii'}):
                 inserted = self.client.execute(query)
                 self.assertEqual(inserted, data)
+
+    def test_insert_datetime_to_date(self):
+        with self.create_table('a Date'):
+            testTime = datetime.now()
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', [(testTime, )]
+            )
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, testTime.date())
+
+    def test_wrong_datetime_insert(self):
+        with self.create_table('a Date'):
+            wrongTime = date(5555, 1, 1)
+            nullTime = date(1, 1, 1)
+            expectedTime = ([date(1970, 1, 1), ] for x in range(2))
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', [(wrongTime, ), (nullTime, )]
+            )
+            query = 'SELECT * FROM test'
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, expectedTime)
