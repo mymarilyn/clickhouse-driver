@@ -26,7 +26,7 @@ class DateTestCase(BaseTestCase):
 
     def test_insert_datetime_to_date(self):
         with self.create_table('a Date'):
-            testTime = datetime.now()
+            testTime = date(2019, 2, 20)
             self.client.execute(
                 'INSERT INTO test (a) VALUES', [(testTime, )]
             )
