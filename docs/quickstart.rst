@@ -190,3 +190,13 @@ DDL queries can be executed in the same way SELECT queries are executed:
         []
         >>> client.execute('CREATE TABLE test (x Int32) ENGINE = Memory')
         []
+
+
+Asynchronous behavior
+---------------------
+
+Every ClickHouse query is assigned an identifier to enable request execution
+tracking. However, ClickHouse native protocol is synchronous: all incoming
+queries are executed consecutively. Clickhouse-driver does not yet implement
+a connection pool. To utilize ClickHouse's asynchronous capability you should
+either use multiple Client instances or implement a queue.
