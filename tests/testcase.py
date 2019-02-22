@@ -29,6 +29,7 @@ class BaseTestCase(TestCase):
 
     client = None
     client_kwargs = None
+    cli_client_kwargs = None
 
     @classmethod
     def emit_cli(cls, statement, database=None, encoding='utf-8', **kwargs):
@@ -85,7 +86,13 @@ class BaseTestCase(TestCase):
 
     def setUp(self):
         super(BaseTestCase, self).setUp()
-        client_kwargs = self.client_kwargs or {}
+        if callable(self.client_kwargs):
+            version_str = self.emit_cli('SELECT version()')
+            version = tuple(int(x) for x in version_str.strip().split('.'))
+            client_kwargs = self.client_kwargs(version)
+        else:
+            client_kwargs = self.client_kwargs
+        client_kwargs = client_kwargs or {}
         self.client = self._create_client(**client_kwargs)
 
     def tearDown(self):
