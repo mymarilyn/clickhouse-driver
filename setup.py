@@ -13,6 +13,7 @@ PY34 = sys.version_info[0:2] >= (3, 4)
 install_requires = ['pytz']
 if not PY34:
     install_requires.append('enum34')
+    install_requires.append('ipaddress')
 
 
 def read_version():

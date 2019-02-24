@@ -365,6 +365,7 @@ class ErrorCodes(object):
     FUNCTION_THROW_IF_VALUE_IS_NON_ZERO = 395
     TOO_MANY_ROWS_OR_BYTES = 396
     QUERY_IS_NOT_SUPPORTED_IN_MATERIALIZED_VIEW = 397
+    CANNOT_PARSE_DOMAIN_VALUE_FROM_STRING = 441
 
     KEEPER_EXCEPTION = 999
     POCO_EXCEPTION = 1000
@@ -466,3 +467,7 @@ class UnknownPacketFromServerError(Error):
 
 class CannotParseUuidError(Error):
     code = ErrorCodes.CANNOT_PARSE_UUID
+
+
+class CannotParseDomainError(Error):
+    code = ErrorCodes.CANNOT_PARSE_DOMAIN_VALUE_FROM_STRING
