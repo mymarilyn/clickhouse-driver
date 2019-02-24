@@ -19,6 +19,8 @@ class DecimalTestCase(BaseTestCase):
         if self.stable_support_version > current:
             return {'allow_experimental_decimal_type': 1}
 
+        return {}
+
     @require_server_version(18, 12, 13)
     def test_simple(self):
         with self.create_table('a Decimal(9, 5)', **self.cli_client_kwargs()):
