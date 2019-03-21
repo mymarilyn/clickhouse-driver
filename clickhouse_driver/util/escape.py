@@ -39,7 +39,7 @@ def escape_param(item):
         return "(%s)" % ', '.join(text_type(escape_param(x)) for x in item)
 
     elif isinstance(item, Enum):
-        return item.value
+        return escape_param(item.value)
 
     elif isinstance(item, UUID):
         return "'%s'" % str(item)

@@ -5,7 +5,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from uuid import UUID
 
-from enum import IntEnum
+from enum import IntEnum, Enum
 
 from tests.testcase import BaseTestCase
 
@@ -131,6 +131,17 @@ class ParametersSubstitutionTestCase(BaseTestCase):
 
         rv = self.client.execute(self.double_tpl, params)
         self.assertEqual(rv, [(-1, 2)])
+
+        class A(Enum):
+            hello = 'hello'
+            world = 'world'
+
+        params = {'x': A.hello, 'y': A.world}
+
+        self.assert_subst(self.double_tpl, params, "SELECT 'hello', 'world'")
+
+        rv = self.client.execute(self.double_tpl, params)
+        self.assertEqual(rv, [('hello', 'world')])
 
     def test_float(self):
         params = {'x': 1e-12, 'y': 123.45}
