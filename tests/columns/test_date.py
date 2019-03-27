@@ -1,5 +1,5 @@
 import os
-from datetime import date
+from datetime import date, datetime
 
 from freezegun import freeze_time
 from mock import patch
@@ -26,7 +26,7 @@ class DateTestCase(BaseTestCase):
 
     def test_insert_datetime_to_date(self):
         with self.create_table('a Date'):
-            testTime = date(2019, 2, 20)
+            testTime = datetime.now()
             self.client.execute(
                 'INSERT INTO test (a) VALUES', [(testTime, )]
             )
@@ -43,5 +43,5 @@ class DateTestCase(BaseTestCase):
                 'INSERT INTO test (a) VALUES', [(wrongTime, ), (nullTime, )]
             )
             query = 'SELECT * FROM test'
-            inserted = self.client.execute(query)
+            inserted = self.emit_cli(query)
             self.assertEqual(inserted, expectedTime)
