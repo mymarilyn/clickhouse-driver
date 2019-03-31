@@ -9,12 +9,13 @@ class DateColumn(FormatColumn):
     format = 'H'
 
     epoch_start = date(1970, 1, 1)
+    epoch_end = date(2105, 1, 1)
 
     def before_write_item(self, value):
         if not isinstance(value, date):
             value = value.date()
         diff = (value - self.epoch_start).days
-        if diff > (0x7fff * 2 + 1) or diff < 0:
+        if value > epoch_end or diff < 0:
             return 0
         return diff
 
