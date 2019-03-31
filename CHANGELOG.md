@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.0.19] - 2019-03-31
+### Added
+- IPv4/IPv6 types. Pull request [#73](https://github.com/mymarilyn/clickhouse-driver/pull/73) by [AchilleAsh](https://github.com/AchilleAsh).
+
+### Fixed
+- String enums escaping.
+
 ## [0.0.18] - 2019-02-19
 ### Fixed
 - Strings mishandling read from buffer. Pull request [#72](https://github.com/mymarilyn/clickhouse-driver/pull/72) by [mitsuhiko](https://github.com/mitsuhiko).
@@ -180,7 +187,8 @@
 - Date/DateTime types.
 - String types.
 
-[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.18...HEAD
+[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.19...HEAD
+[0.0.19]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.18...0.0.19
 [0.0.18]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.17...0.0.18
 [0.0.17]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.16...0.0.17
 [0.0.16]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.15...0.0.16

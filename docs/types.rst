@@ -106,7 +106,7 @@ SELECT type: :class:`str`/:func:`basestring <basestring>`.
         >>> client.execute('SELECT * FROM test')
         [('foo',), ('bar',), ('foo',)]
 
-For Python 2.7, `enum34 <https://pypi.org/project/enum34>`_ package is used.
+For Python 2.7 `enum34 <https://pypi.org/project/enum34>`_ package is used.
 
 Currently clickhouse-driver can't handle empty enum value due to Python's `Enum` mechanics.
 Enum member name must be not empty. See `issue`_ and  `workaround`_.
@@ -164,3 +164,50 @@ Decimal
 INSERT types: :class:`~decimal.Decimal`, :class:`float`, :class:`int`, :class:`long`.
 
 SELECT type: :class:`~decimal.Decimal`.
+
+
+IPv4/IPv6
+---------
+
+INSERT types: :class:`~ipaddress.IPv4Address`/:class:`~ipaddress.IPv6Address`, :class:`int`, :class:`long`, :class:`str`/:func:`basestring <basestring>`.
+
+SELECT type: :class:`~ipaddress.IPv4Address`/:class:`~ipaddress.IPv6Address`.
+
+    .. code-block:: python
+
+        >>> from ipaddress import IPv4Address, IPv6Address
+        >>>
+        >>> client.execute('DROP TABLE IF EXISTS test')
+        []
+        >>> client.execute(
+        ...     'CREATE TABLE test (x IPv4) '
+        ...     'ENGINE = Memory'
+        ... )
+        []
+        >>> client.execute(
+        ...     'INSERT INTO test (x) VALUES', [
+        ...     {'x': '192.168.253.42'},
+        ...     {'x': 167772161},
+        ...     {'x': IPv4Address('192.168.253.42')}
+        ... ])
+        >>> client.execute('SELECT * FROM test')
+        [(IPv4Address('192.168.253.42'),), (IPv4Address('10.0.0.1'),), (IPv4Address('192.168.253.42'),)]
+        >>>
+        >>> client.execute('DROP TABLE IF EXISTS test')
+        []
+        >>> client.execute(
+        ...     'CREATE TABLE test (x IPv6) '
+        ...     'ENGINE = Memory'
+        ... )
+        []
+        >>> client.execute(
+        ...     'INSERT INTO test (x) VALUES', [
+        ...     {'x': '79f4:e698:45de:a59b:2765:28e3:8d3a:35ae'},
+        ...     {'x': IPv6Address('12ff:0000:0000:0000:0000:0000:0000:0001')},
+        ...     {'x': b"y\xf4\xe6\x98E\xde\xa5\x9b'e(\xe3\x8d:5\xae"}
+        ... ])
+        >>> client.execute('SELECT * FROM test')
+        [(IPv6Address('79f4:e698:45de:a59b:2765:28e3:8d3a:35ae'),), (IPv6Address('12ff::1'),), (IPv6Address('79f4:e698:45de:a59b:2765:28e3:8d3a:35ae'),)]
+        >>>
+
+For Python 2.7 `ipaddress <https://pypi.org/project/ipaddress>`_ package is used.
