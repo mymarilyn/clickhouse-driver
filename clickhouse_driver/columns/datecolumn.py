@@ -15,7 +15,7 @@ class DateColumn(FormatColumn):
         if not isinstance(value, date):
             value = value.date()
         diff = (value - self.epoch_start).days
-        if value > epoch_end or diff < 0:
+        if value > self.epoch_end or diff < 0:
             return 0
         return diff
 
