@@ -32,7 +32,7 @@ class DateTestCase(BaseTestCase):
             )
             query = 'SELECT * FROM test'
             inserted = self.emit_cli(query)
-            self.assertEqual(inserted, testTime.date())
+            self.assertEqual(inserted, '2015-06-06\n')
 
     def test_wrong_datetime_insert(self):
         with self.create_table('a Date'):
