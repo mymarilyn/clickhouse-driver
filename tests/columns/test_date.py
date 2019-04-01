@@ -38,10 +38,9 @@ class DateTestCase(BaseTestCase):
         with self.create_table('a Date'):
             wrongTime = date(5555, 1, 1)
             nullTime = date(1, 1, 1)
-            expectedTime = ([date(1970, 1, 1), ] for x in range(2))
             self.client.execute(
                 'INSERT INTO test (a) VALUES', [(wrongTime, ), (nullTime, )]
             )
             query = 'SELECT * FROM test'
             inserted = self.emit_cli(query)
-            self.assertEqual(inserted, expectedTime)
+            self.assertEqual(inserted, '0000-00-00\n0000-00-00\n')
