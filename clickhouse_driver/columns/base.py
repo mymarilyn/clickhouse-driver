@@ -119,6 +119,12 @@ class Column(object):
     def read_items(self, n_items, buf):
         raise NotImplementedError
 
+    def read_state_prefix(self, buf):
+        pass
+
+    def write_state_prefix(self, buf):
+        pass
+
 
 class FormatColumn(Column):
     """

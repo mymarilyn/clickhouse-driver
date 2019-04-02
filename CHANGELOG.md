@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- LowCardinality type.
 
 ## [0.0.19] - 2019-03-31
 ### Added

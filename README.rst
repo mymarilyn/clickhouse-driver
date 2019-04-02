@@ -43,6 +43,7 @@ Features
   * UUID
   * Decimal
   * IPv4/IPv6
+  * LowCardinality(T)
 
 - Query progress information.
 

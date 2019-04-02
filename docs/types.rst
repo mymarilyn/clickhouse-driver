@@ -169,6 +169,8 @@ SELECT type: :class:`~decimal.Decimal`.
 IPv4/IPv6
 ---------
 
+*New in version 0.0.19.*
+
 INSERT types: :class:`~ipaddress.IPv4Address`/:class:`~ipaddress.IPv6Address`, :class:`int`, :class:`long`, :class:`str`/:func:`basestring <basestring>`.
 
 SELECT type: :class:`~ipaddress.IPv4Address`/:class:`~ipaddress.IPv6Address`.
@@ -211,3 +213,13 @@ SELECT type: :class:`~ipaddress.IPv4Address`/:class:`~ipaddress.IPv6Address`.
         >>>
 
 For Python 2.7 `ipaddress <https://pypi.org/project/ipaddress>`_ package is used.
+
+
+LowCardinality(T)
+-----------------
+
+*New in version 0.0.20.*
+
+INSERT types: ``T``.
+
+SELECT type: ``T``.

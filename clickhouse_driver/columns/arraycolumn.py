@@ -118,6 +118,12 @@ class ArrayColumn(Column):
         self._write_nulls_data(value, buf)
         self._write_data(value, buf)
 
+    def read_state_prefix(self, buf):
+        return self.nested_column.read_state_prefix(buf)
+
+    def write_state_prefix(self, buf):
+        self.nested_column.write_state_prefix(buf)
+
     def _read(self, size, buf):
         q = Queue()
         q.put((self, size, 0))
