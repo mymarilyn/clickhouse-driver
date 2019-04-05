@@ -1,3 +1,4 @@
+from time import time
 import types
 
 from . import errors, defines
@@ -109,6 +110,7 @@ class Client(object):
             raise packet.exception
 
         elif packet.type == ServerPacketTypes.PROGRESS:
+            self.last_query.store_progress(packet)
             return packet
 
         elif packet.type == ServerPacketTypes.END_OF_STREAM:
@@ -187,6 +189,7 @@ class Client(object):
                       and types.
         """
 
+        start_time = time()
         self.make_query_settings(settings)
         self.connection.force_connect()
         self.last_query = QueryInfo()
@@ -197,17 +200,19 @@ class Client(object):
             is_insert = isinstance(params, (list, tuple, types.GeneratorType))
 
             if is_insert:
-                return self.process_insert_query(
+                rv = self.process_insert_query(
                     query, params, external_tables=external_tables,
                     query_id=query_id, types_check=types_check
                 )
             else:
-                return self.process_ordinary_query(
+                rv = self.process_ordinary_query(
                     query, params=params, with_column_types=with_column_types,
                     external_tables=external_tables,
                     query_id=query_id, types_check=types_check,
                     columnar=columnar
                 )
+                self.last_query.store_elapsed(time() - start_time)
+                return rv
 
         except Exception:
             self.disconnect()

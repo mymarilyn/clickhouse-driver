@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Added
 - LowCardinality type.
+- Access for read bytes, read rows and elapsed time of the last executed query.
 
 ## [0.0.19] - 2019-03-31
 ### Added

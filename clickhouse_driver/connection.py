@@ -49,6 +49,9 @@ class ServerInfo(object):
 
         super(ServerInfo, self).__init__()
 
+    def version_tuple(self):
+        return self.version_major, self.version_minor, self.version_patch
+
 
 class Connection(object):
     """

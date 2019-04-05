@@ -13,8 +13,7 @@ class DecimalTestCase(BaseTestCase):
             return {'settings': {'allow_experimental_decimal_type': True}}
 
     def cli_client_kwargs(self):
-        i = self.client.connection.server_info
-        current = (i.version_major, i.version_minor, i.version_patch)
+        current = self.client.connection.server_info.version_tuple()
 
         if self.stable_support_version > current:
             return {'allow_experimental_decimal_type': 1}

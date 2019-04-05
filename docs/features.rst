@@ -161,16 +161,44 @@ You can turn it on by `types_check` option:
         ... )
 
 
-Reading query profile info
+Query execution statistics
 --------------------------
 
-Last query's profile info can be examined. `rows_before_limit` examine example:
+Client stores statistics about last query execution. It can be obtained by
+accessing `last_query` attribute.
+Statistics is sent from ClickHouse server and calculated on client side.
+`last_query` contains info about:
+
+* profile: rows before limit
 
     .. code-block:: python
 
-        >>> rows = client.execute('SELECT arrayJoin(range(100)) LIMIT 3')
-        >>> print(rows, client.last_query.profile_info.rows_before_limit)
-        ([(0,), (1,), (2,)], 100)
+        >>> client.execute('SELECT arrayJoin(range(100)) LIMIT 3')
+        [(0,), (1,), (2,)]
+        >>> client.last_query.profile_info.rows_before_limit
+        100
+
+* progress: read rows, bytes and total rows
+
+    .. code-block:: python
+
+        >>> client.execute('SELECT max(number) FROM numbers(10)')
+        [(9,)]
+        >>> client.last_query.progress.rows
+        10
+        >>> client.last_query.progress.bytes
+        80
+        >>> client.last_query.progress.total_rows
+        10
+
+* elapsed time:
+
+    .. code-block:: python
+
+        >>> client.execute('SELECT sleep(1)')
+        [(0,)]
+        >>> client.last_query.elapsed
+        1.0060372352600098
 
 
 Receiving server logs

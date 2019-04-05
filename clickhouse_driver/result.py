@@ -135,6 +135,17 @@ class IterQueryResult(object):
 class QueryInfo(object):
     def __init__(self):
         self.profile_info = None
+        self.progress = None
+        self.elapsed = None
 
     def store_profile(self, packet):
         self.profile_info = packet.profile_info
+
+    def store_progress(self, packet):
+        progress = packet.progress
+        if progress.bytes == 0 and self.progress and self.progress.bytes != 0:
+            return
+        self.progress = progress
+
+    def store_elapsed(self, elapsed):
+        self.elapsed = elapsed

@@ -8,7 +8,7 @@ class QueryInfoTestCase(BaseTestCase):
 
     @property
     def sample_query(self):
-        return 'SELECT * FROM test ORDER BY foo DESC LIMIT 5'
+        return 'SELECT * FROM test GROUP BY foo ORDER BY foo DESC LIMIT 5'
 
     @contextmanager
     def sample_table(self):
@@ -21,7 +21,7 @@ class QueryInfoTestCase(BaseTestCase):
     def test_default_value(self):
         assert self.client.last_query is None
 
-    def test_store_profile_info_after_execute(self):
+    def test_store_last_query_after_execute(self):
         with self.sample_table():
             self.client.execute(self.sample_query)
 
@@ -30,7 +30,15 @@ class QueryInfoTestCase(BaseTestCase):
         assert last_query.profile_info is not None
         assert last_query.profile_info.rows_before_limit == 42
 
-    def test_store_profile_info_after_execute_iter(self):
+        assert last_query.progress is not None
+        assert last_query.progress.rows == 42
+        assert last_query.progress.bytes == 42
+        assert last_query.progress.total_rows == 0
+
+        assert last_query.elapsed is not None
+        assert last_query.elapsed >= 0
+
+    def test_last_query_after_execute_iter(self):
         with self.sample_table():
             list(self.client.execute_iter(self.sample_query))
 
@@ -39,7 +47,14 @@ class QueryInfoTestCase(BaseTestCase):
         assert last_query.profile_info is not None
         assert last_query.profile_info.rows_before_limit == 42
 
-    def test_store_profile_info_after_execute_with_progress(self):
+        assert last_query.progress is not None
+        assert last_query.progress.rows == 42
+        assert last_query.progress.bytes == 42
+        assert last_query.progress.total_rows == 0
+
+        assert last_query.elapsed is None
+
+    def test_last_query_after_execute_with_progress(self):
         with self.sample_table():
             progress = self.client.execute_with_progress(self.sample_query)
             list(progress)
@@ -49,6 +64,32 @@ class QueryInfoTestCase(BaseTestCase):
         assert last_query is not None
         assert last_query.profile_info is not None
         assert last_query.profile_info.rows_before_limit == 42
+
+        assert last_query.progress is not None
+        assert last_query.progress.rows == 42
+        assert last_query.progress.bytes == 42
+        assert last_query.progress.total_rows == 0
+
+        assert last_query.elapsed is None
+
+    def test_last_query_progress_total_rows(self):
+        self.client.execute('SELECT max(number) FROM numbers(10)')
+
+        last_query = self.client.last_query
+        assert last_query is not None
+        assert last_query.profile_info is not None
+        assert last_query.profile_info.rows_before_limit == 10
+
+        assert last_query.progress is not None
+        assert last_query.progress.rows == 10
+        assert last_query.progress.bytes == 80
+
+        current = self.client.connection.server_info.version_tuple()
+        total_rows = 10 if current > (19, 4) else 0
+        assert last_query.progress.total_rows == total_rows
+
+        assert last_query.elapsed is not None
+        assert last_query.elapsed >= 0
 
     def test_override_after_subsequent_queries(self):
         query = 'SELECT * FROM test WHERE foo < %(i)s ORDER BY foo LIMIT 5'

@@ -10,8 +10,7 @@ def require_server_version(*version_required):
             self = args[0]
             self.client.connection.connect()
 
-            i = self.client.connection.server_info
-            current = (i.version_major, i.version_minor, i.version_patch)
+            current = self.client.connection.server_info.version_tuple()
 
             if version_required <= current:
                 return f(*args, **kwargs)
