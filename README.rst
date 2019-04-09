@@ -52,6 +52,11 @@ Features
 
 - Receiving server logs.
 
+Documentation
+=============
+
+Documentation is available at https://clickhouse-driver.readthedocs.io.
+
 Usage
 =====
 
@@ -85,11 +90,6 @@ Usage
         >>>
         >>> client.execute('SELECT sum(x) FROM test')
         [(303,)]
-
-Documentation
-=============
-
-Documentation is available at https://clickhouse-driver.readthedocs.io.
 
 License
 =======

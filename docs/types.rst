@@ -26,7 +26,7 @@ SELECT type: :class:`float`.
 Date
 ----
 
-INSERT types: :class:`~datetime.date`.
+INSERT types: :class:`~datetime.date`, :class:`~datetime.datetime`.
 
 SELECT type: :class:`~datetime.date`.
 
