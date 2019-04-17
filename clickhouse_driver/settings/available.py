@@ -24,6 +24,7 @@ settings = {
     'max_insert_block_size': SettingUInt64,
     'min_insert_block_size_rows': SettingUInt64,
     'min_insert_block_size_bytes': SettingUInt64,
+    'max_partitions_per_insert_block': SettingUInt64,
     'max_threads': SettingMaxThreads,
     'max_read_buffer_size': SettingUInt64,
     'max_distributed_connections': SettingUInt64,
