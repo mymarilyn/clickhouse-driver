@@ -5,11 +5,6 @@ ErrorCodes = errors.ErrorCodes
 
 
 class NullableTestCase(BaseTestCase):
-    def entuple(self, lst):
-        return tuple(
-            self.entuple(x) if isinstance(x, list) else x for x in lst
-        )
-
     def test_simple(self):
         columns = 'a Nullable(Int32)'
 
