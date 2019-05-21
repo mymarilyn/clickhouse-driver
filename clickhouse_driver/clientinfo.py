@@ -36,7 +36,10 @@ class ClientInfo(object):
     def __init__(self, client_name):
         self.query_kind = ClientInfo.QueryKind.NO_QUERY
 
-        self.os_user = getpass.getuser()
+        try:
+            self.os_user = getpass.getuser()
+        except KeyError:
+            self.os_user = ''
         self.client_hostname = socket.gethostname()
         self.client_name = client_name
 
