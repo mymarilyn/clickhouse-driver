@@ -1,3 +1,5 @@
+import math
+
 from tests.testcase import BaseTestCase
 from clickhouse_driver import errors
 
@@ -63,3 +65,19 @@ class FloatTestCase(BaseTestCase):
 
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
+
+    def test_nan(self):
+        with self.create_table('a Float32'):
+            data = [(float('nan'), ), (0.5, )]
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, 'nan\n0.5\n')
+
+            inserted = self.client.execute(query)
+            self.assertEqual(len(inserted), 2)
+            self.assertTrue(math.isnan(inserted[0][0]))
+            self.assertEqual(inserted[1][0], 0.5)
