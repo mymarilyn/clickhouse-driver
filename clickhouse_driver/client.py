@@ -212,7 +212,7 @@ class Client(object):
                     columnar=columnar
                 )
                 self.last_query.store_elapsed(time() - start_time)
-                return rv
+            return rv
 
         except Exception:
             self.disconnect()
