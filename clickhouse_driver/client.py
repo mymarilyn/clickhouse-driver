@@ -110,7 +110,7 @@ class Client(object):
             raise packet.exception
 
         elif packet.type == ServerPacketTypes.PROGRESS:
-            self.last_query.store_progress(packet)
+            self.last_query.store_progress(packet.progress)
             return packet
 
         elif packet.type == ServerPacketTypes.END_OF_STREAM:
@@ -126,7 +126,7 @@ class Client(object):
             return packet
 
         elif packet.type == ServerPacketTypes.PROFILE_INFO:
-            self.last_query.store_profile(packet)
+            self.last_query.store_profile(packet.profile_info)
             return True
 
         else:

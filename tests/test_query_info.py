@@ -113,3 +113,20 @@ class QueryInfoTestCase(BaseTestCase):
             self.client.execute('SELECT answer FROM universe')
 
         assert self.client.last_query is None
+
+    def test_progress_info_increment(self):
+        self.client.execute(
+            'SELECT x FROM ('
+            'SELECT number AS x FROM numbers(100000000)'
+            ') ORDER BY x ASC LIMIT 10'
+        )
+
+        last_query = self.client.last_query
+        assert last_query is not None
+        assert last_query.progress is not None
+        assert last_query.progress.rows > 100000000
+        assert last_query.progress.bytes > 800000000
+
+        current = self.client.connection.server_info.version_tuple()
+        total_rows = 100000000 if current > (19, 4) else 0
+        assert last_query.progress.total_rows == total_rows

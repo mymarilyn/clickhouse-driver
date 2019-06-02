@@ -17,3 +17,8 @@ class Progress(object):
         revision = server_revision
         if revision >= defines.DBMS_MIN_REVISION_WITH_TOTAL_ROWS_IN_PROGRESS:
             self.total_rows = read_varint(fin)
+
+    def increment(self, another_progress):
+        self.rows += another_progress.rows
+        self.bytes += another_progress.bytes
+        self.total_rows += another_progress.total_rows
