@@ -1,9 +1,16 @@
 # Changelog
 
 ## [Unreleased]
+
+## [0.0.20] - 2019-06-02
 ### Added
-- LowCardinality type.
-- Access for read bytes, read rows and elapsed time of the last executed query.
+- LowCardinality(T) type.
+- Access for processed rows, bytes and elapsed time of the last executed query.
+- Allow to insert `datetime` into Date column. Pull request [#75](https://github.com/mymarilyn/clickhouse-driver/pull/75) by [gle4er](https://github.com/gle4er).
+- 'max_partitions_per_insert_block' setting. Pull request [#85](https://github.com/mymarilyn/clickhouse-driver/pull/85) by [mhsekhavat](https://github.com/mhsekhavat).
+
+### Fixed
+- Fallback for user name if it's not defined. Pull request [#87](https://github.com/mymarilyn/clickhouse-driver/pull/87) by [wawaka](https://github.com/wawaka).
 
 ## [0.0.19] - 2019-03-31
 ### Added
@@ -190,7 +197,8 @@
 - Date/DateTime types.
 - String types.
 
-[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.19...HEAD
+[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.20...HEAD
+[0.0.20]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.19...0.0.20
 [0.0.19]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.18...0.0.19
 [0.0.18]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.17...0.0.18
 [0.0.17]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.16...0.0.17
