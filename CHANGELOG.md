@@ -4,6 +4,9 @@
 ### Added
 - SimpleAggregateFunction type.
 
+### Fixed
+- Elapsed time calculation on INSERT.
+
 ## [0.0.20] - 2019-06-02
 ### Added
 - LowCardinality(T) type.

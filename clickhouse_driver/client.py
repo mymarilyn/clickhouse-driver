@@ -211,7 +211,7 @@ class Client(object):
                     query_id=query_id, types_check=types_check,
                     columnar=columnar
                 )
-                self.last_query.store_elapsed(time() - start_time)
+            self.last_query.store_elapsed(time() - start_time)
             return rv
 
         except Exception:

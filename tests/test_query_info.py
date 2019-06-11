@@ -35,7 +35,6 @@ class QueryInfoTestCase(BaseTestCase):
         assert last_query.progress.bytes == 42
         assert last_query.progress.total_rows == 0
 
-        assert last_query.elapsed is not None
         assert last_query.elapsed >= 0
 
     def test_last_query_after_execute_iter(self):
@@ -88,7 +87,16 @@ class QueryInfoTestCase(BaseTestCase):
         total_rows = 10 if current > (19, 4) else 0
         assert last_query.progress.total_rows == total_rows
 
-        assert last_query.elapsed is not None
+        assert last_query.elapsed >= 0
+
+    def test_last_query_after_execute_insert(self):
+        with self.sample_table():
+            self.client.execute('INSERT INTO test (foo) VALUES',
+                                [(i,) for i in range(42)])
+
+        last_query = self.client.last_query
+        assert last_query is not None
+        assert last_query.progress is None
         assert last_query.elapsed >= 0
 
     def test_override_after_subsequent_queries(self):
