@@ -14,6 +14,9 @@ from .lowcardinalitycolumn import create_low_cardinality_column
 from .nothingcolumn import NothingColumn
 from .nullcolumn import NullColumn
 from .nullablecolumn import create_nullable_column
+from .simpleaggregatefunctioncolumn import (
+    create_simple_aggregate_function_column
+)
 from .stringcolumn import create_string_column
 from .uuidcolumn import UUIDColumn
 from .intervalcolumn import (
@@ -61,6 +64,10 @@ def get_column_by_spec(spec, column_options=None):
 
     elif spec.startswith('LowCardinality'):
         return create_low_cardinality_column(spec, create_column_with_options)
+
+    elif spec.startswith('SimpleAggregateFunction'):
+        return create_simple_aggregate_function_column(
+            spec, create_column_with_options)
 
     else:
         try:

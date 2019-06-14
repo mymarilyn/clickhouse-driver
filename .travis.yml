@@ -1,4 +1,5 @@
 env:
+  - VERSION=19.8.3.8 # SimpleAggregateFunction
   - VERSION=19.3.3
   - VERSION=18.12.17
   - VERSION=18.12.13
