@@ -44,6 +44,7 @@ Features
   * Decimal
   * IPv4/IPv6
   * LowCardinality(T)
+  * SimpleAggregateFunction(F, T)
 
 - Query progress information.
 
