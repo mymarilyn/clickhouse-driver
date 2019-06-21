@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- SimpleAggregateFunction type.
 
 ## [0.0.20] - 2019-06-02
 ### Added
@@ -8,7 +10,6 @@
 - Access for processed rows, bytes and elapsed time of the last executed query.
 - Allow to insert `datetime` into Date column. Pull request [#75](https://github.com/mymarilyn/clickhouse-driver/pull/75) by [gle4er](https://github.com/gle4er).
 - 'max_partitions_per_insert_block' setting. Pull request [#85](https://github.com/mymarilyn/clickhouse-driver/pull/85) by [mhsekhavat](https://github.com/mhsekhavat).
-- SimpleAggregateFunction type.
 
 ### Fixed
 - Fallback for user name if it's not defined. Pull request [#87](https://github.com/mymarilyn/clickhouse-driver/pull/87) by [wawaka](https://github.com/wawaka).

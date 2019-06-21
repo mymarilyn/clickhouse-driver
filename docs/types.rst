@@ -223,3 +223,13 @@ LowCardinality(T)
 INSERT types: ``T``.
 
 SELECT type: ``T``.
+
+
+SimpleAggregateFunction(F, T)
+-----------------------------
+
+*New in version 0.0.21.*
+
+INSERT types: ``T``.
+
+SELECT type: ``T``.
