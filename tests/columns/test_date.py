@@ -44,3 +44,13 @@ class DateTestCase(BaseTestCase):
             query = 'SELECT * FROM test'
             inserted = self.emit_cli(query)
             self.assertEqual(inserted, '0000-00-00\n0000-00-00\n')
+
+    def test_insert_date_str_to_date(self):
+        with self.create_table('a Date'):
+            testTimeStr = '2019-07-02'
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', [(testTimeStr, )]
+            )
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, '2019-07-02\n')

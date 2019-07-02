@@ -12,18 +12,24 @@ from tests.util import require_server_version
 
 class DateTimeTestCase(BaseTestCase):
     def test_simple(self):
-        with self.create_table('a Date, b DateTime'):
-            data = [(date(2012, 10, 25), datetime(2012, 10, 25, 14, 7, 19))]
+        with self.create_table('a Date, b DateTime, c DateTime'):
+            data = [(date(2012, 10, 25),
+                     datetime(2012, 10, 25, 14, 7, 19),
+                     '2019-07-02 11:47:20')]
             self.client.execute(
-                'INSERT INTO test (a, b) VALUES', data
+                'INSERT INTO test (a, b, c) VALUES', data
             )
 
             query = 'SELECT * FROM test'
             inserted = self.emit_cli(query)
-            self.assertEqual(inserted, '2012-10-25\t2012-10-25 14:07:19\n')
+            self.assertEqual(
+                inserted,
+                '2012-10-25\t2012-10-25 14:07:19\t2019-07-02 11:47:20\n')
 
             inserted = self.client.execute(query)
-            self.assertEqual(inserted, data)
+
+            self.assertEqual(inserted[0][:2], data[0][:2])
+            self.assertEqual(inserted[0][2], datetime(2019, 7, 2, 11, 47, 20))
 
     def test_nullable_date(self):
         with self.create_table('a Nullable(Date)'):

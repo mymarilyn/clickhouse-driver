@@ -1,5 +1,7 @@
 from datetime import date, timedelta
 
+from dateutil.parser import parser
+
 from .base import FormatColumn
 
 
@@ -13,7 +15,13 @@ class DateColumn(FormatColumn):
 
     def before_write_item(self, value):
         if type(value) != date:
-            value = date(value.year, value.month, value.day)
+            if isinstance(value, str):
+                # support date/datetime str, keep in touch with
+                # datetime parsing in clickhouse/mysql/hive
+                datetime_parser = parser()
+                value = datetime_parser.parse(value).date()
+            else:
+                value = date(value.year, value.month, value.day)
 
         diff = (value - self.epoch_start).days
         if value > self.epoch_end or diff < 0:

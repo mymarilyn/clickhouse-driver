@@ -1,6 +1,7 @@
 from calendar import timegm
 from datetime import datetime
 from time import mktime
+from dateutil.parser import parser
 
 from pytz import timezone as get_timezone, utc
 
@@ -25,6 +26,12 @@ class DateTimeColumn(FormatColumn):
             # support supplying raw integers to avoid
             # costly timezone conversions when using datetime
             return value
+
+        if isinstance(value, str):
+            # support date/datetime str, keep in touch with
+            # datetime parsing in clickhouse/mysql/hive
+            datetime_parser = parser()
+            value = datetime_parser.parse(value)
 
         if self.timezone:
             # Set server's timezone for offset-naive datetime.
