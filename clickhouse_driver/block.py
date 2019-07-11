@@ -1,3 +1,5 @@
+from itertools import chain
+
 from .reader import read_varint, read_binary_uint8, read_binary_int32
 from .writer import write_varint, write_binary_uint8, write_binary_int32
 
@@ -90,24 +92,13 @@ class Block(object):
             return self.data
 
         # Transpose results: columns -> rows.
-        n_columns = self.columns
         n_rows = self.rows
 
-        flat_data = [None] * n_columns * n_rows
-
-        for j in range(n_columns):
-            column = self.data[j]
-
-            for i in range(n_rows):
-                flat_data[i * n_columns + j] = column[i]
+        flat_data = tuple(chain.from_iterable(self.data))
 
         # Make rows from slices.
-        rv = [None] * n_rows
-        for i in range(n_rows):
-            offset = i * n_columns
-            rv[i] = tuple(flat_data[offset:offset + n_columns])
-
-        return rv
+        # Pick every `n_rows` element from chained columns.
+        return [flat_data[i::n_rows] for i in range(n_rows)]
 
     def check_row_type(self, row):
         if not isinstance(row, self.supported_row_types):
