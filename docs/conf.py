@@ -16,7 +16,7 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
-from clickhouse_driver import __version__
+from clickhouse_driver import __version__, VERSION
 
 # -- Project information -----------------------------------------------------
 
@@ -25,7 +25,7 @@ copyright = u'2017-2019, clickhouse-driver authors'
 author = u'clickhouse-driver authors'
 
 # The short X.Y version
-version = u'0.0'
+version = '.'.join(str(x) for x in VERSION[:2])
 # The full version, including alpha/beta/rc tags
 release = __version__
 

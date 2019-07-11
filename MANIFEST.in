@@ -1,0 +1,1 @@
+recursive-include clickhouse_driver *.pyx

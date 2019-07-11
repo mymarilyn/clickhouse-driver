@@ -3,6 +3,15 @@ import re
 from codecs import open
 
 from setuptools import setup, find_packages
+from distutils.extension import Extension
+
+try:
+    from Cython.Build import cythonize
+except ImportError:
+    USE_CYTHON = False
+else:
+    USE_CYTHON = True
+
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -23,6 +32,19 @@ def read_version():
 
 with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
+
+# Prepare extensions.
+ext = '.pyx' if USE_CYTHON else '.c'
+extensions = [
+    Extension('*', ['clickhouse_driver/bufferedreader' + ext]),
+    Extension('*', ['clickhouse_driver/columns/stringcolumn' + ext])
+]
+
+if USE_CYTHON:
+    extensions = cythonize(
+        extensions, compiler_directives={'language_level': '3'}
+    )
+
 
 setup(
     name='clickhouse-driver',
@@ -81,6 +103,7 @@ setup(
         'enum34; python_version<"3.4"',
         'ipaddress; python_version<"3.4"',
     ],
+    ext_modules=extensions,
     extras_require={
         'lz4': ['lz4', 'clickhouse-cityhash>=1.0.2.1'],
         'zstd': ['zstd', 'clickhouse-cityhash>=1.0.2.1']

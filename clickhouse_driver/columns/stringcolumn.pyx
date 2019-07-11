@@ -1,10 +1,18 @@
+from cpython cimport Py_INCREF, PyBytes_FromStringAndSize
+from cpython.bytearray cimport PyByteArray_AsString, \
+    PyByteArray_FromStringAndSize
+# Using python's versions of pure c memory management functions for
+# proper memory statistics count.
+from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
+from cpython.list cimport PyList_New, PyList_SET_ITEM
+from libc.string cimport memcpy
 
 from .. import errors
 from ..writer import write_varint
 from ..util import compat
 from .base import Column
 
-from codecs import utf_8_decode, utf_8_encode
+from codecs import utf_8_encode
 
 
 class String(Column):
@@ -53,23 +61,27 @@ class FixedString(String):
         self.length = length
         super(FixedString, self).__init__(**kwargs)
 
-    def read_items(self, n_items, buf):
-        length = self.length
-        items = [None] * n_items
-        items_buf_view = memoryview(buf.read(length * n_items))
-        buf_pos = 0
+    def read_items(self, Py_ssize_t n_items, buf):
+        cdef Py_ssize_t i, length = self.length
+        data = buf.read(length * n_items)
+        cdef char* data_ptr = PyByteArray_AsString(data)
 
-        for i in compat.range(n_items):
-            value = items_buf_view[buf_pos:buf_pos + length].tobytes() \
-                .rstrip(b'\x00')
+        cdef char* c_string = <char *>PyMem_Malloc(length + 1)
+        if not c_string:
+            raise MemoryError()
+        c_string[length] = 0
 
+        items = PyList_New(n_items)
+        for i in range(n_items):
+            memcpy(c_string, &data_ptr[i * length], length)
             try:
-                value = utf_8_decode(value)[0]
+                item = c_string.decode('utf-8')
             except UnicodeDecodeError:
-                pass
+                item = PyBytes_FromStringAndSize(c_string, length)
+            Py_INCREF(item)
+            PyList_SET_ITEM(items, i, item)
 
-            items[i] = value
-            buf_pos += length
+        PyMem_Free(c_string)
 
         return items
 
@@ -97,15 +109,17 @@ class ByteFixedString(FixedString):
     py_types = (bytearray, bytes)
     null_value = b''
 
-    def read_items(self, n_items, buf):
-        length = self.length
-        items = [None] * n_items
-        items_buf_view = memoryview(buf.read(length * n_items))
-        buf_pos = 0
+    def read_items(self, Py_ssize_t n_items, buf):
+        cdef Py_ssize_t i
+        cdef Py_ssize_t length = self.length
+        data = buf.read(length * n_items)
+        cdef char* data_ptr = PyByteArray_AsString(data)
 
-        for i in compat.range(n_items):
-            items[i] = items_buf_view[buf_pos:buf_pos + length].tobytes()
-            buf_pos += length
+        items = PyList_New(n_items)
+        for i in range(n_items):
+            item = PyBytes_FromStringAndSize(&data_ptr[i * length], length)
+            Py_INCREF(item)
+            PyList_SET_ITEM(items, i, item)
 
         return items
 
