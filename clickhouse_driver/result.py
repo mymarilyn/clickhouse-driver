@@ -1,3 +1,4 @@
+from .blockstreamprofileinfo import BlockStreamProfileInfo
 from .progress import Progress
 
 
@@ -131,9 +132,9 @@ class IterQueryResult(object):
 
 class QueryInfo(object):
     def __init__(self):
-        self.profile_info = None
-        self.progress = None
-        self.elapsed = None
+        self.profile_info = BlockStreamProfileInfo()
+        self.progress = Progress()
+        self.elapsed = 0
 
     def store_profile(self, profile_info):
         self.profile_info = profile_info
