@@ -1,61 +1,339 @@
-env:
-  - VERSION=19.8.3.8 # SimpleAggregateFunction
-  - VERSION=19.3.3
-  - VERSION=18.12.17
-  - VERSION=18.12.13
-  - VERSION=18.10.3
-  - VERSION=18.6.0
-  - VERSION=18.5.1
-  - VERSION=18.4.0
-  - VERSION=18.1.0
-  - VERSION=1.1.54394
-  - VERSION=1.1.54390
-  - VERSION=1.1.54388
-  - VERSION=1.1.54385
-  - VERSION=1.1.54383
-#  - VERSION=1.1.54381
-#  - VERSION=1.1.54380
-#  - VERSION=1.1.54378 client's image miss tzdata package: https://github.com/yandex/ClickHouse/commit/1bf49fe8446c7dea95beaef2b131e6c6708b0b62#diff-cc737435a5ba74620a889b7718f39a80
-#  - VERSION=1.1.54343
-#  - VERSION=1.1.54342
-##  - VERSION=1.1.54337 Broken network
-#  - VERSION=1.1.54327
-#  - VERSION=1.1.54310
-#  - VERSION=1.1.54304
-#  - VERSION=1.1.54292
-#  - VERSION=1.1.54289
-#  - VERSION=1.1.54284
-#  - VERSION=1.1.54282
+jobs:
+  include:
+    - stage: test
+      env:
+        - VERSION=19.8.3.8 # SimpleAggregateFunction
+        - VERSION=18.12.17
+        - VERSION=18.12.13
+        - VERSION=18.10.3
+        - VERSION=18.6.0
+        - VERSION=18.5.1
+        - VERSION=18.4.0
+        - VERSION=18.1.0
+        - VERSION=1.1.54394
+        - VERSION=1.1.54390
+        - VERSION=1.1.54388
+        - VERSION=1.1.54385
+        - VERSION=1.1.54383
+#        - VERSION=1.1.54381
+#        - VERSION=1.1.54380
+#        - VERSION=1.1.54378 client's image miss tzdata package: https://github.com/yandex/ClickHouse/commit/1bf49fe8446c7dea95beaef2b131e6c6708b0b62#diff-cc737435a5ba74620a889b7718f39a80
+#        - VERSION=1.1.54343
+#        - VERSION=1.1.54342
+#        - VERSION=1.1.54337 Broken network
+#        - VERSION=1.1.54327
+#        - VERSION=1.1.54310
+#        - VERSION=1.1.54304
+#        - VERSION=1.1.54292
+#        - VERSION=1.1.54289
+#        - VERSION=1.1.54284
+#        - VERSION=1.1.54282
 
-language: python
-python:
-  - "2.7"
-  - "3.4"
-  - "3.5"
-  - "3.6"
-  - "3.7-dev"
-  - "pypy2.7-5.8.0"
-  - "pypy3.5"
-cache: pip
-services:
-  - docker
-before_install:
-  - docker run -e "TZ=Europe/Moscow" -d -p 127.0.0.1:9000:9000 --name test-clickhouse-server --ulimit nofile=262144:262144 yandex/clickhouse-server:$VERSION
-  - docker run -d --entrypoint "/bin/sh" --name test-clickhouse-client --link test-clickhouse-server:clickhouse-server yandex/clickhouse-client:$VERSION -c 'while :; do sleep 1; done'
-  - docker ps -a
-  # Faking clickhouse-client real communication with container via docker exec.
-  - echo -e '#!/bin/bash\n\ndocker exec -e "`env | grep ^TZ=`" test-clickhouse-client clickhouse-client "$@"' | sudo tee /usr/local/bin/clickhouse-client > /dev/null
-  - sudo chmod +x /usr/local/bin/clickhouse-client
-  # Overriding setup.cfg. Set host=clickhouse-server
-  - sed -i 's/^host=localhost$/host=clickhouse-server/' setup.cfg
-  # Make host think that clickhouse-server is localhost
-  - echo '127.0.0.1 clickhouse-server' | sudo tee /etc/hosts > /dev/null
-install:
-  - pip install --upgrade pip setuptools cython
-  - pip install flake8 flake8-print coveralls
-before_script:
-  flake8
-script:
-  coverage run --source=clickhouse_driver setup.py test
-after_success:
-  coveralls
+      language: python
+      python:
+        - "2.7"
+        - "3.4"
+        - "3.5"
+        - "3.6"
+        - "3.7-dev"
+        - "pypy2.7-5.8.0"
+        - "pypy3.5"
+      cache: pip
+      services:
+        - docker
+      before_install:
+        - docker run -e "TZ=Europe/Moscow" -d -p 127.0.0.1:9000:9000 --name test-clickhouse-server --ulimit nofile=262144:262144 yandex/clickhouse-server:$VERSION
+        - docker run -d --entrypoint "/bin/sh" --name test-clickhouse-client --link test-clickhouse-server:clickhouse-server yandex/clickhouse-client:$VERSION -c 'while :; do sleep 1; done'
+        - docker ps -a
+        # Faking clickhouse-client real communication with container via docker exec.
+        - echo -e '#!/bin/bash\n\ndocker exec -e "`env | grep ^TZ=`" test-clickhouse-client clickhouse-client "$@"' | sudo tee /usr/local/bin/clickhouse-client > /dev/null
+        - sudo chmod +x /usr/local/bin/clickhouse-client
+        # Overriding setup.cfg. Set host=clickhouse-server
+        - sed -i 's/^host=localhost$/host=clickhouse-server/' setup.cfg
+        # Make host think that clickhouse-server is localhost
+        - echo '127.0.0.1 clickhouse-server' | sudo tee /etc/hosts > /dev/null
+      install:
+        - pip install --upgrade pip setuptools
+        - pip install flake8 flake8-print coveralls cython
+      before_script:
+        flake8
+      script:
+        - coverage run --source=clickhouse_driver setup.py test
+      after_success:
+        coveralls
+
+    - stage: wheels
+      name: Wheels for Linux
+      os: linux
+      language: python
+      python:
+        - "3.6"
+
+      install:
+        - pip install --upgrade pip setuptools
+        - pip install cython cibuildwheel==0.11.1
+
+      script:
+        - cibuildwheel --output-dir wheelhouse
+
+      env:
+        - CIBW_BEFORE_BUILD='pip install cython'
+      deploy:
+        name: Linux
+        provider: releases
+        api_key: $GITHUB_TOKEN
+        file_glob: true
+        file: wheelhouse/*
+        skip_cleanup: true
+        draft: true
+        prerelease: true
+        overwrite: true
+        on:
+          branch: master
+
+    - stage: wheels
+      name: Wheels for OS X
+      os: osx
+      language: generic
+
+      install:
+        - pip install --upgrade pip setuptools
+        - pip install cython cibuildwheel==0.11.1
+
+      script:
+        - rm -rf build
+        - cibuildwheel --output-dir wheelhouse
+
+      env:
+        - CIBW_BEFORE_BUILD='pip install cython'
+      deploy:
+        name: Mac OS X
+        provider: releases
+        api_key: $GITHUB_TOKEN
+        file_glob: true
+        file: wheelhouse/*
+        skip_cleanup: true
+        draft: true
+        prerelease: true
+        overwrite: true
+        on:
+          branch: master
+
+    - stage: wheels
+      name: Wheels for Windows Python 2.7
+      os: windows
+      language: shell
+
+      install:
+        - choco install python2 --version 2.7.16 --sidebyside -y --forcex86 --force --params "/InstallDir:C:\Python27"
+        - choco install --ignore-dependencies vcpython27
+
+      script:
+        - C:/Python27/python -m pip install "cibuildwheel==0.11.1"
+        - C:/Python27/python -m cibuildwheel --platform windows --output-dir wheelhouse
+
+      env:
+        - CIBW_BUILD='cp27-win32'
+        - CIBW_BEFORE_BUILD='python -m pip install cython'
+      deploy:
+        name: Windows Python 2.7
+        provider: releases
+        api_key: $GITHUB_TOKEN
+        file_glob: true
+        file: wheelhouse/*
+        skip_cleanup: true
+        draft: true
+        prerelease: true
+        overwrite: true
+        on:
+          branch: master
+
+    - stage: wheels
+      name: Wheels for Windows Python 2.7 x64
+      os: windows
+      language: shell
+
+      install:
+        - choco install python2 --version 2.7.16 --sidebyside -y --force --params "/InstallDir:C:\Python27-x64"
+        - choco install --ignore-dependencies vcpython27
+
+        - export PATH="C:\\Program Files (x86)\\common files\\Microsoft\\Visual C++ for Python\\9.0\\VC\\bin\\amd64;$PATH"
+        - export INCLUDE="C:\\Program Files (x86)\\common files\\Microsoft\\Visual C++ for Python\\9.0\\VC\\Include;C:\\Program Files (x86)\\common files\\Microsoft\\Visual C++ for Python\\9.0\\WinSDK\\Include"
+        - export LIB="C:\\Program Files (x86)\\common files\\Microsoft\\Visual C++ for Python\\9.0\\VC\\Lib\\amd64;C:\\Program Files (x86)\\common files\\Microsoft\\Visual C++ for Python\\9.0\\WinSDK\\Lib\\x64"
+
+      script:
+        - C:/Python27-x64/python -m pip install "cibuildwheel==0.11.1"
+        - C:/Python27-x64/python -m cibuildwheel --platform windows --output-dir wheelhouse
+
+      env:
+        - CIBW_BUILD='cp27-win_amd64'
+        - CIBW_BEFORE_BUILD='python -m pip install cython'
+      deploy:
+        name: Windows Python 2.7 x64
+        provider: releases
+        api_key: $GITHUB_TOKEN
+        file_glob: true
+        file: wheelhouse/*
+        skip_cleanup: true
+        draft: true
+        prerelease: true
+        overwrite: true
+        on:
+          branch: master
+
+#    - stage: wheels
+#      name: Wheels for Windows Python 3.4
+#      os: windows
+#      language: shell
+#
+#      install:
+#        - choco install python3 --version 3.4.4.20180111 --sidebyside -y --forcex86 --force --params "/InstallDir:C:\Python34"
+#        - export VS100COMNTOOLS="$VS140COMNTOOLS"
+#
+#      script:
+#        - C:/Python34/python -m pip install "cibuildwheel==0.11.1"
+#        - C:/Python34/python -m cibuildwheel --platform windows --output-dir wheelhouse
+#
+#      env:
+#        - CIBW_BUILD='cp34-win32'
+#        - CIBW_BEFORE_BUILD='python -m pip install cython'
+#      deploy:
+#        name: Windows Python 3.4
+#        provider: releases
+#        api_key: $GITHUB_TOKEN
+#        file_glob: true
+#        file: wheelhouse/*
+#        skip_cleanup: true
+#        draft: true
+#        prerelease: true
+#        overwrite: true
+#        on:
+#          branch: master
+#
+#    - stage: wheels
+#      name: Wheels for Windows Python 3.4 x64
+#      os: windows
+#      language: shell
+#
+#      install:
+#        - choco install python3 --version 3.4.4.20180111 --sidebyside -y --force --params "/InstallDir:C:\Python34-x64"
+#        - export VS100COMNTOOLS="$VS140COMNTOOLS"
+#        - export PATH="C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\bin\\amd64;$PATH"
+#        - export INCLUDE="C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\Include;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17134.0\\ucrt;C:\\Program Files (x86)\\Windows Kits\\10\\include\\10.0.17134.0\\shared"
+#        - export LIB="C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.17134.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.17134.0\\um\\x64"
+#
+#      script:
+#        - C:/Python34-x64/python -m pip install "cibuildwheel==0.11.1"
+#        - C:/Python34-x64/python -m cibuildwheel --platform windows --output-dir wheelhouse
+#
+#      env:
+#        - CIBW_BUILD='cp34-win_amd64'
+#        - CIBW_BEFORE_BUILD='python -m pip install cython'
+#      deploy:
+#        name: Windows Python 3.4 x64
+#        provider: releases
+#        api_key: $GITHUB_TOKEN
+#        file_glob: true
+#        file: wheelhouse/*
+#        skip_cleanup: true
+#        draft: true
+#        prerelease: true
+#        overwrite: true
+#        on:
+#          branch: master
+
+    - stage: wheels
+      name: Wheels for Windows Python 3.5
+      os: windows
+      language: shell
+
+      install:
+        - choco install python3 --version 3.5.2.20161029 -y --forcex86 --force --params "/InstallDir:C:\Python35"
+
+      script:
+        - C:/Python35/python -m pip install "cibuildwheel==0.11.1"
+        - C:/Python35/python -m cibuildwheel --platform windows --output-dir wheelhouse
+
+      env:
+        - CIBW_BUILD='cp35-win32'
+        - CIBW_BEFORE_BUILD='python -m pip install cython'
+      deploy:
+        name: Windows Python 3.5
+        provider: releases
+        api_key: $GITHUB_TOKEN
+        file_glob: true
+        file: wheelhouse/*
+        skip_cleanup: true
+        draft: true
+        prerelease: true
+        overwrite: true
+        on:
+          branch: master
+
+    - stage: wheels
+      name: Wheels for Windows Python 3.5 x64
+      os: windows
+      language: shell
+
+      install:
+        - choco install python3 --version 3.5.2.20161029 -y --force --params "/InstallDir:C:\Python35-x64"
+
+      script:
+        - C:/Python35-x64/python -m pip install "cibuildwheel==0.11.1"
+        - C:/Python35-x64/python -m cibuildwheel --platform windows --output-dir wheelhouse
+
+      env:
+        - CIBW_BUILD='cp35-win_amd64'
+        - CIBW_BEFORE_BUILD='python -m pip install cython'
+      deploy:
+        name: Windows Python 3.5 x64
+        provider: releases
+        api_key: $GITHUB_TOKEN
+        file_glob: true
+        file: wheelhouse/*
+        skip_cleanup: true
+        draft: true
+        prerelease: true
+        overwrite: true
+        on:
+          branch: master
+
+    - stage: wheels
+      name: Wheels for Windows Python 3.[67]
+      os: windows
+      language: shell
+
+      install:
+        - choco install python3 --version 3.6.8 --sidebyside -y --forcex86 --force --params "/InstallDir:C:\Python36"
+        - choco install python3 --version 3.6.8 --sidebyside -y --force --params "/InstallDir:C:\Python36-x64"
+
+        - choco install python3 --version 3.7.4 --sidebyside -y --forcex86 --force --params "/InstallDir:C:\Python37"
+        - choco install python3 --version 3.7.4 --sidebyside -y --force --params "/InstallDir:C:\Python37-x64"
+      script:
+        - C:/Python36/python -m pip install "cibuildwheel==0.11.1"
+        - C:/Python36-x64/python -m pip install "cibuildwheel==0.11.1"
+
+        - C:/Python37/python -m pip install "cibuildwheel==0.11.1"
+        - C:/Python37-x64/python -m pip install "cibuildwheel==0.11.1"
+
+        - C:/Python36/python -m cibuildwheel --platform windows --output-dir wheelhouse
+        - C:/Python36-x64/python -m cibuildwheel --platform windows --output-dir wheelhouse
+
+        - C:/Python37/python -m cibuildwheel --platform windows --output-dir wheelhouse
+        - C:/Python37-x64/python -m cibuildwheel --platform windows --output-dir wheelhouse
+
+      env:
+        - CIBW_BUILD='cp3[67]-*'
+        - CIBW_BEFORE_BUILD='python -m pip install cython'
+      deploy:
+        name: Windows Python 3.[67]
+        provider: releases
+        api_key: $GITHUB_TOKEN
+        file_glob: true
+        file: wheelhouse/*
+        skip_cleanup: true
+        draft: true
+        prerelease: true
+        overwrite: true
+        on:
+          branch: master
