@@ -99,7 +99,6 @@ jobs:
         - pip install cython cibuildwheel==0.11.1
 
       script:
-        - rm -rf build
         - cibuildwheel --output-dir wheelhouse
 
       env:

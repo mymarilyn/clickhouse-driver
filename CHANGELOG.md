@@ -1,11 +1,16 @@
 # Changelog
 
-## [Unreleased]
+## [0.1.0] - 2019-08-07
 ### Added
-- SimpleAggregateFunction type.
+- SimpleAggregateFunction type. Pull request [#95](https://github.com/mymarilyn/clickhouse-driver/pull/95) by [azat](https://github.com/azat).
+
+### Changed
+- Increased speed (5-6 times compared to 0.0.20 release) of `SELECT` queries with large amount of strings.
+- Package is distributed in source and binary forms now. Compilation from source is required for platforms without wheels.
 
 ### Fixed
 - Elapsed time calculation on INSERT.
+- Dependencies environment markers for poetry in `setup.py`. Pull request [#96](https://github.com/mymarilyn/clickhouse-driver/pull/96) by [nitoqq](https://github.com/nitoqq).
 
 ## [0.0.20] - 2019-06-02
 ### Added
@@ -202,7 +207,8 @@
 - Date/DateTime types.
 - String types.
 
-[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.20...HEAD
+[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.0...HEAD
+[0.1.0]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.20...0.1.0
 [0.0.20]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.19...0.0.20
 [0.0.19]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.18...0.0.19
 [0.0.18]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.17...0.0.18
