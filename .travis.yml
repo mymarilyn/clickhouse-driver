@@ -39,7 +39,7 @@ python:
 cache: pip
 services:
   - docker
-before_install:
+install:
   - docker run -e "TZ=Europe/Moscow" -d -p 127.0.0.1:9000:9000 --name test-clickhouse-server --ulimit nofile=262144:262144 yandex/clickhouse-server:$VERSION
   - docker run -d --entrypoint "/bin/sh" --name test-clickhouse-client --link test-clickhouse-server:clickhouse-server yandex/clickhouse-client:$VERSION -c 'while :; do sleep 1; done'
   - docker ps -a
@@ -50,12 +50,10 @@ before_install:
   - sed -i 's/^host=localhost$/host=clickhouse-server/' setup.cfg
   # Make host think that clickhouse-server is localhost
   - echo '127.0.0.1 clickhouse-server' | sudo tee /etc/hosts > /dev/null
-install:
   - pip install --upgrade pip setuptools
   - pip install flake8 flake8-print coveralls cython
-before_script:
-  flake8
 script:
+  - flake8
   - coverage run --source=clickhouse_driver setup.py test
 after_success:
   coveralls
