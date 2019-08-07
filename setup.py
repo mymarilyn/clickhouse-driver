@@ -36,8 +36,14 @@ with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
 # Prepare extensions.
 ext = '.pyx' if USE_CYTHON else '.c'
 extensions = [
-    Extension('*', ['clickhouse_driver/bufferedreader' + ext]),
-    Extension('*', ['clickhouse_driver/columns/stringcolumn' + ext])
+    Extension(
+        'clickhouse_driver.bufferedreader',
+        ['clickhouse_driver/bufferedreader' + ext]
+    ),
+    Extension(
+        'clickhouse_driver.columns.stringcolumn',
+        ['clickhouse_driver/columns/stringcolumn' + ext]
+    )
 ]
 
 if USE_CYTHON:
