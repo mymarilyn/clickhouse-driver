@@ -11,8 +11,7 @@ if compat.PY3:
     def _byte(b):
         return bytes((b, ))
 else:
-    def _byte(b):
-        return chr(b)
+    _byte = chr
 
 
 def write_binary_str(text, buf):
