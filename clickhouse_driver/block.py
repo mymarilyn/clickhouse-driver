@@ -1,7 +1,8 @@
 from itertools import chain
 
 from .reader import read_varint, read_binary_uint8, read_binary_int32
-from .writer import write_varint, write_binary_uint8, write_binary_int32
+from .varint import write_varint
+from .writer import write_binary_uint8, write_binary_int32
 
 
 class BlockInfo(object):

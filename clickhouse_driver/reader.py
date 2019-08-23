@@ -1,5 +1,7 @@
 from struct import Struct
 
+from .varint import read_varint
+
 
 def read_binary_str(buf):
     length = read_varint(buf)
@@ -17,23 +19,6 @@ def read_binary_str_fixed_len(buf, length):
 
 def read_binary_bytes_fixed_len(buf, length):
     return buf.read(length)
-
-
-def read_varint(f):
-    """
-    Reads integer of variable length using LEB128.
-    """
-    shift = 0
-    result = 0
-
-    while True:
-        i = f.read_one()
-        result |= (i & 0x7f) << shift
-        shift += 7
-        if i < 0x80:
-            break
-
-    return result
 
 
 def read_binary_int(buf, fmt):

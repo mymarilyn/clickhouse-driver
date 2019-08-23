@@ -1,4 +1,5 @@
-from .reader import read_varint, read_binary_uint8
+from .reader import read_binary_uint8
+from .varint import read_varint
 
 
 class BlockStreamProfileInfo(object):

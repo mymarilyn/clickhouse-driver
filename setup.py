@@ -43,6 +43,10 @@ extensions = [
     Extension(
         'clickhouse_driver.columns.stringcolumn',
         ['clickhouse_driver/columns/stringcolumn' + ext]
+    ),
+    Extension(
+        'clickhouse_driver.varint',
+        ['clickhouse_driver/varint' + ext]
     )
 ]
 

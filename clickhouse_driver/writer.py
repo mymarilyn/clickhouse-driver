@@ -1,5 +1,6 @@
 import struct
 
+from .varint import write_varint
 from .util import compat
 
 
@@ -36,20 +37,6 @@ def write_binary_bytes_fixed_len(text, buf, length):
     elif diff < 0:
         raise ValueError
     buf.write(text)
-
-
-def write_varint(number, buf):
-    """
-    Writes integer of variable length using LEB128.
-    """
-    while True:
-        towrite = number & 0x7f
-        number >>= 7
-        if number:
-            buf.write(_byte(towrite | 0x80))
-        else:
-            buf.write(_byte(towrite))
-            break
 
 
 def write_binary_int(number, buf, fmt):

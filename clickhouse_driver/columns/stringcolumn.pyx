@@ -8,7 +8,7 @@ from cpython.list cimport PyList_New, PyList_SET_ITEM
 from libc.string cimport memcpy
 
 from .. import errors
-from ..writer import write_varint
+from ..varint import write_varint
 from ..util import compat
 from .base import Column
 

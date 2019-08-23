@@ -1,5 +1,6 @@
 
-from ..writer import write_binary_str, write_varint
+from ..varint import write_varint
+from ..writer import write_binary_str
 
 
 class SettingType(object):

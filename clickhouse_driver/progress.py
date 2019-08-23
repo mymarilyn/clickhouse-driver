@@ -1,5 +1,5 @@
 from . import defines
-from .reader import read_varint
+from .varint import read_varint
 
 
 class Progress(object):

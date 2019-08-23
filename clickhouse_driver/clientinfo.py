@@ -3,7 +3,8 @@ import getpass
 
 from . import defines
 from . import errors
-from .writer import write_binary_str, write_varint, write_binary_uint8
+from .varint import write_varint
+from .writer import write_binary_str, write_binary_uint8
 
 
 class ClientInfo(object):

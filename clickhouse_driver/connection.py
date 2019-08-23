@@ -16,11 +16,11 @@ from .log import log_block
 from .progress import Progress
 from .protocol import Compression, ClientPacketTypes, ServerPacketTypes
 from .queryprocessingstage import QueryProcessingStage
-from .reader import read_varint, read_binary_str
+from .reader import read_binary_str
 from .readhelpers import read_exception
 from .settings.writer import write_settings
-from .writer import write_varint, write_binary_str
-
+from .varint import write_varint, read_varint
+from .writer import write_binary_str
 
 logger = logging.getLogger(__name__)
 
