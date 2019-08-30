@@ -98,7 +98,7 @@ class ArrayColumn(Column):
 
         if isinstance(self.nested_column, ArrayColumn):
             for x in value:
-                self.nested_column._write_data(x, buf)
+                self.nested_column._write_data(list(x), buf)
         else:
             self.nested_column._write_data(value, buf)
 

@@ -51,7 +51,10 @@ class Column(object):
         else:
             check_item_type = False
 
-        prepared = [None] * len(items)
+        if (not prepare_null and not check_item_type and
+                not check_item and not before_write):
+            return items
+
         for i, x in enumerate(items):
             if prepare_null:
                 x, is_null = prepare_null(x)
@@ -68,9 +71,9 @@ class Column(object):
                 if before_write:
                     x = before_write(x)
 
-            prepared[i] = x
+            items[i] = x
 
-        return prepared
+        return items
 
     def write_data(self, items, buf):
         if self.nullable:
