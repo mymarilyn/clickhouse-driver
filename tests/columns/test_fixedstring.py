@@ -80,6 +80,32 @@ class FixedStringTestCase(BaseTestCase):
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
 
+    def test_null_byte_in_the_middle(self):
+        columns = 'a FixedString(9)'
+
+        data = [('test\0test', )]
+        with self.create_table(columns):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
+
+    def test_empty(self):
+        columns = 'a FixedString(5)'
+
+        data = [('',)]
+        with self.create_table(columns):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
+
 
 class ByteFixedStringTestCase(BaseTestCase):
     client_kwargs = {'settings': {'strings_as_bytes': True}}

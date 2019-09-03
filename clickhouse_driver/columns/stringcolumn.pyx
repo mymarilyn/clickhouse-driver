@@ -62,7 +62,7 @@ class FixedString(String):
         super(FixedString, self).__init__(**kwargs)
 
     def read_items(self, Py_ssize_t n_items, buf):
-        cdef Py_ssize_t i, length = self.length
+        cdef Py_ssize_t i, j, length = self.length
         data = buf.read(length * n_items)
         cdef char* data_ptr = PyByteArray_AsString(data)
 
@@ -74,8 +74,14 @@ class FixedString(String):
         items = PyList_New(n_items)
         for i in range(n_items):
             memcpy(c_string, &data_ptr[i * length], length)
+
+            # Get last non zero byte of string from the end.
+            j = length - 1
+            while j >= 0 and not c_string[j]:
+                j -= 1
+
             try:
-                item = c_string.decode('utf-8')
+                item = c_string[:j + 1].decode('utf-8')
             except UnicodeDecodeError:
                 item = PyBytes_FromStringAndSize(c_string, length)
             Py_INCREF(item)
