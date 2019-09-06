@@ -3,4 +3,5 @@ filename = *.py, *.pyx
 per-file-ignores =
     clickhouse_driver/columns/stringcolumn.pyx: E225, E226, E227, E999
     clickhouse_driver/bufferedreader.pyx: E225, E226, E227, E999
+    clickhouse_driver/bufferedwriter.pyx: E225, E226, E227, E999
     clickhouse_driver/varint.pyx: E225, E226, E227, E999

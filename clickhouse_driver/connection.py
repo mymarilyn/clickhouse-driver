@@ -9,6 +9,7 @@ from . import errors
 from .block import Block
 from .blockstreamprofileinfo import BlockStreamProfileInfo
 from .bufferedreader import BufferedSocketReader
+from .bufferedwriter import BufferedSocketWriter
 from .clientinfo import ClientInfo
 from .compression import get_compressor_cls
 from .context import Context
@@ -231,7 +232,7 @@ class Connection(object):
             self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
             self.fin = BufferedSocketReader(self.socket, defines.BUFFER_SIZE)
-            self.fout = self.socket.makefile('wb')
+            self.fout = BufferedSocketWriter(self.socket, defines.BUFFER_SIZE)
 
             self.send_hello()
             self.receive_hello()
@@ -270,14 +271,6 @@ class Connection(object):
         """
 
         if self.connected:
-            # Close file descriptors before socket closing.
-            if self.fout:
-                try:
-                    self.fout.close()
-
-                except socket.error as e:
-                    logger.warning('Error on out file close: %s', e)
-
             # There can be errors on shutdown.
             # We need to close socket and reset state even if it happens.
             try:

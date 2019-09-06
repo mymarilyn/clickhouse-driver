@@ -911,6 +911,63 @@ static int __Pyx_ParseOptionalKeywords(PyObject *kwds, PyObject **argnames[],\
     PyObject *kwds2, PyObject *values[], Py_ssize_t num_pos_args,\
     const char* function_name);
 
+/* PyObjectCall.proto */
+#if CYTHON_COMPILING_IN_CPYTHON
+static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw);
+#else
+#define __Pyx_PyObject_Call(func, arg, kw) PyObject_Call(func, arg, kw)
+#endif
+
+/* PyCFunctionFastCall.proto */
+#if CYTHON_FAST_PYCCALL
+static CYTHON_INLINE PyObject *__Pyx_PyCFunction_FastCall(PyObject *func, PyObject **args, Py_ssize_t nargs);
+#else
+#define __Pyx_PyCFunction_FastCall(func, args, nargs)  (assert(0), NULL)
+#endif
+
+/* PyFunctionFastCall.proto */
+#if CYTHON_FAST_PYCALL
+#define __Pyx_PyFunction_FastCall(func, args, nargs)\
+    __Pyx_PyFunction_FastCallDict((func), (args), (nargs), NULL)
+#if 1 || PY_VERSION_HEX < 0x030600B1
+static PyObject *__Pyx_PyFunction_FastCallDict(PyObject *func, PyObject **args, Py_ssize_t nargs, PyObject *kwargs);
+#else
+#define __Pyx_PyFunction_FastCallDict(func, args, nargs, kwargs) _PyFunction_FastCallDict(func, args, nargs, kwargs)
+#endif
+#define __Pyx_BUILD_ASSERT_EXPR(cond)\
+    (sizeof(char [1 - 2*!(cond)]) - 1)
+#ifndef Py_MEMBER_SIZE
+#define Py_MEMBER_SIZE(type, member) sizeof(((type *)0)->member)
+#endif
+  static size_t __pyx_pyframe_localsplus_offset = 0;
+  #include "frameobject.h"
+  #define __Pxy_PyFrame_Initialize_Offsets()\
+    ((void)__Pyx_BUILD_ASSERT_EXPR(sizeof(PyFrameObject) == offsetof(PyFrameObject, f_localsplus) + Py_MEMBER_SIZE(PyFrameObject, f_localsplus)),\
+     (void)(__pyx_pyframe_localsplus_offset = ((size_t)PyFrame_Type.tp_basicsize) - Py_MEMBER_SIZE(PyFrameObject, f_localsplus)))
+  #define __Pyx_PyFrame_GetLocalsplus(frame)\
+    (assert(__pyx_pyframe_localsplus_offset), (PyObject **)(((char *)(frame)) + __pyx_pyframe_localsplus_offset))
+#endif
+
+/* PyObjectCall2Args.proto */
+static CYTHON_UNUSED PyObject* __Pyx_PyObject_Call2Args(PyObject* function, PyObject* arg1, PyObject* arg2);
+
+/* PyObjectCallMethO.proto */
+#if CYTHON_COMPILING_IN_CPYTHON
+static CYTHON_INLINE PyObject* __Pyx_PyObject_CallMethO(PyObject *func, PyObject *arg);
+#endif
+
+/* PyObjectCallOneArg.proto */
+static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObject *arg);
+
+/* PyObjectSetAttrStr.proto */
+#if CYTHON_USE_TYPE_SLOTS
+#define __Pyx_PyObject_DelAttrStr(o,n) __Pyx_PyObject_SetAttrStr(o, n, NULL)
+static CYTHON_INLINE int __Pyx_PyObject_SetAttrStr(PyObject* obj, PyObject* attr_name, PyObject* value);
+#else
+#define __Pyx_PyObject_DelAttrStr(o,n)   PyObject_DelAttr(o,n)
+#define __Pyx_PyObject_SetAttrStr(o,n,v) PyObject_SetAttr(o,n,v)
+#endif
+
 /* PyDictVersioning.proto */
 #if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_TYPE_SLOTS
 #define __PYX_DICT_VERSION_INIT  ((PY_UINT64_T) -1)
@@ -956,85 +1013,6 @@ static PyObject *__Pyx__GetModuleGlobalName(PyObject *name, PY_UINT64_T *dict_ve
 #define __Pyx_GetModuleGlobalName(var, name)  (var) = __Pyx__GetModuleGlobalName(name)
 #define __Pyx_GetModuleGlobalNameUncached(var, name)  (var) = __Pyx__GetModuleGlobalName(name)
 static CYTHON_INLINE PyObject *__Pyx__GetModuleGlobalName(PyObject *name);
-#endif
-
-/* PyCFunctionFastCall.proto */
-#if CYTHON_FAST_PYCCALL
-static CYTHON_INLINE PyObject *__Pyx_PyCFunction_FastCall(PyObject *func, PyObject **args, Py_ssize_t nargs);
-#else
-#define __Pyx_PyCFunction_FastCall(func, args, nargs)  (assert(0), NULL)
-#endif
-
-/* PyFunctionFastCall.proto */
-#if CYTHON_FAST_PYCALL
-#define __Pyx_PyFunction_FastCall(func, args, nargs)\
-    __Pyx_PyFunction_FastCallDict((func), (args), (nargs), NULL)
-#if 1 || PY_VERSION_HEX < 0x030600B1
-static PyObject *__Pyx_PyFunction_FastCallDict(PyObject *func, PyObject **args, Py_ssize_t nargs, PyObject *kwargs);
-#else
-#define __Pyx_PyFunction_FastCallDict(func, args, nargs, kwargs) _PyFunction_FastCallDict(func, args, nargs, kwargs)
-#endif
-#define __Pyx_BUILD_ASSERT_EXPR(cond)\
-    (sizeof(char [1 - 2*!(cond)]) - 1)
-#ifndef Py_MEMBER_SIZE
-#define Py_MEMBER_SIZE(type, member) sizeof(((type *)0)->member)
-#endif
-  static size_t __pyx_pyframe_localsplus_offset = 0;
-  #include "frameobject.h"
-  #define __Pxy_PyFrame_Initialize_Offsets()\
-    ((void)__Pyx_BUILD_ASSERT_EXPR(sizeof(PyFrameObject) == offsetof(PyFrameObject, f_localsplus) + Py_MEMBER_SIZE(PyFrameObject, f_localsplus)),\
-     (void)(__pyx_pyframe_localsplus_offset = ((size_t)PyFrame_Type.tp_basicsize) - Py_MEMBER_SIZE(PyFrameObject, f_localsplus)))
-  #define __Pyx_PyFrame_GetLocalsplus(frame)\
-    (assert(__pyx_pyframe_localsplus_offset), (PyObject **)(((char *)(frame)) + __pyx_pyframe_localsplus_offset))
-#endif
-
-/* PyObjectCall.proto */
-#if CYTHON_COMPILING_IN_CPYTHON
-static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw);
-#else
-#define __Pyx_PyObject_Call(func, arg, kw) PyObject_Call(func, arg, kw)
-#endif
-
-/* PyObjectCall2Args.proto */
-static CYTHON_UNUSED PyObject* __Pyx_PyObject_Call2Args(PyObject* function, PyObject* arg1, PyObject* arg2);
-
-/* PyObjectCallMethO.proto */
-#if CYTHON_COMPILING_IN_CPYTHON
-static CYTHON_INLINE PyObject* __Pyx_PyObject_CallMethO(PyObject *func, PyObject *arg);
-#endif
-
-/* PyObjectCallOneArg.proto */
-static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObject *arg);
-
-/* GetItemInt.proto */
-#define __Pyx_GetItemInt(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
-    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
-    __Pyx_GetItemInt_Fast(o, (Py_ssize_t)i, is_list, wraparound, boundscheck) :\
-    (is_list ? (PyErr_SetString(PyExc_IndexError, "list index out of range"), (PyObject*)NULL) :\
-               __Pyx_GetItemInt_Generic(o, to_py_func(i))))
-#define __Pyx_GetItemInt_List(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
-    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
-    __Pyx_GetItemInt_List_Fast(o, (Py_ssize_t)i, wraparound, boundscheck) :\
-    (PyErr_SetString(PyExc_IndexError, "list index out of range"), (PyObject*)NULL))
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_List_Fast(PyObject *o, Py_ssize_t i,
-                                                              int wraparound, int boundscheck);
-#define __Pyx_GetItemInt_Tuple(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
-    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
-    __Pyx_GetItemInt_Tuple_Fast(o, (Py_ssize_t)i, wraparound, boundscheck) :\
-    (PyErr_SetString(PyExc_IndexError, "tuple index out of range"), (PyObject*)NULL))
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Tuple_Fast(PyObject *o, Py_ssize_t i,
-                                                              int wraparound, int boundscheck);
-static PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j);
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i,
-                                                     int is_list, int wraparound, int boundscheck);
-
-/* PyObjectSetAttrStr.proto */
-#if CYTHON_USE_TYPE_SLOTS
-#define __Pyx_PyObject_DelAttrStr(o,n) __Pyx_PyObject_SetAttrStr(o, n, NULL)
-static CYTHON_INLINE int __Pyx_PyObject_SetAttrStr(PyObject* obj, PyObject* attr_name, PyObject* value);
-#else
-#define __Pyx_PyObject_DelAttrStr(o,n)   PyObject_DelAttr(o,n)
-#define __Pyx_PyObject_SetAttrStr(o,n,v) PyObject_SetAttr(o,n,v)
 #endif
 
 /* IncludeStringH.proto */
@@ -1103,6 +1081,28 @@ static int __Pyx__GetException(PyThreadState *tstate, PyObject **type, PyObject 
 static int __Pyx_GetException(PyObject **type, PyObject **value, PyObject **tb);
 #endif
 
+/* GetItemInt.proto */
+#define __Pyx_GetItemInt(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
+    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
+    __Pyx_GetItemInt_Fast(o, (Py_ssize_t)i, is_list, wraparound, boundscheck) :\
+    (is_list ? (PyErr_SetString(PyExc_IndexError, "list index out of range"), (PyObject*)NULL) :\
+               __Pyx_GetItemInt_Generic(o, to_py_func(i))))
+#define __Pyx_GetItemInt_List(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
+    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
+    __Pyx_GetItemInt_List_Fast(o, (Py_ssize_t)i, wraparound, boundscheck) :\
+    (PyErr_SetString(PyExc_IndexError, "list index out of range"), (PyObject*)NULL))
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_List_Fast(PyObject *o, Py_ssize_t i,
+                                                              int wraparound, int boundscheck);
+#define __Pyx_GetItemInt_Tuple(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
+    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
+    __Pyx_GetItemInt_Tuple_Fast(o, (Py_ssize_t)i, wraparound, boundscheck) :\
+    (PyErr_SetString(PyExc_IndexError, "tuple index out of range"), (PyObject*)NULL))
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Tuple_Fast(PyObject *o, Py_ssize_t i,
+                                                              int wraparound, int boundscheck);
+static PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j);
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i,
+                                                     int is_list, int wraparound, int boundscheck);
+
 /* PyObjectCallNoArg.proto */
 #if CYTHON_COMPILING_IN_CPYTHON
 static CYTHON_INLINE PyObject* __Pyx_PyObject_CallNoArg(PyObject *func);
@@ -1137,14 +1137,6 @@ static CYTHON_INLINE void __Pyx_ErrFetchInState(PyThreadState *tstate, PyObject 
 
 /* RaiseException.proto */
 static void __Pyx_Raise(PyObject *type, PyObject *value, PyObject *tb, PyObject *cause);
-
-/* SliceObject.proto */
-#define __Pyx_PyObject_DelSlice(obj, cstart, cstop, py_start, py_stop, py_slice, has_cstart, has_cstop, wraparound)\
-    __Pyx_PyObject_SetSlice(obj, (PyObject*)NULL, cstart, cstop, py_start, py_stop, py_slice, has_cstart, has_cstop, wraparound)
-static CYTHON_INLINE int __Pyx_PyObject_SetSlice(
-        PyObject* obj, PyObject* value, Py_ssize_t cstart, Py_ssize_t cstop,
-        PyObject** py_start, PyObject** py_stop, PyObject** py_slice,
-        int has_cstart, int has_cstop, int wraparound);
 
 /* DictGetItem.proto */
 #if PY_MAJOR_VERSION >= 3 && !CYTHON_COMPILING_IN_PYPY
@@ -1440,13 +1432,14 @@ static const char __pyx_k_String[] = "String";
 static const char __pyx_k_codecs[] = "codecs";
 static const char __pyx_k_compat[] = "compat";
 static const char __pyx_k_decode[] = "decode";
+static const char __pyx_k_encode[] = "encode";
 static const char __pyx_k_errors[] = "errors";
 static const char __pyx_k_import[] = "__import__";
 static const char __pyx_k_kwargs[] = "kwargs";
 static const char __pyx_k_length[] = "length";
 static const char __pyx_k_module[] = "__module__";
-static const char __pyx_k_varint[] = "varint";
 static const char __pyx_k_buf_pos[] = "buf_pos";
+static const char __pyx_k_c_value[] = "c_value";
 static const char __pyx_k_ch_type[] = "ch_type";
 static const char __pyx_k_context[] = "context";
 static const char __pyx_k_n_items[] = "n_items";
@@ -1460,7 +1453,6 @@ static const char __pyx_k_items_buf[] = "items_buf";
 static const char __pyx_k_metaclass[] = "__metaclass__";
 static const char __pyx_k_value_len[] = "value_len";
 static const char __pyx_k_ByteString[] = "ByteString";
-static const char __pyx_k_memoryview[] = "memoryview";
 static const char __pyx_k_null_value[] = "null_value";
 static const char __pyx_k_read_items[] = "read_items";
 static const char __pyx_k_FixedString[] = "FixedString";
@@ -1470,9 +1462,9 @@ static const char __pyx_k_prepare_null[] = "prepare_null";
 static const char __pyx_k_read_strings[] = "read_strings";
 static const char __pyx_k_string_types[] = "string_types";
 static const char __pyx_k_utf_8_encode[] = "utf_8_encode";
-static const char __pyx_k_write_varint[] = "write_varint";
+static const char __pyx_k_write_strings[] = "write_strings";
 static const char __pyx_k_column_options[] = "column_options";
-static const char __pyx_k_items_buf_view[] = "items_buf_view";
+static const char __pyx_k_items_buf_size[] = "items_buf_size";
 static const char __pyx_k_ByteFixedString[] = "ByteFixedString";
 static const char __pyx_k_client_settings[] = "client_settings";
 static const char __pyx_k_strings_as_bytes[] = "strings_as_bytes";
@@ -1519,6 +1511,7 @@ static PyObject *__pyx_n_s_base;
 static PyObject *__pyx_n_s_buf;
 static PyObject *__pyx_n_s_buf_pos;
 static PyObject *__pyx_n_s_c_string;
+static PyObject *__pyx_n_s_c_value;
 static PyObject *__pyx_n_s_ch_type;
 static PyObject *__pyx_n_s_clickhouse_driver_columns_string;
 static PyObject *__pyx_kp_s_clickhouse_driver_columns_string_2;
@@ -1534,6 +1527,7 @@ static PyObject *__pyx_n_s_data;
 static PyObject *__pyx_n_s_data_ptr;
 static PyObject *__pyx_n_s_decode;
 static PyObject *__pyx_n_s_doc;
+static PyObject *__pyx_n_s_encode;
 static PyObject *__pyx_n_s_errors;
 static PyObject *__pyx_n_s_i;
 static PyObject *__pyx_n_s_import;
@@ -1541,12 +1535,11 @@ static PyObject *__pyx_n_s_init;
 static PyObject *__pyx_n_s_item;
 static PyObject *__pyx_n_s_items;
 static PyObject *__pyx_n_s_items_buf;
-static PyObject *__pyx_n_s_items_buf_view;
+static PyObject *__pyx_n_s_items_buf_size;
 static PyObject *__pyx_n_s_j;
 static PyObject *__pyx_n_s_kwargs;
 static PyObject *__pyx_n_s_length;
 static PyObject *__pyx_n_s_main;
-static PyObject *__pyx_n_s_memoryview;
 static PyObject *__pyx_n_s_metaclass;
 static PyObject *__pyx_n_s_module;
 static PyObject *__pyx_n_s_n_items;
@@ -1572,10 +1565,9 @@ static PyObject *__pyx_n_s_utf_8_encode;
 static PyObject *__pyx_n_s_util;
 static PyObject *__pyx_n_s_value;
 static PyObject *__pyx_n_s_value_len;
-static PyObject *__pyx_n_s_varint;
 static PyObject *__pyx_n_s_write;
 static PyObject *__pyx_n_s_write_items;
-static PyObject *__pyx_n_s_write_varint;
+static PyObject *__pyx_n_s_write_strings;
 static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_6String_prepare_null(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
 static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_6String_2write_items(CYTHON_UNUSED PyObject *__pyx_self, CYTHON_UNUSED PyObject *__pyx_v_self, PyObject *__pyx_v_items, PyObject *__pyx_v_buf); /* proto */
 static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_6String_4read_items(CYTHON_UNUSED PyObject *__pyx_self, CYTHON_UNUSED PyObject *__pyx_v_self, PyObject *__pyx_v_n_items, PyObject *__pyx_v_buf); /* proto */
@@ -1587,7 +1579,6 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
 static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_15ByteFixedString_read_items(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, Py_ssize_t __pyx_v_n_items, PyObject *__pyx_v_buf); /* proto */
 static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_15ByteFixedString_2write_items(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_items, PyObject *__pyx_v_buf); /* proto */
 static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_create_string_column(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_spec, PyObject *__pyx_v_column_options); /* proto */
-static PyObject *__pyx_int_0;
 static PyObject *__pyx_int_12;
 static PyObject *__pyx_int_neg_1;
 static PyObject *__pyx_slice_;
@@ -1794,8 +1785,8 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_6String_pr
  *             return value, False
  * 
  *     def write_items(self, items, buf):             # <<<<<<<<<<<<<<
- *         for value in items:
- *             if not isinstance(value, bytes):
+ *         buf.write_strings(items, encode=True)
+ * 
  */
 
 /* Python wrapper */
@@ -1872,225 +1863,44 @@ static PyObject *__pyx_pw_17clickhouse_driver_7columns_12stringcolumn_6String_3w
 }
 
 static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_6String_2write_items(CYTHON_UNUSED PyObject *__pyx_self, CYTHON_UNUSED PyObject *__pyx_v_self, PyObject *__pyx_v_items, PyObject *__pyx_v_buf) {
-  PyObject *__pyx_v_value = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
-  Py_ssize_t __pyx_t_2;
-  PyObject *(*__pyx_t_3)(PyObject *);
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
   PyObject *__pyx_t_4 = NULL;
-  int __pyx_t_5;
-  int __pyx_t_6;
-  PyObject *__pyx_t_7 = NULL;
-  PyObject *__pyx_t_8 = NULL;
-  Py_ssize_t __pyx_t_9;
-  PyObject *__pyx_t_10 = NULL;
-  int __pyx_t_11;
-  PyObject *__pyx_t_12 = NULL;
   __Pyx_RefNannySetupContext("write_items", 0);
 
   /* "clickhouse_driver/columns/stringcolumn.pyx":33
  * 
  *     def write_items(self, items, buf):
- *         for value in items:             # <<<<<<<<<<<<<<
- *             if not isinstance(value, bytes):
- *                 value = utf_8_encode(value)[0]
- */
-  if (likely(PyList_CheckExact(__pyx_v_items)) || PyTuple_CheckExact(__pyx_v_items)) {
-    __pyx_t_1 = __pyx_v_items; __Pyx_INCREF(__pyx_t_1); __pyx_t_2 = 0;
-    __pyx_t_3 = NULL;
-  } else {
-    __pyx_t_2 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_v_items); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 33, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_3 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 33, __pyx_L1_error)
-  }
-  for (;;) {
-    if (likely(!__pyx_t_3)) {
-      if (likely(PyList_CheckExact(__pyx_t_1))) {
-        if (__pyx_t_2 >= PyList_GET_SIZE(__pyx_t_1)) break;
-        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_4 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 33, __pyx_L1_error)
-        #else
-        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 33, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_4);
-        #endif
-      } else {
-        if (__pyx_t_2 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
-        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 33, __pyx_L1_error)
-        #else
-        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 33, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_4);
-        #endif
-      }
-    } else {
-      __pyx_t_4 = __pyx_t_3(__pyx_t_1);
-      if (unlikely(!__pyx_t_4)) {
-        PyObject* exc_type = PyErr_Occurred();
-        if (exc_type) {
-          if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 33, __pyx_L1_error)
-        }
-        break;
-      }
-      __Pyx_GOTREF(__pyx_t_4);
-    }
-    __Pyx_XDECREF_SET(__pyx_v_value, __pyx_t_4);
-    __pyx_t_4 = 0;
-
-    /* "clickhouse_driver/columns/stringcolumn.pyx":34
- *     def write_items(self, items, buf):
- *         for value in items:
- *             if not isinstance(value, bytes):             # <<<<<<<<<<<<<<
- *                 value = utf_8_encode(value)[0]
- * 
- */
-    __pyx_t_5 = PyBytes_Check(__pyx_v_value); 
-    __pyx_t_6 = ((!(__pyx_t_5 != 0)) != 0);
-    if (__pyx_t_6) {
-
-      /* "clickhouse_driver/columns/stringcolumn.pyx":35
- *         for value in items:
- *             if not isinstance(value, bytes):
- *                 value = utf_8_encode(value)[0]             # <<<<<<<<<<<<<<
- * 
- *             write_varint(len(value), buf)
- */
-      __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_utf_8_encode); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 35, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_8 = NULL;
-      if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_7))) {
-        __pyx_t_8 = PyMethod_GET_SELF(__pyx_t_7);
-        if (likely(__pyx_t_8)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_7);
-          __Pyx_INCREF(__pyx_t_8);
-          __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_7, function);
-        }
-      }
-      __pyx_t_4 = (__pyx_t_8) ? __Pyx_PyObject_Call2Args(__pyx_t_7, __pyx_t_8, __pyx_v_value) : __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_v_value);
-      __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
-      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 35, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      __pyx_t_7 = __Pyx_GetItemInt(__pyx_t_4, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 35, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_7);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __Pyx_DECREF_SET(__pyx_v_value, __pyx_t_7);
-      __pyx_t_7 = 0;
-
-      /* "clickhouse_driver/columns/stringcolumn.pyx":34
- *     def write_items(self, items, buf):
- *         for value in items:
- *             if not isinstance(value, bytes):             # <<<<<<<<<<<<<<
- *                 value = utf_8_encode(value)[0]
- * 
- */
-    }
-
-    /* "clickhouse_driver/columns/stringcolumn.pyx":37
- *                 value = utf_8_encode(value)[0]
- * 
- *             write_varint(len(value), buf)             # <<<<<<<<<<<<<<
- *             buf.write(value)
- * 
- */
-    __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_write_varint); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 37, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_9 = PyObject_Length(__pyx_v_value); if (unlikely(__pyx_t_9 == ((Py_ssize_t)-1))) __PYX_ERR(0, 37, __pyx_L1_error)
-    __pyx_t_8 = PyInt_FromSsize_t(__pyx_t_9); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 37, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_8);
-    __pyx_t_10 = NULL;
-    __pyx_t_11 = 0;
-    if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
-      __pyx_t_10 = PyMethod_GET_SELF(__pyx_t_4);
-      if (likely(__pyx_t_10)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-        __Pyx_INCREF(__pyx_t_10);
-        __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_4, function);
-        __pyx_t_11 = 1;
-      }
-    }
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[3] = {__pyx_t_10, __pyx_t_8, __pyx_v_buf};
-      __pyx_t_7 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_11, 2+__pyx_t_11); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 37, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
-      __Pyx_GOTREF(__pyx_t_7);
-      __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
-      PyObject *__pyx_temp[3] = {__pyx_t_10, __pyx_t_8, __pyx_v_buf};
-      __pyx_t_7 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_11, 2+__pyx_t_11); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 37, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
-      __Pyx_GOTREF(__pyx_t_7);
-      __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_12 = PyTuple_New(2+__pyx_t_11); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 37, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_12);
-      if (__pyx_t_10) {
-        __Pyx_GIVEREF(__pyx_t_10); PyTuple_SET_ITEM(__pyx_t_12, 0, __pyx_t_10); __pyx_t_10 = NULL;
-      }
-      __Pyx_GIVEREF(__pyx_t_8);
-      PyTuple_SET_ITEM(__pyx_t_12, 0+__pyx_t_11, __pyx_t_8);
-      __Pyx_INCREF(__pyx_v_buf);
-      __Pyx_GIVEREF(__pyx_v_buf);
-      PyTuple_SET_ITEM(__pyx_t_12, 1+__pyx_t_11, __pyx_v_buf);
-      __pyx_t_8 = 0;
-      __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_12, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 37, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_7);
-      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-    }
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-
-    /* "clickhouse_driver/columns/stringcolumn.pyx":38
- * 
- *             write_varint(len(value), buf)
- *             buf.write(value)             # <<<<<<<<<<<<<<
+ *         buf.write_strings(items, encode=True)             # <<<<<<<<<<<<<<
  * 
  *     def read_items(self, n_items, buf):
  */
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_buf, __pyx_n_s_write); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 38, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_12 = NULL;
-    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_4))) {
-      __pyx_t_12 = PyMethod_GET_SELF(__pyx_t_4);
-      if (likely(__pyx_t_12)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-        __Pyx_INCREF(__pyx_t_12);
-        __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_4, function);
-      }
-    }
-    __pyx_t_7 = (__pyx_t_12) ? __Pyx_PyObject_Call2Args(__pyx_t_4, __pyx_t_12, __pyx_v_value) : __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_value);
-    __Pyx_XDECREF(__pyx_t_12); __pyx_t_12 = 0;
-    if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 38, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_7);
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-
-    /* "clickhouse_driver/columns/stringcolumn.pyx":33
- * 
- *     def write_items(self, items, buf):
- *         for value in items:             # <<<<<<<<<<<<<<
- *             if not isinstance(value, bytes):
- *                 value = utf_8_encode(value)[0]
- */
-  }
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_buf, __pyx_n_s_write_strings); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 33, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 33, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_INCREF(__pyx_v_items);
+  __Pyx_GIVEREF(__pyx_v_items);
+  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_v_items);
+  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 33, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_encode, Py_True) < 0) __PYX_ERR(0, 33, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 33, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
   /* "clickhouse_driver/columns/stringcolumn.pyx":32
  *             return value, False
  * 
  *     def write_items(self, items, buf):             # <<<<<<<<<<<<<<
- *         for value in items:
- *             if not isinstance(value, bytes):
+ *         buf.write_strings(items, encode=True)
+ * 
  */
 
   /* function exit code */
@@ -2098,22 +1908,19 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_6String_2w
   goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_XDECREF(__pyx_t_7);
-  __Pyx_XDECREF(__pyx_t_8);
-  __Pyx_XDECREF(__pyx_t_10);
-  __Pyx_XDECREF(__pyx_t_12);
   __Pyx_AddTraceback("clickhouse_driver.columns.stringcolumn.String.write_items", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
-  __Pyx_XDECREF(__pyx_v_value);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "clickhouse_driver/columns/stringcolumn.pyx":40
- *             buf.write(value)
+/* "clickhouse_driver/columns/stringcolumn.pyx":35
+ *         buf.write_strings(items, encode=True)
  * 
  *     def read_items(self, n_items, buf):             # <<<<<<<<<<<<<<
  *         return buf.read_strings(n_items, decode=True)
@@ -2155,17 +1962,17 @@ static PyObject *__pyx_pw_17clickhouse_driver_7columns_12stringcolumn_6String_5r
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_n_items)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("read_items", 1, 3, 3, 1); __PYX_ERR(0, 40, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("read_items", 1, 3, 3, 1); __PYX_ERR(0, 35, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_buf)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("read_items", 1, 3, 3, 2); __PYX_ERR(0, 40, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("read_items", 1, 3, 3, 2); __PYX_ERR(0, 35, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "read_items") < 0)) __PYX_ERR(0, 40, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "read_items") < 0)) __PYX_ERR(0, 35, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -2180,7 +1987,7 @@ static PyObject *__pyx_pw_17clickhouse_driver_7columns_12stringcolumn_6String_5r
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("read_items", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 40, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("read_items", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 35, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("clickhouse_driver.columns.stringcolumn.String.read_items", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2202,7 +2009,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_6String_4r
   PyObject *__pyx_t_4 = NULL;
   __Pyx_RefNannySetupContext("read_items", 0);
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":41
+  /* "clickhouse_driver/columns/stringcolumn.pyx":36
  * 
  *     def read_items(self, n_items, buf):
  *         return buf.read_strings(n_items, decode=True)             # <<<<<<<<<<<<<<
@@ -2210,17 +2017,17 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_6String_4r
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_buf, __pyx_n_s_read_strings); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 41, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_buf, __pyx_n_s_read_strings); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 36, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 41, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 36, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_v_n_items);
   __Pyx_GIVEREF(__pyx_v_n_items);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_v_n_items);
-  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 41, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 36, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_decode, Py_True) < 0) __PYX_ERR(0, 41, __pyx_L1_error)
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 41, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_decode, Py_True) < 0) __PYX_ERR(0, 36, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 36, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -2229,8 +2036,8 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_6String_4r
   __pyx_t_4 = 0;
   goto __pyx_L0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":40
- *             buf.write(value)
+  /* "clickhouse_driver/columns/stringcolumn.pyx":35
+ *         buf.write_strings(items, encode=True)
  * 
  *     def read_items(self, n_items, buf):             # <<<<<<<<<<<<<<
  *         return buf.read_strings(n_items, decode=True)
@@ -2251,12 +2058,12 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_6String_4r
   return __pyx_r;
 }
 
-/* "clickhouse_driver/columns/stringcolumn.pyx":48
+/* "clickhouse_driver/columns/stringcolumn.pyx":43
  *     null_value = b''
  * 
  *     def write_items(self, items, buf):             # <<<<<<<<<<<<<<
- *         for value in items:
- *             write_varint(len(value), buf)
+ *         buf.write_strings(items)
+ * 
  */
 
 /* Python wrapper */
@@ -2294,17 +2101,17 @@ static PyObject *__pyx_pw_17clickhouse_driver_7columns_12stringcolumn_10ByteStri
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_items)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("write_items", 1, 3, 3, 1); __PYX_ERR(0, 48, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("write_items", 1, 3, 3, 1); __PYX_ERR(0, 43, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_buf)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("write_items", 1, 3, 3, 2); __PYX_ERR(0, 48, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("write_items", 1, 3, 3, 2); __PYX_ERR(0, 43, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "write_items") < 0)) __PYX_ERR(0, 48, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "write_items") < 0)) __PYX_ERR(0, 43, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -2319,7 +2126,7 @@ static PyObject *__pyx_pw_17clickhouse_driver_7columns_12stringcolumn_10ByteStri
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("write_items", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 48, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("write_items", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 43, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("clickhouse_driver.columns.stringcolumn.ByteString.write_items", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2333,173 +2140,45 @@ static PyObject *__pyx_pw_17clickhouse_driver_7columns_12stringcolumn_10ByteStri
 }
 
 static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_10ByteString_write_items(CYTHON_UNUSED PyObject *__pyx_self, CYTHON_UNUSED PyObject *__pyx_v_self, PyObject *__pyx_v_items, PyObject *__pyx_v_buf) {
-  PyObject *__pyx_v_value = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
-  Py_ssize_t __pyx_t_2;
-  PyObject *(*__pyx_t_3)(PyObject *);
-  PyObject *__pyx_t_4 = NULL;
-  PyObject *__pyx_t_5 = NULL;
-  Py_ssize_t __pyx_t_6;
-  PyObject *__pyx_t_7 = NULL;
-  PyObject *__pyx_t_8 = NULL;
-  int __pyx_t_9;
-  PyObject *__pyx_t_10 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("write_items", 0);
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":49
+  /* "clickhouse_driver/columns/stringcolumn.pyx":44
  * 
  *     def write_items(self, items, buf):
- *         for value in items:             # <<<<<<<<<<<<<<
- *             write_varint(len(value), buf)
- *             buf.write(value)
- */
-  if (likely(PyList_CheckExact(__pyx_v_items)) || PyTuple_CheckExact(__pyx_v_items)) {
-    __pyx_t_1 = __pyx_v_items; __Pyx_INCREF(__pyx_t_1); __pyx_t_2 = 0;
-    __pyx_t_3 = NULL;
-  } else {
-    __pyx_t_2 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_v_items); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 49, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_3 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 49, __pyx_L1_error)
-  }
-  for (;;) {
-    if (likely(!__pyx_t_3)) {
-      if (likely(PyList_CheckExact(__pyx_t_1))) {
-        if (__pyx_t_2 >= PyList_GET_SIZE(__pyx_t_1)) break;
-        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_4 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 49, __pyx_L1_error)
-        #else
-        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 49, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_4);
-        #endif
-      } else {
-        if (__pyx_t_2 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
-        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 49, __pyx_L1_error)
-        #else
-        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 49, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_4);
-        #endif
-      }
-    } else {
-      __pyx_t_4 = __pyx_t_3(__pyx_t_1);
-      if (unlikely(!__pyx_t_4)) {
-        PyObject* exc_type = PyErr_Occurred();
-        if (exc_type) {
-          if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 49, __pyx_L1_error)
-        }
-        break;
-      }
-      __Pyx_GOTREF(__pyx_t_4);
-    }
-    __Pyx_XDECREF_SET(__pyx_v_value, __pyx_t_4);
-    __pyx_t_4 = 0;
-
-    /* "clickhouse_driver/columns/stringcolumn.pyx":50
- *     def write_items(self, items, buf):
- *         for value in items:
- *             write_varint(len(value), buf)             # <<<<<<<<<<<<<<
- *             buf.write(value)
- * 
- */
-    __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_write_varint); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 50, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_6 = PyObject_Length(__pyx_v_value); if (unlikely(__pyx_t_6 == ((Py_ssize_t)-1))) __PYX_ERR(0, 50, __pyx_L1_error)
-    __pyx_t_7 = PyInt_FromSsize_t(__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 50, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_8 = NULL;
-    __pyx_t_9 = 0;
-    if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_5))) {
-      __pyx_t_8 = PyMethod_GET_SELF(__pyx_t_5);
-      if (likely(__pyx_t_8)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_5);
-        __Pyx_INCREF(__pyx_t_8);
-        __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_5, function);
-        __pyx_t_9 = 1;
-      }
-    }
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_5)) {
-      PyObject *__pyx_temp[3] = {__pyx_t_8, __pyx_t_7, __pyx_v_buf};
-      __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_9, 2+__pyx_t_9); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 50, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_5)) {
-      PyObject *__pyx_temp[3] = {__pyx_t_8, __pyx_t_7, __pyx_v_buf};
-      __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_9, 2+__pyx_t_9); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 50, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_10 = PyTuple_New(2+__pyx_t_9); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 50, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_10);
-      if (__pyx_t_8) {
-        __Pyx_GIVEREF(__pyx_t_8); PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_8); __pyx_t_8 = NULL;
-      }
-      __Pyx_GIVEREF(__pyx_t_7);
-      PyTuple_SET_ITEM(__pyx_t_10, 0+__pyx_t_9, __pyx_t_7);
-      __Pyx_INCREF(__pyx_v_buf);
-      __Pyx_GIVEREF(__pyx_v_buf);
-      PyTuple_SET_ITEM(__pyx_t_10, 1+__pyx_t_9, __pyx_v_buf);
-      __pyx_t_7 = 0;
-      __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_10, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 50, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-    }
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-
-    /* "clickhouse_driver/columns/stringcolumn.pyx":51
- *         for value in items:
- *             write_varint(len(value), buf)
- *             buf.write(value)             # <<<<<<<<<<<<<<
+ *         buf.write_strings(items)             # <<<<<<<<<<<<<<
  * 
  *     def read_items(self, n_items, buf):
  */
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_buf, __pyx_n_s_write); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 51, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_10 = NULL;
-    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_5))) {
-      __pyx_t_10 = PyMethod_GET_SELF(__pyx_t_5);
-      if (likely(__pyx_t_10)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_5);
-        __Pyx_INCREF(__pyx_t_10);
-        __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_5, function);
-      }
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_buf, __pyx_n_s_write_strings); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 44, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = NULL;
+  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
+    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
+    if (likely(__pyx_t_3)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+      __Pyx_INCREF(__pyx_t_3);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_2, function);
     }
-    __pyx_t_4 = (__pyx_t_10) ? __Pyx_PyObject_Call2Args(__pyx_t_5, __pyx_t_10, __pyx_v_value) : __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_v_value);
-    __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
-    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 51, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-
-    /* "clickhouse_driver/columns/stringcolumn.pyx":49
- * 
- *     def write_items(self, items, buf):
- *         for value in items:             # <<<<<<<<<<<<<<
- *             write_varint(len(value), buf)
- *             buf.write(value)
- */
   }
+  __pyx_t_1 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_3, __pyx_v_items) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_items);
+  __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 44, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":48
+  /* "clickhouse_driver/columns/stringcolumn.pyx":43
  *     null_value = b''
  * 
  *     def write_items(self, items, buf):             # <<<<<<<<<<<<<<
- *         for value in items:
- *             write_varint(len(value), buf)
+ *         buf.write_strings(items)
+ * 
  */
 
   /* function exit code */
@@ -2507,22 +2186,18 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_10ByteStri
   goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_XDECREF(__pyx_t_7);
-  __Pyx_XDECREF(__pyx_t_8);
-  __Pyx_XDECREF(__pyx_t_10);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
   __Pyx_AddTraceback("clickhouse_driver.columns.stringcolumn.ByteString.write_items", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
-  __Pyx_XDECREF(__pyx_v_value);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "clickhouse_driver/columns/stringcolumn.pyx":53
- *             buf.write(value)
+/* "clickhouse_driver/columns/stringcolumn.pyx":46
+ *         buf.write_strings(items)
  * 
  *     def read_items(self, n_items, buf):             # <<<<<<<<<<<<<<
  *         return buf.read_strings(n_items)
@@ -2564,17 +2239,17 @@ static PyObject *__pyx_pw_17clickhouse_driver_7columns_12stringcolumn_10ByteStri
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_n_items)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("read_items", 1, 3, 3, 1); __PYX_ERR(0, 53, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("read_items", 1, 3, 3, 1); __PYX_ERR(0, 46, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_buf)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("read_items", 1, 3, 3, 2); __PYX_ERR(0, 53, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("read_items", 1, 3, 3, 2); __PYX_ERR(0, 46, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "read_items") < 0)) __PYX_ERR(0, 53, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "read_items") < 0)) __PYX_ERR(0, 46, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -2589,7 +2264,7 @@ static PyObject *__pyx_pw_17clickhouse_driver_7columns_12stringcolumn_10ByteStri
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("read_items", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 53, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("read_items", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 46, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("clickhouse_driver.columns.stringcolumn.ByteString.read_items", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2610,7 +2285,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_10ByteStri
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("read_items", 0);
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":54
+  /* "clickhouse_driver/columns/stringcolumn.pyx":47
  * 
  *     def read_items(self, n_items, buf):
  *         return buf.read_strings(n_items)             # <<<<<<<<<<<<<<
@@ -2618,7 +2293,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_10ByteStri
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_buf, __pyx_n_s_read_strings); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 54, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_buf, __pyx_n_s_read_strings); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 47, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -2632,15 +2307,15 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_10ByteStri
   }
   __pyx_t_1 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_3, __pyx_v_n_items) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_n_items);
   __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 54, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 47, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":53
- *             buf.write(value)
+  /* "clickhouse_driver/columns/stringcolumn.pyx":46
+ *         buf.write_strings(items)
  * 
  *     def read_items(self, n_items, buf):             # <<<<<<<<<<<<<<
  *         return buf.read_strings(n_items)
@@ -2660,7 +2335,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_10ByteStri
   return __pyx_r;
 }
 
-/* "clickhouse_driver/columns/stringcolumn.pyx":60
+/* "clickhouse_driver/columns/stringcolumn.pyx":53
  *     ch_type = 'FixedString'
  * 
  *     def __init__(self, length, **kwargs):             # <<<<<<<<<<<<<<
@@ -2703,11 +2378,11 @@ static PyObject *__pyx_pw_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_length)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, 1); __PYX_ERR(0, 60, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, 1); __PYX_ERR(0, 53, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, __pyx_v_kwargs, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 60, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, __pyx_v_kwargs, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 53, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -2720,7 +2395,7 @@ static PyObject *__pyx_pw_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 60, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 53, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_kwargs); __pyx_v_kwargs = 0;
   __Pyx_AddTraceback("clickhouse_driver.columns.stringcolumn.FixedString.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
@@ -2742,25 +2417,25 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":61
+  /* "clickhouse_driver/columns/stringcolumn.pyx":54
  * 
  *     def __init__(self, length, **kwargs):
  *         self.length = length             # <<<<<<<<<<<<<<
  *         super(FixedString, self).__init__(**kwargs)
  * 
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_length, __pyx_v_length) < 0) __PYX_ERR(0, 61, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_length, __pyx_v_length) < 0) __PYX_ERR(0, 54, __pyx_L1_error)
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":62
+  /* "clickhouse_driver/columns/stringcolumn.pyx":55
  *     def __init__(self, length, **kwargs):
  *         self.length = length
  *         super(FixedString, self).__init__(**kwargs)             # <<<<<<<<<<<<<<
  * 
  *     def read_items(self, Py_ssize_t n_items, buf):
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_FixedString); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_FixedString); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 55, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 55, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
@@ -2768,18 +2443,18 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
   __Pyx_GIVEREF(__pyx_v_self);
   PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_v_self);
   __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_super, __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_super, __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 55, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_init); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_init); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 55, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_empty_tuple, __pyx_v_kwargs); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_empty_tuple, __pyx_v_kwargs); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 55, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":60
+  /* "clickhouse_driver/columns/stringcolumn.pyx":53
  *     ch_type = 'FixedString'
  * 
  *     def __init__(self, length, **kwargs):             # <<<<<<<<<<<<<<
@@ -2801,7 +2476,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
   return __pyx_r;
 }
 
-/* "clickhouse_driver/columns/stringcolumn.pyx":64
+/* "clickhouse_driver/columns/stringcolumn.pyx":57
  *         super(FixedString, self).__init__(**kwargs)
  * 
  *     def read_items(self, Py_ssize_t n_items, buf):             # <<<<<<<<<<<<<<
@@ -2844,17 +2519,17 @@ static PyObject *__pyx_pw_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_n_items)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("read_items", 1, 3, 3, 1); __PYX_ERR(0, 64, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("read_items", 1, 3, 3, 1); __PYX_ERR(0, 57, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_buf)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("read_items", 1, 3, 3, 2); __PYX_ERR(0, 64, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("read_items", 1, 3, 3, 2); __PYX_ERR(0, 57, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "read_items") < 0)) __PYX_ERR(0, 64, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "read_items") < 0)) __PYX_ERR(0, 57, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -2864,12 +2539,12 @@ static PyObject *__pyx_pw_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
     }
     __pyx_v_self = values[0];
-    __pyx_v_n_items = __Pyx_PyIndex_AsSsize_t(values[1]); if (unlikely((__pyx_v_n_items == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 64, __pyx_L3_error)
+    __pyx_v_n_items = __Pyx_PyIndex_AsSsize_t(values[1]); if (unlikely((__pyx_v_n_items == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 57, __pyx_L3_error)
     __pyx_v_buf = values[2];
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("read_items", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 64, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("read_items", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 57, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("clickhouse_driver.columns.stringcolumn.FixedString.read_items", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2908,29 +2583,29 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
   int __pyx_t_13;
   __Pyx_RefNannySetupContext("read_items", 0);
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":65
+  /* "clickhouse_driver/columns/stringcolumn.pyx":58
  * 
  *     def read_items(self, Py_ssize_t n_items, buf):
  *         cdef Py_ssize_t i, j, length = self.length             # <<<<<<<<<<<<<<
  *         data = buf.read(length * n_items)
  *         cdef char* data_ptr = PyByteArray_AsString(data)
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_length); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 65, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_length); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 58, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyIndex_AsSsize_t(__pyx_t_1); if (unlikely((__pyx_t_2 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 65, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyIndex_AsSsize_t(__pyx_t_1); if (unlikely((__pyx_t_2 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 58, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_length = __pyx_t_2;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":66
+  /* "clickhouse_driver/columns/stringcolumn.pyx":59
  *     def read_items(self, Py_ssize_t n_items, buf):
  *         cdef Py_ssize_t i, j, length = self.length
  *         data = buf.read(length * n_items)             # <<<<<<<<<<<<<<
  *         cdef char* data_ptr = PyByteArray_AsString(data)
  * 
  */
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_buf, __pyx_n_s_read); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 66, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_buf, __pyx_n_s_read); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 59, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyInt_FromSsize_t((__pyx_v_length * __pyx_v_n_items)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 66, __pyx_L1_error)
+  __pyx_t_4 = PyInt_FromSsize_t((__pyx_v_length * __pyx_v_n_items)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 59, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_t_5 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
@@ -2945,13 +2620,13 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
   __pyx_t_1 = (__pyx_t_5) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_5, __pyx_t_4) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 66, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 59, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_v_data = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":67
+  /* "clickhouse_driver/columns/stringcolumn.pyx":60
  *         cdef Py_ssize_t i, j, length = self.length
  *         data = buf.read(length * n_items)
  *         cdef char* data_ptr = PyByteArray_AsString(data)             # <<<<<<<<<<<<<<
@@ -2960,7 +2635,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
  */
   __pyx_v_data_ptr = PyByteArray_AsString(__pyx_v_data);
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":69
+  /* "clickhouse_driver/columns/stringcolumn.pyx":62
  *         cdef char* data_ptr = PyByteArray_AsString(data)
  * 
  *         cdef char* c_string = <char *>PyMem_Malloc(length + 1)             # <<<<<<<<<<<<<<
@@ -2969,7 +2644,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
  */
   __pyx_v_c_string = ((char *)PyMem_Malloc((__pyx_v_length + 1)));
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":70
+  /* "clickhouse_driver/columns/stringcolumn.pyx":63
  * 
  *         cdef char* c_string = <char *>PyMem_Malloc(length + 1)
  *         if not c_string:             # <<<<<<<<<<<<<<
@@ -2979,16 +2654,16 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
   __pyx_t_6 = ((!(__pyx_v_c_string != 0)) != 0);
   if (unlikely(__pyx_t_6)) {
 
-    /* "clickhouse_driver/columns/stringcolumn.pyx":71
+    /* "clickhouse_driver/columns/stringcolumn.pyx":64
  *         cdef char* c_string = <char *>PyMem_Malloc(length + 1)
  *         if not c_string:
  *             raise MemoryError()             # <<<<<<<<<<<<<<
  *         c_string[length] = 0
  * 
  */
-    PyErr_NoMemory(); __PYX_ERR(0, 71, __pyx_L1_error)
+    PyErr_NoMemory(); __PYX_ERR(0, 64, __pyx_L1_error)
 
-    /* "clickhouse_driver/columns/stringcolumn.pyx":70
+    /* "clickhouse_driver/columns/stringcolumn.pyx":63
  * 
  *         cdef char* c_string = <char *>PyMem_Malloc(length + 1)
  *         if not c_string:             # <<<<<<<<<<<<<<
@@ -2997,7 +2672,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
  */
   }
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":72
+  /* "clickhouse_driver/columns/stringcolumn.pyx":65
  *         if not c_string:
  *             raise MemoryError()
  *         c_string[length] = 0             # <<<<<<<<<<<<<<
@@ -3006,19 +2681,19 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
  */
   (__pyx_v_c_string[__pyx_v_length]) = 0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":74
+  /* "clickhouse_driver/columns/stringcolumn.pyx":67
  *         c_string[length] = 0
  * 
  *         items = PyList_New(n_items)             # <<<<<<<<<<<<<<
  *         for i in range(n_items):
  *             memcpy(c_string, &data_ptr[i * length], length)
  */
-  __pyx_t_1 = PyList_New(__pyx_v_n_items); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 74, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(__pyx_v_n_items); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 67, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_items = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":75
+  /* "clickhouse_driver/columns/stringcolumn.pyx":68
  * 
  *         items = PyList_New(n_items)
  *         for i in range(n_items):             # <<<<<<<<<<<<<<
@@ -3030,7 +2705,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
   for (__pyx_t_8 = 0; __pyx_t_8 < __pyx_t_7; __pyx_t_8+=1) {
     __pyx_v_i = __pyx_t_8;
 
-    /* "clickhouse_driver/columns/stringcolumn.pyx":76
+    /* "clickhouse_driver/columns/stringcolumn.pyx":69
  *         items = PyList_New(n_items)
  *         for i in range(n_items):
  *             memcpy(c_string, &data_ptr[i * length], length)             # <<<<<<<<<<<<<<
@@ -3039,7 +2714,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
  */
     (void)(memcpy(__pyx_v_c_string, (&(__pyx_v_data_ptr[(__pyx_v_i * __pyx_v_length)])), __pyx_v_length));
 
-    /* "clickhouse_driver/columns/stringcolumn.pyx":79
+    /* "clickhouse_driver/columns/stringcolumn.pyx":72
  * 
  *             # Get last non zero byte of string from the end.
  *             j = length - 1             # <<<<<<<<<<<<<<
@@ -3048,7 +2723,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
  */
     __pyx_v_j = (__pyx_v_length - 1);
 
-    /* "clickhouse_driver/columns/stringcolumn.pyx":80
+    /* "clickhouse_driver/columns/stringcolumn.pyx":73
  *             # Get last non zero byte of string from the end.
  *             j = length - 1
  *             while j >= 0 and not c_string[j]:             # <<<<<<<<<<<<<<
@@ -3067,7 +2742,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
       __pyx_L8_bool_binop_done:;
       if (!__pyx_t_6) break;
 
-      /* "clickhouse_driver/columns/stringcolumn.pyx":81
+      /* "clickhouse_driver/columns/stringcolumn.pyx":74
  *             j = length - 1
  *             while j >= 0 and not c_string[j]:
  *                 j -= 1             # <<<<<<<<<<<<<<
@@ -3077,7 +2752,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
       __pyx_v_j = (__pyx_v_j - 1);
     }
 
-    /* "clickhouse_driver/columns/stringcolumn.pyx":83
+    /* "clickhouse_driver/columns/stringcolumn.pyx":76
  *                 j -= 1
  * 
  *             try:             # <<<<<<<<<<<<<<
@@ -3093,19 +2768,19 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
       __Pyx_XGOTREF(__pyx_t_12);
       /*try:*/ {
 
-        /* "clickhouse_driver/columns/stringcolumn.pyx":84
+        /* "clickhouse_driver/columns/stringcolumn.pyx":77
  * 
  *             try:
  *                 item = c_string[:j + 1].decode('utf-8')             # <<<<<<<<<<<<<<
  *             except UnicodeDecodeError:
  *                 item = PyBytes_FromStringAndSize(c_string, length)
  */
-        __pyx_t_1 = __Pyx_decode_c_string(__pyx_v_c_string, 0, (__pyx_v_j + 1), NULL, NULL, PyUnicode_DecodeUTF8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 84, __pyx_L10_error)
+        __pyx_t_1 = __Pyx_decode_c_string(__pyx_v_c_string, 0, (__pyx_v_j + 1), NULL, NULL, PyUnicode_DecodeUTF8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 77, __pyx_L10_error)
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_XDECREF_SET(__pyx_v_item, __pyx_t_1);
         __pyx_t_1 = 0;
 
-        /* "clickhouse_driver/columns/stringcolumn.pyx":83
+        /* "clickhouse_driver/columns/stringcolumn.pyx":76
  *                 j -= 1
  * 
  *             try:             # <<<<<<<<<<<<<<
@@ -3123,7 +2798,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
       __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
       __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-      /* "clickhouse_driver/columns/stringcolumn.pyx":85
+      /* "clickhouse_driver/columns/stringcolumn.pyx":78
  *             try:
  *                 item = c_string[:j + 1].decode('utf-8')
  *             except UnicodeDecodeError:             # <<<<<<<<<<<<<<
@@ -3133,19 +2808,19 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
       __pyx_t_13 = __Pyx_PyErr_ExceptionMatches(__pyx_builtin_UnicodeDecodeError);
       if (__pyx_t_13) {
         __Pyx_AddTraceback("clickhouse_driver.columns.stringcolumn.FixedString.read_items", __pyx_clineno, __pyx_lineno, __pyx_filename);
-        if (__Pyx_GetException(&__pyx_t_1, &__pyx_t_3, &__pyx_t_4) < 0) __PYX_ERR(0, 85, __pyx_L12_except_error)
+        if (__Pyx_GetException(&__pyx_t_1, &__pyx_t_3, &__pyx_t_4) < 0) __PYX_ERR(0, 78, __pyx_L12_except_error)
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_GOTREF(__pyx_t_3);
         __Pyx_GOTREF(__pyx_t_4);
 
-        /* "clickhouse_driver/columns/stringcolumn.pyx":86
+        /* "clickhouse_driver/columns/stringcolumn.pyx":79
  *                 item = c_string[:j + 1].decode('utf-8')
  *             except UnicodeDecodeError:
  *                 item = PyBytes_FromStringAndSize(c_string, length)             # <<<<<<<<<<<<<<
  *             Py_INCREF(item)
  *             PyList_SET_ITEM(items, i, item)
  */
-        __pyx_t_5 = PyBytes_FromStringAndSize(__pyx_v_c_string, __pyx_v_length); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 86, __pyx_L12_except_error)
+        __pyx_t_5 = PyBytes_FromStringAndSize(__pyx_v_c_string, __pyx_v_length); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 79, __pyx_L12_except_error)
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_XDECREF_SET(__pyx_v_item, __pyx_t_5);
         __pyx_t_5 = 0;
@@ -3157,7 +2832,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
       goto __pyx_L12_except_error;
       __pyx_L12_except_error:;
 
-      /* "clickhouse_driver/columns/stringcolumn.pyx":83
+      /* "clickhouse_driver/columns/stringcolumn.pyx":76
  *                 j -= 1
  * 
  *             try:             # <<<<<<<<<<<<<<
@@ -3177,7 +2852,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
       __pyx_L17_try_end:;
     }
 
-    /* "clickhouse_driver/columns/stringcolumn.pyx":87
+    /* "clickhouse_driver/columns/stringcolumn.pyx":80
  *             except UnicodeDecodeError:
  *                 item = PyBytes_FromStringAndSize(c_string, length)
  *             Py_INCREF(item)             # <<<<<<<<<<<<<<
@@ -3186,7 +2861,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
  */
     Py_INCREF(__pyx_v_item);
 
-    /* "clickhouse_driver/columns/stringcolumn.pyx":88
+    /* "clickhouse_driver/columns/stringcolumn.pyx":81
  *                 item = PyBytes_FromStringAndSize(c_string, length)
  *             Py_INCREF(item)
  *             PyList_SET_ITEM(items, i, item)             # <<<<<<<<<<<<<<
@@ -3196,7 +2871,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
     PyList_SET_ITEM(__pyx_v_items, __pyx_v_i, __pyx_v_item);
   }
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":90
+  /* "clickhouse_driver/columns/stringcolumn.pyx":83
  *             PyList_SET_ITEM(items, i, item)
  * 
  *         PyMem_Free(c_string)             # <<<<<<<<<<<<<<
@@ -3205,7 +2880,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
  */
   PyMem_Free(__pyx_v_c_string);
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":92
+  /* "clickhouse_driver/columns/stringcolumn.pyx":85
  *         PyMem_Free(c_string)
  * 
  *         return items             # <<<<<<<<<<<<<<
@@ -3217,7 +2892,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
   __pyx_r = __pyx_v_items;
   goto __pyx_L0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":64
+  /* "clickhouse_driver/columns/stringcolumn.pyx":57
  *         super(FixedString, self).__init__(**kwargs)
  * 
  *     def read_items(self, Py_ssize_t n_items, buf):             # <<<<<<<<<<<<<<
@@ -3242,12 +2917,12 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
   return __pyx_r;
 }
 
-/* "clickhouse_driver/columns/stringcolumn.pyx":94
+/* "clickhouse_driver/columns/stringcolumn.pyx":87
  *         return items
  * 
  *     def write_items(self, items, buf):             # <<<<<<<<<<<<<<
- *         length = self.length
- *         items_buf = bytearray(length * len(items))
+ *         cdef Py_ssize_t buf_pos = 0
+ *         cdef Py_ssize_t length = self.length
  */
 
 /* Python wrapper */
@@ -3285,17 +2960,17 @@ static PyObject *__pyx_pw_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_items)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("write_items", 1, 3, 3, 1); __PYX_ERR(0, 94, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("write_items", 1, 3, 3, 1); __PYX_ERR(0, 87, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_buf)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("write_items", 1, 3, 3, 2); __PYX_ERR(0, 94, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("write_items", 1, 3, 3, 2); __PYX_ERR(0, 87, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "write_items") < 0)) __PYX_ERR(0, 94, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "write_items") < 0)) __PYX_ERR(0, 87, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -3310,7 +2985,7 @@ static PyObject *__pyx_pw_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("write_items", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 94, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("write_items", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 87, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("clickhouse_driver.columns.stringcolumn.FixedString.write_items", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3324,150 +2999,173 @@ static PyObject *__pyx_pw_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
 }
 
 static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedString_4write_items(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_items, PyObject *__pyx_v_buf) {
-  PyObject *__pyx_v_length = NULL;
-  PyObject *__pyx_v_items_buf = NULL;
-  PyObject *__pyx_v_items_buf_view = NULL;
-  PyObject *__pyx_v_buf_pos = NULL;
+  Py_ssize_t __pyx_v_buf_pos;
+  Py_ssize_t __pyx_v_length;
+  Py_ssize_t __pyx_v_items_buf_size;
+  char *__pyx_v_c_value;
+  char *__pyx_v_items_buf;
   PyObject *__pyx_v_value = NULL;
   Py_ssize_t __pyx_v_value_len;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   Py_ssize_t __pyx_t_2;
-  PyObject *__pyx_t_3 = NULL;
+  int __pyx_t_3;
   PyObject *(*__pyx_t_4)(PyObject *);
-  int __pyx_t_5;
+  PyObject *__pyx_t_5 = NULL;
   int __pyx_t_6;
   PyObject *__pyx_t_7 = NULL;
   PyObject *__pyx_t_8 = NULL;
   Py_ssize_t __pyx_t_9;
-  PyObject *__pyx_t_10 = NULL;
+  char *__pyx_t_10;
   __Pyx_RefNannySetupContext("write_items", 0);
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":95
+  /* "clickhouse_driver/columns/stringcolumn.pyx":88
  * 
  *     def write_items(self, items, buf):
- *         length = self.length             # <<<<<<<<<<<<<<
- *         items_buf = bytearray(length * len(items))
- *         items_buf_view = memoryview(items_buf)
+ *         cdef Py_ssize_t buf_pos = 0             # <<<<<<<<<<<<<<
+ *         cdef Py_ssize_t length = self.length
+ *         cdef Py_ssize_t items_buf_size = length * len(items)
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_length); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 95, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_v_length = __pyx_t_1;
-  __pyx_t_1 = 0;
+  __pyx_v_buf_pos = 0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":96
+  /* "clickhouse_driver/columns/stringcolumn.pyx":89
  *     def write_items(self, items, buf):
- *         length = self.length
- *         items_buf = bytearray(length * len(items))             # <<<<<<<<<<<<<<
- *         items_buf_view = memoryview(items_buf)
- *         buf_pos = 0
+ *         cdef Py_ssize_t buf_pos = 0
+ *         cdef Py_ssize_t length = self.length             # <<<<<<<<<<<<<<
+ *         cdef Py_ssize_t items_buf_size = length * len(items)
+ * 
  */
-  __pyx_t_2 = PyObject_Length(__pyx_v_items); if (unlikely(__pyx_t_2 == ((Py_ssize_t)-1))) __PYX_ERR(0, 96, __pyx_L1_error)
-  __pyx_t_1 = PyInt_FromSsize_t(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 96, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_length); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 89, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyNumber_Multiply(__pyx_v_length, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 96, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_2 = __Pyx_PyIndex_AsSsize_t(__pyx_t_1); if (unlikely((__pyx_t_2 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 89, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyByteArray_Type)), __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 96, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_v_items_buf = ((PyObject*)__pyx_t_1);
-  __pyx_t_1 = 0;
+  __pyx_v_length = __pyx_t_2;
+
+  /* "clickhouse_driver/columns/stringcolumn.pyx":90
+ *         cdef Py_ssize_t buf_pos = 0
+ *         cdef Py_ssize_t length = self.length
+ *         cdef Py_ssize_t items_buf_size = length * len(items)             # <<<<<<<<<<<<<<
+ * 
+ *         cdef char* c_value
+ */
+  __pyx_t_2 = PyObject_Length(__pyx_v_items); if (unlikely(__pyx_t_2 == ((Py_ssize_t)-1))) __PYX_ERR(0, 90, __pyx_L1_error)
+  __pyx_v_items_buf_size = (__pyx_v_length * __pyx_t_2);
+
+  /* "clickhouse_driver/columns/stringcolumn.pyx":93
+ * 
+ *         cdef char* c_value
+ *         cdef char* items_buf = <char *>PyMem_Malloc(items_buf_size)             # <<<<<<<<<<<<<<
+ *         if not items_buf:
+ *             raise MemoryError()
+ */
+  __pyx_v_items_buf = ((char *)PyMem_Malloc(__pyx_v_items_buf_size));
+
+  /* "clickhouse_driver/columns/stringcolumn.pyx":94
+ *         cdef char* c_value
+ *         cdef char* items_buf = <char *>PyMem_Malloc(items_buf_size)
+ *         if not items_buf:             # <<<<<<<<<<<<<<
+ *             raise MemoryError()
+ * 
+ */
+  __pyx_t_3 = ((!(__pyx_v_items_buf != 0)) != 0);
+  if (unlikely(__pyx_t_3)) {
+
+    /* "clickhouse_driver/columns/stringcolumn.pyx":95
+ *         cdef char* items_buf = <char *>PyMem_Malloc(items_buf_size)
+ *         if not items_buf:
+ *             raise MemoryError()             # <<<<<<<<<<<<<<
+ * 
+ *         memset(items_buf, 0, items_buf_size)
+ */
+    PyErr_NoMemory(); __PYX_ERR(0, 95, __pyx_L1_error)
+
+    /* "clickhouse_driver/columns/stringcolumn.pyx":94
+ *         cdef char* c_value
+ *         cdef char* items_buf = <char *>PyMem_Malloc(items_buf_size)
+ *         if not items_buf:             # <<<<<<<<<<<<<<
+ *             raise MemoryError()
+ * 
+ */
+  }
 
   /* "clickhouse_driver/columns/stringcolumn.pyx":97
- *         length = self.length
- *         items_buf = bytearray(length * len(items))
- *         items_buf_view = memoryview(items_buf)             # <<<<<<<<<<<<<<
- *         buf_pos = 0
+ *             raise MemoryError()
  * 
- */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_memoryview); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 97, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_v_items_buf); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 97, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_v_items_buf_view = __pyx_t_3;
-  __pyx_t_3 = 0;
-
-  /* "clickhouse_driver/columns/stringcolumn.pyx":98
- *         items_buf = bytearray(length * len(items))
- *         items_buf_view = memoryview(items_buf)
- *         buf_pos = 0             # <<<<<<<<<<<<<<
+ *         memset(items_buf, 0, items_buf_size)             # <<<<<<<<<<<<<<
  * 
  *         for value in items:
  */
-  __Pyx_INCREF(__pyx_int_0);
-  __pyx_v_buf_pos = __pyx_int_0;
+  (void)(memset(__pyx_v_items_buf, 0, __pyx_v_items_buf_size));
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":100
- *         buf_pos = 0
+  /* "clickhouse_driver/columns/stringcolumn.pyx":99
+ *         memset(items_buf, 0, items_buf_size)
  * 
  *         for value in items:             # <<<<<<<<<<<<<<
  *             if not isinstance(value, bytes):
  *                 value = utf_8_encode(value)[0]
  */
   if (likely(PyList_CheckExact(__pyx_v_items)) || PyTuple_CheckExact(__pyx_v_items)) {
-    __pyx_t_3 = __pyx_v_items; __Pyx_INCREF(__pyx_t_3); __pyx_t_2 = 0;
+    __pyx_t_1 = __pyx_v_items; __Pyx_INCREF(__pyx_t_1); __pyx_t_2 = 0;
     __pyx_t_4 = NULL;
   } else {
-    __pyx_t_2 = -1; __pyx_t_3 = PyObject_GetIter(__pyx_v_items); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 100, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = Py_TYPE(__pyx_t_3)->tp_iternext; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 100, __pyx_L1_error)
+    __pyx_t_2 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_v_items); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 99, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_4 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 99, __pyx_L1_error)
   }
   for (;;) {
     if (likely(!__pyx_t_4)) {
-      if (likely(PyList_CheckExact(__pyx_t_3))) {
-        if (__pyx_t_2 >= PyList_GET_SIZE(__pyx_t_3)) break;
+      if (likely(PyList_CheckExact(__pyx_t_1))) {
+        if (__pyx_t_2 >= PyList_GET_SIZE(__pyx_t_1)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_2); __Pyx_INCREF(__pyx_t_1); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 100, __pyx_L1_error)
+        __pyx_t_5 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_5); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 99, __pyx_L1_error)
         #else
-        __pyx_t_1 = PySequence_ITEM(__pyx_t_3, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 100, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_1);
+        __pyx_t_5 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 99, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_5);
         #endif
       } else {
-        if (__pyx_t_2 >= PyTuple_GET_SIZE(__pyx_t_3)) break;
+        if (__pyx_t_2 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_3, __pyx_t_2); __Pyx_INCREF(__pyx_t_1); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 100, __pyx_L1_error)
+        __pyx_t_5 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_5); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 99, __pyx_L1_error)
         #else
-        __pyx_t_1 = PySequence_ITEM(__pyx_t_3, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 100, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_1);
+        __pyx_t_5 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 99, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_5);
         #endif
       }
     } else {
-      __pyx_t_1 = __pyx_t_4(__pyx_t_3);
-      if (unlikely(!__pyx_t_1)) {
+      __pyx_t_5 = __pyx_t_4(__pyx_t_1);
+      if (unlikely(!__pyx_t_5)) {
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 100, __pyx_L1_error)
+          else __PYX_ERR(0, 99, __pyx_L1_error)
         }
         break;
       }
-      __Pyx_GOTREF(__pyx_t_1);
+      __Pyx_GOTREF(__pyx_t_5);
     }
-    __Pyx_XDECREF_SET(__pyx_v_value, __pyx_t_1);
-    __pyx_t_1 = 0;
+    __Pyx_XDECREF_SET(__pyx_v_value, __pyx_t_5);
+    __pyx_t_5 = 0;
 
-    /* "clickhouse_driver/columns/stringcolumn.pyx":101
+    /* "clickhouse_driver/columns/stringcolumn.pyx":100
  * 
  *         for value in items:
  *             if not isinstance(value, bytes):             # <<<<<<<<<<<<<<
  *                 value = utf_8_encode(value)[0]
  * 
  */
-    __pyx_t_5 = PyBytes_Check(__pyx_v_value); 
-    __pyx_t_6 = ((!(__pyx_t_5 != 0)) != 0);
+    __pyx_t_3 = PyBytes_Check(__pyx_v_value); 
+    __pyx_t_6 = ((!(__pyx_t_3 != 0)) != 0);
     if (__pyx_t_6) {
 
-      /* "clickhouse_driver/columns/stringcolumn.pyx":102
+      /* "clickhouse_driver/columns/stringcolumn.pyx":101
  *         for value in items:
  *             if not isinstance(value, bytes):
  *                 value = utf_8_encode(value)[0]             # <<<<<<<<<<<<<<
  * 
  *             value_len = len(value)
  */
-      __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_utf_8_encode); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 102, __pyx_L1_error)
+      __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_utf_8_encode); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 101, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
       __pyx_t_8 = NULL;
       if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_7))) {
@@ -3479,18 +3177,18 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
           __Pyx_DECREF_SET(__pyx_t_7, function);
         }
       }
-      __pyx_t_1 = (__pyx_t_8) ? __Pyx_PyObject_Call2Args(__pyx_t_7, __pyx_t_8, __pyx_v_value) : __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_v_value);
+      __pyx_t_5 = (__pyx_t_8) ? __Pyx_PyObject_Call2Args(__pyx_t_7, __pyx_t_8, __pyx_v_value) : __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_v_value);
       __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
-      if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 102, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
+      if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 101, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_5);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      __pyx_t_7 = __Pyx_GetItemInt(__pyx_t_1, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 102, __pyx_L1_error)
+      __pyx_t_7 = __Pyx_GetItemInt(__pyx_t_5, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 101, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_DECREF_SET(__pyx_v_value, __pyx_t_7);
       __pyx_t_7 = 0;
 
-      /* "clickhouse_driver/columns/stringcolumn.pyx":101
+      /* "clickhouse_driver/columns/stringcolumn.pyx":100
  * 
  *         for value in items:
  *             if not isinstance(value, bytes):             # <<<<<<<<<<<<<<
@@ -3499,63 +3197,58 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
  */
     }
 
-    /* "clickhouse_driver/columns/stringcolumn.pyx":104
+    /* "clickhouse_driver/columns/stringcolumn.pyx":103
  *                 value = utf_8_encode(value)[0]
  * 
  *             value_len = len(value)             # <<<<<<<<<<<<<<
  *             if length < value_len:
  *                 raise errors.TooLargeStringSize()
  */
-    __pyx_t_9 = PyObject_Length(__pyx_v_value); if (unlikely(__pyx_t_9 == ((Py_ssize_t)-1))) __PYX_ERR(0, 104, __pyx_L1_error)
+    __pyx_t_9 = PyObject_Length(__pyx_v_value); if (unlikely(__pyx_t_9 == ((Py_ssize_t)-1))) __PYX_ERR(0, 103, __pyx_L1_error)
     __pyx_v_value_len = __pyx_t_9;
 
-    /* "clickhouse_driver/columns/stringcolumn.pyx":105
+    /* "clickhouse_driver/columns/stringcolumn.pyx":104
  * 
  *             value_len = len(value)
  *             if length < value_len:             # <<<<<<<<<<<<<<
  *                 raise errors.TooLargeStringSize()
  * 
  */
-    __pyx_t_7 = PyInt_FromSsize_t(__pyx_v_value_len); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 105, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_1 = PyObject_RichCompare(__pyx_v_length, __pyx_t_7, Py_LT); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 105, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 105, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_t_6 = ((__pyx_v_length < __pyx_v_value_len) != 0);
     if (unlikely(__pyx_t_6)) {
 
-      /* "clickhouse_driver/columns/stringcolumn.pyx":106
+      /* "clickhouse_driver/columns/stringcolumn.pyx":105
  *             value_len = len(value)
  *             if length < value_len:
  *                 raise errors.TooLargeStringSize()             # <<<<<<<<<<<<<<
  * 
- *             items_buf_view[buf_pos:buf_pos + min(length, value_len)] = value
+ *             if PyBytes_Check(value):
  */
-      __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_errors); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 106, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_TooLargeStringSize); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 106, __pyx_L1_error)
+      __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_errors); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 105, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_5);
+      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_TooLargeStringSize); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 105, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_8);
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      __pyx_t_7 = NULL;
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __pyx_t_5 = NULL;
       if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_8))) {
-        __pyx_t_7 = PyMethod_GET_SELF(__pyx_t_8);
-        if (likely(__pyx_t_7)) {
+        __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_8);
+        if (likely(__pyx_t_5)) {
           PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_8);
-          __Pyx_INCREF(__pyx_t_7);
+          __Pyx_INCREF(__pyx_t_5);
           __Pyx_INCREF(function);
           __Pyx_DECREF_SET(__pyx_t_8, function);
         }
       }
-      __pyx_t_1 = (__pyx_t_7) ? __Pyx_PyObject_CallOneArg(__pyx_t_8, __pyx_t_7) : __Pyx_PyObject_CallNoArg(__pyx_t_8);
-      __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
-      if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 106, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
+      __pyx_t_7 = (__pyx_t_5) ? __Pyx_PyObject_CallOneArg(__pyx_t_8, __pyx_t_5) : __Pyx_PyObject_CallNoArg(__pyx_t_8);
+      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
+      if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 105, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_7);
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __Pyx_Raise(__pyx_t_1, 0, 0, 0);
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __PYX_ERR(0, 106, __pyx_L1_error)
+      __Pyx_Raise(__pyx_t_7, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      __PYX_ERR(0, 105, __pyx_L1_error)
 
-      /* "clickhouse_driver/columns/stringcolumn.pyx":105
+      /* "clickhouse_driver/columns/stringcolumn.pyx":104
  * 
  *             value_len = len(value)
  *             if length < value_len:             # <<<<<<<<<<<<<<
@@ -3564,92 +3257,120 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
  */
     }
 
-    /* "clickhouse_driver/columns/stringcolumn.pyx":108
+    /* "clickhouse_driver/columns/stringcolumn.pyx":107
  *                 raise errors.TooLargeStringSize()
  * 
- *             items_buf_view[buf_pos:buf_pos + min(length, value_len)] = value             # <<<<<<<<<<<<<<
+ *             if PyBytes_Check(value):             # <<<<<<<<<<<<<<
+ *                 c_value = PyBytes_AsString(value)
+ *             else:
+ */
+    __pyx_t_6 = (PyBytes_Check(__pyx_v_value) != 0);
+    if (__pyx_t_6) {
+
+      /* "clickhouse_driver/columns/stringcolumn.pyx":108
+ * 
+ *             if PyBytes_Check(value):
+ *                 c_value = PyBytes_AsString(value)             # <<<<<<<<<<<<<<
+ *             else:
+ *                 c_value = PyByteArray_AsString(value)
+ */
+      __pyx_t_10 = PyBytes_AsString(__pyx_v_value); if (unlikely(__pyx_t_10 == ((char *)NULL))) __PYX_ERR(0, 108, __pyx_L1_error)
+      __pyx_v_c_value = __pyx_t_10;
+
+      /* "clickhouse_driver/columns/stringcolumn.pyx":107
+ *                 raise errors.TooLargeStringSize()
+ * 
+ *             if PyBytes_Check(value):             # <<<<<<<<<<<<<<
+ *                 c_value = PyBytes_AsString(value)
+ *             else:
+ */
+      goto __pyx_L8;
+    }
+
+    /* "clickhouse_driver/columns/stringcolumn.pyx":110
+ *                 c_value = PyBytes_AsString(value)
+ *             else:
+ *                 c_value = PyByteArray_AsString(value)             # <<<<<<<<<<<<<<
+ * 
+ *             memcpy(&items_buf[buf_pos], c_value, value_len)
+ */
+    /*else*/ {
+      __pyx_v_c_value = PyByteArray_AsString(__pyx_v_value);
+    }
+    __pyx_L8:;
+
+    /* "clickhouse_driver/columns/stringcolumn.pyx":112
+ *                 c_value = PyByteArray_AsString(value)
+ * 
+ *             memcpy(&items_buf[buf_pos], c_value, value_len)             # <<<<<<<<<<<<<<
  *             buf_pos += length
  * 
  */
-    __pyx_t_9 = __pyx_v_value_len;
-    __Pyx_INCREF(__pyx_v_length);
-    __pyx_t_1 = __pyx_v_length;
-    __pyx_t_7 = PyInt_FromSsize_t(__pyx_t_9); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 108, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_10 = PyObject_RichCompare(__pyx_t_7, __pyx_t_1, Py_LT); __Pyx_XGOTREF(__pyx_t_10); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 108, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_10); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 108, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-    if (__pyx_t_6) {
-      __pyx_t_10 = PyInt_FromSsize_t(__pyx_t_9); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 108, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_10);
-      __pyx_t_8 = __pyx_t_10;
-      __pyx_t_10 = 0;
-    } else {
-      __Pyx_INCREF(__pyx_t_1);
-      __pyx_t_8 = __pyx_t_1;
-    }
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = PyNumber_Add(__pyx_v_buf_pos, __pyx_t_8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 108, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-    if (__Pyx_PyObject_SetSlice(__pyx_v_items_buf_view, __pyx_v_value, 0, 0, &__pyx_v_buf_pos, &__pyx_t_1, NULL, 0, 0, 1) < 0) __PYX_ERR(0, 108, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    (void)(memcpy((&(__pyx_v_items_buf[__pyx_v_buf_pos])), __pyx_v_c_value, __pyx_v_value_len));
 
-    /* "clickhouse_driver/columns/stringcolumn.pyx":109
+    /* "clickhouse_driver/columns/stringcolumn.pyx":113
  * 
- *             items_buf_view[buf_pos:buf_pos + min(length, value_len)] = value
+ *             memcpy(&items_buf[buf_pos], c_value, value_len)
  *             buf_pos += length             # <<<<<<<<<<<<<<
  * 
- *         buf.write(items_buf)
+ *         buf.write(PyBytes_FromStringAndSize(items_buf, items_buf_size))
  */
-    __pyx_t_1 = PyNumber_InPlaceAdd(__pyx_v_buf_pos, __pyx_v_length); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 109, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_DECREF_SET(__pyx_v_buf_pos, __pyx_t_1);
-    __pyx_t_1 = 0;
+    __pyx_v_buf_pos = (__pyx_v_buf_pos + __pyx_v_length);
 
-    /* "clickhouse_driver/columns/stringcolumn.pyx":100
- *         buf_pos = 0
+    /* "clickhouse_driver/columns/stringcolumn.pyx":99
+ *         memset(items_buf, 0, items_buf_size)
  * 
  *         for value in items:             # <<<<<<<<<<<<<<
  *             if not isinstance(value, bytes):
  *                 value = utf_8_encode(value)[0]
  */
   }
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":111
+  /* "clickhouse_driver/columns/stringcolumn.pyx":115
  *             buf_pos += length
  * 
- *         buf.write(items_buf)             # <<<<<<<<<<<<<<
+ *         buf.write(PyBytes_FromStringAndSize(items_buf, items_buf_size))             # <<<<<<<<<<<<<<
+ * 
+ *         PyMem_Free(items_buf)
+ */
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_buf, __pyx_n_s_write); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 115, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_7);
+  __pyx_t_8 = PyBytes_FromStringAndSize(__pyx_v_items_buf, __pyx_v_items_buf_size); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 115, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_8);
+  __pyx_t_5 = NULL;
+  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_7))) {
+    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_7);
+    if (likely(__pyx_t_5)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_7);
+      __Pyx_INCREF(__pyx_t_5);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_7, function);
+    }
+  }
+  __pyx_t_1 = (__pyx_t_5) ? __Pyx_PyObject_Call2Args(__pyx_t_7, __pyx_t_5, __pyx_t_8) : __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_t_8);
+  __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 115, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "clickhouse_driver/columns/stringcolumn.pyx":117
+ *         buf.write(PyBytes_FromStringAndSize(items_buf, items_buf_size))
+ * 
+ *         PyMem_Free(items_buf)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_buf, __pyx_n_s_write); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 111, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_8 = NULL;
-  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_1))) {
-    __pyx_t_8 = PyMethod_GET_SELF(__pyx_t_1);
-    if (likely(__pyx_t_8)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-      __Pyx_INCREF(__pyx_t_8);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_1, function);
-    }
-  }
-  __pyx_t_3 = (__pyx_t_8) ? __Pyx_PyObject_Call2Args(__pyx_t_1, __pyx_t_8, __pyx_v_items_buf) : __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_v_items_buf);
-  __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
-  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 111, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  PyMem_Free(__pyx_v_items_buf);
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":94
+  /* "clickhouse_driver/columns/stringcolumn.pyx":87
  *         return items
  * 
  *     def write_items(self, items, buf):             # <<<<<<<<<<<<<<
- *         length = self.length
- *         items_buf = bytearray(length * len(items))
+ *         cdef Py_ssize_t buf_pos = 0
+ *         cdef Py_ssize_t length = self.length
  */
 
   /* function exit code */
@@ -3657,24 +3378,19 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
   goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_7);
   __Pyx_XDECREF(__pyx_t_8);
-  __Pyx_XDECREF(__pyx_t_10);
   __Pyx_AddTraceback("clickhouse_driver.columns.stringcolumn.FixedString.write_items", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
-  __Pyx_XDECREF(__pyx_v_length);
-  __Pyx_XDECREF(__pyx_v_items_buf);
-  __Pyx_XDECREF(__pyx_v_items_buf_view);
-  __Pyx_XDECREF(__pyx_v_buf_pos);
   __Pyx_XDECREF(__pyx_v_value);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "clickhouse_driver/columns/stringcolumn.pyx":118
+/* "clickhouse_driver/columns/stringcolumn.pyx":124
  *     null_value = b''
  * 
  *     def read_items(self, Py_ssize_t n_items, buf):             # <<<<<<<<<<<<<<
@@ -3717,17 +3433,17 @@ static PyObject *__pyx_pw_17clickhouse_driver_7columns_12stringcolumn_15ByteFixe
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_n_items)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("read_items", 1, 3, 3, 1); __PYX_ERR(0, 118, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("read_items", 1, 3, 3, 1); __PYX_ERR(0, 124, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_buf)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("read_items", 1, 3, 3, 2); __PYX_ERR(0, 118, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("read_items", 1, 3, 3, 2); __PYX_ERR(0, 124, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "read_items") < 0)) __PYX_ERR(0, 118, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "read_items") < 0)) __PYX_ERR(0, 124, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -3737,12 +3453,12 @@ static PyObject *__pyx_pw_17clickhouse_driver_7columns_12stringcolumn_15ByteFixe
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
     }
     __pyx_v_self = values[0];
-    __pyx_v_n_items = __Pyx_PyIndex_AsSsize_t(values[1]); if (unlikely((__pyx_v_n_items == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 118, __pyx_L3_error)
+    __pyx_v_n_items = __Pyx_PyIndex_AsSsize_t(values[1]); if (unlikely((__pyx_v_n_items == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 124, __pyx_L3_error)
     __pyx_v_buf = values[2];
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("read_items", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 118, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("read_items", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 124, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("clickhouse_driver.columns.stringcolumn.ByteFixedString.read_items", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3773,29 +3489,29 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_15ByteFixe
   Py_ssize_t __pyx_t_7;
   __Pyx_RefNannySetupContext("read_items", 0);
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":120
+  /* "clickhouse_driver/columns/stringcolumn.pyx":126
  *     def read_items(self, Py_ssize_t n_items, buf):
  *         cdef Py_ssize_t i
  *         cdef Py_ssize_t length = self.length             # <<<<<<<<<<<<<<
  *         data = buf.read(length * n_items)
  *         cdef char* data_ptr = PyByteArray_AsString(data)
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_length); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 120, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_length); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 126, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyIndex_AsSsize_t(__pyx_t_1); if (unlikely((__pyx_t_2 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 120, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyIndex_AsSsize_t(__pyx_t_1); if (unlikely((__pyx_t_2 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 126, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_length = __pyx_t_2;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":121
+  /* "clickhouse_driver/columns/stringcolumn.pyx":127
  *         cdef Py_ssize_t i
  *         cdef Py_ssize_t length = self.length
  *         data = buf.read(length * n_items)             # <<<<<<<<<<<<<<
  *         cdef char* data_ptr = PyByteArray_AsString(data)
  * 
  */
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_buf, __pyx_n_s_read); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 121, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_buf, __pyx_n_s_read); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 127, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyInt_FromSsize_t((__pyx_v_length * __pyx_v_n_items)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 121, __pyx_L1_error)
+  __pyx_t_4 = PyInt_FromSsize_t((__pyx_v_length * __pyx_v_n_items)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 127, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_t_5 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
@@ -3810,13 +3526,13 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_15ByteFixe
   __pyx_t_1 = (__pyx_t_5) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_5, __pyx_t_4) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 121, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 127, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_v_data = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":122
+  /* "clickhouse_driver/columns/stringcolumn.pyx":128
  *         cdef Py_ssize_t length = self.length
  *         data = buf.read(length * n_items)
  *         cdef char* data_ptr = PyByteArray_AsString(data)             # <<<<<<<<<<<<<<
@@ -3825,19 +3541,19 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_15ByteFixe
  */
   __pyx_v_data_ptr = PyByteArray_AsString(__pyx_v_data);
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":124
+  /* "clickhouse_driver/columns/stringcolumn.pyx":130
  *         cdef char* data_ptr = PyByteArray_AsString(data)
  * 
  *         items = PyList_New(n_items)             # <<<<<<<<<<<<<<
  *         for i in range(n_items):
  *             item = PyBytes_FromStringAndSize(&data_ptr[i * length], length)
  */
-  __pyx_t_1 = PyList_New(__pyx_v_n_items); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 124, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(__pyx_v_n_items); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 130, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_items = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":125
+  /* "clickhouse_driver/columns/stringcolumn.pyx":131
  * 
  *         items = PyList_New(n_items)
  *         for i in range(n_items):             # <<<<<<<<<<<<<<
@@ -3849,19 +3565,19 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_15ByteFixe
   for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
     __pyx_v_i = __pyx_t_7;
 
-    /* "clickhouse_driver/columns/stringcolumn.pyx":126
+    /* "clickhouse_driver/columns/stringcolumn.pyx":132
  *         items = PyList_New(n_items)
  *         for i in range(n_items):
  *             item = PyBytes_FromStringAndSize(&data_ptr[i * length], length)             # <<<<<<<<<<<<<<
  *             Py_INCREF(item)
  *             PyList_SET_ITEM(items, i, item)
  */
-    __pyx_t_1 = PyBytes_FromStringAndSize((&(__pyx_v_data_ptr[(__pyx_v_i * __pyx_v_length)])), __pyx_v_length); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 126, __pyx_L1_error)
+    __pyx_t_1 = PyBytes_FromStringAndSize((&(__pyx_v_data_ptr[(__pyx_v_i * __pyx_v_length)])), __pyx_v_length); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 132, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_XDECREF_SET(__pyx_v_item, ((PyObject*)__pyx_t_1));
     __pyx_t_1 = 0;
 
-    /* "clickhouse_driver/columns/stringcolumn.pyx":127
+    /* "clickhouse_driver/columns/stringcolumn.pyx":133
  *         for i in range(n_items):
  *             item = PyBytes_FromStringAndSize(&data_ptr[i * length], length)
  *             Py_INCREF(item)             # <<<<<<<<<<<<<<
@@ -3870,7 +3586,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_15ByteFixe
  */
     Py_INCREF(__pyx_v_item);
 
-    /* "clickhouse_driver/columns/stringcolumn.pyx":128
+    /* "clickhouse_driver/columns/stringcolumn.pyx":134
  *             item = PyBytes_FromStringAndSize(&data_ptr[i * length], length)
  *             Py_INCREF(item)
  *             PyList_SET_ITEM(items, i, item)             # <<<<<<<<<<<<<<
@@ -3880,7 +3596,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_15ByteFixe
     PyList_SET_ITEM(__pyx_v_items, __pyx_v_i, __pyx_v_item);
   }
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":130
+  /* "clickhouse_driver/columns/stringcolumn.pyx":136
  *             PyList_SET_ITEM(items, i, item)
  * 
  *         return items             # <<<<<<<<<<<<<<
@@ -3892,7 +3608,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_15ByteFixe
   __pyx_r = __pyx_v_items;
   goto __pyx_L0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":118
+  /* "clickhouse_driver/columns/stringcolumn.pyx":124
  *     null_value = b''
  * 
  *     def read_items(self, Py_ssize_t n_items, buf):             # <<<<<<<<<<<<<<
@@ -3917,12 +3633,12 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_15ByteFixe
   return __pyx_r;
 }
 
-/* "clickhouse_driver/columns/stringcolumn.pyx":132
+/* "clickhouse_driver/columns/stringcolumn.pyx":138
  *         return items
  * 
  *     def write_items(self, items, buf):             # <<<<<<<<<<<<<<
- *         length = self.length
- *         items_buf = bytearray(length * len(items))
+ *         cdef Py_ssize_t buf_pos = 0
+ *         cdef Py_ssize_t length = self.length
  */
 
 /* Python wrapper */
@@ -3960,17 +3676,17 @@ static PyObject *__pyx_pw_17clickhouse_driver_7columns_12stringcolumn_15ByteFixe
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_items)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("write_items", 1, 3, 3, 1); __PYX_ERR(0, 132, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("write_items", 1, 3, 3, 1); __PYX_ERR(0, 138, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_buf)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("write_items", 1, 3, 3, 2); __PYX_ERR(0, 132, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("write_items", 1, 3, 3, 2); __PYX_ERR(0, 138, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "write_items") < 0)) __PYX_ERR(0, 132, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "write_items") < 0)) __PYX_ERR(0, 138, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -3985,7 +3701,7 @@ static PyObject *__pyx_pw_17clickhouse_driver_7columns_12stringcolumn_15ByteFixe
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("write_items", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 132, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("write_items", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 138, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("clickhouse_driver.columns.stringcolumn.ByteFixedString.write_items", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3999,187 +3715,205 @@ static PyObject *__pyx_pw_17clickhouse_driver_7columns_12stringcolumn_15ByteFixe
 }
 
 static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_15ByteFixedString_2write_items(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_items, PyObject *__pyx_v_buf) {
-  PyObject *__pyx_v_length = NULL;
-  PyObject *__pyx_v_items_buf = NULL;
-  PyObject *__pyx_v_items_buf_view = NULL;
-  PyObject *__pyx_v_buf_pos = NULL;
+  Py_ssize_t __pyx_v_buf_pos;
+  Py_ssize_t __pyx_v_length;
+  Py_ssize_t __pyx_v_items_buf_size;
+  char *__pyx_v_c_value;
+  char *__pyx_v_items_buf;
   PyObject *__pyx_v_value = NULL;
   Py_ssize_t __pyx_v_value_len;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   Py_ssize_t __pyx_t_2;
-  PyObject *__pyx_t_3 = NULL;
+  int __pyx_t_3;
   PyObject *(*__pyx_t_4)(PyObject *);
-  Py_ssize_t __pyx_t_5;
-  PyObject *__pyx_t_6 = NULL;
-  int __pyx_t_7;
+  PyObject *__pyx_t_5 = NULL;
+  Py_ssize_t __pyx_t_6;
+  PyObject *__pyx_t_7 = NULL;
   PyObject *__pyx_t_8 = NULL;
-  PyObject *__pyx_t_9 = NULL;
+  char *__pyx_t_9;
   __Pyx_RefNannySetupContext("write_items", 0);
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":133
+  /* "clickhouse_driver/columns/stringcolumn.pyx":139
  * 
  *     def write_items(self, items, buf):
- *         length = self.length             # <<<<<<<<<<<<<<
- *         items_buf = bytearray(length * len(items))
- *         items_buf_view = memoryview(items_buf)
+ *         cdef Py_ssize_t buf_pos = 0             # <<<<<<<<<<<<<<
+ *         cdef Py_ssize_t length = self.length
+ *         cdef Py_ssize_t items_buf_size = length * len(items)
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_length); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 133, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_v_length = __pyx_t_1;
-  __pyx_t_1 = 0;
+  __pyx_v_buf_pos = 0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":134
+  /* "clickhouse_driver/columns/stringcolumn.pyx":140
  *     def write_items(self, items, buf):
- *         length = self.length
- *         items_buf = bytearray(length * len(items))             # <<<<<<<<<<<<<<
- *         items_buf_view = memoryview(items_buf)
- *         buf_pos = 0
- */
-  __pyx_t_2 = PyObject_Length(__pyx_v_items); if (unlikely(__pyx_t_2 == ((Py_ssize_t)-1))) __PYX_ERR(0, 134, __pyx_L1_error)
-  __pyx_t_1 = PyInt_FromSsize_t(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 134, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyNumber_Multiply(__pyx_v_length, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 134, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyByteArray_Type)), __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 134, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_v_items_buf = ((PyObject*)__pyx_t_1);
-  __pyx_t_1 = 0;
-
-  /* "clickhouse_driver/columns/stringcolumn.pyx":135
- *         length = self.length
- *         items_buf = bytearray(length * len(items))
- *         items_buf_view = memoryview(items_buf)             # <<<<<<<<<<<<<<
- *         buf_pos = 0
+ *         cdef Py_ssize_t buf_pos = 0
+ *         cdef Py_ssize_t length = self.length             # <<<<<<<<<<<<<<
+ *         cdef Py_ssize_t items_buf_size = length * len(items)
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_memoryview); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 135, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_length); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 140, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_v_items_buf); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 135, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_2 = __Pyx_PyIndex_AsSsize_t(__pyx_t_1); if (unlikely((__pyx_t_2 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 140, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_v_items_buf_view = __pyx_t_3;
-  __pyx_t_3 = 0;
+  __pyx_v_length = __pyx_t_2;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":136
- *         items_buf = bytearray(length * len(items))
- *         items_buf_view = memoryview(items_buf)
- *         buf_pos = 0             # <<<<<<<<<<<<<<
+  /* "clickhouse_driver/columns/stringcolumn.pyx":141
+ *         cdef Py_ssize_t buf_pos = 0
+ *         cdef Py_ssize_t length = self.length
+ *         cdef Py_ssize_t items_buf_size = length * len(items)             # <<<<<<<<<<<<<<
+ * 
+ *         cdef char* c_value
+ */
+  __pyx_t_2 = PyObject_Length(__pyx_v_items); if (unlikely(__pyx_t_2 == ((Py_ssize_t)-1))) __PYX_ERR(0, 141, __pyx_L1_error)
+  __pyx_v_items_buf_size = (__pyx_v_length * __pyx_t_2);
+
+  /* "clickhouse_driver/columns/stringcolumn.pyx":144
+ * 
+ *         cdef char* c_value
+ *         cdef char* items_buf = <char *>PyMem_Malloc(items_buf_size)             # <<<<<<<<<<<<<<
+ *         if not items_buf:
+ *             raise MemoryError()
+ */
+  __pyx_v_items_buf = ((char *)PyMem_Malloc(__pyx_v_items_buf_size));
+
+  /* "clickhouse_driver/columns/stringcolumn.pyx":145
+ *         cdef char* c_value
+ *         cdef char* items_buf = <char *>PyMem_Malloc(items_buf_size)
+ *         if not items_buf:             # <<<<<<<<<<<<<<
+ *             raise MemoryError()
+ * 
+ */
+  __pyx_t_3 = ((!(__pyx_v_items_buf != 0)) != 0);
+  if (unlikely(__pyx_t_3)) {
+
+    /* "clickhouse_driver/columns/stringcolumn.pyx":146
+ *         cdef char* items_buf = <char *>PyMem_Malloc(items_buf_size)
+ *         if not items_buf:
+ *             raise MemoryError()             # <<<<<<<<<<<<<<
+ * 
+ *         memset(items_buf, 0, items_buf_size)
+ */
+    PyErr_NoMemory(); __PYX_ERR(0, 146, __pyx_L1_error)
+
+    /* "clickhouse_driver/columns/stringcolumn.pyx":145
+ *         cdef char* c_value
+ *         cdef char* items_buf = <char *>PyMem_Malloc(items_buf_size)
+ *         if not items_buf:             # <<<<<<<<<<<<<<
+ *             raise MemoryError()
+ * 
+ */
+  }
+
+  /* "clickhouse_driver/columns/stringcolumn.pyx":148
+ *             raise MemoryError()
+ * 
+ *         memset(items_buf, 0, items_buf_size)             # <<<<<<<<<<<<<<
  * 
  *         for value in items:
  */
-  __Pyx_INCREF(__pyx_int_0);
-  __pyx_v_buf_pos = __pyx_int_0;
+  (void)(memset(__pyx_v_items_buf, 0, __pyx_v_items_buf_size));
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":138
- *         buf_pos = 0
+  /* "clickhouse_driver/columns/stringcolumn.pyx":150
+ *         memset(items_buf, 0, items_buf_size)
  * 
  *         for value in items:             # <<<<<<<<<<<<<<
  *             value_len = len(value)
  *             if length < value_len:
  */
   if (likely(PyList_CheckExact(__pyx_v_items)) || PyTuple_CheckExact(__pyx_v_items)) {
-    __pyx_t_3 = __pyx_v_items; __Pyx_INCREF(__pyx_t_3); __pyx_t_2 = 0;
+    __pyx_t_1 = __pyx_v_items; __Pyx_INCREF(__pyx_t_1); __pyx_t_2 = 0;
     __pyx_t_4 = NULL;
   } else {
-    __pyx_t_2 = -1; __pyx_t_3 = PyObject_GetIter(__pyx_v_items); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 138, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = Py_TYPE(__pyx_t_3)->tp_iternext; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 138, __pyx_L1_error)
+    __pyx_t_2 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_v_items); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 150, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_4 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 150, __pyx_L1_error)
   }
   for (;;) {
     if (likely(!__pyx_t_4)) {
-      if (likely(PyList_CheckExact(__pyx_t_3))) {
-        if (__pyx_t_2 >= PyList_GET_SIZE(__pyx_t_3)) break;
+      if (likely(PyList_CheckExact(__pyx_t_1))) {
+        if (__pyx_t_2 >= PyList_GET_SIZE(__pyx_t_1)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_2); __Pyx_INCREF(__pyx_t_1); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 138, __pyx_L1_error)
+        __pyx_t_5 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_5); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 150, __pyx_L1_error)
         #else
-        __pyx_t_1 = PySequence_ITEM(__pyx_t_3, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 138, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_1);
+        __pyx_t_5 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 150, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_5);
         #endif
       } else {
-        if (__pyx_t_2 >= PyTuple_GET_SIZE(__pyx_t_3)) break;
+        if (__pyx_t_2 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_3, __pyx_t_2); __Pyx_INCREF(__pyx_t_1); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 138, __pyx_L1_error)
+        __pyx_t_5 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_5); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 150, __pyx_L1_error)
         #else
-        __pyx_t_1 = PySequence_ITEM(__pyx_t_3, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 138, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_1);
+        __pyx_t_5 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 150, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_5);
         #endif
       }
     } else {
-      __pyx_t_1 = __pyx_t_4(__pyx_t_3);
-      if (unlikely(!__pyx_t_1)) {
+      __pyx_t_5 = __pyx_t_4(__pyx_t_1);
+      if (unlikely(!__pyx_t_5)) {
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 138, __pyx_L1_error)
+          else __PYX_ERR(0, 150, __pyx_L1_error)
         }
         break;
       }
-      __Pyx_GOTREF(__pyx_t_1);
+      __Pyx_GOTREF(__pyx_t_5);
     }
-    __Pyx_XDECREF_SET(__pyx_v_value, __pyx_t_1);
-    __pyx_t_1 = 0;
+    __Pyx_XDECREF_SET(__pyx_v_value, __pyx_t_5);
+    __pyx_t_5 = 0;
 
-    /* "clickhouse_driver/columns/stringcolumn.pyx":139
+    /* "clickhouse_driver/columns/stringcolumn.pyx":151
  * 
  *         for value in items:
  *             value_len = len(value)             # <<<<<<<<<<<<<<
  *             if length < value_len:
  *                 raise errors.TooLargeStringSize()
  */
-    __pyx_t_5 = PyObject_Length(__pyx_v_value); if (unlikely(__pyx_t_5 == ((Py_ssize_t)-1))) __PYX_ERR(0, 139, __pyx_L1_error)
-    __pyx_v_value_len = __pyx_t_5;
+    __pyx_t_6 = PyObject_Length(__pyx_v_value); if (unlikely(__pyx_t_6 == ((Py_ssize_t)-1))) __PYX_ERR(0, 151, __pyx_L1_error)
+    __pyx_v_value_len = __pyx_t_6;
 
-    /* "clickhouse_driver/columns/stringcolumn.pyx":140
+    /* "clickhouse_driver/columns/stringcolumn.pyx":152
  *         for value in items:
  *             value_len = len(value)
  *             if length < value_len:             # <<<<<<<<<<<<<<
  *                 raise errors.TooLargeStringSize()
  * 
  */
-    __pyx_t_1 = PyInt_FromSsize_t(__pyx_v_value_len); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 140, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_6 = PyObject_RichCompare(__pyx_v_length, __pyx_t_1, Py_LT); __Pyx_XGOTREF(__pyx_t_6); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 140, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_7 = __Pyx_PyObject_IsTrue(__pyx_t_6); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 140, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    if (unlikely(__pyx_t_7)) {
+    __pyx_t_3 = ((__pyx_v_length < __pyx_v_value_len) != 0);
+    if (unlikely(__pyx_t_3)) {
 
-      /* "clickhouse_driver/columns/stringcolumn.pyx":141
+      /* "clickhouse_driver/columns/stringcolumn.pyx":153
  *             value_len = len(value)
  *             if length < value_len:
  *                 raise errors.TooLargeStringSize()             # <<<<<<<<<<<<<<
  * 
- *             items_buf_view[buf_pos:buf_pos + min(length, value_len)] = value
+ *             if PyBytes_Check(value):
  */
-      __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_errors); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 141, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_TooLargeStringSize); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 141, __pyx_L1_error)
+      __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_errors); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 153, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_7);
+      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_TooLargeStringSize); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 153, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_8);
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_1 = NULL;
+      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      __pyx_t_7 = NULL;
       if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_8))) {
-        __pyx_t_1 = PyMethod_GET_SELF(__pyx_t_8);
-        if (likely(__pyx_t_1)) {
+        __pyx_t_7 = PyMethod_GET_SELF(__pyx_t_8);
+        if (likely(__pyx_t_7)) {
           PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_8);
-          __Pyx_INCREF(__pyx_t_1);
+          __Pyx_INCREF(__pyx_t_7);
           __Pyx_INCREF(function);
           __Pyx_DECREF_SET(__pyx_t_8, function);
         }
       }
-      __pyx_t_6 = (__pyx_t_1) ? __Pyx_PyObject_CallOneArg(__pyx_t_8, __pyx_t_1) : __Pyx_PyObject_CallNoArg(__pyx_t_8);
-      __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
-      if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 141, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
+      __pyx_t_5 = (__pyx_t_7) ? __Pyx_PyObject_CallOneArg(__pyx_t_8, __pyx_t_7) : __Pyx_PyObject_CallNoArg(__pyx_t_8);
+      __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
+      if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 153, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_5);
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __Pyx_Raise(__pyx_t_6, 0, 0, 0);
-      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-      __PYX_ERR(0, 141, __pyx_L1_error)
+      __Pyx_Raise(__pyx_t_5, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __PYX_ERR(0, 153, __pyx_L1_error)
 
-      /* "clickhouse_driver/columns/stringcolumn.pyx":140
+      /* "clickhouse_driver/columns/stringcolumn.pyx":152
  *         for value in items:
  *             value_len = len(value)
  *             if length < value_len:             # <<<<<<<<<<<<<<
@@ -4188,92 +3922,120 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_15ByteFixe
  */
     }
 
-    /* "clickhouse_driver/columns/stringcolumn.pyx":143
+    /* "clickhouse_driver/columns/stringcolumn.pyx":155
  *                 raise errors.TooLargeStringSize()
  * 
- *             items_buf_view[buf_pos:buf_pos + min(length, value_len)] = value             # <<<<<<<<<<<<<<
+ *             if PyBytes_Check(value):             # <<<<<<<<<<<<<<
+ *                 c_value = PyBytes_AsString(value)
+ *             else:
+ */
+    __pyx_t_3 = (PyBytes_Check(__pyx_v_value) != 0);
+    if (__pyx_t_3) {
+
+      /* "clickhouse_driver/columns/stringcolumn.pyx":156
+ * 
+ *             if PyBytes_Check(value):
+ *                 c_value = PyBytes_AsString(value)             # <<<<<<<<<<<<<<
+ *             else:
+ *                 c_value = PyByteArray_AsString(value)
+ */
+      __pyx_t_9 = PyBytes_AsString(__pyx_v_value); if (unlikely(__pyx_t_9 == ((char *)NULL))) __PYX_ERR(0, 156, __pyx_L1_error)
+      __pyx_v_c_value = __pyx_t_9;
+
+      /* "clickhouse_driver/columns/stringcolumn.pyx":155
+ *                 raise errors.TooLargeStringSize()
+ * 
+ *             if PyBytes_Check(value):             # <<<<<<<<<<<<<<
+ *                 c_value = PyBytes_AsString(value)
+ *             else:
+ */
+      goto __pyx_L7;
+    }
+
+    /* "clickhouse_driver/columns/stringcolumn.pyx":158
+ *                 c_value = PyBytes_AsString(value)
+ *             else:
+ *                 c_value = PyByteArray_AsString(value)             # <<<<<<<<<<<<<<
+ * 
+ *             memcpy(&items_buf[buf_pos], c_value, value_len)
+ */
+    /*else*/ {
+      __pyx_v_c_value = PyByteArray_AsString(__pyx_v_value);
+    }
+    __pyx_L7:;
+
+    /* "clickhouse_driver/columns/stringcolumn.pyx":160
+ *                 c_value = PyByteArray_AsString(value)
+ * 
+ *             memcpy(&items_buf[buf_pos], c_value, value_len)             # <<<<<<<<<<<<<<
  *             buf_pos += length
  * 
  */
-    __pyx_t_5 = __pyx_v_value_len;
-    __Pyx_INCREF(__pyx_v_length);
-    __pyx_t_6 = __pyx_v_length;
-    __pyx_t_1 = PyInt_FromSsize_t(__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 143, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_9 = PyObject_RichCompare(__pyx_t_1, __pyx_t_6, Py_LT); __Pyx_XGOTREF(__pyx_t_9); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 143, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_7 = __Pyx_PyObject_IsTrue(__pyx_t_9); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 143, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-    if (__pyx_t_7) {
-      __pyx_t_9 = PyInt_FromSsize_t(__pyx_t_5); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 143, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_9);
-      __pyx_t_8 = __pyx_t_9;
-      __pyx_t_9 = 0;
-    } else {
-      __Pyx_INCREF(__pyx_t_6);
-      __pyx_t_8 = __pyx_t_6;
-    }
-    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_6 = PyNumber_Add(__pyx_v_buf_pos, __pyx_t_8); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 143, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_6);
-    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-    if (__Pyx_PyObject_SetSlice(__pyx_v_items_buf_view, __pyx_v_value, 0, 0, &__pyx_v_buf_pos, &__pyx_t_6, NULL, 0, 0, 1) < 0) __PYX_ERR(0, 143, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    (void)(memcpy((&(__pyx_v_items_buf[__pyx_v_buf_pos])), __pyx_v_c_value, __pyx_v_value_len));
 
-    /* "clickhouse_driver/columns/stringcolumn.pyx":144
+    /* "clickhouse_driver/columns/stringcolumn.pyx":161
  * 
- *             items_buf_view[buf_pos:buf_pos + min(length, value_len)] = value
+ *             memcpy(&items_buf[buf_pos], c_value, value_len)
  *             buf_pos += length             # <<<<<<<<<<<<<<
  * 
- *         buf.write(items_buf)
+ *         buf.write(PyBytes_FromStringAndSize(items_buf, items_buf_size))
  */
-    __pyx_t_6 = PyNumber_InPlaceAdd(__pyx_v_buf_pos, __pyx_v_length); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 144, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_6);
-    __Pyx_DECREF_SET(__pyx_v_buf_pos, __pyx_t_6);
-    __pyx_t_6 = 0;
+    __pyx_v_buf_pos = (__pyx_v_buf_pos + __pyx_v_length);
 
-    /* "clickhouse_driver/columns/stringcolumn.pyx":138
- *         buf_pos = 0
+    /* "clickhouse_driver/columns/stringcolumn.pyx":150
+ *         memset(items_buf, 0, items_buf_size)
  * 
  *         for value in items:             # <<<<<<<<<<<<<<
  *             value_len = len(value)
  *             if length < value_len:
  */
   }
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":146
+  /* "clickhouse_driver/columns/stringcolumn.pyx":163
  *             buf_pos += length
  * 
- *         buf.write(items_buf)             # <<<<<<<<<<<<<<
+ *         buf.write(PyBytes_FromStringAndSize(items_buf, items_buf_size))             # <<<<<<<<<<<<<<
+ * 
+ *         PyMem_Free(items_buf)
+ */
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_buf, __pyx_n_s_write); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 163, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __pyx_t_8 = PyBytes_FromStringAndSize(__pyx_v_items_buf, __pyx_v_items_buf_size); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 163, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_8);
+  __pyx_t_7 = NULL;
+  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_5))) {
+    __pyx_t_7 = PyMethod_GET_SELF(__pyx_t_5);
+    if (likely(__pyx_t_7)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_5);
+      __Pyx_INCREF(__pyx_t_7);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_5, function);
+    }
+  }
+  __pyx_t_1 = (__pyx_t_7) ? __Pyx_PyObject_Call2Args(__pyx_t_5, __pyx_t_7, __pyx_t_8) : __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_8);
+  __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 163, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "clickhouse_driver/columns/stringcolumn.pyx":165
+ *         buf.write(PyBytes_FromStringAndSize(items_buf, items_buf_size))
+ * 
+ *         PyMem_Free(items_buf)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_buf, __pyx_n_s_write); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 146, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_8 = NULL;
-  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_6))) {
-    __pyx_t_8 = PyMethod_GET_SELF(__pyx_t_6);
-    if (likely(__pyx_t_8)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_6);
-      __Pyx_INCREF(__pyx_t_8);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_6, function);
-    }
-  }
-  __pyx_t_3 = (__pyx_t_8) ? __Pyx_PyObject_Call2Args(__pyx_t_6, __pyx_t_8, __pyx_v_items_buf) : __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_v_items_buf);
-  __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
-  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 146, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  PyMem_Free(__pyx_v_items_buf);
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":132
+  /* "clickhouse_driver/columns/stringcolumn.pyx":138
  *         return items
  * 
  *     def write_items(self, items, buf):             # <<<<<<<<<<<<<<
- *         length = self.length
- *         items_buf = bytearray(length * len(items))
+ *         cdef Py_ssize_t buf_pos = 0
+ *         cdef Py_ssize_t length = self.length
  */
 
   /* function exit code */
@@ -4281,24 +4043,19 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_15ByteFixe
   goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_XDECREF(__pyx_t_6);
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_XDECREF(__pyx_t_7);
   __Pyx_XDECREF(__pyx_t_8);
-  __Pyx_XDECREF(__pyx_t_9);
   __Pyx_AddTraceback("clickhouse_driver.columns.stringcolumn.ByteFixedString.write_items", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
-  __Pyx_XDECREF(__pyx_v_length);
-  __Pyx_XDECREF(__pyx_v_items_buf);
-  __Pyx_XDECREF(__pyx_v_items_buf_view);
-  __Pyx_XDECREF(__pyx_v_buf_pos);
   __Pyx_XDECREF(__pyx_v_value);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "clickhouse_driver/columns/stringcolumn.pyx":149
+/* "clickhouse_driver/columns/stringcolumn.pyx":168
  * 
  * 
  * def create_string_column(spec, column_options):             # <<<<<<<<<<<<<<
@@ -4338,11 +4095,11 @@ static PyObject *__pyx_pw_17clickhouse_driver_7columns_12stringcolumn_1create_st
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_column_options)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("create_string_column", 1, 2, 2, 1); __PYX_ERR(0, 149, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("create_string_column", 1, 2, 2, 1); __PYX_ERR(0, 168, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "create_string_column") < 0)) __PYX_ERR(0, 149, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "create_string_column") < 0)) __PYX_ERR(0, 168, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -4355,7 +4112,7 @@ static PyObject *__pyx_pw_17clickhouse_driver_7columns_12stringcolumn_1create_st
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("create_string_column", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 149, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("create_string_column", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 168, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("clickhouse_driver.columns.stringcolumn.create_string_column", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -4381,58 +4138,58 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_create_str
   PyObject *__pyx_t_4 = NULL;
   __Pyx_RefNannySetupContext("create_string_column", 0);
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":150
+  /* "clickhouse_driver/columns/stringcolumn.pyx":169
  * 
  * def create_string_column(spec, column_options):
  *     client_settings = column_options['context'].client_settings             # <<<<<<<<<<<<<<
  *     strings_as_bytes = client_settings['strings_as_bytes']
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_column_options, __pyx_n_u_context); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 150, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_column_options, __pyx_n_u_context); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 169, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_client_settings); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 150, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_client_settings); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 169, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_client_settings = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":151
+  /* "clickhouse_driver/columns/stringcolumn.pyx":170
  * def create_string_column(spec, column_options):
  *     client_settings = column_options['context'].client_settings
  *     strings_as_bytes = client_settings['strings_as_bytes']             # <<<<<<<<<<<<<<
  * 
  *     if spec == 'String':
  */
-  __pyx_t_2 = __Pyx_PyObject_Dict_GetItem(__pyx_v_client_settings, __pyx_n_u_strings_as_bytes); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 151, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Dict_GetItem(__pyx_v_client_settings, __pyx_n_u_strings_as_bytes); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 170, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_v_strings_as_bytes = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":153
+  /* "clickhouse_driver/columns/stringcolumn.pyx":172
  *     strings_as_bytes = client_settings['strings_as_bytes']
  * 
  *     if spec == 'String':             # <<<<<<<<<<<<<<
  *         cls = ByteString if strings_as_bytes else String
  *         return cls(**column_options)
  */
-  __pyx_t_3 = (__Pyx_PyUnicode_Equals(__pyx_v_spec, __pyx_n_u_String, Py_EQ)); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 153, __pyx_L1_error)
+  __pyx_t_3 = (__Pyx_PyUnicode_Equals(__pyx_v_spec, __pyx_n_u_String, Py_EQ)); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 172, __pyx_L1_error)
   if (__pyx_t_3) {
 
-    /* "clickhouse_driver/columns/stringcolumn.pyx":154
+    /* "clickhouse_driver/columns/stringcolumn.pyx":173
  * 
  *     if spec == 'String':
  *         cls = ByteString if strings_as_bytes else String             # <<<<<<<<<<<<<<
  *         return cls(**column_options)
  *     else:
  */
-    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_v_strings_as_bytes); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 154, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_v_strings_as_bytes); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 173, __pyx_L1_error)
     if (__pyx_t_3) {
-      __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_ByteString); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 154, __pyx_L1_error)
+      __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_ByteString); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 173, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __pyx_t_2 = __pyx_t_1;
       __pyx_t_1 = 0;
     } else {
-      __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_String); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 154, __pyx_L1_error)
+      __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_String); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 173, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __pyx_t_2 = __pyx_t_1;
       __pyx_t_1 = 0;
@@ -4440,7 +4197,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_create_str
     __pyx_v_cls = __pyx_t_2;
     __pyx_t_2 = 0;
 
-    /* "clickhouse_driver/columns/stringcolumn.pyx":155
+    /* "clickhouse_driver/columns/stringcolumn.pyx":174
  *     if spec == 'String':
  *         cls = ByteString if strings_as_bytes else String
  *         return cls(**column_options)             # <<<<<<<<<<<<<<
@@ -4450,23 +4207,23 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_create_str
     __Pyx_XDECREF(__pyx_r);
     if (unlikely(__pyx_v_column_options == Py_None)) {
       PyErr_SetString(PyExc_TypeError, "argument after ** must be a mapping, not NoneType");
-      __PYX_ERR(0, 155, __pyx_L1_error)
+      __PYX_ERR(0, 174, __pyx_L1_error)
     }
     if (likely(PyDict_CheckExact(__pyx_v_column_options))) {
-      __pyx_t_2 = PyDict_Copy(__pyx_v_column_options); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 155, __pyx_L1_error)
+      __pyx_t_2 = PyDict_Copy(__pyx_v_column_options); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 174, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
     } else {
-      __pyx_t_2 = PyObject_CallFunctionObjArgs((PyObject*)&PyDict_Type, __pyx_v_column_options, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 155, __pyx_L1_error)
+      __pyx_t_2 = PyObject_CallFunctionObjArgs((PyObject*)&PyDict_Type, __pyx_v_column_options, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 174, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
     }
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_v_cls, __pyx_empty_tuple, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 155, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_v_cls, __pyx_empty_tuple, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 174, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_r = __pyx_t_1;
     __pyx_t_1 = 0;
     goto __pyx_L0;
 
-    /* "clickhouse_driver/columns/stringcolumn.pyx":153
+    /* "clickhouse_driver/columns/stringcolumn.pyx":172
  *     strings_as_bytes = client_settings['strings_as_bytes']
  * 
  *     if spec == 'String':             # <<<<<<<<<<<<<<
@@ -4475,7 +4232,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_create_str
  */
   }
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":157
+  /* "clickhouse_driver/columns/stringcolumn.pyx":176
  *         return cls(**column_options)
  *     else:
  *         length = int(spec[12:-1])             # <<<<<<<<<<<<<<
@@ -4483,28 +4240,28 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_create_str
  *         return cls(length, **column_options)
  */
   /*else*/ {
-    __pyx_t_1 = __Pyx_PyObject_GetSlice(__pyx_v_spec, 12, -1L, NULL, NULL, &__pyx_slice_, 1, 1, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 157, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetSlice(__pyx_v_spec, 12, -1L, NULL, NULL, &__pyx_slice_, 1, 1, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 176, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = __Pyx_PyNumber_Int(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 157, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyNumber_Int(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 176, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_v_length = __pyx_t_2;
     __pyx_t_2 = 0;
 
-    /* "clickhouse_driver/columns/stringcolumn.pyx":158
+    /* "clickhouse_driver/columns/stringcolumn.pyx":177
  *     else:
  *         length = int(spec[12:-1])
  *         cls = ByteFixedString if strings_as_bytes else FixedString             # <<<<<<<<<<<<<<
  *         return cls(length, **column_options)
  */
-    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_v_strings_as_bytes); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 158, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_v_strings_as_bytes); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 177, __pyx_L1_error)
     if (__pyx_t_3) {
-      __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_ByteFixedString); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 158, __pyx_L1_error)
+      __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_ByteFixedString); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 177, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __pyx_t_2 = __pyx_t_1;
       __pyx_t_1 = 0;
     } else {
-      __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_FixedString); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 158, __pyx_L1_error)
+      __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_FixedString); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 177, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __pyx_t_2 = __pyx_t_1;
       __pyx_t_1 = 0;
@@ -4512,29 +4269,29 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_create_str
     __pyx_v_cls = __pyx_t_2;
     __pyx_t_2 = 0;
 
-    /* "clickhouse_driver/columns/stringcolumn.pyx":159
+    /* "clickhouse_driver/columns/stringcolumn.pyx":178
  *         length = int(spec[12:-1])
  *         cls = ByteFixedString if strings_as_bytes else FixedString
  *         return cls(length, **column_options)             # <<<<<<<<<<<<<<
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 159, __pyx_L1_error)
+    __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 178, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_INCREF(__pyx_v_length);
     __Pyx_GIVEREF(__pyx_v_length);
     PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_v_length);
     if (unlikely(__pyx_v_column_options == Py_None)) {
       PyErr_SetString(PyExc_TypeError, "argument after ** must be a mapping, not NoneType");
-      __PYX_ERR(0, 159, __pyx_L1_error)
+      __PYX_ERR(0, 178, __pyx_L1_error)
     }
     if (likely(PyDict_CheckExact(__pyx_v_column_options))) {
-      __pyx_t_1 = PyDict_Copy(__pyx_v_column_options); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 159, __pyx_L1_error)
+      __pyx_t_1 = PyDict_Copy(__pyx_v_column_options); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 178, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
     } else {
-      __pyx_t_1 = PyObject_CallFunctionObjArgs((PyObject*)&PyDict_Type, __pyx_v_column_options, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 159, __pyx_L1_error)
+      __pyx_t_1 = PyObject_CallFunctionObjArgs((PyObject*)&PyDict_Type, __pyx_v_column_options, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 178, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
     }
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_v_cls, __pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 159, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_v_cls, __pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 178, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -4543,7 +4300,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_create_str
     goto __pyx_L0;
   }
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":149
+  /* "clickhouse_driver/columns/stringcolumn.pyx":168
  * 
  * 
  * def create_string_column(spec, column_options):             # <<<<<<<<<<<<<<
@@ -4641,6 +4398,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_buf, __pyx_k_buf, sizeof(__pyx_k_buf), 0, 0, 1, 1},
   {&__pyx_n_s_buf_pos, __pyx_k_buf_pos, sizeof(__pyx_k_buf_pos), 0, 0, 1, 1},
   {&__pyx_n_s_c_string, __pyx_k_c_string, sizeof(__pyx_k_c_string), 0, 0, 1, 1},
+  {&__pyx_n_s_c_value, __pyx_k_c_value, sizeof(__pyx_k_c_value), 0, 0, 1, 1},
   {&__pyx_n_s_ch_type, __pyx_k_ch_type, sizeof(__pyx_k_ch_type), 0, 0, 1, 1},
   {&__pyx_n_s_clickhouse_driver_columns_string, __pyx_k_clickhouse_driver_columns_string, sizeof(__pyx_k_clickhouse_driver_columns_string), 0, 0, 1, 1},
   {&__pyx_kp_s_clickhouse_driver_columns_string_2, __pyx_k_clickhouse_driver_columns_string_2, sizeof(__pyx_k_clickhouse_driver_columns_string_2), 0, 0, 1, 0},
@@ -4656,6 +4414,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_data_ptr, __pyx_k_data_ptr, sizeof(__pyx_k_data_ptr), 0, 0, 1, 1},
   {&__pyx_n_s_decode, __pyx_k_decode, sizeof(__pyx_k_decode), 0, 0, 1, 1},
   {&__pyx_n_s_doc, __pyx_k_doc, sizeof(__pyx_k_doc), 0, 0, 1, 1},
+  {&__pyx_n_s_encode, __pyx_k_encode, sizeof(__pyx_k_encode), 0, 0, 1, 1},
   {&__pyx_n_s_errors, __pyx_k_errors, sizeof(__pyx_k_errors), 0, 0, 1, 1},
   {&__pyx_n_s_i, __pyx_k_i, sizeof(__pyx_k_i), 0, 0, 1, 1},
   {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
@@ -4663,12 +4422,11 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_item, __pyx_k_item, sizeof(__pyx_k_item), 0, 0, 1, 1},
   {&__pyx_n_s_items, __pyx_k_items, sizeof(__pyx_k_items), 0, 0, 1, 1},
   {&__pyx_n_s_items_buf, __pyx_k_items_buf, sizeof(__pyx_k_items_buf), 0, 0, 1, 1},
-  {&__pyx_n_s_items_buf_view, __pyx_k_items_buf_view, sizeof(__pyx_k_items_buf_view), 0, 0, 1, 1},
+  {&__pyx_n_s_items_buf_size, __pyx_k_items_buf_size, sizeof(__pyx_k_items_buf_size), 0, 0, 1, 1},
   {&__pyx_n_s_j, __pyx_k_j, sizeof(__pyx_k_j), 0, 0, 1, 1},
   {&__pyx_n_s_kwargs, __pyx_k_kwargs, sizeof(__pyx_k_kwargs), 0, 0, 1, 1},
   {&__pyx_n_s_length, __pyx_k_length, sizeof(__pyx_k_length), 0, 0, 1, 1},
   {&__pyx_n_s_main, __pyx_k_main, sizeof(__pyx_k_main), 0, 0, 1, 1},
-  {&__pyx_n_s_memoryview, __pyx_k_memoryview, sizeof(__pyx_k_memoryview), 0, 0, 1, 1},
   {&__pyx_n_s_metaclass, __pyx_k_metaclass, sizeof(__pyx_k_metaclass), 0, 0, 1, 1},
   {&__pyx_n_s_module, __pyx_k_module, sizeof(__pyx_k_module), 0, 0, 1, 1},
   {&__pyx_n_s_n_items, __pyx_k_n_items, sizeof(__pyx_k_n_items), 0, 0, 1, 1},
@@ -4694,17 +4452,16 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_util, __pyx_k_util, sizeof(__pyx_k_util), 0, 0, 1, 1},
   {&__pyx_n_s_value, __pyx_k_value, sizeof(__pyx_k_value), 0, 0, 1, 1},
   {&__pyx_n_s_value_len, __pyx_k_value_len, sizeof(__pyx_k_value_len), 0, 0, 1, 1},
-  {&__pyx_n_s_varint, __pyx_k_varint, sizeof(__pyx_k_varint), 0, 0, 1, 1},
   {&__pyx_n_s_write, __pyx_k_write, sizeof(__pyx_k_write), 0, 0, 1, 1},
   {&__pyx_n_s_write_items, __pyx_k_write_items, sizeof(__pyx_k_write_items), 0, 0, 1, 1},
-  {&__pyx_n_s_write_varint, __pyx_k_write_varint, sizeof(__pyx_k_write_varint), 0, 0, 1, 1},
+  {&__pyx_n_s_write_strings, __pyx_k_write_strings, sizeof(__pyx_k_write_strings), 0, 0, 1, 1},
   {0, 0, 0, 0, 0, 0, 0}
 };
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_super = __Pyx_GetBuiltinName(__pyx_n_s_super); if (!__pyx_builtin_super) __PYX_ERR(0, 62, __pyx_L1_error)
-  __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(0, 71, __pyx_L1_error)
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 75, __pyx_L1_error)
-  __pyx_builtin_UnicodeDecodeError = __Pyx_GetBuiltinName(__pyx_n_s_UnicodeDecodeError); if (!__pyx_builtin_UnicodeDecodeError) __PYX_ERR(0, 85, __pyx_L1_error)
+  __pyx_builtin_super = __Pyx_GetBuiltinName(__pyx_n_s_super); if (!__pyx_builtin_super) __PYX_ERR(0, 55, __pyx_L1_error)
+  __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(0, 64, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 68, __pyx_L1_error)
+  __pyx_builtin_UnicodeDecodeError = __Pyx_GetBuiltinName(__pyx_n_s_UnicodeDecodeError); if (!__pyx_builtin_UnicodeDecodeError) __PYX_ERR(0, 78, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
   return -1;
@@ -4714,14 +4471,14 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":157
+  /* "clickhouse_driver/columns/stringcolumn.pyx":176
  *         return cls(**column_options)
  *     else:
  *         length = int(spec[12:-1])             # <<<<<<<<<<<<<<
  *         cls = ByteFixedString if strings_as_bytes else FixedString
  *         return cls(length, **column_options)
  */
-  __pyx_slice_ = PySlice_New(__pyx_int_12, __pyx_int_neg_1, Py_None); if (unlikely(!__pyx_slice_)) __PYX_ERR(0, 157, __pyx_L1_error)
+  __pyx_slice_ = PySlice_New(__pyx_int_12, __pyx_int_neg_1, Py_None); if (unlikely(!__pyx_slice_)) __PYX_ERR(0, 176, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_slice_);
   __Pyx_GIVEREF(__pyx_slice_);
 
@@ -4741,121 +4498,121 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *             return value, False
  * 
  *     def write_items(self, items, buf):             # <<<<<<<<<<<<<<
- *         for value in items:
- *             if not isinstance(value, bytes):
+ *         buf.write_strings(items, encode=True)
+ * 
  */
-  __pyx_tuple__5 = PyTuple_Pack(4, __pyx_n_s_self, __pyx_n_s_items, __pyx_n_s_buf, __pyx_n_s_value); if (unlikely(!__pyx_tuple__5)) __PYX_ERR(0, 32, __pyx_L1_error)
+  __pyx_tuple__5 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_items, __pyx_n_s_buf); if (unlikely(!__pyx_tuple__5)) __PYX_ERR(0, 32, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__5);
   __Pyx_GIVEREF(__pyx_tuple__5);
-  __pyx_codeobj__6 = (PyObject*)__Pyx_PyCode_New(3, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__5, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_clickhouse_driver_columns_string_2, __pyx_n_s_write_items, 32, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__6)) __PYX_ERR(0, 32, __pyx_L1_error)
+  __pyx_codeobj__6 = (PyObject*)__Pyx_PyCode_New(3, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__5, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_clickhouse_driver_columns_string_2, __pyx_n_s_write_items, 32, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__6)) __PYX_ERR(0, 32, __pyx_L1_error)
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":40
- *             buf.write(value)
+  /* "clickhouse_driver/columns/stringcolumn.pyx":35
+ *         buf.write_strings(items, encode=True)
  * 
  *     def read_items(self, n_items, buf):             # <<<<<<<<<<<<<<
  *         return buf.read_strings(n_items, decode=True)
  * 
  */
-  __pyx_tuple__7 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_n_items, __pyx_n_s_buf); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(0, 40, __pyx_L1_error)
+  __pyx_tuple__7 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_n_items, __pyx_n_s_buf); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(0, 35, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__7);
   __Pyx_GIVEREF(__pyx_tuple__7);
-  __pyx_codeobj__8 = (PyObject*)__Pyx_PyCode_New(3, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__7, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_clickhouse_driver_columns_string_2, __pyx_n_s_read_items, 40, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__8)) __PYX_ERR(0, 40, __pyx_L1_error)
+  __pyx_codeobj__8 = (PyObject*)__Pyx_PyCode_New(3, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__7, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_clickhouse_driver_columns_string_2, __pyx_n_s_read_items, 35, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__8)) __PYX_ERR(0, 35, __pyx_L1_error)
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":48
+  /* "clickhouse_driver/columns/stringcolumn.pyx":43
  *     null_value = b''
  * 
  *     def write_items(self, items, buf):             # <<<<<<<<<<<<<<
- *         for value in items:
- *             write_varint(len(value), buf)
+ *         buf.write_strings(items)
+ * 
  */
-  __pyx_tuple__9 = PyTuple_Pack(4, __pyx_n_s_self, __pyx_n_s_items, __pyx_n_s_buf, __pyx_n_s_value); if (unlikely(!__pyx_tuple__9)) __PYX_ERR(0, 48, __pyx_L1_error)
+  __pyx_tuple__9 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_items, __pyx_n_s_buf); if (unlikely(!__pyx_tuple__9)) __PYX_ERR(0, 43, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__9);
   __Pyx_GIVEREF(__pyx_tuple__9);
-  __pyx_codeobj__10 = (PyObject*)__Pyx_PyCode_New(3, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__9, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_clickhouse_driver_columns_string_2, __pyx_n_s_write_items, 48, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__10)) __PYX_ERR(0, 48, __pyx_L1_error)
+  __pyx_codeobj__10 = (PyObject*)__Pyx_PyCode_New(3, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__9, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_clickhouse_driver_columns_string_2, __pyx_n_s_write_items, 43, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__10)) __PYX_ERR(0, 43, __pyx_L1_error)
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":53
- *             buf.write(value)
+  /* "clickhouse_driver/columns/stringcolumn.pyx":46
+ *         buf.write_strings(items)
  * 
  *     def read_items(self, n_items, buf):             # <<<<<<<<<<<<<<
  *         return buf.read_strings(n_items)
  * 
  */
-  __pyx_tuple__11 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_n_items, __pyx_n_s_buf); if (unlikely(!__pyx_tuple__11)) __PYX_ERR(0, 53, __pyx_L1_error)
+  __pyx_tuple__11 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_n_items, __pyx_n_s_buf); if (unlikely(!__pyx_tuple__11)) __PYX_ERR(0, 46, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__11);
   __Pyx_GIVEREF(__pyx_tuple__11);
-  __pyx_codeobj__12 = (PyObject*)__Pyx_PyCode_New(3, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__11, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_clickhouse_driver_columns_string_2, __pyx_n_s_read_items, 53, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__12)) __PYX_ERR(0, 53, __pyx_L1_error)
+  __pyx_codeobj__12 = (PyObject*)__Pyx_PyCode_New(3, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__11, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_clickhouse_driver_columns_string_2, __pyx_n_s_read_items, 46, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__12)) __PYX_ERR(0, 46, __pyx_L1_error)
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":60
+  /* "clickhouse_driver/columns/stringcolumn.pyx":53
  *     ch_type = 'FixedString'
  * 
  *     def __init__(self, length, **kwargs):             # <<<<<<<<<<<<<<
  *         self.length = length
  *         super(FixedString, self).__init__(**kwargs)
  */
-  __pyx_tuple__13 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_length, __pyx_n_s_kwargs); if (unlikely(!__pyx_tuple__13)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __pyx_tuple__13 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_length, __pyx_n_s_kwargs); if (unlikely(!__pyx_tuple__13)) __PYX_ERR(0, 53, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__13);
   __Pyx_GIVEREF(__pyx_tuple__13);
-  __pyx_codeobj__14 = (PyObject*)__Pyx_PyCode_New(2, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS|CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__13, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_clickhouse_driver_columns_string_2, __pyx_n_s_init, 60, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__14)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __pyx_codeobj__14 = (PyObject*)__Pyx_PyCode_New(2, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS|CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__13, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_clickhouse_driver_columns_string_2, __pyx_n_s_init, 53, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__14)) __PYX_ERR(0, 53, __pyx_L1_error)
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":64
+  /* "clickhouse_driver/columns/stringcolumn.pyx":57
  *         super(FixedString, self).__init__(**kwargs)
  * 
  *     def read_items(self, Py_ssize_t n_items, buf):             # <<<<<<<<<<<<<<
  *         cdef Py_ssize_t i, j, length = self.length
  *         data = buf.read(length * n_items)
  */
-  __pyx_tuple__15 = PyTuple_Pack(11, __pyx_n_s_self, __pyx_n_s_n_items, __pyx_n_s_buf, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_length, __pyx_n_s_data, __pyx_n_s_data_ptr, __pyx_n_s_c_string, __pyx_n_s_items, __pyx_n_s_item); if (unlikely(!__pyx_tuple__15)) __PYX_ERR(0, 64, __pyx_L1_error)
+  __pyx_tuple__15 = PyTuple_Pack(11, __pyx_n_s_self, __pyx_n_s_n_items, __pyx_n_s_buf, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_length, __pyx_n_s_data, __pyx_n_s_data_ptr, __pyx_n_s_c_string, __pyx_n_s_items, __pyx_n_s_item); if (unlikely(!__pyx_tuple__15)) __PYX_ERR(0, 57, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__15);
   __Pyx_GIVEREF(__pyx_tuple__15);
-  __pyx_codeobj__16 = (PyObject*)__Pyx_PyCode_New(3, 0, 11, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__15, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_clickhouse_driver_columns_string_2, __pyx_n_s_read_items, 64, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__16)) __PYX_ERR(0, 64, __pyx_L1_error)
+  __pyx_codeobj__16 = (PyObject*)__Pyx_PyCode_New(3, 0, 11, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__15, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_clickhouse_driver_columns_string_2, __pyx_n_s_read_items, 57, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__16)) __PYX_ERR(0, 57, __pyx_L1_error)
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":94
+  /* "clickhouse_driver/columns/stringcolumn.pyx":87
  *         return items
  * 
  *     def write_items(self, items, buf):             # <<<<<<<<<<<<<<
- *         length = self.length
- *         items_buf = bytearray(length * len(items))
+ *         cdef Py_ssize_t buf_pos = 0
+ *         cdef Py_ssize_t length = self.length
  */
-  __pyx_tuple__17 = PyTuple_Pack(9, __pyx_n_s_self, __pyx_n_s_items, __pyx_n_s_buf, __pyx_n_s_length, __pyx_n_s_items_buf, __pyx_n_s_items_buf_view, __pyx_n_s_buf_pos, __pyx_n_s_value, __pyx_n_s_value_len); if (unlikely(!__pyx_tuple__17)) __PYX_ERR(0, 94, __pyx_L1_error)
+  __pyx_tuple__17 = PyTuple_Pack(10, __pyx_n_s_self, __pyx_n_s_items, __pyx_n_s_buf, __pyx_n_s_buf_pos, __pyx_n_s_length, __pyx_n_s_items_buf_size, __pyx_n_s_c_value, __pyx_n_s_items_buf, __pyx_n_s_value, __pyx_n_s_value_len); if (unlikely(!__pyx_tuple__17)) __PYX_ERR(0, 87, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__17);
   __Pyx_GIVEREF(__pyx_tuple__17);
-  __pyx_codeobj__18 = (PyObject*)__Pyx_PyCode_New(3, 0, 9, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__17, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_clickhouse_driver_columns_string_2, __pyx_n_s_write_items, 94, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__18)) __PYX_ERR(0, 94, __pyx_L1_error)
+  __pyx_codeobj__18 = (PyObject*)__Pyx_PyCode_New(3, 0, 10, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__17, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_clickhouse_driver_columns_string_2, __pyx_n_s_write_items, 87, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__18)) __PYX_ERR(0, 87, __pyx_L1_error)
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":118
+  /* "clickhouse_driver/columns/stringcolumn.pyx":124
  *     null_value = b''
  * 
  *     def read_items(self, Py_ssize_t n_items, buf):             # <<<<<<<<<<<<<<
  *         cdef Py_ssize_t i
  *         cdef Py_ssize_t length = self.length
  */
-  __pyx_tuple__19 = PyTuple_Pack(9, __pyx_n_s_self, __pyx_n_s_n_items, __pyx_n_s_buf, __pyx_n_s_i, __pyx_n_s_length, __pyx_n_s_data, __pyx_n_s_data_ptr, __pyx_n_s_items, __pyx_n_s_item); if (unlikely(!__pyx_tuple__19)) __PYX_ERR(0, 118, __pyx_L1_error)
+  __pyx_tuple__19 = PyTuple_Pack(9, __pyx_n_s_self, __pyx_n_s_n_items, __pyx_n_s_buf, __pyx_n_s_i, __pyx_n_s_length, __pyx_n_s_data, __pyx_n_s_data_ptr, __pyx_n_s_items, __pyx_n_s_item); if (unlikely(!__pyx_tuple__19)) __PYX_ERR(0, 124, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__19);
   __Pyx_GIVEREF(__pyx_tuple__19);
-  __pyx_codeobj__20 = (PyObject*)__Pyx_PyCode_New(3, 0, 9, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__19, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_clickhouse_driver_columns_string_2, __pyx_n_s_read_items, 118, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__20)) __PYX_ERR(0, 118, __pyx_L1_error)
+  __pyx_codeobj__20 = (PyObject*)__Pyx_PyCode_New(3, 0, 9, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__19, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_clickhouse_driver_columns_string_2, __pyx_n_s_read_items, 124, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__20)) __PYX_ERR(0, 124, __pyx_L1_error)
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":132
+  /* "clickhouse_driver/columns/stringcolumn.pyx":138
  *         return items
  * 
  *     def write_items(self, items, buf):             # <<<<<<<<<<<<<<
- *         length = self.length
- *         items_buf = bytearray(length * len(items))
+ *         cdef Py_ssize_t buf_pos = 0
+ *         cdef Py_ssize_t length = self.length
  */
-  __pyx_tuple__21 = PyTuple_Pack(9, __pyx_n_s_self, __pyx_n_s_items, __pyx_n_s_buf, __pyx_n_s_length, __pyx_n_s_items_buf, __pyx_n_s_items_buf_view, __pyx_n_s_buf_pos, __pyx_n_s_value, __pyx_n_s_value_len); if (unlikely(!__pyx_tuple__21)) __PYX_ERR(0, 132, __pyx_L1_error)
+  __pyx_tuple__21 = PyTuple_Pack(10, __pyx_n_s_self, __pyx_n_s_items, __pyx_n_s_buf, __pyx_n_s_buf_pos, __pyx_n_s_length, __pyx_n_s_items_buf_size, __pyx_n_s_c_value, __pyx_n_s_items_buf, __pyx_n_s_value, __pyx_n_s_value_len); if (unlikely(!__pyx_tuple__21)) __PYX_ERR(0, 138, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__21);
   __Pyx_GIVEREF(__pyx_tuple__21);
-  __pyx_codeobj__22 = (PyObject*)__Pyx_PyCode_New(3, 0, 9, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__21, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_clickhouse_driver_columns_string_2, __pyx_n_s_write_items, 132, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__22)) __PYX_ERR(0, 132, __pyx_L1_error)
+  __pyx_codeobj__22 = (PyObject*)__Pyx_PyCode_New(3, 0, 10, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__21, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_clickhouse_driver_columns_string_2, __pyx_n_s_write_items, 138, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__22)) __PYX_ERR(0, 138, __pyx_L1_error)
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":149
+  /* "clickhouse_driver/columns/stringcolumn.pyx":168
  * 
  * 
  * def create_string_column(spec, column_options):             # <<<<<<<<<<<<<<
  *     client_settings = column_options['context'].client_settings
  *     strings_as_bytes = client_settings['strings_as_bytes']
  */
-  __pyx_tuple__23 = PyTuple_Pack(6, __pyx_n_s_spec, __pyx_n_s_column_options, __pyx_n_s_client_settings, __pyx_n_s_strings_as_bytes, __pyx_n_s_cls, __pyx_n_s_length); if (unlikely(!__pyx_tuple__23)) __PYX_ERR(0, 149, __pyx_L1_error)
+  __pyx_tuple__23 = PyTuple_Pack(6, __pyx_n_s_spec, __pyx_n_s_column_options, __pyx_n_s_client_settings, __pyx_n_s_strings_as_bytes, __pyx_n_s_cls, __pyx_n_s_length); if (unlikely(!__pyx_tuple__23)) __PYX_ERR(0, 168, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__23);
   __Pyx_GIVEREF(__pyx_tuple__23);
-  __pyx_codeobj__24 = (PyObject*)__Pyx_PyCode_New(2, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__23, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_clickhouse_driver_columns_string_2, __pyx_n_s_create_string_column, 149, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__24)) __PYX_ERR(0, 149, __pyx_L1_error)
+  __pyx_codeobj__24 = (PyObject*)__Pyx_PyCode_New(2, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__23, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_clickhouse_driver_columns_string_2, __pyx_n_s_create_string_column, 168, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__24)) __PYX_ERR(0, 168, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -4865,7 +4622,6 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
 
 static CYTHON_SMALL_CODE int __Pyx_InitGlobals(void) {
   if (__Pyx_InitStrings(__pyx_string_tab) < 0) __PYX_ERR(0, 1, __pyx_L1_error);
-  __pyx_int_0 = PyInt_FromLong(0); if (unlikely(!__pyx_int_0)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_12 = PyInt_FromLong(12); if (unlikely(!__pyx_int_12)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_neg_1 = PyInt_FromLong(-1); if (unlikely(!__pyx_int_neg_1)) __PYX_ERR(0, 1, __pyx_L1_error)
   return 0;
@@ -5164,89 +4920,68 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_patch_abc() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":10
- * from libc.string cimport memcpy
+  /* "clickhouse_driver/columns/stringcolumn.pyx":11
+ * from libc.string cimport memcpy, memset
  * 
  * from .. import errors             # <<<<<<<<<<<<<<
- * from ..varint import write_varint
  * from ..util import compat
+ * from .base import Column
  */
-  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 10, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 11, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_n_s_errors);
   __Pyx_GIVEREF(__pyx_n_s_errors);
   PyList_SET_ITEM(__pyx_t_1, 0, __pyx_n_s_errors);
-  __pyx_t_2 = __Pyx_Import(__pyx_n_s__2, __pyx_t_1, 2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 10, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_Import(__pyx_n_s__2, __pyx_t_1, 2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 11, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_errors); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 10, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_errors); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 11, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_errors, __pyx_t_1) < 0) __PYX_ERR(0, 10, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_errors, __pyx_t_1) < 0) __PYX_ERR(0, 11, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-
-  /* "clickhouse_driver/columns/stringcolumn.pyx":11
- * 
- * from .. import errors
- * from ..varint import write_varint             # <<<<<<<<<<<<<<
- * from ..util import compat
- * from .base import Column
- */
-  __pyx_t_2 = PyList_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 11, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_INCREF(__pyx_n_s_write_varint);
-  __Pyx_GIVEREF(__pyx_n_s_write_varint);
-  PyList_SET_ITEM(__pyx_t_2, 0, __pyx_n_s_write_varint);
-  __pyx_t_1 = __Pyx_Import(__pyx_n_s_varint, __pyx_t_2, 2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 11, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_ImportFrom(__pyx_t_1, __pyx_n_s_write_varint); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 11, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_write_varint, __pyx_t_2) < 0) __PYX_ERR(0, 11, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "clickhouse_driver/columns/stringcolumn.pyx":12
+ * 
  * from .. import errors
- * from ..varint import write_varint
  * from ..util import compat             # <<<<<<<<<<<<<<
  * from .base import Column
  * 
  */
-  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 12, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = PyList_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 12, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_n_s_compat);
   __Pyx_GIVEREF(__pyx_n_s_compat);
-  PyList_SET_ITEM(__pyx_t_1, 0, __pyx_n_s_compat);
-  __pyx_t_2 = __Pyx_Import(__pyx_n_s_util, __pyx_t_1, 2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 12, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_compat); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 12, __pyx_L1_error)
+  PyList_SET_ITEM(__pyx_t_2, 0, __pyx_n_s_compat);
+  __pyx_t_1 = __Pyx_Import(__pyx_n_s_util, __pyx_t_2, 2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 12, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_compat, __pyx_t_1) < 0) __PYX_ERR(0, 12, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = __Pyx_ImportFrom(__pyx_t_1, __pyx_n_s_compat); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 12, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_compat, __pyx_t_2) < 0) __PYX_ERR(0, 12, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "clickhouse_driver/columns/stringcolumn.pyx":13
- * from ..varint import write_varint
+ * from .. import errors
  * from ..util import compat
  * from .base import Column             # <<<<<<<<<<<<<<
  * 
  * from codecs import utf_8_encode
  */
-  __pyx_t_2 = PyList_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 13, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 13, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_n_s_Column);
   __Pyx_GIVEREF(__pyx_n_s_Column);
-  PyList_SET_ITEM(__pyx_t_2, 0, __pyx_n_s_Column);
-  __pyx_t_1 = __Pyx_Import(__pyx_n_s_base, __pyx_t_2, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 13, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_ImportFrom(__pyx_t_1, __pyx_n_s_Column); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 13, __pyx_L1_error)
+  PyList_SET_ITEM(__pyx_t_1, 0, __pyx_n_s_Column);
+  __pyx_t_2 = __Pyx_Import(__pyx_n_s_base, __pyx_t_1, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 13, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_Column, __pyx_t_2) < 0) __PYX_ERR(0, 13, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_Column); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 13, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_Column, __pyx_t_1) < 0) __PYX_ERR(0, 13, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "clickhouse_driver/columns/stringcolumn.pyx":15
  * from .base import Column
@@ -5255,19 +4990,19 @@ if (!__Pyx_RefNanny) {
  * 
  * 
  */
-  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 15, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = PyList_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 15, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_n_s_utf_8_encode);
   __Pyx_GIVEREF(__pyx_n_s_utf_8_encode);
-  PyList_SET_ITEM(__pyx_t_1, 0, __pyx_n_s_utf_8_encode);
-  __pyx_t_2 = __Pyx_Import(__pyx_n_s_codecs, __pyx_t_1, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 15, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_utf_8_encode); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 15, __pyx_L1_error)
+  PyList_SET_ITEM(__pyx_t_2, 0, __pyx_n_s_utf_8_encode);
+  __pyx_t_1 = __Pyx_Import(__pyx_n_s_codecs, __pyx_t_2, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 15, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_utf_8_encode, __pyx_t_1) < 0) __PYX_ERR(0, 15, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = __Pyx_ImportFrom(__pyx_t_1, __pyx_n_s_utf_8_encode); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 15, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_utf_8_encode, __pyx_t_2) < 0) __PYX_ERR(0, 15, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "clickhouse_driver/columns/stringcolumn.pyx":18
  * 
@@ -5276,16 +5011,16 @@ if (!__Pyx_RefNanny) {
  *     ch_type = 'String'
  *     py_types = compat.string_types
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_Column); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 18, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 18, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_Column); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 18, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_2);
-  PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_2);
-  __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_CalculateMetaclass(NULL, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 18, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 18, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_Py3MetaclassPrepare(__pyx_t_2, __pyx_t_1, __pyx_n_s_String, __pyx_n_s_String, (PyObject *) NULL, __pyx_n_s_clickhouse_driver_columns_string, (PyObject *) NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 18, __pyx_L1_error)
+  __Pyx_GIVEREF(__pyx_t_1);
+  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
+  __pyx_t_1 = 0;
+  __pyx_t_1 = __Pyx_CalculateMetaclass(NULL, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 18, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_3 = __Pyx_Py3MetaclassPrepare(__pyx_t_1, __pyx_t_2, __pyx_n_s_String, __pyx_n_s_String, (PyObject *) NULL, __pyx_n_s_clickhouse_driver_columns_string, (PyObject *) NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 18, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
 
   /* "clickhouse_driver/columns/stringcolumn.pyx":19
@@ -5337,24 +5072,24 @@ if (!__Pyx_RefNanny) {
  *             return value, False
  * 
  *     def write_items(self, items, buf):             # <<<<<<<<<<<<<<
- *         for value in items:
- *             if not isinstance(value, bytes):
+ *         buf.write_strings(items, encode=True)
+ * 
  */
   __pyx_t_5 = __Pyx_CyFunction_NewEx(&__pyx_mdef_17clickhouse_driver_7columns_12stringcolumn_6String_3write_items, 0, __pyx_n_s_String_write_items, NULL, __pyx_n_s_clickhouse_driver_columns_string, __pyx_d, ((PyObject *)__pyx_codeobj__6)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 32, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_write_items, __pyx_t_5) < 0) __PYX_ERR(0, 32, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":40
- *             buf.write(value)
+  /* "clickhouse_driver/columns/stringcolumn.pyx":35
+ *         buf.write_strings(items, encode=True)
  * 
  *     def read_items(self, n_items, buf):             # <<<<<<<<<<<<<<
  *         return buf.read_strings(n_items, decode=True)
  * 
  */
-  __pyx_t_5 = __Pyx_CyFunction_NewEx(&__pyx_mdef_17clickhouse_driver_7columns_12stringcolumn_6String_5read_items, 0, __pyx_n_s_String_read_items, NULL, __pyx_n_s_clickhouse_driver_columns_string, __pyx_d, ((PyObject *)__pyx_codeobj__8)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 40, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_CyFunction_NewEx(&__pyx_mdef_17clickhouse_driver_7columns_12stringcolumn_6String_5read_items, 0, __pyx_n_s_String_read_items, NULL, __pyx_n_s_clickhouse_driver_columns_string, __pyx_d, ((PyObject *)__pyx_codeobj__8)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 35, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_read_items, __pyx_t_5) < 0) __PYX_ERR(0, 40, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_read_items, __pyx_t_5) < 0) __PYX_ERR(0, 35, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
   /* "clickhouse_driver/columns/stringcolumn.pyx":18
@@ -5364,41 +5099,41 @@ if (!__Pyx_RefNanny) {
  *     ch_type = 'String'
  *     py_types = compat.string_types
  */
-  __pyx_t_5 = __Pyx_Py3ClassCreate(__pyx_t_2, __pyx_n_s_String, __pyx_t_1, __pyx_t_3, NULL, 0, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 18, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_Py3ClassCreate(__pyx_t_1, __pyx_n_s_String, __pyx_t_2, __pyx_t_3, NULL, 0, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 18, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_String, __pyx_t_5) < 0) __PYX_ERR(0, 18, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":44
+  /* "clickhouse_driver/columns/stringcolumn.pyx":39
  * 
  * 
  * class ByteString(String):             # <<<<<<<<<<<<<<
  *     py_types = (bytearray, bytes)
  *     null_value = b''
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_String); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 44, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 44, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_String); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 39, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
-  __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_CalculateMetaclass(NULL, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 44, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 39, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_Py3MetaclassPrepare(__pyx_t_1, __pyx_t_2, __pyx_n_s_ByteString, __pyx_n_s_ByteString, (PyObject *) NULL, __pyx_n_s_clickhouse_driver_columns_string, (PyObject *) NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 44, __pyx_L1_error)
+  __Pyx_GIVEREF(__pyx_t_2);
+  PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_2);
+  __pyx_t_2 = 0;
+  __pyx_t_2 = __Pyx_CalculateMetaclass(NULL, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 39, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = __Pyx_Py3MetaclassPrepare(__pyx_t_2, __pyx_t_1, __pyx_n_s_ByteString, __pyx_n_s_ByteString, (PyObject *) NULL, __pyx_n_s_clickhouse_driver_columns_string, (PyObject *) NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 39, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":45
+  /* "clickhouse_driver/columns/stringcolumn.pyx":40
  * 
  * class ByteString(String):
  *     py_types = (bytearray, bytes)             # <<<<<<<<<<<<<<
  *     null_value = b''
  * 
  */
-  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 45, __pyx_L1_error)
+  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 40, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_INCREF(((PyObject *)(&PyByteArray_Type)));
   __Pyx_GIVEREF(((PyObject *)(&PyByteArray_Type)));
@@ -5406,163 +5141,163 @@ if (!__Pyx_RefNanny) {
   __Pyx_INCREF(((PyObject *)(&PyBytes_Type)));
   __Pyx_GIVEREF(((PyObject *)(&PyBytes_Type)));
   PyTuple_SET_ITEM(__pyx_t_5, 1, ((PyObject *)(&PyBytes_Type)));
-  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_py_types, __pyx_t_5) < 0) __PYX_ERR(0, 45, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_py_types, __pyx_t_5) < 0) __PYX_ERR(0, 40, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":46
+  /* "clickhouse_driver/columns/stringcolumn.pyx":41
  * class ByteString(String):
  *     py_types = (bytearray, bytes)
  *     null_value = b''             # <<<<<<<<<<<<<<
  * 
  *     def write_items(self, items, buf):
  */
-  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_null_value, __pyx_kp_b__2) < 0) __PYX_ERR(0, 46, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_null_value, __pyx_kp_b__2) < 0) __PYX_ERR(0, 41, __pyx_L1_error)
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":48
+  /* "clickhouse_driver/columns/stringcolumn.pyx":43
  *     null_value = b''
  * 
  *     def write_items(self, items, buf):             # <<<<<<<<<<<<<<
- *         for value in items:
- *             write_varint(len(value), buf)
+ *         buf.write_strings(items)
+ * 
  */
-  __pyx_t_5 = __Pyx_CyFunction_NewEx(&__pyx_mdef_17clickhouse_driver_7columns_12stringcolumn_10ByteString_1write_items, 0, __pyx_n_s_ByteString_write_items, NULL, __pyx_n_s_clickhouse_driver_columns_string, __pyx_d, ((PyObject *)__pyx_codeobj__10)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 48, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_CyFunction_NewEx(&__pyx_mdef_17clickhouse_driver_7columns_12stringcolumn_10ByteString_1write_items, 0, __pyx_n_s_ByteString_write_items, NULL, __pyx_n_s_clickhouse_driver_columns_string, __pyx_d, ((PyObject *)__pyx_codeobj__10)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 43, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_write_items, __pyx_t_5) < 0) __PYX_ERR(0, 48, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_write_items, __pyx_t_5) < 0) __PYX_ERR(0, 43, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":53
- *             buf.write(value)
+  /* "clickhouse_driver/columns/stringcolumn.pyx":46
+ *         buf.write_strings(items)
  * 
  *     def read_items(self, n_items, buf):             # <<<<<<<<<<<<<<
  *         return buf.read_strings(n_items)
  * 
  */
-  __pyx_t_5 = __Pyx_CyFunction_NewEx(&__pyx_mdef_17clickhouse_driver_7columns_12stringcolumn_10ByteString_3read_items, 0, __pyx_n_s_ByteString_read_items, NULL, __pyx_n_s_clickhouse_driver_columns_string, __pyx_d, ((PyObject *)__pyx_codeobj__12)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 53, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_CyFunction_NewEx(&__pyx_mdef_17clickhouse_driver_7columns_12stringcolumn_10ByteString_3read_items, 0, __pyx_n_s_ByteString_read_items, NULL, __pyx_n_s_clickhouse_driver_columns_string, __pyx_d, ((PyObject *)__pyx_codeobj__12)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 46, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_read_items, __pyx_t_5) < 0) __PYX_ERR(0, 53, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_read_items, __pyx_t_5) < 0) __PYX_ERR(0, 46, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":44
+  /* "clickhouse_driver/columns/stringcolumn.pyx":39
  * 
  * 
  * class ByteString(String):             # <<<<<<<<<<<<<<
  *     py_types = (bytearray, bytes)
  *     null_value = b''
  */
-  __pyx_t_5 = __Pyx_Py3ClassCreate(__pyx_t_1, __pyx_n_s_ByteString, __pyx_t_2, __pyx_t_3, NULL, 0, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 44, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_Py3ClassCreate(__pyx_t_2, __pyx_n_s_ByteString, __pyx_t_1, __pyx_t_3, NULL, 0, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 39, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_ByteString, __pyx_t_5) < 0) __PYX_ERR(0, 44, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_ByteString, __pyx_t_5) < 0) __PYX_ERR(0, 39, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":57
+  /* "clickhouse_driver/columns/stringcolumn.pyx":50
  * 
  * 
  * class FixedString(String):             # <<<<<<<<<<<<<<
  *     ch_type = 'FixedString'
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_String); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 57, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 57, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_String); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_2);
-  PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_2);
-  __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_CalculateMetaclass(NULL, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 57, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_Py3MetaclassPrepare(__pyx_t_2, __pyx_t_1, __pyx_n_s_FixedString, __pyx_n_s_FixedString, (PyObject *) NULL, __pyx_n_s_clickhouse_driver_columns_string, (PyObject *) NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 57, __pyx_L1_error)
+  __Pyx_GIVEREF(__pyx_t_1);
+  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
+  __pyx_t_1 = 0;
+  __pyx_t_1 = __Pyx_CalculateMetaclass(NULL, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 50, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_3 = __Pyx_Py3MetaclassPrepare(__pyx_t_1, __pyx_t_2, __pyx_n_s_FixedString, __pyx_n_s_FixedString, (PyObject *) NULL, __pyx_n_s_clickhouse_driver_columns_string, (PyObject *) NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":58
+  /* "clickhouse_driver/columns/stringcolumn.pyx":51
  * 
  * class FixedString(String):
  *     ch_type = 'FixedString'             # <<<<<<<<<<<<<<
  * 
  *     def __init__(self, length, **kwargs):
  */
-  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_ch_type, __pyx_n_u_FixedString) < 0) __PYX_ERR(0, 58, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_ch_type, __pyx_n_u_FixedString) < 0) __PYX_ERR(0, 51, __pyx_L1_error)
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":60
+  /* "clickhouse_driver/columns/stringcolumn.pyx":53
  *     ch_type = 'FixedString'
  * 
  *     def __init__(self, length, **kwargs):             # <<<<<<<<<<<<<<
  *         self.length = length
  *         super(FixedString, self).__init__(**kwargs)
  */
-  __pyx_t_5 = __Pyx_CyFunction_NewEx(&__pyx_mdef_17clickhouse_driver_7columns_12stringcolumn_11FixedString_1__init__, 0, __pyx_n_s_FixedString___init, NULL, __pyx_n_s_clickhouse_driver_columns_string, __pyx_d, ((PyObject *)__pyx_codeobj__14)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_CyFunction_NewEx(&__pyx_mdef_17clickhouse_driver_7columns_12stringcolumn_11FixedString_1__init__, 0, __pyx_n_s_FixedString___init, NULL, __pyx_n_s_clickhouse_driver_columns_string, __pyx_d, ((PyObject *)__pyx_codeobj__14)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 53, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_init, __pyx_t_5) < 0) __PYX_ERR(0, 60, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_init, __pyx_t_5) < 0) __PYX_ERR(0, 53, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":64
+  /* "clickhouse_driver/columns/stringcolumn.pyx":57
  *         super(FixedString, self).__init__(**kwargs)
  * 
  *     def read_items(self, Py_ssize_t n_items, buf):             # <<<<<<<<<<<<<<
  *         cdef Py_ssize_t i, j, length = self.length
  *         data = buf.read(length * n_items)
  */
-  __pyx_t_5 = __Pyx_CyFunction_NewEx(&__pyx_mdef_17clickhouse_driver_7columns_12stringcolumn_11FixedString_3read_items, 0, __pyx_n_s_FixedString_read_items, NULL, __pyx_n_s_clickhouse_driver_columns_string, __pyx_d, ((PyObject *)__pyx_codeobj__16)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 64, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_CyFunction_NewEx(&__pyx_mdef_17clickhouse_driver_7columns_12stringcolumn_11FixedString_3read_items, 0, __pyx_n_s_FixedString_read_items, NULL, __pyx_n_s_clickhouse_driver_columns_string, __pyx_d, ((PyObject *)__pyx_codeobj__16)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 57, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_read_items, __pyx_t_5) < 0) __PYX_ERR(0, 64, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_read_items, __pyx_t_5) < 0) __PYX_ERR(0, 57, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":94
+  /* "clickhouse_driver/columns/stringcolumn.pyx":87
  *         return items
  * 
  *     def write_items(self, items, buf):             # <<<<<<<<<<<<<<
- *         length = self.length
- *         items_buf = bytearray(length * len(items))
+ *         cdef Py_ssize_t buf_pos = 0
+ *         cdef Py_ssize_t length = self.length
  */
-  __pyx_t_5 = __Pyx_CyFunction_NewEx(&__pyx_mdef_17clickhouse_driver_7columns_12stringcolumn_11FixedString_5write_items, 0, __pyx_n_s_FixedString_write_items, NULL, __pyx_n_s_clickhouse_driver_columns_string, __pyx_d, ((PyObject *)__pyx_codeobj__18)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 94, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_CyFunction_NewEx(&__pyx_mdef_17clickhouse_driver_7columns_12stringcolumn_11FixedString_5write_items, 0, __pyx_n_s_FixedString_write_items, NULL, __pyx_n_s_clickhouse_driver_columns_string, __pyx_d, ((PyObject *)__pyx_codeobj__18)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 87, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_write_items, __pyx_t_5) < 0) __PYX_ERR(0, 94, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_write_items, __pyx_t_5) < 0) __PYX_ERR(0, 87, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":57
+  /* "clickhouse_driver/columns/stringcolumn.pyx":50
  * 
  * 
  * class FixedString(String):             # <<<<<<<<<<<<<<
  *     ch_type = 'FixedString'
  * 
  */
-  __pyx_t_5 = __Pyx_Py3ClassCreate(__pyx_t_2, __pyx_n_s_FixedString, __pyx_t_1, __pyx_t_3, NULL, 0, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 57, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_Py3ClassCreate(__pyx_t_1, __pyx_n_s_FixedString, __pyx_t_2, __pyx_t_3, NULL, 0, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_FixedString, __pyx_t_5) < 0) __PYX_ERR(0, 57, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_FixedString, __pyx_t_5) < 0) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":114
+  /* "clickhouse_driver/columns/stringcolumn.pyx":120
  * 
  * 
  * class ByteFixedString(FixedString):             # <<<<<<<<<<<<<<
  *     py_types = (bytearray, bytes)
  *     null_value = b''
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_FixedString); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 114, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 114, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_FixedString); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 120, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
-  __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_CalculateMetaclass(NULL, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 114, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 120, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_Py3MetaclassPrepare(__pyx_t_1, __pyx_t_2, __pyx_n_s_ByteFixedString, __pyx_n_s_ByteFixedString, (PyObject *) NULL, __pyx_n_s_clickhouse_driver_columns_string, (PyObject *) NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 114, __pyx_L1_error)
+  __Pyx_GIVEREF(__pyx_t_2);
+  PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_2);
+  __pyx_t_2 = 0;
+  __pyx_t_2 = __Pyx_CalculateMetaclass(NULL, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 120, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = __Pyx_Py3MetaclassPrepare(__pyx_t_2, __pyx_t_1, __pyx_n_s_ByteFixedString, __pyx_n_s_ByteFixedString, (PyObject *) NULL, __pyx_n_s_clickhouse_driver_columns_string, (PyObject *) NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 120, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":115
+  /* "clickhouse_driver/columns/stringcolumn.pyx":121
  * 
  * class ByteFixedString(FixedString):
  *     py_types = (bytearray, bytes)             # <<<<<<<<<<<<<<
  *     null_value = b''
  * 
  */
-  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 115, __pyx_L1_error)
+  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 121, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_INCREF(((PyObject *)(&PyByteArray_Type)));
   __Pyx_GIVEREF(((PyObject *)(&PyByteArray_Type)));
@@ -5570,78 +5305,78 @@ if (!__Pyx_RefNanny) {
   __Pyx_INCREF(((PyObject *)(&PyBytes_Type)));
   __Pyx_GIVEREF(((PyObject *)(&PyBytes_Type)));
   PyTuple_SET_ITEM(__pyx_t_5, 1, ((PyObject *)(&PyBytes_Type)));
-  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_py_types, __pyx_t_5) < 0) __PYX_ERR(0, 115, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_py_types, __pyx_t_5) < 0) __PYX_ERR(0, 121, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":116
+  /* "clickhouse_driver/columns/stringcolumn.pyx":122
  * class ByteFixedString(FixedString):
  *     py_types = (bytearray, bytes)
  *     null_value = b''             # <<<<<<<<<<<<<<
  * 
  *     def read_items(self, Py_ssize_t n_items, buf):
  */
-  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_null_value, __pyx_kp_b__2) < 0) __PYX_ERR(0, 116, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_null_value, __pyx_kp_b__2) < 0) __PYX_ERR(0, 122, __pyx_L1_error)
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":118
+  /* "clickhouse_driver/columns/stringcolumn.pyx":124
  *     null_value = b''
  * 
  *     def read_items(self, Py_ssize_t n_items, buf):             # <<<<<<<<<<<<<<
  *         cdef Py_ssize_t i
  *         cdef Py_ssize_t length = self.length
  */
-  __pyx_t_5 = __Pyx_CyFunction_NewEx(&__pyx_mdef_17clickhouse_driver_7columns_12stringcolumn_15ByteFixedString_1read_items, 0, __pyx_n_s_ByteFixedString_read_items, NULL, __pyx_n_s_clickhouse_driver_columns_string, __pyx_d, ((PyObject *)__pyx_codeobj__20)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 118, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_CyFunction_NewEx(&__pyx_mdef_17clickhouse_driver_7columns_12stringcolumn_15ByteFixedString_1read_items, 0, __pyx_n_s_ByteFixedString_read_items, NULL, __pyx_n_s_clickhouse_driver_columns_string, __pyx_d, ((PyObject *)__pyx_codeobj__20)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 124, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_read_items, __pyx_t_5) < 0) __PYX_ERR(0, 118, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_read_items, __pyx_t_5) < 0) __PYX_ERR(0, 124, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":132
+  /* "clickhouse_driver/columns/stringcolumn.pyx":138
  *         return items
  * 
  *     def write_items(self, items, buf):             # <<<<<<<<<<<<<<
- *         length = self.length
- *         items_buf = bytearray(length * len(items))
+ *         cdef Py_ssize_t buf_pos = 0
+ *         cdef Py_ssize_t length = self.length
  */
-  __pyx_t_5 = __Pyx_CyFunction_NewEx(&__pyx_mdef_17clickhouse_driver_7columns_12stringcolumn_15ByteFixedString_3write_items, 0, __pyx_n_s_ByteFixedString_write_items, NULL, __pyx_n_s_clickhouse_driver_columns_string, __pyx_d, ((PyObject *)__pyx_codeobj__22)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 132, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_CyFunction_NewEx(&__pyx_mdef_17clickhouse_driver_7columns_12stringcolumn_15ByteFixedString_3write_items, 0, __pyx_n_s_ByteFixedString_write_items, NULL, __pyx_n_s_clickhouse_driver_columns_string, __pyx_d, ((PyObject *)__pyx_codeobj__22)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 138, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_write_items, __pyx_t_5) < 0) __PYX_ERR(0, 132, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_write_items, __pyx_t_5) < 0) __PYX_ERR(0, 138, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":114
+  /* "clickhouse_driver/columns/stringcolumn.pyx":120
  * 
  * 
  * class ByteFixedString(FixedString):             # <<<<<<<<<<<<<<
  *     py_types = (bytearray, bytes)
  *     null_value = b''
  */
-  __pyx_t_5 = __Pyx_Py3ClassCreate(__pyx_t_1, __pyx_n_s_ByteFixedString, __pyx_t_2, __pyx_t_3, NULL, 0, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 114, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_Py3ClassCreate(__pyx_t_2, __pyx_n_s_ByteFixedString, __pyx_t_1, __pyx_t_3, NULL, 0, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 120, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_ByteFixedString, __pyx_t_5) < 0) __PYX_ERR(0, 114, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_ByteFixedString, __pyx_t_5) < 0) __PYX_ERR(0, 120, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "clickhouse_driver/columns/stringcolumn.pyx":149
+  /* "clickhouse_driver/columns/stringcolumn.pyx":168
  * 
  * 
  * def create_string_column(spec, column_options):             # <<<<<<<<<<<<<<
  *     client_settings = column_options['context'].client_settings
  *     strings_as_bytes = client_settings['strings_as_bytes']
  */
-  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_17clickhouse_driver_7columns_12stringcolumn_1create_string_column, NULL, __pyx_n_s_clickhouse_driver_columns_string); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 149, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_create_string_column, __pyx_t_2) < 0) __PYX_ERR(0, 149, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_17clickhouse_driver_7columns_12stringcolumn_1create_string_column, NULL, __pyx_n_s_clickhouse_driver_columns_string); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 168, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_create_string_column, __pyx_t_1) < 0) __PYX_ERR(0, 168, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "clickhouse_driver/columns/stringcolumn.pyx":1
- * from cpython cimport Py_INCREF, PyBytes_FromStringAndSize             # <<<<<<<<<<<<<<
+ * from cpython cimport Py_INCREF, PyBytes_AsString, PyBytes_FromStringAndSize, \             # <<<<<<<<<<<<<<
+ *     PyBytes_Check
  * from cpython.bytearray cimport PyByteArray_AsString, \
- *     PyByteArray_FromStringAndSize
  */
-  __pyx_t_2 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_test, __pyx_t_2) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_1 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_test, __pyx_t_1) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /*--- Wrapped vars code ---*/
 
@@ -5859,66 +5594,25 @@ bad:
     return -1;
 }
 
-/* PyDictVersioning */
-#if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_TYPE_SLOTS
-static CYTHON_INLINE PY_UINT64_T __Pyx_get_tp_dict_version(PyObject *obj) {
-    PyObject *dict = Py_TYPE(obj)->tp_dict;
-    return likely(dict) ? __PYX_GET_DICT_VERSION(dict) : 0;
-}
-static CYTHON_INLINE PY_UINT64_T __Pyx_get_object_dict_version(PyObject *obj) {
-    PyObject **dictptr = NULL;
-    Py_ssize_t offset = Py_TYPE(obj)->tp_dictoffset;
-    if (offset) {
+/* PyObjectCall */
 #if CYTHON_COMPILING_IN_CPYTHON
-        dictptr = (likely(offset > 0)) ? (PyObject **) ((char *)obj + offset) : _PyObject_GetDictPtr(obj);
-#else
-        dictptr = _PyObject_GetDictPtr(obj);
-#endif
-    }
-    return (dictptr && *dictptr) ? __PYX_GET_DICT_VERSION(*dictptr) : 0;
-}
-static CYTHON_INLINE int __Pyx_object_dict_version_matches(PyObject* obj, PY_UINT64_T tp_dict_version, PY_UINT64_T obj_dict_version) {
-    PyObject *dict = Py_TYPE(obj)->tp_dict;
-    if (unlikely(!dict) || unlikely(tp_dict_version != __PYX_GET_DICT_VERSION(dict)))
-        return 0;
-    return obj_dict_version == __Pyx_get_object_dict_version(obj);
-}
-#endif
-
-/* GetModuleGlobalName */
-#if CYTHON_USE_DICT_VERSIONS
-static PyObject *__Pyx__GetModuleGlobalName(PyObject *name, PY_UINT64_T *dict_version, PyObject **dict_cached_value)
-#else
-static CYTHON_INLINE PyObject *__Pyx__GetModuleGlobalName(PyObject *name)
-#endif
-{
+static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw) {
     PyObject *result;
-#if !CYTHON_AVOID_BORROWED_REFS
-#if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030500A1
-    result = _PyDict_GetItem_KnownHash(__pyx_d, name, ((PyASCIIObject *) name)->hash);
-    __PYX_UPDATE_DICT_CACHE(__pyx_d, result, *dict_cached_value, *dict_version)
-    if (likely(result)) {
-        return __Pyx_NewRef(result);
-    } else if (unlikely(PyErr_Occurred())) {
+    ternaryfunc call = func->ob_type->tp_call;
+    if (unlikely(!call))
+        return PyObject_Call(func, arg, kw);
+    if (unlikely(Py_EnterRecursiveCall((char*)" while calling a Python object")))
         return NULL;
+    result = (*call)(func, arg, kw);
+    Py_LeaveRecursiveCall();
+    if (unlikely(!result) && unlikely(!PyErr_Occurred())) {
+        PyErr_SetString(
+            PyExc_SystemError,
+            "NULL result without error in PyObject_Call");
     }
-#else
-    result = PyDict_GetItem(__pyx_d, name);
-    __PYX_UPDATE_DICT_CACHE(__pyx_d, result, *dict_cached_value, *dict_version)
-    if (likely(result)) {
-        return __Pyx_NewRef(result);
-    }
-#endif
-#else
-    result = PyObject_GetItem(__pyx_d, name);
-    __PYX_UPDATE_DICT_CACHE(__pyx_d, result, *dict_cached_value, *dict_version)
-    if (likely(result)) {
-        return __Pyx_NewRef(result);
-    }
-    PyErr_Clear();
-#endif
-    return __Pyx_GetBuiltinName(name);
+    return result;
 }
+#endif
 
 /* PyCFunctionFastCall */
 #if CYTHON_FAST_PYCCALL
@@ -6062,26 +5756,6 @@ done:
 #endif
 #endif
 
-/* PyObjectCall */
-#if CYTHON_COMPILING_IN_CPYTHON
-static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw) {
-    PyObject *result;
-    ternaryfunc call = func->ob_type->tp_call;
-    if (unlikely(!call))
-        return PyObject_Call(func, arg, kw);
-    if (unlikely(Py_EnterRecursiveCall((char*)" while calling a Python object")))
-        return NULL;
-    result = (*call)(func, arg, kw);
-    Py_LeaveRecursiveCall();
-    if (unlikely(!result) && unlikely(!PyErr_Occurred())) {
-        PyErr_SetString(
-            PyExc_SystemError,
-            "NULL result without error in PyObject_Call");
-    }
-    return result;
-}
-#endif
-
 /* PyObjectCall2Args */
 static CYTHON_UNUSED PyObject* __Pyx_PyObject_Call2Args(PyObject* function, PyObject* arg1, PyObject* arg2) {
     PyObject *args, *result = NULL;
@@ -6171,93 +5845,6 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObjec
 }
 #endif
 
-/* GetItemInt */
-static PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j) {
-    PyObject *r;
-    if (!j) return NULL;
-    r = PyObject_GetItem(o, j);
-    Py_DECREF(j);
-    return r;
-}
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_List_Fast(PyObject *o, Py_ssize_t i,
-                                                              CYTHON_NCP_UNUSED int wraparound,
-                                                              CYTHON_NCP_UNUSED int boundscheck) {
-#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-    Py_ssize_t wrapped_i = i;
-    if (wraparound & unlikely(i < 0)) {
-        wrapped_i += PyList_GET_SIZE(o);
-    }
-    if ((!boundscheck) || likely(__Pyx_is_valid_index(wrapped_i, PyList_GET_SIZE(o)))) {
-        PyObject *r = PyList_GET_ITEM(o, wrapped_i);
-        Py_INCREF(r);
-        return r;
-    }
-    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
-#else
-    return PySequence_GetItem(o, i);
-#endif
-}
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Tuple_Fast(PyObject *o, Py_ssize_t i,
-                                                              CYTHON_NCP_UNUSED int wraparound,
-                                                              CYTHON_NCP_UNUSED int boundscheck) {
-#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-    Py_ssize_t wrapped_i = i;
-    if (wraparound & unlikely(i < 0)) {
-        wrapped_i += PyTuple_GET_SIZE(o);
-    }
-    if ((!boundscheck) || likely(__Pyx_is_valid_index(wrapped_i, PyTuple_GET_SIZE(o)))) {
-        PyObject *r = PyTuple_GET_ITEM(o, wrapped_i);
-        Py_INCREF(r);
-        return r;
-    }
-    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
-#else
-    return PySequence_GetItem(o, i);
-#endif
-}
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i, int is_list,
-                                                     CYTHON_NCP_UNUSED int wraparound,
-                                                     CYTHON_NCP_UNUSED int boundscheck) {
-#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS && CYTHON_USE_TYPE_SLOTS
-    if (is_list || PyList_CheckExact(o)) {
-        Py_ssize_t n = ((!wraparound) | likely(i >= 0)) ? i : i + PyList_GET_SIZE(o);
-        if ((!boundscheck) || (likely(__Pyx_is_valid_index(n, PyList_GET_SIZE(o))))) {
-            PyObject *r = PyList_GET_ITEM(o, n);
-            Py_INCREF(r);
-            return r;
-        }
-    }
-    else if (PyTuple_CheckExact(o)) {
-        Py_ssize_t n = ((!wraparound) | likely(i >= 0)) ? i : i + PyTuple_GET_SIZE(o);
-        if ((!boundscheck) || likely(__Pyx_is_valid_index(n, PyTuple_GET_SIZE(o)))) {
-            PyObject *r = PyTuple_GET_ITEM(o, n);
-            Py_INCREF(r);
-            return r;
-        }
-    } else {
-        PySequenceMethods *m = Py_TYPE(o)->tp_as_sequence;
-        if (likely(m && m->sq_item)) {
-            if (wraparound && unlikely(i < 0) && likely(m->sq_length)) {
-                Py_ssize_t l = m->sq_length(o);
-                if (likely(l >= 0)) {
-                    i += l;
-                } else {
-                    if (!PyErr_ExceptionMatches(PyExc_OverflowError))
-                        return NULL;
-                    PyErr_Clear();
-                }
-            }
-            return m->sq_item(o, i);
-        }
-    }
-#else
-    if (is_list || PySequence_Check(o)) {
-        return PySequence_GetItem(o, i);
-    }
-#endif
-    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
-}
-
 /* PyObjectSetAttrStr */
 #if CYTHON_USE_TYPE_SLOTS
 static CYTHON_INLINE int __Pyx_PyObject_SetAttrStr(PyObject* obj, PyObject* attr_name, PyObject* value) {
@@ -6271,6 +5858,67 @@ static CYTHON_INLINE int __Pyx_PyObject_SetAttrStr(PyObject* obj, PyObject* attr
     return PyObject_SetAttr(obj, attr_name, value);
 }
 #endif
+
+/* PyDictVersioning */
+#if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_TYPE_SLOTS
+static CYTHON_INLINE PY_UINT64_T __Pyx_get_tp_dict_version(PyObject *obj) {
+    PyObject *dict = Py_TYPE(obj)->tp_dict;
+    return likely(dict) ? __PYX_GET_DICT_VERSION(dict) : 0;
+}
+static CYTHON_INLINE PY_UINT64_T __Pyx_get_object_dict_version(PyObject *obj) {
+    PyObject **dictptr = NULL;
+    Py_ssize_t offset = Py_TYPE(obj)->tp_dictoffset;
+    if (offset) {
+#if CYTHON_COMPILING_IN_CPYTHON
+        dictptr = (likely(offset > 0)) ? (PyObject **) ((char *)obj + offset) : _PyObject_GetDictPtr(obj);
+#else
+        dictptr = _PyObject_GetDictPtr(obj);
+#endif
+    }
+    return (dictptr && *dictptr) ? __PYX_GET_DICT_VERSION(*dictptr) : 0;
+}
+static CYTHON_INLINE int __Pyx_object_dict_version_matches(PyObject* obj, PY_UINT64_T tp_dict_version, PY_UINT64_T obj_dict_version) {
+    PyObject *dict = Py_TYPE(obj)->tp_dict;
+    if (unlikely(!dict) || unlikely(tp_dict_version != __PYX_GET_DICT_VERSION(dict)))
+        return 0;
+    return obj_dict_version == __Pyx_get_object_dict_version(obj);
+}
+#endif
+
+/* GetModuleGlobalName */
+#if CYTHON_USE_DICT_VERSIONS
+static PyObject *__Pyx__GetModuleGlobalName(PyObject *name, PY_UINT64_T *dict_version, PyObject **dict_cached_value)
+#else
+static CYTHON_INLINE PyObject *__Pyx__GetModuleGlobalName(PyObject *name)
+#endif
+{
+    PyObject *result;
+#if !CYTHON_AVOID_BORROWED_REFS
+#if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030500A1
+    result = _PyDict_GetItem_KnownHash(__pyx_d, name, ((PyASCIIObject *) name)->hash);
+    __PYX_UPDATE_DICT_CACHE(__pyx_d, result, *dict_cached_value, *dict_version)
+    if (likely(result)) {
+        return __Pyx_NewRef(result);
+    } else if (unlikely(PyErr_Occurred())) {
+        return NULL;
+    }
+#else
+    result = PyDict_GetItem(__pyx_d, name);
+    __PYX_UPDATE_DICT_CACHE(__pyx_d, result, *dict_cached_value, *dict_version)
+    if (likely(result)) {
+        return __Pyx_NewRef(result);
+    }
+#endif
+#else
+    result = PyObject_GetItem(__pyx_d, name);
+    __PYX_UPDATE_DICT_CACHE(__pyx_d, result, *dict_cached_value, *dict_version)
+    if (likely(result)) {
+        return __Pyx_NewRef(result);
+    }
+    PyErr_Clear();
+#endif
+    return __Pyx_GetBuiltinName(name);
+}
 
 /* decode_c_string */
 static CYTHON_INLINE PyObject* __Pyx_decode_c_string(
@@ -6458,6 +6106,93 @@ bad:
     Py_XDECREF(local_value);
     Py_XDECREF(local_tb);
     return -1;
+}
+
+/* GetItemInt */
+static PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j) {
+    PyObject *r;
+    if (!j) return NULL;
+    r = PyObject_GetItem(o, j);
+    Py_DECREF(j);
+    return r;
+}
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_List_Fast(PyObject *o, Py_ssize_t i,
+                                                              CYTHON_NCP_UNUSED int wraparound,
+                                                              CYTHON_NCP_UNUSED int boundscheck) {
+#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+    Py_ssize_t wrapped_i = i;
+    if (wraparound & unlikely(i < 0)) {
+        wrapped_i += PyList_GET_SIZE(o);
+    }
+    if ((!boundscheck) || likely(__Pyx_is_valid_index(wrapped_i, PyList_GET_SIZE(o)))) {
+        PyObject *r = PyList_GET_ITEM(o, wrapped_i);
+        Py_INCREF(r);
+        return r;
+    }
+    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
+#else
+    return PySequence_GetItem(o, i);
+#endif
+}
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Tuple_Fast(PyObject *o, Py_ssize_t i,
+                                                              CYTHON_NCP_UNUSED int wraparound,
+                                                              CYTHON_NCP_UNUSED int boundscheck) {
+#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+    Py_ssize_t wrapped_i = i;
+    if (wraparound & unlikely(i < 0)) {
+        wrapped_i += PyTuple_GET_SIZE(o);
+    }
+    if ((!boundscheck) || likely(__Pyx_is_valid_index(wrapped_i, PyTuple_GET_SIZE(o)))) {
+        PyObject *r = PyTuple_GET_ITEM(o, wrapped_i);
+        Py_INCREF(r);
+        return r;
+    }
+    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
+#else
+    return PySequence_GetItem(o, i);
+#endif
+}
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i, int is_list,
+                                                     CYTHON_NCP_UNUSED int wraparound,
+                                                     CYTHON_NCP_UNUSED int boundscheck) {
+#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS && CYTHON_USE_TYPE_SLOTS
+    if (is_list || PyList_CheckExact(o)) {
+        Py_ssize_t n = ((!wraparound) | likely(i >= 0)) ? i : i + PyList_GET_SIZE(o);
+        if ((!boundscheck) || (likely(__Pyx_is_valid_index(n, PyList_GET_SIZE(o))))) {
+            PyObject *r = PyList_GET_ITEM(o, n);
+            Py_INCREF(r);
+            return r;
+        }
+    }
+    else if (PyTuple_CheckExact(o)) {
+        Py_ssize_t n = ((!wraparound) | likely(i >= 0)) ? i : i + PyTuple_GET_SIZE(o);
+        if ((!boundscheck) || likely(__Pyx_is_valid_index(n, PyTuple_GET_SIZE(o)))) {
+            PyObject *r = PyTuple_GET_ITEM(o, n);
+            Py_INCREF(r);
+            return r;
+        }
+    } else {
+        PySequenceMethods *m = Py_TYPE(o)->tp_as_sequence;
+        if (likely(m && m->sq_item)) {
+            if (wraparound && unlikely(i < 0) && likely(m->sq_length)) {
+                Py_ssize_t l = m->sq_length(o);
+                if (likely(l >= 0)) {
+                    i += l;
+                } else {
+                    if (!PyErr_ExceptionMatches(PyExc_OverflowError))
+                        return NULL;
+                    PyErr_Clear();
+                }
+            }
+            return m->sq_item(o, i);
+        }
+    }
+#else
+    if (is_list || PySequence_Check(o)) {
+        return PySequence_GetItem(o, i);
+    }
+#endif
+    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
 }
 
 /* PyObjectCallNoArg */
@@ -6664,104 +6399,6 @@ bad:
     return;
 }
 #endif
-
-/* SliceObject */
-static CYTHON_INLINE int __Pyx_PyObject_SetSlice(PyObject* obj, PyObject* value,
-        Py_ssize_t cstart, Py_ssize_t cstop,
-        PyObject** _py_start, PyObject** _py_stop, PyObject** _py_slice,
-        int has_cstart, int has_cstop, CYTHON_UNUSED int wraparound) {
-#if CYTHON_USE_TYPE_SLOTS
-    PyMappingMethods* mp;
-#if PY_MAJOR_VERSION < 3
-    PySequenceMethods* ms = Py_TYPE(obj)->tp_as_sequence;
-    if (likely(ms && ms->sq_ass_slice)) {
-        if (!has_cstart) {
-            if (_py_start && (*_py_start != Py_None)) {
-                cstart = __Pyx_PyIndex_AsSsize_t(*_py_start);
-                if ((cstart == (Py_ssize_t)-1) && PyErr_Occurred()) goto bad;
-            } else
-                cstart = 0;
-        }
-        if (!has_cstop) {
-            if (_py_stop && (*_py_stop != Py_None)) {
-                cstop = __Pyx_PyIndex_AsSsize_t(*_py_stop);
-                if ((cstop == (Py_ssize_t)-1) && PyErr_Occurred()) goto bad;
-            } else
-                cstop = PY_SSIZE_T_MAX;
-        }
-        if (wraparound && unlikely((cstart < 0) | (cstop < 0)) && likely(ms->sq_length)) {
-            Py_ssize_t l = ms->sq_length(obj);
-            if (likely(l >= 0)) {
-                if (cstop < 0) {
-                    cstop += l;
-                    if (cstop < 0) cstop = 0;
-                }
-                if (cstart < 0) {
-                    cstart += l;
-                    if (cstart < 0) cstart = 0;
-                }
-            } else {
-                if (!PyErr_ExceptionMatches(PyExc_OverflowError))
-                    goto bad;
-                PyErr_Clear();
-            }
-        }
-        return ms->sq_ass_slice(obj, cstart, cstop, value);
-    }
-#endif
-    mp = Py_TYPE(obj)->tp_as_mapping;
-    if (likely(mp && mp->mp_ass_subscript))
-#endif
-    {
-        int result;
-        PyObject *py_slice, *py_start, *py_stop;
-        if (_py_slice) {
-            py_slice = *_py_slice;
-        } else {
-            PyObject* owned_start = NULL;
-            PyObject* owned_stop = NULL;
-            if (_py_start) {
-                py_start = *_py_start;
-            } else {
-                if (has_cstart) {
-                    owned_start = py_start = PyInt_FromSsize_t(cstart);
-                    if (unlikely(!py_start)) goto bad;
-                } else
-                    py_start = Py_None;
-            }
-            if (_py_stop) {
-                py_stop = *_py_stop;
-            } else {
-                if (has_cstop) {
-                    owned_stop = py_stop = PyInt_FromSsize_t(cstop);
-                    if (unlikely(!py_stop)) {
-                        Py_XDECREF(owned_start);
-                        goto bad;
-                    }
-                } else
-                    py_stop = Py_None;
-            }
-            py_slice = PySlice_New(py_start, py_stop, Py_None);
-            Py_XDECREF(owned_start);
-            Py_XDECREF(owned_stop);
-            if (unlikely(!py_slice)) goto bad;
-        }
-#if CYTHON_USE_TYPE_SLOTS
-        result = mp->mp_ass_subscript(obj, py_slice, value);
-#else
-        result = value ? PyObject_SetItem(obj, py_slice, value) : PyObject_DelItem(obj, py_slice);
-#endif
-        if (!_py_slice) {
-            Py_DECREF(py_slice);
-        }
-        return result;
-    }
-    PyErr_Format(PyExc_TypeError,
-        "'%.200s' object does not support slice %.10s",
-        Py_TYPE(obj)->tp_name, value ? "assignment" : "deletion");
-bad:
-    return -1;
-}
 
 /* DictGetItem */
 #if PY_MAJOR_VERSION >= 3 && !CYTHON_COMPILING_IN_PYPY

@@ -1,14 +1,14 @@
-from cpython cimport Py_INCREF, PyBytes_FromStringAndSize
+from cpython cimport Py_INCREF, PyBytes_AsString, PyBytes_FromStringAndSize, \
+    PyBytes_Check
 from cpython.bytearray cimport PyByteArray_AsString, \
     PyByteArray_FromStringAndSize
 # Using python's versions of pure c memory management functions for
 # proper memory statistics count.
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 from cpython.list cimport PyList_New, PyList_SET_ITEM
-from libc.string cimport memcpy
+from libc.string cimport memcpy, memset
 
 from .. import errors
-from ..varint import write_varint
 from ..util import compat
 from .base import Column
 
@@ -30,12 +30,7 @@ class String(Column):
             return value, False
 
     def write_items(self, items, buf):
-        for value in items:
-            if not isinstance(value, bytes):
-                value = utf_8_encode(value)[0]
-
-            write_varint(len(value), buf)
-            buf.write(value)
+        buf.write_strings(items, encode=True)
 
     def read_items(self, n_items, buf):
         return buf.read_strings(n_items, decode=True)
@@ -46,9 +41,7 @@ class ByteString(String):
     null_value = b''
 
     def write_items(self, items, buf):
-        for value in items:
-            write_varint(len(value), buf)
-            buf.write(value)
+        buf.write_strings(items)
 
     def read_items(self, n_items, buf):
         return buf.read_strings(n_items)
@@ -92,10 +85,16 @@ class FixedString(String):
         return items
 
     def write_items(self, items, buf):
-        length = self.length
-        items_buf = bytearray(length * len(items))
-        items_buf_view = memoryview(items_buf)
-        buf_pos = 0
+        cdef Py_ssize_t buf_pos = 0
+        cdef Py_ssize_t length = self.length
+        cdef Py_ssize_t items_buf_size = length * len(items)
+
+        cdef char* c_value
+        cdef char* items_buf = <char *>PyMem_Malloc(items_buf_size)
+        if not items_buf:
+            raise MemoryError()
+
+        memset(items_buf, 0, items_buf_size)
 
         for value in items:
             if not isinstance(value, bytes):
@@ -105,10 +104,17 @@ class FixedString(String):
             if length < value_len:
                 raise errors.TooLargeStringSize()
 
-            items_buf_view[buf_pos:buf_pos + min(length, value_len)] = value
+            if PyBytes_Check(value):
+                c_value = PyBytes_AsString(value)
+            else:
+                c_value = PyByteArray_AsString(value)
+
+            memcpy(&items_buf[buf_pos], c_value, value_len)
             buf_pos += length
 
-        buf.write(items_buf)
+        buf.write(PyBytes_FromStringAndSize(items_buf, items_buf_size))
+
+        PyMem_Free(items_buf)
 
 
 class ByteFixedString(FixedString):
@@ -130,20 +136,33 @@ class ByteFixedString(FixedString):
         return items
 
     def write_items(self, items, buf):
-        length = self.length
-        items_buf = bytearray(length * len(items))
-        items_buf_view = memoryview(items_buf)
-        buf_pos = 0
+        cdef Py_ssize_t buf_pos = 0
+        cdef Py_ssize_t length = self.length
+        cdef Py_ssize_t items_buf_size = length * len(items)
+
+        cdef char* c_value
+        cdef char* items_buf = <char *>PyMem_Malloc(items_buf_size)
+        if not items_buf:
+            raise MemoryError()
+
+        memset(items_buf, 0, items_buf_size)
 
         for value in items:
             value_len = len(value)
             if length < value_len:
                 raise errors.TooLargeStringSize()
 
-            items_buf_view[buf_pos:buf_pos + min(length, value_len)] = value
+            if PyBytes_Check(value):
+                c_value = PyBytes_AsString(value)
+            else:
+                c_value = PyByteArray_AsString(value)
+
+            memcpy(&items_buf[buf_pos], c_value, value_len)
             buf_pos += length
 
-        buf.write(items_buf)
+        buf.write(PyBytes_FromStringAndSize(items_buf, items_buf_size))
+
+        PyMem_Free(items_buf)
 
 
 def create_string_column(spec, column_options):

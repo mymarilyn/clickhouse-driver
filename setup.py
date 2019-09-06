@@ -41,6 +41,10 @@ extensions = [
         ['clickhouse_driver/bufferedreader' + ext]
     ),
     Extension(
+        'clickhouse_driver.bufferedwriter',
+        ['clickhouse_driver/bufferedwriter' + ext]
+    ),
+    Extension(
         'clickhouse_driver.columns.stringcolumn',
         ['clickhouse_driver/columns/stringcolumn' + ext]
     ),
