@@ -11,7 +11,7 @@ class SettingType(object):
 class SettingUInt64(SettingType):
     @classmethod
     def write(cls, value, buf):
-        write_varint(value, buf)
+        write_varint(int(value), buf)
 
 
 class SettingBool(SettingType):
