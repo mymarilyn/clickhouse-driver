@@ -82,14 +82,23 @@ class DateTimeTimezonesTestCase(BaseTestCase):
     # Asia/Novosibirsk = UTC+7
     # Europe/Moscow = UTC+3
 
-    # 1500000000 second since epoch in Europe/Moscow.
-    # 1500010800 second since epoch in UTC.
+    # 1500010800 second since epoch in Europe/Moscow.
+    # 1500000000 second since epoch in UTC.
     dt = datetime(2017, 7, 14, 5, 40)
     dt_tz = timezone('Asia/Kamchatka').localize(dt)
 
-    # INSERTs ans SELECTs must be the same as clickhouse-client's.
+    col_tz_name = 'Asia/Novosibirsk'
+    col_tz = timezone(col_tz_name)
+
+    # INSERTs and SELECTs must be the same as clickhouse-client's
+    # if column has no timezone.
 
     def test_use_server_timezone(self):
+        """
+        Insert datetime with timezone UTC
+        into column with no timezone
+        using server's timezone (Europe/Moscow)
+        """
         # Determine server timezone and calculate expected timestamp.
         server_tz_name = self.client.execute('SELECT timezone()')[0][0]
         offset = timezone(server_tz_name).utcoffset(self.dt).total_seconds()
@@ -120,6 +129,11 @@ class DateTimeTimezonesTestCase(BaseTestCase):
                 self.assertEqual(inserted, [(self.dt, ), (self.dt, )])
 
     def test_use_client_timezone(self):
+        """
+        Insert datetime with timezone UTC
+        into column with no timezone
+        using client's timezone Asia/Novosibirsk
+        """
         settings = {'use_client_time_zone': True}
 
         with self.patch_env_tz('Asia/Novosibirsk'):
@@ -176,6 +190,11 @@ class DateTimeTimezonesTestCase(BaseTestCase):
 
     @require_server_version(1, 1, 54337)
     def test_datetime_with_timezone_use_server_timezone(self):
+        """
+        Insert datetime with timezone Asia/Kamchatka
+        into column with no timezone
+        using server's timezone (Europe/Moscow)
+        """
         server_tz_name = self.client.execute('SELECT timezone()')[0][0]
         offset = timezone(server_tz_name).utcoffset(self.dt)
 
@@ -206,6 +225,11 @@ class DateTimeTimezonesTestCase(BaseTestCase):
 
     @require_server_version(1, 1, 54337)
     def test_datetime_with_timezone_use_client_timezone(self):
+        """
+        Insert datetime with timezone Asia/Kamchatka
+        into column with no timezone
+        using client's timezone Asia/Novosibirsk
+        """
         settings = {'use_client_time_zone': True}
 
         with self.patch_env_tz('Asia/Novosibirsk'):
@@ -241,8 +265,14 @@ class DateTimeTimezonesTestCase(BaseTestCase):
 
     @require_server_version(1, 1, 54337)
     def test_column_use_server_timezone(self):
+        """
+        Insert datetime with no timezone
+        into column with timezone Asia/Novosibirsk
+        using server's timezone (Europe/Moscow)
+        """
         with self.patch_env_tz('Europe/Moscow'):
-            with self.create_table("a DateTime('Asia/Novosibirsk')"):
+            table_col = "a DateTime('{}')".format(self.col_tz_name)
+            with self.create_table(table_col):
                 self.client.execute(
                     'INSERT INTO test (a) VALUES', [(self.dt, )]
                 )
@@ -264,14 +294,23 @@ class DateTimeTimezonesTestCase(BaseTestCase):
                 )
 
                 inserted = self.client.execute(query)
-                self.assertEqual(inserted, [(self.dt, ), (self.dt, )])
+                self.assertEqual(inserted, [
+                    (self.col_tz.localize(self.dt), ),
+                    (self.col_tz.localize(self.dt), )
+                ])
 
     @require_server_version(1, 1, 54337)
     def test_column_use_client_timezone(self):
+        """
+        Insert datetime with no timezone
+        into column with timezone Asia/Novosibirsk
+        using client's timezone Europe/Moscow
+        """
         settings = {'use_client_time_zone': True}
 
         with self.patch_env_tz('Europe/Moscow'):
-            with self.create_table("a DateTime('Asia/Novosibirsk')"):
+            table_col = "a DateTime('{}')".format(self.col_tz_name)
+            with self.create_table(table_col):
                 self.client.execute(
                     'INSERT INTO test (a) VALUES', [(self.dt, )],
                     settings=settings
@@ -294,4 +333,91 @@ class DateTimeTimezonesTestCase(BaseTestCase):
                 )
 
                 inserted = self.client.execute(query, settings=settings)
-                self.assertEqual(inserted, [(self.dt, ), (self.dt, )])
+                self.assertEqual(inserted, [
+                    (self.col_tz.localize(self.dt), ),
+                    (self.col_tz.localize(self.dt), )
+                ])
+
+    @require_server_version(1, 1, 54337)
+    def test_datetime_with_timezone_column_use_server_timezone(self):
+        """
+        Insert datetime with timezone Asia/Kamchatka
+        into column with timezone Asia/Novosibirsk
+        using server's timezone (Europe/Moscow)
+        """
+        with self.patch_env_tz('Europe/Moscow'):
+            table_col = "a DateTime('{}')".format(self.col_tz_name)
+            with self.create_table(table_col):
+                self.client.execute(
+                    'INSERT INTO test (a) VALUES', [(self.dt_tz, )]
+                )
+
+                self.emit_cli(
+                    "INSERT INTO test (a) VALUES "
+                    "(toDateTime('2017-07-14 05:40:00', 'Asia/Kamchatka'))",
+                )
+
+                query = 'SELECT toInt32(a) FROM test'
+                inserted = self.emit_cli(query)
+                # 1499967600 = 1500000000 - 12 * 3600
+                self.assertEqual(inserted, '1499967600\n1499967600\n')
+
+                query = 'SELECT * FROM test'
+                inserted = self.emit_cli(query)
+                # 2017-07-14 00:40:00 = 2017-07-14 05:40:00 - 05:00:00
+                # (Kamchatka - Novosibirsk)
+                self.assertEqual(
+                    inserted,
+                    '2017-07-14 00:40:00\n2017-07-14 00:40:00\n'
+                )
+
+                inserted = self.client.execute(query)
+                dt = datetime(2017, 7, 14, 0, 40)
+                self.assertEqual(inserted, [
+                    (self.col_tz.localize(dt), ),
+                    (self.col_tz.localize(dt), )
+                ])
+
+    @require_server_version(1, 1, 54337)
+    def test_datetime_with_timezone_column_use_client_timezone(self):
+        """
+        Insert datetime with timezone Asia/Kamchatka
+        into column with timezone Asia/Novosibirsk
+        using client's timezone (Europe/Moscow)
+        """
+        settings = {'use_client_time_zone': True}
+
+        with self.patch_env_tz('Europe/Moscow'):
+            table_col = "a DateTime('{}')".format(self.col_tz_name)
+            with self.create_table(table_col):
+                self.client.execute(
+                    'INSERT INTO test (a) VALUES', [(self.dt_tz, )],
+                    settings=settings
+                )
+
+                self.emit_cli(
+                    "INSERT INTO test (a) VALUES "
+                    "(toDateTime('2017-07-14 05:40:00', 'Asia/Kamchatka'))",
+                    use_client_time_zone=1
+                )
+
+                query = 'SELECT toInt32(a) FROM test'
+                inserted = self.emit_cli(query, use_client_time_zone=1)
+                # 1499967600 = 1500000000 - 12 * 3600
+                self.assertEqual(inserted, '1499967600\n1499967600\n')
+
+                query = 'SELECT * FROM test'
+                inserted = self.emit_cli(query, use_client_time_zone=1)
+                # 2017-07-14 00:40:00 = 2017-07-14 05:40:00 - 05:00:00
+                # (Kamchatka - Novosibirsk)
+                self.assertEqual(
+                    inserted,
+                    '2017-07-14 00:40:00\n2017-07-14 00:40:00\n'
+                )
+
+                inserted = self.client.execute(query, settings=settings)
+                dt = datetime(2017, 7, 14, 0, 40)
+                self.assertEqual(inserted, [
+                    (self.col_tz.localize(dt), ),
+                    (self.col_tz.localize(dt), )
+                ])
