@@ -17,8 +17,7 @@ class DateTimeColumn(FormatColumn):
         super(DateTimeColumn, self).__init__(**kwargs)
 
     def after_read_item(self, value):
-        dt = datetime.fromtimestamp(value, self.timezone)
-        return dt.replace(tzinfo=None)
+        return datetime.fromtimestamp(value, self.timezone)
 
     def before_write_item(self, value):
         if isinstance(value, int):
