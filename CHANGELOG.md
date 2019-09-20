@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.1] - 2019-09-20
+### Added
+- `Client.from_url` method that creates client configured from the given URL.
+
+### Fixed
+- If source column was timezone-aware values from DateTime column are returned with timezone now.
+- Handling zero bytes in the middle of FixedString column. Issue [#104](https://github.com/mymarilyn/clickhouse-driver/issues/104).
+
 ## [0.1.0] - 2019-08-07
 ### Added
 - SimpleAggregateFunction type. Pull request [#95](https://github.com/mymarilyn/clickhouse-driver/pull/95) by [azat](https://github.com/azat).
@@ -207,7 +215,8 @@
 - Date/DateTime types.
 - String types.
 
-[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.0...HEAD
+[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.1...HEAD
+[0.1.1]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.1...0.1.1
 [0.1.0]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.20...0.1.0
 [0.0.20]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.19...0.0.20
 [0.0.19]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.18...0.0.19

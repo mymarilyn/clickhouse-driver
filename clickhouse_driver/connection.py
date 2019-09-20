@@ -58,7 +58,9 @@ class Connection(object):
     Represents connection between client and ClickHouse server.
 
     :param host: host with running ClickHouse server.
-    :param port: port ClickHouse server is bound to. Defaults to ``9000``.
+    :param port: port ClickHouse server is bound to.
+                 Defaults to ``9000`` if connection is not secured and
+                 to ``9440`` if connection is secured.
     :param database: database connect to. Defaults to ``'default'``.
     :param user: database user. Defaults to ``'default'``.
     :param password: user's password. Defaults to ``''`` (no password).

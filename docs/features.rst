@@ -245,3 +245,39 @@ Query logs can be received from server by using `send_logs_level` setting:
         2018-12-14 10:24:53,875 INFO     clickhouse_driver.log: {b328ad33-60e8-4012-b4cc-97f44a7b28f2} [ 25 ] <Information> executeQuery: Read 1 rows, 1.00 B in 0.004 sec., 262 rows/sec., 262.32 B/sec.
         2018-12-14 10:24:53,875 INFO     clickhouse_driver.log: {b328ad33-60e8-4012-b4cc-97f44a7b28f2} [ 25 ] <Debug> MemoryTracker: Peak memory usage (for query): 40.23 KiB.
         [(1,)]
+
+
+Client configuring from URL
+---------------------------
+
+*New in version 0.1.1.*
+
+Client can be configured from the given URL:
+
+    .. code-block:: python
+
+        >>> from clickhouse_driver import Client
+        >>> client = Client.from_url(
+        ...     'clickhouse://login:password@host:port/database'
+        ... )
+
+Port 9000 is default for schema ``clickhouse``, port 9440 is default for schema ``clickhouses``.
+
+Connection to default database:
+
+    .. code-block:: python
+
+        >>> client = Client.from_url('clickhouse://localhost')
+
+
+Querystring arguments will be passed along to the :meth:`~clickhouse_driver.connection.Connection` class’s initializer:
+
+    .. code-block:: python
+
+        >>> client = Client.from_url(
+        ...     'clickhouse://localhost/database?send_logs_level=trace&'
+        ...     'client_name=myclient&'
+        ...     'compression=lz4'
+        ... )
+
+If parameter doesn't match Connection's init signature will be treated as settings parameter.
