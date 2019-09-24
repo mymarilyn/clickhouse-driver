@@ -223,7 +223,7 @@ class Client(object):
     def execute_with_progress(
             self, query, params=None, with_column_types=False,
             external_tables=None, query_id=None, settings=None,
-            types_check=False):
+            types_check=False, columnar=False):
         """
         Executes SELECT query with progress information.
         See, :ref:`execute-with-progress`.
@@ -244,6 +244,9 @@ class Client(object):
                          Defaults to ``None`` (no additional settings).
         :param types_check: enables type checking of data for INSERT queries.
                             Causes additional overhead. Defaults to ``False``.
+        :param columnar: if specified the result will be returned in
+                         column-oriented form.
+                         Defaults to ``False`` (row-like form).
         :return: :ref:`progress-query-result` proxy.
         """
 
@@ -254,8 +257,8 @@ class Client(object):
         try:
             return self.process_ordinary_query_with_progress(
                 query, params=params, with_column_types=with_column_types,
-                external_tables=external_tables,
-                query_id=query_id, types_check=types_check
+                external_tables=external_tables, query_id=query_id,
+                types_check=types_check, columnar=columnar
             )
 
         except Exception:
