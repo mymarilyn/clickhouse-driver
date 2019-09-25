@@ -145,6 +145,16 @@ class IteratorTestCase(BaseTestCase):
 
         self.assertFalse(self.client.connection.connected)
 
+    def test_select_with_columar_with_column_types(self):
+        progress = self.client.execute_with_progress(
+            'SELECT arrayJoin(A) -1 as j,'
+            'arrayJoin(A)+1 as k FROM('
+            'SELECT range(3) as A)',
+            columnar=True, with_column_types=True)
+        rv = ([(-1, 0, 1), (1, 2, 3)], [('j', 'Int16'), ('k', 'UInt16')])
+        self.assertEqual(progress.get_result(), rv)
+        self.assertTrue(self.client.connection.connected)
+
 
 class LogTestCase(BaseTestCase):
     @require_server_version(18, 12, 13)
