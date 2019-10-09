@@ -94,11 +94,10 @@ class DateTimeTimezonesTestCase(BaseTestCase):
     # if column has no timezone.
 
     def test_use_server_timezone(self):
-        """
-        Insert datetime with timezone UTC
-        into column with no timezone
-        using server's timezone (Europe/Moscow)
-        """
+        # Insert datetime with timezone UTC
+        # into column with no timezone
+        # using server's timezone (Europe/Moscow)
+
         # Determine server timezone and calculate expected timestamp.
         server_tz_name = self.client.execute('SELECT timezone()')[0][0]
         offset = timezone(server_tz_name).utcoffset(self.dt).total_seconds()
@@ -129,11 +128,10 @@ class DateTimeTimezonesTestCase(BaseTestCase):
                 self.assertEqual(inserted, [(self.dt, ), (self.dt, )])
 
     def test_use_client_timezone(self):
-        """
-        Insert datetime with timezone UTC
-        into column with no timezone
-        using client's timezone Asia/Novosibirsk
-        """
+        # Insert datetime with timezone UTC
+        # into column with no timezone
+        # using client's timezone Asia/Novosibirsk
+
         settings = {'use_client_time_zone': True}
 
         with self.patch_env_tz('Asia/Novosibirsk'):
@@ -190,11 +188,10 @@ class DateTimeTimezonesTestCase(BaseTestCase):
 
     @require_server_version(1, 1, 54337)
     def test_datetime_with_timezone_use_server_timezone(self):
-        """
-        Insert datetime with timezone Asia/Kamchatka
-        into column with no timezone
-        using server's timezone (Europe/Moscow)
-        """
+        # Insert datetime with timezone Asia/Kamchatka
+        # into column with no timezone
+        # using server's timezone (Europe/Moscow)
+
         server_tz_name = self.client.execute('SELECT timezone()')[0][0]
         offset = timezone(server_tz_name).utcoffset(self.dt)
 
@@ -225,11 +222,10 @@ class DateTimeTimezonesTestCase(BaseTestCase):
 
     @require_server_version(1, 1, 54337)
     def test_datetime_with_timezone_use_client_timezone(self):
-        """
-        Insert datetime with timezone Asia/Kamchatka
-        into column with no timezone
-        using client's timezone Asia/Novosibirsk
-        """
+        # Insert datetime with timezone Asia/Kamchatka
+        # into column with no timezone
+        # using client's timezone Asia/Novosibirsk
+
         settings = {'use_client_time_zone': True}
 
         with self.patch_env_tz('Asia/Novosibirsk'):
@@ -265,11 +261,10 @@ class DateTimeTimezonesTestCase(BaseTestCase):
 
     @require_server_version(1, 1, 54337)
     def test_column_use_server_timezone(self):
-        """
-        Insert datetime with no timezone
-        into column with timezone Asia/Novosibirsk
-        using server's timezone (Europe/Moscow)
-        """
+        # Insert datetime with no timezone
+        # into column with timezone Asia/Novosibirsk
+        # using server's timezone (Europe/Moscow)
+
         with self.patch_env_tz('Europe/Moscow'):
             table_col = "a DateTime('{}')".format(self.col_tz_name)
             with self.create_table(table_col):
@@ -301,11 +296,10 @@ class DateTimeTimezonesTestCase(BaseTestCase):
 
     @require_server_version(1, 1, 54337)
     def test_column_use_client_timezone(self):
-        """
-        Insert datetime with no timezone
-        into column with timezone Asia/Novosibirsk
-        using client's timezone Europe/Moscow
-        """
+        # Insert datetime with no timezone
+        # into column with timezone Asia/Novosibirsk
+        # using client's timezone Europe/Moscow
+
         settings = {'use_client_time_zone': True}
 
         with self.patch_env_tz('Europe/Moscow'):
@@ -340,11 +334,10 @@ class DateTimeTimezonesTestCase(BaseTestCase):
 
     @require_server_version(1, 1, 54337)
     def test_datetime_with_timezone_column_use_server_timezone(self):
-        """
-        Insert datetime with timezone Asia/Kamchatka
-        into column with timezone Asia/Novosibirsk
-        using server's timezone (Europe/Moscow)
-        """
+        # Insert datetime with timezone Asia/Kamchatka
+        # into column with timezone Asia/Novosibirsk
+        # using server's timezone (Europe/Moscow)
+
         with self.patch_env_tz('Europe/Moscow'):
             table_col = "a DateTime('{}')".format(self.col_tz_name)
             with self.create_table(table_col):
@@ -380,11 +373,10 @@ class DateTimeTimezonesTestCase(BaseTestCase):
 
     @require_server_version(1, 1, 54337)
     def test_datetime_with_timezone_column_use_client_timezone(self):
-        """
-        Insert datetime with timezone Asia/Kamchatka
-        into column with timezone Asia/Novosibirsk
-        using client's timezone (Europe/Moscow)
-        """
+        # Insert datetime with timezone Asia/Kamchatka
+        # into column with timezone Asia/Novosibirsk
+        # using client's timezone (Europe/Moscow)
+
         settings = {'use_client_time_zone': True}
 
         with self.patch_env_tz('Europe/Moscow'):
