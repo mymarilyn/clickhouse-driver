@@ -5,7 +5,7 @@ from cpython.bytearray cimport PyByteArray_AsString, \
 # Using python's versions of pure c memory management functions for
 # proper memory statistics count.
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
-from cpython.list cimport PyList_New, PyList_SET_ITEM
+from cpython.tuple cimport PyTuple_New, PyTuple_SET_ITEM
 from libc.string cimport memcpy, memset
 
 from .. import errors
@@ -64,7 +64,7 @@ class FixedString(String):
             raise MemoryError()
         c_string[length] = 0
 
-        items = PyList_New(n_items)
+        items = PyTuple_New(n_items)
         for i in range(n_items):
             memcpy(c_string, &data_ptr[i * length], length)
 
@@ -78,7 +78,7 @@ class FixedString(String):
             except UnicodeDecodeError:
                 item = PyBytes_FromStringAndSize(c_string, length)
             Py_INCREF(item)
-            PyList_SET_ITEM(items, i, item)
+            PyTuple_SET_ITEM(items, i, item)
 
         PyMem_Free(c_string)
 
@@ -127,11 +127,11 @@ class ByteFixedString(FixedString):
         data = buf.read(length * n_items)
         cdef char* data_ptr = PyByteArray_AsString(data)
 
-        items = PyList_New(n_items)
+        items = PyTuple_New(n_items)
         for i in range(n_items):
             item = PyBytes_FromStringAndSize(&data_ptr[i * length], length)
             Py_INCREF(item)
-            PyList_SET_ITEM(items, i, item)
+            PyTuple_SET_ITEM(items, i, item)
 
         return items
 

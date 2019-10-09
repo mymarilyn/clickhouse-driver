@@ -26,21 +26,34 @@ class DecimalColumn(FormatColumn):
             self.check_item = check_item
 
         if scale > 1:
-            def after_read_item(value):
-                return Decimal(value) / (10 ** scale)
-
             def before_write_item(value):
                 return int(Decimal(value) * (10 ** scale))
 
         else:
-            def after_read_item(value):
-                return Decimal(value)
-
             def before_write_item(value):
                 return int(Decimal(value))
 
-        self.after_read_item = after_read_item
         self.before_write_item = before_write_item
+
+    def after_read_items(self, items, nulls_map=None):
+        if self.scale > 1:
+            scale = 10 ** self.scale
+
+            if nulls_map is None:
+                return tuple(Decimal(item) / scale for item in items)
+            else:
+                return tuple(
+                    (None if is_null else Decimal(items[i]) / scale)
+                    for i, is_null in enumerate(nulls_map)
+                )
+        else:
+            if nulls_map is None:
+                return tuple(Decimal(item) for item in items)
+            else:
+                return tuple(
+                    (None if is_null else Decimal(items[i]))
+                    for i, is_null in enumerate(nulls_map)
+                )
 
     # Override default precision to the maximum supported by underlying type.
     def _write_data(self, items, buf):
@@ -94,6 +107,7 @@ class Decimal128Column(DecimalColumn):
         buf.write(s.pack(*uint_64_pairs))
 
     def read_items(self, n_items, buf):
+        # TODO: cythonize
         s = self.make_struct(2 * n_items)
         items = s.unpack(buf.read(s.size))
 
@@ -111,7 +125,7 @@ class Decimal128Column(DecimalColumn):
             else:
                 int_128_items[i] = (items[i2 + 1] << 64) + items[i2]
 
-        return int_128_items
+        return tuple(int_128_items)
 
 
 def create_decimal_column(spec, column_options):

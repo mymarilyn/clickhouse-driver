@@ -9,5 +9,5 @@ class NothingColumn(FormatColumn):
     def size(self):
         return 1
 
-    def after_read_item(self, buf):
-        return None
+    def after_read_items(self, items, nulls_map=None):
+        return (None, ) * len(items)

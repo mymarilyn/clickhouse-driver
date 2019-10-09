@@ -196,7 +196,7 @@ class TestBufferedReader(TestCase):
             write_binary_str(name, buf)
         buf = buf.getvalue()
 
-        ref_values = [x.encode('utf-8') for x in strings]
+        ref_values = tuple(x.encode('utf-8') for x in strings)
 
         for split in range(1, len(buf) - 1):
             for split_2 in range(split + 1, len(buf) - 2):

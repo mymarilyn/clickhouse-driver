@@ -2605,11 +2605,11 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
   /* "clickhouse_driver/bufferedreader.pyx":78
  *         We inline strings reading logic here to avoid this overhead.
  *         """
- *         items = PyList_New(n_items)             # <<<<<<<<<<<<<<
+ *         items = PyTuple_New(n_items)             # <<<<<<<<<<<<<<
  * 
  *         # Reduce getattr(self, ...), calls.
  */
-  __pyx_t_1 = PyList_New(__pyx_v_n_items); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 78, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(__pyx_v_n_items); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 78, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_items = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
@@ -3381,7 +3381,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  *                     rv = PyBytes_FromStringAndSize(c_string, size)
  * 
  *             Py_INCREF(rv)             # <<<<<<<<<<<<<<
- *             PyList_SET_ITEM(items, i, rv)
+ *             PyTuple_SET_ITEM(items, i, rv)
  * 
  */
     if (unlikely(!__pyx_v_rv)) { __Pyx_RaiseUnboundLocalError("rv"); __PYX_ERR(0, 173, __pyx_L1_error) }
@@ -3390,16 +3390,16 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
     /* "clickhouse_driver/bufferedreader.pyx":174
  * 
  *             Py_INCREF(rv)
- *             PyList_SET_ITEM(items, i, rv)             # <<<<<<<<<<<<<<
+ *             PyTuple_SET_ITEM(items, i, rv)             # <<<<<<<<<<<<<<
  * 
  *         if c_string:
  */
     if (unlikely(!__pyx_v_rv)) { __Pyx_RaiseUnboundLocalError("rv"); __PYX_ERR(0, 174, __pyx_L1_error) }
-    PyList_SET_ITEM(__pyx_v_items, __pyx_v_i, __pyx_v_rv);
+    PyTuple_SET_ITEM(__pyx_v_items, __pyx_v_i, __pyx_v_rv);
   }
 
   /* "clickhouse_driver/bufferedreader.pyx":176
- *             PyList_SET_ITEM(items, i, rv)
+ *             PyTuple_SET_ITEM(items, i, rv)
  * 
  *         if c_string:             # <<<<<<<<<<<<<<
  *             PyMem_Free(c_string)
@@ -3418,7 +3418,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
     PyMem_Free(__pyx_v_c_string);
 
     /* "clickhouse_driver/bufferedreader.pyx":176
- *             PyList_SET_ITEM(items, i, rv)
+ *             PyTuple_SET_ITEM(items, i, rv)
  * 
  *         if c_string:             # <<<<<<<<<<<<<<
  *             PyMem_Free(c_string)

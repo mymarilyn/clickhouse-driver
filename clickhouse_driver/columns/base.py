@@ -8,7 +8,7 @@ class Column(object):
     py_types = None
 
     check_item = None
-    after_read_item = None
+    after_read_items = None
     before_write_item = None
 
     types_check_enabled = False
@@ -97,27 +97,16 @@ class Column(object):
         return self._read_data(n_items, buf, nulls_map=nulls_map)
 
     def _read_data(self, n_items, buf, nulls_map=None):
-        after_read = self.after_read_item
-
         items = self.read_items(n_items, buf)
 
-        if nulls_map is not None:
-            if after_read:
-                items = tuple(
-                    (None if is_null else after_read(items[i]))
-                    for i, is_null in enumerate(nulls_map)
-                )
-            else:
-                items = tuple(
-                    (None if is_null else items[i])
-                    for i, is_null in enumerate(nulls_map)
-                )
-
-        else:
-            if after_read:
-                items = (after_read(x) for x in items)
-
-        return tuple(items)
+        if self.after_read_items:
+            return self.after_read_items(items, nulls_map)
+        elif nulls_map is not None:
+            return tuple(
+                (None if is_null else items[i])
+                for i, is_null in enumerate(nulls_map)
+            )
+        return items
 
     def read_items(self, n_items, buf):
         raise NotImplementedError

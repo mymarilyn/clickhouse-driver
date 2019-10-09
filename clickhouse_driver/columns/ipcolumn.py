@@ -48,8 +48,14 @@ class IPv4Column(UInt32Column):
                 "Cannot parse IPv4 '{}'".format(value)
             )
 
-    def after_read_item(self, value):
-        return IPv4Address(value)
+    def after_read_items(self, items, nulls_map=None):
+        if nulls_map is None:
+            return tuple(IPv4Address(item) for item in items)
+        else:
+            return tuple(
+                (None if is_null else IPv4Address(items[i]))
+                for i, is_null in enumerate(nulls_map)
+            )
 
 
 class IPv6Column(ByteFixedString):
@@ -89,5 +95,11 @@ class IPv6Column(ByteFixedString):
                 "Cannot parse IPv6 '{}'".format(value)
             )
 
-    def after_read_item(self, value):
-        return IPv6Address(value)
+    def after_read_items(self, items, nulls_map=None):
+        if nulls_map is None:
+            return tuple(IPv6Address(item) for item in items)
+        else:
+            return tuple(
+                (None if is_null else IPv6Address(items[i]))
+                for i, is_null in enumerate(nulls_map)
+            )

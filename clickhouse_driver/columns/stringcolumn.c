@@ -2677,25 +2677,25 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
  *             raise MemoryError()
  *         c_string[length] = 0             # <<<<<<<<<<<<<<
  * 
- *         items = PyList_New(n_items)
+ *         items = PyTuple_New(n_items)
  */
   (__pyx_v_c_string[__pyx_v_length]) = 0;
 
   /* "clickhouse_driver/columns/stringcolumn.pyx":67
  *         c_string[length] = 0
  * 
- *         items = PyList_New(n_items)             # <<<<<<<<<<<<<<
+ *         items = PyTuple_New(n_items)             # <<<<<<<<<<<<<<
  *         for i in range(n_items):
  *             memcpy(c_string, &data_ptr[i * length], length)
  */
-  __pyx_t_1 = PyList_New(__pyx_v_n_items); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 67, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(__pyx_v_n_items); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 67, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_items = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
   /* "clickhouse_driver/columns/stringcolumn.pyx":68
  * 
- *         items = PyList_New(n_items)
+ *         items = PyTuple_New(n_items)
  *         for i in range(n_items):             # <<<<<<<<<<<<<<
  *             memcpy(c_string, &data_ptr[i * length], length)
  * 
@@ -2706,7 +2706,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
     __pyx_v_i = __pyx_t_8;
 
     /* "clickhouse_driver/columns/stringcolumn.pyx":69
- *         items = PyList_New(n_items)
+ *         items = PyTuple_New(n_items)
  *         for i in range(n_items):
  *             memcpy(c_string, &data_ptr[i * length], length)             # <<<<<<<<<<<<<<
  * 
@@ -2818,7 +2818,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
  *             except UnicodeDecodeError:
  *                 item = PyBytes_FromStringAndSize(c_string, length)             # <<<<<<<<<<<<<<
  *             Py_INCREF(item)
- *             PyList_SET_ITEM(items, i, item)
+ *             PyTuple_SET_ITEM(items, i, item)
  */
         __pyx_t_5 = PyBytes_FromStringAndSize(__pyx_v_c_string, __pyx_v_length); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 79, __pyx_L12_except_error)
         __Pyx_GOTREF(__pyx_t_5);
@@ -2856,7 +2856,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
  *             except UnicodeDecodeError:
  *                 item = PyBytes_FromStringAndSize(c_string, length)
  *             Py_INCREF(item)             # <<<<<<<<<<<<<<
- *             PyList_SET_ITEM(items, i, item)
+ *             PyTuple_SET_ITEM(items, i, item)
  * 
  */
     Py_INCREF(__pyx_v_item);
@@ -2864,15 +2864,15 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_11FixedStr
     /* "clickhouse_driver/columns/stringcolumn.pyx":81
  *                 item = PyBytes_FromStringAndSize(c_string, length)
  *             Py_INCREF(item)
- *             PyList_SET_ITEM(items, i, item)             # <<<<<<<<<<<<<<
+ *             PyTuple_SET_ITEM(items, i, item)             # <<<<<<<<<<<<<<
  * 
  *         PyMem_Free(c_string)
  */
-    PyList_SET_ITEM(__pyx_v_items, __pyx_v_i, __pyx_v_item);
+    PyTuple_SET_ITEM(__pyx_v_items, __pyx_v_i, __pyx_v_item);
   }
 
   /* "clickhouse_driver/columns/stringcolumn.pyx":83
- *             PyList_SET_ITEM(items, i, item)
+ *             PyTuple_SET_ITEM(items, i, item)
  * 
  *         PyMem_Free(c_string)             # <<<<<<<<<<<<<<
  * 
@@ -3537,25 +3537,25 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_15ByteFixe
  *         data = buf.read(length * n_items)
  *         cdef char* data_ptr = PyByteArray_AsString(data)             # <<<<<<<<<<<<<<
  * 
- *         items = PyList_New(n_items)
+ *         items = PyTuple_New(n_items)
  */
   __pyx_v_data_ptr = PyByteArray_AsString(__pyx_v_data);
 
   /* "clickhouse_driver/columns/stringcolumn.pyx":130
  *         cdef char* data_ptr = PyByteArray_AsString(data)
  * 
- *         items = PyList_New(n_items)             # <<<<<<<<<<<<<<
+ *         items = PyTuple_New(n_items)             # <<<<<<<<<<<<<<
  *         for i in range(n_items):
  *             item = PyBytes_FromStringAndSize(&data_ptr[i * length], length)
  */
-  __pyx_t_1 = PyList_New(__pyx_v_n_items); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 130, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(__pyx_v_n_items); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 130, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_items = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
   /* "clickhouse_driver/columns/stringcolumn.pyx":131
  * 
- *         items = PyList_New(n_items)
+ *         items = PyTuple_New(n_items)
  *         for i in range(n_items):             # <<<<<<<<<<<<<<
  *             item = PyBytes_FromStringAndSize(&data_ptr[i * length], length)
  *             Py_INCREF(item)
@@ -3566,11 +3566,11 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_15ByteFixe
     __pyx_v_i = __pyx_t_7;
 
     /* "clickhouse_driver/columns/stringcolumn.pyx":132
- *         items = PyList_New(n_items)
+ *         items = PyTuple_New(n_items)
  *         for i in range(n_items):
  *             item = PyBytes_FromStringAndSize(&data_ptr[i * length], length)             # <<<<<<<<<<<<<<
  *             Py_INCREF(item)
- *             PyList_SET_ITEM(items, i, item)
+ *             PyTuple_SET_ITEM(items, i, item)
  */
     __pyx_t_1 = PyBytes_FromStringAndSize((&(__pyx_v_data_ptr[(__pyx_v_i * __pyx_v_length)])), __pyx_v_length); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 132, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
@@ -3581,7 +3581,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_15ByteFixe
  *         for i in range(n_items):
  *             item = PyBytes_FromStringAndSize(&data_ptr[i * length], length)
  *             Py_INCREF(item)             # <<<<<<<<<<<<<<
- *             PyList_SET_ITEM(items, i, item)
+ *             PyTuple_SET_ITEM(items, i, item)
  * 
  */
     Py_INCREF(__pyx_v_item);
@@ -3589,15 +3589,15 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_12stringcolumn_15ByteFixe
     /* "clickhouse_driver/columns/stringcolumn.pyx":134
  *             item = PyBytes_FromStringAndSize(&data_ptr[i * length], length)
  *             Py_INCREF(item)
- *             PyList_SET_ITEM(items, i, item)             # <<<<<<<<<<<<<<
+ *             PyTuple_SET_ITEM(items, i, item)             # <<<<<<<<<<<<<<
  * 
  *         return items
  */
-    PyList_SET_ITEM(__pyx_v_items, __pyx_v_i, __pyx_v_item);
+    PyTuple_SET_ITEM(__pyx_v_items, __pyx_v_i, __pyx_v_item);
   }
 
   /* "clickhouse_driver/columns/stringcolumn.pyx":136
- *             PyList_SET_ITEM(items, i, item)
+ *             PyTuple_SET_ITEM(items, i, item)
  * 
  *         return items             # <<<<<<<<<<<<<<
  * 

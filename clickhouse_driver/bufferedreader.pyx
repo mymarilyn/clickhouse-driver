@@ -3,7 +3,7 @@ from cpython.bytearray cimport PyByteArray_AsString
 # Using python's versions of pure c memory management functions for
 # proper memory statistics count.
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
-from cpython.list cimport PyList_New, PyList_SET_ITEM
+from cpython.tuple cimport PyTuple_New, PyTuple_SET_ITEM
 from libc.string cimport memcpy
 
 
@@ -75,7 +75,7 @@ class BufferedReader(object):
         Python has great overhead between function calls.
         We inline strings reading logic here to avoid this overhead.
         """
-        items = PyList_New(n_items)
+        items = PyTuple_New(n_items)
 
         # Reduce getattr(self, ...), calls.
         buffer = self.buffer
@@ -171,7 +171,7 @@ class BufferedReader(object):
                     rv = PyBytes_FromStringAndSize(c_string, size)
 
             Py_INCREF(rv)
-            PyList_SET_ITEM(items, i, rv)
+            PyTuple_SET_ITEM(items, i, rv)
 
         if c_string:
             PyMem_Free(c_string)

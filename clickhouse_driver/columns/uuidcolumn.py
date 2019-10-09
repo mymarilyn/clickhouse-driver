@@ -25,6 +25,7 @@ class UUIDColumn(FormatColumn):
         buf.write(s.pack(*uint_64_pairs))
 
     def read_items(self, n_items, buf):
+        # TODO: cythonize
         s = self.make_struct(2 * n_items)
         items = s.unpack(buf.read(s.size))
 
@@ -33,10 +34,16 @@ class UUIDColumn(FormatColumn):
             i2 = 2 * i
             uint_128_items[i] = (items[i2] << 64) + items[i2 + 1]
 
-        return uint_128_items
+        return tuple(uint_128_items)
 
-    def after_read_item(self, value):
-        return UUID(int=value)
+    def after_read_items(self, items, nulls_map=None):
+        if nulls_map is None:
+            return tuple(UUID(int=item) for item in items)
+        else:
+            return tuple(
+                (None if is_null else UUID(int=items[i]))
+                for i, is_null in enumerate(nulls_map)
+            )
 
     def before_write_item(self, value):
         try:

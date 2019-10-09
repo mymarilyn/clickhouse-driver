@@ -17,9 +17,30 @@ class DateTimeColumn(FormatColumn):
         self.offset_naive = offset_naive
         super(DateTimeColumn, self).__init__(**kwargs)
 
-    def after_read_item(self, value):
-        dt = datetime.fromtimestamp(value, self.timezone)
-        return dt.replace(tzinfo=None) if self.offset_naive else dt
+    def after_read_items(self, items, nulls_map=None):
+        timezone = self.timezone
+        fromtimestamp = datetime.fromtimestamp
+
+        if self.offset_naive:
+            if nulls_map is None:
+                return tuple(
+                    fromtimestamp(item, timezone).replace(tzinfo=None)
+                    for item in items
+                )
+            else:
+                return tuple(
+                    (None if is_null else
+                     fromtimestamp(items[i], timezone).replace(tzinfo=None))
+                    for i, is_null in enumerate(nulls_map)
+                )
+        else:
+            if nulls_map is None:
+                return tuple(fromtimestamp(item, timezone) for item in items)
+            else:
+                return tuple(
+                    (None if is_null else fromtimestamp(items[i], timezone))
+                    for i, is_null in enumerate(nulls_map)
+                )
 
     def before_write_item(self, value):
         if isinstance(value, int):
