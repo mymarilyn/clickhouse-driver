@@ -25,10 +25,6 @@ class CompressedBlockOutputStream(BlockOutputStream):
         super(CompressedBlockOutputStream, self).__init__(self.compressor,
                                                           context)
 
-    def reset(self):
-        self.compressor = self.compressor_cls()
-        self.fout = self.compressor
-
     def get_compressed_hash(self, data):
         return CityHash128(data)
 

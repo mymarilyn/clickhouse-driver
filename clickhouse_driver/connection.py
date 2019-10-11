@@ -446,9 +446,7 @@ class Connection(object):
         if revision >= defines.DBMS_MIN_REVISION_WITH_TEMPORARY_TABLES:
             read_binary_str(self.fin)
 
-        block = self.block_in.read()
-        self.block_in.reset()
-        return block
+        return self.block_in.read()
 
     def receive_exception(self):
         return read_exception(self.fin)
@@ -472,7 +470,6 @@ class Connection(object):
             write_binary_str(table_name, self.fout)
 
         self.block_out.write(block)
-        self.block_out.reset()
         logger.debug('Block send time: %f', time() - start)
 
     def send_query(self, query, query_id=None):

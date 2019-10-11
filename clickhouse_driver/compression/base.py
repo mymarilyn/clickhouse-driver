@@ -22,6 +22,12 @@ class BaseCompressor(object):
 
         super(BaseCompressor, self).__init__()
 
+    def get_value(self):
+        value = self.data.getvalue()
+        self.data.seek(0)
+        self.data.truncate()
+        return value
+
     def write(self, p_str):
         self.data.write(p_str)
 

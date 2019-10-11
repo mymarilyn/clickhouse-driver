@@ -17,7 +17,7 @@ class Compressor(BaseCompressor):
     def get_compressed_data(self, extra_header_size):
         rv = BytesIO()
 
-        data = self.data.getvalue()
+        data = self.get_value()
         compressed = block.compress(data, store_size=False, mode=self.mode)
 
         header_size = extra_header_size + 4 + 4  # sizes

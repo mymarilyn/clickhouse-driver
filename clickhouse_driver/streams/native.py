@@ -13,9 +13,6 @@ class BlockOutputStream(object):
 
         super(BlockOutputStream, self).__init__()
 
-    def reset(self):
-        pass
-
     def write(self, block):
         revision = self.context.server_info.revision
         if revision >= defines.DBMS_MIN_REVISION_WITH_BLOCK_INFO:
@@ -53,9 +50,6 @@ class BlockInputStream(object):
         self.context = context
 
         super(BlockInputStream, self).__init__()
-
-    def reset(self):
-        pass
 
     def read(self):
         info = BlockInfo()
