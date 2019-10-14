@@ -26,6 +26,7 @@ settings = {
     'min_insert_block_size_bytes': SettingUInt64,
     'max_partitions_per_insert_block': SettingUInt64,
     'max_threads': SettingMaxThreads,
+    'max_alter_threads': SettingMaxThreads,
     'max_read_buffer_size': SettingUInt64,
     'max_distributed_connections': SettingUInt64,
     'max_query_size': SettingUInt64,
@@ -47,8 +48,13 @@ settings = {
     'distributed_directory_monitor_sleep_time_ms': SettingMilliseconds,
 
     'distributed_directory_monitor_batch_inserts': SettingBool,
+    'distributed_directory_monitor_max_sleep_time_ms': SettingMilliseconds,
 
     'optimize_move_to_prewhere': SettingBool,
+    'optimize_skip_unused_shards': SettingBool,
+    'optimize_read_in_order': SettingBool,
+    'optimize_min_equality_disjunction_chain_length': SettingUInt64,
+    'enable_optimize_predicate_expression': SettingBool,
 
     'replication_alter_partitions_sync': SettingUInt64,
     'replication_alter_columns_timeout': SettingUInt64,
@@ -78,12 +84,12 @@ settings = {
     'merge_tree_min_rows_for_seek': SettingUInt64,
     'merge_tree_coarse_index_granularity': SettingUInt64,
     'merge_tree_max_rows_to_use_cache': SettingUInt64,
-
+    'merge_tree_min_bytes_for_concurrent_read': SettingUInt64,
+    'merge_tree_min_bytes_for_seek': SettingUInt64,
+    'merge_tree_max_bytes_to_use_cache': SettingUInt64,
     'merge_tree_uniform_read_distribution': SettingBool,
 
     'mysql_max_rows_to_insert': SettingUInt64,
-
-    'optimize_min_equality_disjunction_chain_length': SettingUInt64,
 
     'min_bytes_to_use_direct_io': SettingUInt64,
 
@@ -101,8 +107,10 @@ settings = {
     'priority': SettingUInt64,
 
     'log_queries': SettingBool,
-
     'log_queries_cut_to_length': SettingUInt64,
+    'query_profiler_real_time_period_ns': SettingUInt64,
+    'query_profiler_cpu_time_period_ns': SettingUInt64,
+    'enable_debug_queries': SettingBool,
 
     'distributed_product_mode': SettingDistributedProductMode,
 
@@ -128,23 +136,28 @@ settings = {
 
     'count_distinct_implementation': SettingString,
 
-    'output_format_write_statistics': SettingBool,
-
     'add_http_cors_header': SettingBool,
 
     'input_format_skip_unknown_fields': SettingBool,
     'input_format_import_nested_json': SettingBool,
     'input_format_values_interpret_expressions': SettingBool,
+    'input_format_with_names_use_header': SettingBool,
+    'input_format_defaults_for_omitted_fields': SettingBool,
+    'input_format_null_as_default': SettingBool,
+    'input_format_values_deduce_templates_of_expressions': SettingBool,
+    'input_format_values_accurate_types_of_literals': SettingBool,
+    'input_format_allow_errors_num': SettingUInt64,
+    'input_format_allow_errors_ratio': SettingFloat,
+    'input_format_csv_unquoted_null_literal_as_null': SettingBool,
 
+    'output_format_write_statistics': SettingBool,
     'output_format_json_quote_64bit_integers': SettingBool,
-
     'output_format_json_quote_denormals': SettingBool,
-
     'output_format_json_escape_forward_slashes': SettingBool,
-
     'output_format_pretty_max_rows': SettingUInt64,
     'output_format_pretty_max_column_pad_width': SettingUInt64,
     'output_format_pretty_color': SettingBool,
+    'output_format_parquet_row_group_size': SettingUInt64,
 
     'use_client_time_zone': SettingBool,
 
@@ -153,9 +166,6 @@ settings = {
     'http_headers_progress_interval_ms': SettingUInt64,
 
     'fsync_metadata': SettingBool,
-
-    'input_format_allow_errors_num': SettingUInt64,
-    'input_format_allow_errors_ratio': SettingFloat,
 
     'join_use_nulls': SettingBool,
     'join_default_strictness': SettingString,
@@ -240,9 +250,26 @@ settings = {
     'max_network_bytes': SettingUInt64,
     'max_network_bandwidth_for_user': SettingUInt64,
     'max_network_bandwidth_for_all_users': SettingUInt64,
+
+    'max_streams_multiplier_for_merge_tables': SettingFloat,
+    'max_http_get_redirects': SettingUInt64,
+    'max_execution_speed': SettingUInt64,
+    'max_execution_speed_bytes': SettingUInt64,
+
     'format_csv_delimiter': SettingChar,
     'format_csv_allow_single_quotes': SettingBool,
     'format_csv_allow_double_quotes': SettingBool,
+
+    'format_template_resultset': SettingString,
+    'format_template_row': SettingString,
+    'format_template_rows_between_delimiter': SettingString,
+    'format_custom_escaping_rule': SettingString,
+    'format_custom_field_delimiter': SettingString,
+    'format_custom_row_before_delimiter': SettingString,
+    'format_custom_row_after_delimiter': SettingString,
+    'format_custom_row_between_delimiter': SettingString,
+    'format_custom_result_before_delimiter': SettingString,
+    'format_custom_result_after_delimiter': SettingString,
 
     'enable_conditional_computation': SettingUInt64,
 
@@ -251,17 +278,53 @@ settings = {
     'log_query_settings': SettingBool,
     'log_query_threads': SettingBool,
     'send_logs_level': SettingString,
-    'enable_optimize_predicate_expression': SettingBool,
     'low_cardinality_max_dictionary_size': SettingUInt64,
     'low_cardinality_use_single_dictionary_for_part': SettingBool,
-    'allow_experimental_low_cardinality_type': SettingBool,
-    'allow_experimental_decimal_type': SettingBool,
     'decimal_check_overflow': SettingBool,
     'prefer_localhost_replica': SettingBool,
     'max_fetch_partition_retries_count': SettingUInt64,
     'asterisk_left_columns_only': SettingBool,
     'http_max_multipart_form_data_size': SettingUInt64,
     'calculate_text_stack_trace': SettingBool,
-    'allow_ddl': SettingBool,
     'parallel_view_processing': SettingBool,
+
+    'allow_experimental_low_cardinality_type': SettingBool,
+    'allow_experimental_decimal_type': SettingBool,
+    'allow_suspicious_low_cardinality_types': SettingBool,
+    'allow_experimental_multiple_joins_emulation': SettingBool,
+    'allow_experimental_cross_to_join_conversion': SettingBool,
+    'allow_experimental_data_skipping_indices': SettingBool,
+    'allow_hyperscan': SettingBool,
+    'allow_simdjson': SettingBool,
+    'allow_introspection_functions': SettingBool,
+    'allow_drop_detached': SettingBool,
+    'allow_experimental_live_view': SettingBool,
+    'allow_ddl': SettingBool,
+
+    'partial_merge_join': SettingBool,
+    'partial_merge_join_optimizations': SettingBool,
+    'partial_merge_join_rows_in_right_blocks': SettingUInt64,
+    'partial_merge_join_rows_in_left_blocks': SettingFloat,
+
+    'distributed_replica_error_half_life': SettingSeconds,
+    'distributed_replica_error_cap': SettingUInt64,
+
+    'min_free_disk_space_for_temporary_data': SettingUInt64,
+    'tcp_keep_alive_timeout': SettingSeconds,
+    'connection_pool_max_wait_ms': SettingMilliseconds,
+    'kafka_max_wait_ms': SettingMilliseconds,
+    'idle_connection_timeout': SettingUInt64,
+    's3_min_upload_part_size': SettingUInt64,
+    'any_join_distinct_right_table_keys': SettingBool,
+    'join_any_take_last_row': SettingBool,
+    'stream_poll_timeout_ms': SettingMilliseconds,
+    'joined_subquery_requires_alias': SettingBool,
+    'enable_unaligned_array_join': SettingBool,
+    'low_cardinality_allow_in_native_format': SettingBool,
+    'external_table_functions_use_nulls': SettingBool,
+    'experimental_use_processors': SettingBool,
+    'check_query_single_value_result': SettingBool,
+    'live_view_heartbeat_interval': SettingSeconds,
+    'temporary_live_view_timeout': SettingSeconds,
+    'max_live_view_insert_blocks_before_refresh': SettingUInt64,
 }
