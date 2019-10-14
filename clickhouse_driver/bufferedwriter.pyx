@@ -76,4 +76,18 @@ cdef class BufferedSocketWriter(BufferedWriter):
         self.position = 0
 
 
-# TODO: make proper CompressedBufferedWriter
+cdef class CompressedBufferedWriter(BufferedWriter):
+    cdef object compressor
+
+    def __init__(self, compressor, bufsize):
+        self.compressor = compressor
+        super(CompressedBufferedWriter, self).__init__(bufsize)
+
+    cpdef write_into_stream(self):
+        self.compressor.write(
+            PyByteArray_FromStringAndSize(self.buffer, self.position)
+        )
+        self.position = 0
+
+    def flush(self):
+        self.write_into_stream()

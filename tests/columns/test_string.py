@@ -82,6 +82,21 @@ class StringTestCase(BaseTestCase):
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
 
+    def test_compressed_client(self):
+        columns = 'a String'
+
+        with self.created_client(compression=True) as client:
+            data = [('a' * 300, )]
+            with self.create_table(columns):
+                client.execute(
+                    'INSERT INTO test (a) VALUES', data
+                )
+
+                query = 'SELECT * FROM test'
+
+                inserted = client.execute(query)
+                self.assertEqual(inserted, data)
+
 
 class ByteStringTestCase(BaseTestCase):
     client_kwargs = {'settings': {'strings_as_bytes': True}}
