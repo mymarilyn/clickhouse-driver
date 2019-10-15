@@ -42,27 +42,36 @@ class DateTimeColumn(FormatColumn):
                     for i, is_null in enumerate(nulls_map)
                 )
 
-    def before_write_item(self, value):
-        if isinstance(value, int):
-            # support supplying raw integers to avoid
-            # costly timezone conversions when using datetime
-            return value
+    def before_write_items(self, items, nulls_map=None):
+        timezone = self.timezone
+        null_value = self.null_value
 
-        if self.timezone:
-            # Set server's timezone for offset-naive datetime.
-            if value.tzinfo is None:
-                value = self.timezone.localize(value)
+        for i, item in enumerate(items):
+            if nulls_map and nulls_map[i]:
+                items[i] = null_value
+                continue
 
-            value = value.astimezone(utc)
-            return int(timegm(value.timetuple()))
+            if isinstance(item, int):
+                # support supplying raw integers to avoid
+                # costly timezone conversions when using datetime
+                continue
 
-        else:
-            # If datetime is offset-aware use it's timezone.
-            if value.tzinfo is not None:
-                value = value.astimezone(utc)
-                return int(timegm(value.timetuple()))
+            if timezone:
+                # Set server's timezone for offset-naive datetime.
+                if item.tzinfo is None:
+                    item = timezone.localize(item)
 
-            return int(mktime(value.timetuple()))
+                item = item.astimezone(utc)
+                items[i] = int(timegm(item.timetuple()))
+
+            else:
+                # If datetime is offset-aware use it's timezone.
+                if item.tzinfo is not None:
+                    item = item.astimezone(utc)
+                    items[i] = int(timegm(item.timetuple()))
+
+                else:
+                    items[i] = int(mktime(item.timetuple()))
 
 
 def create_datetime_column(spec, column_options):

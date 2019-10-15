@@ -45,14 +45,21 @@ class UUIDColumn(FormatColumn):
                 for i, is_null in enumerate(nulls_map)
             )
 
-    def before_write_item(self, value):
-        try:
-            if not isinstance(value, UUID):
-                value = UUID(value)
+    def before_write_items(self, items, nulls_map=None):
+        null_value = self.null_value
 
-        except ValueError:
-            raise errors.CannotParseUuidError(
-                "Cannot parse uuid '{}'".format(value)
-            )
+        for i, item in enumerate(items):
+            if nulls_map and nulls_map[i]:
+                items[i] = null_value
+                continue
 
-        return value.int
+            try:
+                if not isinstance(item, UUID):
+                    item = UUID(item)
+
+            except ValueError:
+                raise errors.CannotParseUuidError(
+                    "Cannot parse uuid '{}'".format(item)
+                )
+
+            items[i] = item.int

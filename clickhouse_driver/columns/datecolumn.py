@@ -17,13 +17,25 @@ class DateColumn(FormatColumn):
     date_lut = {x: epoch_start + timedelta(x) for x in range(65535)}
     date_lut_reverse = {value: key for key, value in date_lut.items()}
 
-    def before_write_item(self, value):
-        if type(value) != date:
-            value = date(value.year, value.month, value.day)
+    def before_write_items(self, items, nulls_map=None):
+        null_value = self.null_value
 
-        if value > self.epoch_end or value < self.epoch_start:
-            return 0
-        return self.date_lut_reverse[value]
+        date_lut_reverse = self.date_lut_reverse
+        epoch_start = self.epoch_start
+        epoch_end = self.epoch_end
+
+        for i, item in enumerate(items):
+            if nulls_map and nulls_map[i]:
+                items[i] = null_value
+                continue
+
+            if type(item) != date:
+                item = date(item.year, item.month, item.day)
+
+            if item > epoch_end or item < epoch_start:
+                items[i] = 0
+            else:
+                items[i] = date_lut_reverse[item]
 
     def after_read_items(self, items, nulls_map=None):
         date_lut = self.date_lut

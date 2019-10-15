@@ -12,27 +12,35 @@ class EnumColumn(IntColumn):
         self.enum_cls = enum_cls
         super(EnumColumn, self).__init__(**kwargs)
 
-    def before_write_item(self, value):
-        source_value = value.name if isinstance(value, Enum) else value
+    def before_write_items(self, items, nulls_map=None):
+        null_value = self.null_value
+
         enum_cls = self.enum_cls
 
-        # Check real enum value
-        try:
-            if isinstance(source_value, compat.string_types):
-                return enum_cls[source_value].value
-            else:
-                return enum_cls(source_value).value
-        except (ValueError, KeyError):
-            choices = ', '.join(
-                "'{}' = {}".format(x.name.replace("'", r"\'"), x.value)
-                for x in enum_cls
-            )
-            enum_str = '{}({})'.format(enum_cls.__name__, choices)
+        for i, item in enumerate(items):
+            if nulls_map and nulls_map[i]:
+                items[i] = null_value
+                continue
 
-            raise errors.LogicalError(
-                "Unknown element '{}' for type {}"
-                .format(source_value, enum_str)
-            )
+            source_value = item.name if isinstance(item, Enum) else item
+
+            # Check real enum value
+            try:
+                if isinstance(source_value, compat.string_types):
+                    items[i] = enum_cls[source_value].value
+                else:
+                    items[i] = enum_cls(source_value).value
+            except (ValueError, KeyError):
+                choices = ', '.join(
+                    "'{}' = {}".format(x.name.replace("'", r"\'"), x.value)
+                    for x in enum_cls
+                )
+                enum_str = '{}({})'.format(enum_cls.__name__, choices)
+
+                raise errors.LogicalError(
+                    "Unknown element '{}' for type {}"
+                    .format(source_value, enum_str)
+                )
 
     def after_read_items(self, items, nulls_map=None):
         enum_cls = self.enum_cls

@@ -22,13 +22,6 @@ class String(Column):
 
     # TODO: pass user encoding here
 
-    def prepare_null(self, value):
-        if self.nullable and value is None:
-            return self.null_value, True
-
-        else:
-            return value, False
-
     def write_items(self, items, buf):
         buf.write_strings(items, encode=True)
 

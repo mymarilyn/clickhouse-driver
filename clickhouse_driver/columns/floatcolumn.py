@@ -18,10 +18,16 @@ class Float32(FloatColumn):
         if types_check:
             # Chop only bytes that fit current type.
             # Cast to -nan or nan if overflows.
-            def before_write_item(value):
-                return c_float(value).value
+            def before_write_items(items, nulls_map=None):
+                null_value = self.null_value
 
-            self.before_write_item = before_write_item
+                for i, item in enumerate(items):
+                    if nulls_map and nulls_map[i]:
+                        items[i] = null_value
+                    else:
+                        items[i] = c_float(item).value
+
+            self.before_write_items = before_write_items
 
 
 class Float64(FloatColumn):

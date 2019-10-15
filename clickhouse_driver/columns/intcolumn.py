@@ -16,16 +16,24 @@ class IntColumn(FormatColumn):
 
             # Chop only bytes that fit current type.
             # ctypes.c_intXX is slower.
-            def before_write_item(value):
-                if value >= 0:
-                    sign = 1
-                else:
-                    sign = -1
-                    value = -value
+            def before_write_items(items, nulls_map=None):
+                # TODO: cythonize
+                null_value = self.null_value
 
-                return sign * (value & self.mask)
+                for i, item in enumerate(items):
+                    if nulls_map and nulls_map[i]:
+                        items[i] = null_value
+                        continue
 
-            self.before_write_item = before_write_item
+                    if item >= 0:
+                        sign = 1
+                    else:
+                        sign = -1
+                        item = -item
+
+                    items[i] = sign * (item & self.mask)
+
+            self.before_write_items = before_write_items
 
 
 class UIntColumn(IntColumn):

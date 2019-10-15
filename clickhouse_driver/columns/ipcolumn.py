@@ -33,21 +33,6 @@ class IPv4Column(UInt32Column):
 
             self.check_item = check_item
 
-    def before_write_item(self, value):
-        # allow Ipv4 in integer, string or IPv4Address object
-        try:
-            if isinstance(value, int):
-                return value
-
-            if not isinstance(value, IPv4Address):
-                value = IPv4Address(value)
-
-            return int(value)
-        except AddressValueError:
-            raise errors.CannotParseDomainError(
-                "Cannot parse IPv4 '{}'".format(value)
-            )
-
     def after_read_items(self, items, nulls_map=None):
         if nulls_map is None:
             return tuple(IPv4Address(item) for item in items)
@@ -56,6 +41,28 @@ class IPv4Column(UInt32Column):
                 (None if is_null else IPv4Address(items[i]))
                 for i, is_null in enumerate(nulls_map)
             )
+
+    def before_write_items(self, items, nulls_map=None):
+        null_value = self.null_value
+
+        for i, item in enumerate(items):
+            if nulls_map and nulls_map[i]:
+                items[i] = null_value
+                continue
+
+            # allow Ipv4 in integer, string or IPv4Address object
+            try:
+                if isinstance(item, int):
+                    continue
+
+                if not isinstance(item, IPv4Address):
+                    item = IPv4Address(item)
+
+                items[i] = int(item)
+            except AddressValueError:
+                raise errors.CannotParseDomainError(
+                    "Cannot parse IPv4 '{}'".format(item)
+                )
 
 
 class IPv6Column(ByteFixedString):
@@ -80,21 +87,6 @@ class IPv6Column(ByteFixedString):
 
             self.check_item = check_item
 
-    def before_write_item(self, value):
-        # allow Ipv6 in bytes or python IPv6Address
-        # this is raw bytes (not encoded) in order to fit FixedString(16)
-        try:
-            if isinstance(value, bytes):
-                return value
-
-            if not isinstance(value, IPv6Address):
-                value = IPv6Address(value)
-            return value.packed
-        except AddressValueError:
-            raise errors.CannotParseDomainError(
-                "Cannot parse IPv6 '{}'".format(value)
-            )
-
     def after_read_items(self, items, nulls_map=None):
         if nulls_map is None:
             return tuple(IPv6Address(item) for item in items)
@@ -103,3 +95,25 @@ class IPv6Column(ByteFixedString):
                 (None if is_null else IPv6Address(items[i]))
                 for i, is_null in enumerate(nulls_map)
             )
+
+    def before_write_items(self, items, nulls_map=None):
+        null_value = self.null_value
+
+        for i, item in enumerate(items):
+            if nulls_map and nulls_map[i]:
+                items[i] = null_value
+                continue
+
+            # allow Ipv6 in bytes or python IPv6Address
+            # this is raw bytes (not encoded) in order to fit FixedString(16)
+            try:
+                if isinstance(item, bytes):
+                    continue
+
+                if not isinstance(item, IPv6Address):
+                    item = IPv6Address(item)
+                items[i] = item.packed
+            except AddressValueError:
+                raise errors.CannotParseDomainError(
+                    "Cannot parse IPv6 '{}'".format(item)
+                )

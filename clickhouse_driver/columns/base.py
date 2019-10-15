@@ -9,9 +9,11 @@ class Column(object):
 
     check_item = None
     after_read_items = None
-    before_write_item = None
+    before_write_items = None
 
     types_check_enabled = False
+
+    null_value = 0
 
     def __init__(self, types_check=False, **kwargs):
         self.nullable = False
@@ -30,20 +32,13 @@ class Column(object):
         items = [x is None for x in items]
         buf.write(s.pack(*items))
 
-    def prepare_null(self, value):
-        if self.nullable and value is None:
-            return 0, True
-
-        else:
-            return value, False
-
     def check_item_type(self, value):
         if not isinstance(value, self.py_types):
             raise exceptions.ColumnTypeMismatchException(value)
 
     def prepare_items(self, items):
-        before_write = self.before_write_item
-        prepare_null = self.prepare_null if self.nullable else False
+        nullable = self.nullable
+        null_value = self.null_value
 
         check_item = self.check_item
         if self.types_check_enabled:
@@ -51,27 +46,27 @@ class Column(object):
         else:
             check_item_type = False
 
-        if (not prepare_null and not check_item_type and
-                not check_item and not before_write):
+        if (not self.nullable and not check_item_type and
+                not check_item and not self.before_write_items):
             return items
 
+        nulls_map = [False] * len(items) if self.nullable else None
         for i, x in enumerate(items):
-            if prepare_null:
-                x, is_null = prepare_null(x)
-            else:
-                is_null = False
+            if x is None and nullable:
+                nulls_map[i] = True
+                x = null_value
 
-            if not is_null:
+            else:
                 if check_item_type:
                     check_item_type(x)
 
                 if check_item:
                     check_item(x)
 
-                if before_write:
-                    x = before_write(x)
-
             items[i] = x
+
+        if self.before_write_items:
+            self.before_write_items(items, nulls_map=nulls_map)
 
         return items
 
@@ -139,3 +134,14 @@ class FormatColumn(Column):
     def read_items(self, n_items, buf):
         s = self.make_struct(n_items)
         return s.unpack(buf.read(s.size))
+
+
+# How to write new column?
+# - Check ClickHouse documentation for column
+# - Wireshark and tcpdump are your friends.
+# - Use `clickhouse-client --compression 0` to see what's going on data
+#   transmission.
+# - Check for similar existing columns and tests.
+# - Use `FormatColumn` for columns that use "simple" types under the hood.
+# - Some columns have before_write and after_read hooks.
+#   Use them to convert items in column into "simple" types.
