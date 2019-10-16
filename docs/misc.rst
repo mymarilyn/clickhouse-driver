@@ -2,6 +2,42 @@
 Miscellaneous
 =============
 
+Client configuring from URL
+---------------------------
+
+*New in version 0.1.1.*
+
+Client can be configured from the given URL:
+
+    .. code-block:: python
+
+        >>> from clickhouse_driver import Client
+        >>> client = Client.from_url(
+        ...     'clickhouse://login:password@host:port/database'
+        ... )
+
+Port 9000 is default for schema ``clickhouse``, port 9440 is default for schema ``clickhouses``.
+
+Connection to default database:
+
+    .. code-block:: python
+
+        >>> client = Client.from_url('clickhouse://localhost')
+
+
+Querystring arguments will be passed along to the :meth:`~clickhouse_driver.connection.Connection` class’s initializer:
+
+    .. code-block:: python
+
+        >>> client = Client.from_url(
+        ...     'clickhouse://localhost/database?send_logs_level=trace&'
+        ...     'client_name=myclient&'
+        ...     'compression=lz4'
+        ... )
+
+If parameter doesn't match Connection's init signature will be treated as settings parameter.
+
+
 Inserting data from CSV file
 ----------------------------
 
@@ -49,6 +85,8 @@ Data can be inserted into ClickHouse in the following way:
         ... )
         >>> []
         >>> client.execute('INSERT INTO data_csv VALUES', iter_csv('/tmp/data.csv'))
+        3
+
 
 
 Table can be populated with json file in the similar way.

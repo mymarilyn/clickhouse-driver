@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.2] - 2019-10-18
+### Added
+- Settings update to 19.16.1 server version. Pull request [#111](https://github.com/mymarilyn/clickhouse-driver/pull/111) by [azat](https://github.com/azat).
+- Python 3.8 in Travis CI build matrix.
+- Returning inserted rows count on `INSERT` queries with data. Returning rows count from `INSERT FROM SELECT` is not supported.
+
+### Fixed
+- Exposing `columnar` parameter to `execute_with_progress`. Pull request [#108](https://github.com/mymarilyn/clickhouse-driver/pull/108) by [igorbb](https://github.com/igorbb).
+- LowCardinality tests. Pull request [#112](https://github.com/mymarilyn/clickhouse-driver/pull/112) by [azat](https://github.com/azat).
+
+### Changed
+- Increased speed (up to 5 times compared to 0.1.1 release) of `INSERT` queries.
+- Date/DateTime columns selecting and inserting optimizations.
+
 ## [0.1.1] - 2019-09-20
 ### Added
 - `Client.from_url` method that creates client configured from the given URL.
@@ -215,8 +229,9 @@
 - Date/DateTime types.
 - String types.
 
-[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.1...HEAD
-[0.1.1]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.1...0.1.1
+[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.2...HEAD
+[0.1.2]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.1...0.1.2
+[0.1.1]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.0...0.1.1
 [0.1.0]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.20...0.1.0
 [0.0.20]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.19...0.0.20
 [0.0.19]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.18...0.0.19

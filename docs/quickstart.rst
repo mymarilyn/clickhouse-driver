@@ -30,6 +30,9 @@ There are two conceptual types of queries:
 Every query should be executed by calling one of the client's execute
 methods: `execute`, `execute_with_progress`, `execute_iter method`.
 
+- SELECT queries can use `execute`, `execute_with_progress`, `execute_iter`
+  methods.
+- INSERT queries can use only `execute` method.
 
 Selecting data
 --------------
@@ -139,14 +142,17 @@ To insert data efficiently, provide data separately, and end your statement with
         ...     'INSERT INTO test (x) VALUES',
         ...     [{'x': 1}, {'x': 2}, {'x': 3}, {'x': 100}]
         ... )
+        4
         >>> client.execute(
         ...     'INSERT INTO test (x) VALUES',
         ...     [[200]]
         ... )
+        1
         >>> client.execute(
         ...     'INSERT INTO test (x) VALUES',
         ...     ((x, ) for x in range(5))
         ... )
+        5
 
 You can use any iterable yielding lists, tuples or dicts.
 

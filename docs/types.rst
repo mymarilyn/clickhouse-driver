@@ -45,6 +45,8 @@ SELECT type: :class:`~datetime.datetime`.
 
 Setting `use_client_time_zone <https://clickhouse.yandex/docs/en/single/#datetime>`_ is taken into consideration.
 
+You can cast DateTime column to integers if you are facing performance issues when selecting large amount of rows.
+
 
 String/FixedString(N)
 ---------------------
@@ -103,6 +105,7 @@ SELECT type: :class:`str`/:func:`basestring <basestring>`.
         ...     'INSERT INTO test (x) VALUES',
         ...     [{'x': MyEnum.foo}, {'x': 'bar'}, {'x': 1}]
         ... )
+        3
         >>> client.execute('SELECT * FROM test')
         [('foo',), ('bar',), ('foo',)]
 
@@ -136,6 +139,7 @@ SELECT type: :func:`tuple <tuple>`.
         ...     'INSERT INTO test (x) VALUES',
         ...     [{'x': [10, 20, 30]}, {'x': [11, 21, 31]}]
         ... )
+        2
         >>> client.execute('SELECT * FROM test')
         [((10, 20, 30),), ((11, 21, 31),)]
 
@@ -192,6 +196,7 @@ SELECT type: :class:`~ipaddress.IPv4Address`/:class:`~ipaddress.IPv6Address`.
         ...     {'x': 167772161},
         ...     {'x': IPv4Address('192.168.253.42')}
         ... ])
+        3
         >>> client.execute('SELECT * FROM test')
         [(IPv4Address('192.168.253.42'),), (IPv4Address('10.0.0.1'),), (IPv4Address('192.168.253.42'),)]
         >>>
@@ -208,6 +213,7 @@ SELECT type: :class:`~ipaddress.IPv4Address`/:class:`~ipaddress.IPv6Address`.
         ...     {'x': IPv6Address('12ff:0000:0000:0000:0000:0000:0000:0001')},
         ...     {'x': b"y\xf4\xe6\x98E\xde\xa5\x9b'e(\xe3\x8d:5\xae"}
         ... ])
+        3
         >>> client.execute('SELECT * FROM test')
         [(IPv6Address('79f4:e698:45de:a59b:2765:28e3:8d3a:35ae'),), (IPv6Address('12ff::1'),), (IPv6Address('79f4:e698:45de:a59b:2765:28e3:8d3a:35ae'),)]
         >>>
