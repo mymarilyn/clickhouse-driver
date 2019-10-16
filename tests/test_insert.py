@@ -135,3 +135,15 @@ class InsertTestCase(BaseTestCase):
                 'SELECT number FROM system.numbers LIMIT 5'
             )
             self.assertEqual(inserted, [])
+
+    def test_insert_return(self):
+        with self.create_table('a Int8'):
+            rv = self.client.execute(
+                'INSERT INTO test (a) VALUES', []
+            )
+            self.assertEqual(rv, 0)
+
+            rv = self.client.execute(
+                'INSERT INTO test (a) VALUES', [(x,) for x in range(5)]
+            )
+            self.assertEqual(rv, 5)

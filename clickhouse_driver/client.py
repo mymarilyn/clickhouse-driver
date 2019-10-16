@@ -339,7 +339,7 @@ class Client(object):
     def iter_process_ordinary_query(
             self, query, params=None, with_column_types=False,
             external_tables=None, query_id=None,
-            types_check=False, columnar=False):
+            types_check=False):
 
         if params is not None:
             query = self.substitute_params(query, params)
@@ -358,10 +358,11 @@ class Client(object):
 
         sample_block = self.receive_sample_block()
         if sample_block:
-            self.send_data(sample_block, data, types_check=types_check)
+            rv = self.send_data(sample_block, data, types_check=types_check)
             packet = self.connection.receive_packet()
             if packet.exception:
                 raise packet.exception
+            return rv
 
     def receive_sample_block(self):
         packet = self.connection.receive_packet()
@@ -378,14 +379,18 @@ class Client(object):
             raise errors.UnexpectedPacketFromServerError(message)
 
     def send_data(self, sample_block, data, types_check=False):
+        inserted_rows = 0
+
         client_settings = self.connection.context.client_settings
         for chunk in chunks(data, client_settings['insert_block_size']):
             block = Block(sample_block.columns_with_types, chunk,
                           types_check=types_check)
             self.connection.send_data(block)
+            inserted_rows += len(chunk)
 
         # Empty block means end of data.
         self.connection.send_data(Block())
+        return inserted_rows
 
     def cancel(self, with_column_types=False):
         # TODO: Add warning if already cancelled.
