@@ -55,8 +55,7 @@ install:
   - pip install --upgrade pip setuptools
   - pip install flake8 flake8-print coveralls cython
 script:
-  - flake8
-  - coverage run --source=clickhouse_driver setup.py test
+  - flake8 && coverage run --source=clickhouse_driver setup.py test
 after_success:
   coveralls
 
