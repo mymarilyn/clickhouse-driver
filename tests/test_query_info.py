@@ -83,7 +83,7 @@ class QueryInfoTestCase(BaseTestCase):
         assert last_query.progress.rows == 10
         assert last_query.progress.bytes == 80
 
-        current = self.client.connection.server_info.version_tuple()
+        current = self.get_current_server_version()
         total_rows = 10 if current > (19, 4) else 0
         assert last_query.progress.total_rows == total_rows
 
@@ -138,7 +138,7 @@ class QueryInfoTestCase(BaseTestCase):
         assert last_query.progress.rows > 100000000
         assert last_query.progress.bytes > 800000000
 
-        current = self.client.connection.server_info.version_tuple()
+        current = self.get_current_server_version()
         total_rows = 100000000 if current > (19, 4) else 0
         assert last_query.progress.total_rows == total_rows
 

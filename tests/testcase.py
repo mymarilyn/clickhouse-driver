@@ -106,6 +106,14 @@ class BaseTestCase(TestCase):
 
     @contextmanager
     def create_table(self, columns, **kwargs):
+        if self.cli_client_kwargs:
+            if callable(self.cli_client_kwargs):
+                cli_client_kwargs = self.cli_client_kwargs()
+                if cli_client_kwargs:
+                    kwargs.update(cli_client_kwargs)
+            else:
+                kwargs.update(self.cli_client_kwargs)
+
         self.emit_cli(
             'CREATE TABLE test ({}) ''ENGINE = Memory'.format(columns),
             **kwargs
@@ -116,3 +124,6 @@ class BaseTestCase(TestCase):
             raise
         finally:
             self.emit_cli('DROP TABLE test')
+
+    def get_current_server_version(self):
+        return self.client.connection.server_info.version_tuple()
