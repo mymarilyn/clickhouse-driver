@@ -3,6 +3,7 @@ from datetime import datetime
 from time import mktime
 
 from pytz import timezone as get_timezone, utc
+from tzlocal import get_localzone
 
 from .base import FormatColumn
 
@@ -18,27 +19,39 @@ class DateTimeColumn(FormatColumn):
         super(DateTimeColumn, self).__init__(**kwargs)
 
     def after_read_items(self, items, nulls_map=None):
-        timezone = self.timezone
+        tz = self.timezone
         fromtimestamp = datetime.fromtimestamp
 
+        # A bit ugly copy-paste. But it helps save time on items
+        # processing by avoiding lambda calls or if in loop.
         if self.offset_naive:
-            if nulls_map is None:
-                return tuple(
-                    fromtimestamp(item, timezone).replace(tzinfo=None)
-                    for item in items
-                )
+            if tz:
+                if nulls_map is None:
+                    return tuple(
+                        fromtimestamp(item, tz).replace(tzinfo=None)
+                        for item in items
+                    )
+                else:
+                    return tuple(
+                        (None if is_null else
+                         fromtimestamp(items[i], tz).replace(tzinfo=None))
+                        for i, is_null in enumerate(nulls_map)
+                    )
             else:
-                return tuple(
-                    (None if is_null else
-                     fromtimestamp(items[i], timezone).replace(tzinfo=None))
-                    for i, is_null in enumerate(nulls_map)
-                )
+                if nulls_map is None:
+                    return tuple(fromtimestamp(item) for item in items)
+                else:
+                    return tuple(
+                        (None if is_null else fromtimestamp(items[i]))
+                        for i, is_null in enumerate(nulls_map)
+                    )
+
         else:
             if nulls_map is None:
-                return tuple(fromtimestamp(item, timezone) for item in items)
+                return tuple(fromtimestamp(item, tz) for item in items)
             else:
                 return tuple(
-                    (None if is_null else fromtimestamp(items[i], timezone))
+                    (None if is_null else fromtimestamp(items[i], tz))
                     for i, is_null in enumerate(nulls_map)
                 )
 
@@ -86,7 +99,13 @@ def create_datetime_column(spec, column_options):
         offset_naive = False
     else:
         if not context.settings.get('use_client_time_zone', False):
-            tz_name = context.server_info.timezone
+            try:
+                local_timezone = get_localzone().zone
+            except Exception:
+                local_timezone = None
+
+            if local_timezone != context.server_info.timezone:
+                tz_name = context.server_info.timezone
 
     if tz_name:
         timezone = get_timezone(tz_name)

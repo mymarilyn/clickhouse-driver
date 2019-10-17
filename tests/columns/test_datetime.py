@@ -4,13 +4,30 @@ import os
 from time import tzset
 
 from mock import patch
-from pytz import timezone, utc
+from pytz import timezone, utc, UnknownTimeZoneError
+import tzlocal
 
 from tests.testcase import BaseTestCase
 from tests.util import require_server_version
 
 
-class DateTimeTestCase(BaseTestCase):
+class BaseDateTimeTestCase(BaseTestCase):
+    def setUp(self):
+        super(BaseDateTimeTestCase, self).setUp()
+
+        # Bust tzlocal cache.
+        try:
+            tzlocal.unix._cache_tz = None
+        except AttributeError:
+            pass
+
+        try:
+            tzlocal.win32._cache_tz = None
+        except AttributeError:
+            pass
+
+
+class DateTimeTestCase(BaseDateTimeTestCase):
     def test_simple(self):
         with self.create_table('a Date, b DateTime'):
             data = [(date(2012, 10, 25), datetime(2012, 10, 25, 14, 7, 19))]
@@ -64,8 +81,13 @@ class DateTimeTestCase(BaseTestCase):
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
 
+    def test_handle_errors_from_tzlocal(self):
+        with patch('tzlocal.get_localzone') as mocked_get_localzone:
+            mocked_get_localzone.side_effect = UnknownTimeZoneError()
+            self.client.execute('SELECT now()')
 
-class DateTimeTimezonesTestCase(BaseTestCase):
+
+class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
     @contextmanager
     def patch_env_tz(self, tz_name):
         # Although in many cases, changing the TZ environment variable may
