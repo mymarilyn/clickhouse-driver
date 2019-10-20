@@ -101,7 +101,7 @@ class Client(object):
 
                 yield packet
 
-            except Exception:
+            except (Exception, KeyboardInterrupt):
                 self.disconnect()
                 raise
 
@@ -216,7 +216,7 @@ class Client(object):
             self.last_query.store_elapsed(time() - start_time)
             return rv
 
-        except Exception:
+        except (Exception, KeyboardInterrupt):
             self.disconnect()
             raise
 
@@ -261,7 +261,7 @@ class Client(object):
                 types_check=types_check, columnar=columnar
             )
 
-        except Exception:
+        except (Exception, KeyboardInterrupt):
             self.disconnect()
             raise
 
@@ -304,7 +304,7 @@ class Client(object):
                 query_id=query_id, types_check=types_check
             )
 
-        except Exception:
+        except (Exception, KeyboardInterrupt):
             self.disconnect()
             raise
 
