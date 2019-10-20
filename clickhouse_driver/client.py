@@ -478,14 +478,14 @@ class Client(object):
                 kwargs[name] = int(value)
 
             # ssl
-            if name == 'verify':
+            elif name == 'verify':
                 kwargs[name] = asbool(value)
             elif name == 'ssl_version':
                 kwargs[name] = getattr(ssl, value)
             elif name in ['ca_certs', 'ciphers']:
                 kwargs[name] = value
-
-            settings[name] = value
+            else:
+                settings[name] = value
 
         if settings:
             kwargs['settings'] = settings
