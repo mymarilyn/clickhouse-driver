@@ -179,7 +179,12 @@ Statistics is sent from ClickHouse server and calculated on client side.
         >>> client.last_query.profile_info.rows_before_limit
         100
 
-* progress: processed rows, bytes and total rows
+* progress:
+    - processed rows;
+    - processed bytes;
+    - total rows;
+    - written rows (*new in version 0.1.3*);
+    - written rows (*new in version 0.1.3*);
 
     .. code-block:: python
 

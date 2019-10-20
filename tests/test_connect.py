@@ -20,7 +20,7 @@ class PacketsTestCase(BaseTestCase):
         self.assertEqual(ClientPacketTypes.to_str(42), 'Unknown packet')
 
         self.assertEqual(ServerPacketTypes.to_str(4), 'Pong')
-        self.assertEqual(ServerPacketTypes.to_str(11), 'Unknown packet')
+        self.assertEqual(ServerPacketTypes.to_str(12), 'Unknown packet')
         self.assertEqual(ServerPacketTypes.to_str(42), 'Unknown packet')
 
 

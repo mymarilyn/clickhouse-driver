@@ -69,14 +69,24 @@ class ServerPacketTypes(object):
     # System logs of the query execution
     LOG = 10
 
+    # Columns' description for default values calculation
+    TABLE_COLUMNS = 11
+
     _types_str = [
         'Hello', 'Data', 'Exception', 'Progress', 'Pong', 'EndOfStream',
-        'ProfileInfo', 'Totals', 'Extremes', 'TablesStatusResponse', 'Log'
+        'ProfileInfo', 'Totals', 'Extremes', 'TablesStatusResponse', 'Log',
+        'TableColumns'
     ]
 
     @classmethod
     def to_str(cls, packet):
-        return 'Unknown packet' if packet > 10 else cls._types_str[packet]
+        return 'Unknown packet' if packet > 11 else cls._types_str[packet]
+
+    @classmethod
+    def strings_in_message(cls, packet):
+        if packet == cls.TABLE_COLUMNS:
+            return 2
+        return 0
 
 
 class Compression(object):

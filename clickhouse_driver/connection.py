@@ -33,6 +33,7 @@ class Packet(object):
         self.exception = None
         self.progress = None
         self.profile_info = None
+        self.multistring_message = None
 
         super(Packet, self).__init__()
 
@@ -407,6 +408,11 @@ class Connection(object):
         elif packet_type == ServerPacketTypes.END_OF_STREAM:
             pass
 
+        elif packet_type == ServerPacketTypes.TABLE_COLUMNS:
+            packet.multistring_message = self.receive_multistring_message(
+                packet_type
+            )
+
         else:
             self.disconnect()
             raise errors.UnknownPacketFromServerError(
@@ -460,6 +466,10 @@ class Connection(object):
         profile_info = BlockStreamProfileInfo()
         profile_info.read(self.fin)
         return profile_info
+
+    def receive_multistring_message(self, packet_type):
+        num = ServerPacketTypes.strings_in_message(packet_type)
+        return [read_binary_str(self.fin) for _i in range(num)]
 
     def send_data(self, block, table_name=''):
         start = time()

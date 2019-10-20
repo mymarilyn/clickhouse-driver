@@ -365,18 +365,23 @@ class Client(object):
             return rv
 
     def receive_sample_block(self):
-        packet = self.connection.receive_packet()
+        while True:
+            packet = self.connection.receive_packet()
 
-        if packet.type == ServerPacketTypes.DATA:
-            return packet.block
+            if packet.type == ServerPacketTypes.DATA:
+                return packet.block
 
-        elif packet.type == ServerPacketTypes.EXCEPTION:
-            raise packet.exception
+            elif packet.type == ServerPacketTypes.EXCEPTION:
+                raise packet.exception
 
-        else:
-            message = self.connection.unexpected_packet_message('Data',
-                                                                packet.type)
-            raise errors.UnexpectedPacketFromServerError(message)
+            elif packet.type == ServerPacketTypes.TABLE_COLUMNS:
+                pass
+
+            else:
+                message = self.connection.unexpected_packet_message(
+                    'Data, Exception or TableColumns', packet.type
+                )
+                raise errors.UnexpectedPacketFromServerError(message)
 
     def send_data(self, sample_block, data, types_check=False):
         inserted_rows = 0
