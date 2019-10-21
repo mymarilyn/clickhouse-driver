@@ -239,3 +239,5 @@ SimpleAggregateFunction(F, T)
 INSERT types: ``T``.
 
 SELECT type: ``T``.
+
+AggregateFunctions for `AggregatingMergeTree` Engine are not supported.
