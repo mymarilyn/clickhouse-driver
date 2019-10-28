@@ -81,8 +81,9 @@ Usage
         ...     'INSERT INTO test (x) VALUES',
         ...     [{'x': 100}]
         ... )
+        1
         >>> client.execute('INSERT INTO test (x) VALUES', [[200]])
-        >>>
+        1
         >>> client.execute(
         ...     'INSERT INTO test (x) '
         ...     'SELECT * FROM system.numbers LIMIT %(limit)s',

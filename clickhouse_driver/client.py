@@ -181,7 +181,9 @@ class Client(object):
                          column-oriented form.
                          Defaults to ``False`` (row-like form).
 
-        :return: * ``None`` for INSERT queries.
+        :return: * Number of inserted rows for INSERT queries with data.
+                   Returning rows count from INSERT FROM SELECT is not
+                   supported.
                  * If `with_column_types=False`: `list` of `tuples` with
                    rows/columns.
                  * If `with_column_types=True`: `tuple` of 2 elements:
