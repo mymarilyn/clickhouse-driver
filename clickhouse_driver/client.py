@@ -182,12 +182,12 @@ class Client(object):
                          It also allows to INSERT data in columnar form.
                          Defaults to ``False`` (row-like form).
 
-        :return: * Number of inserted rows for INSERT queries with data.
+        :return: * number of inserted rows for INSERT queries with data.
                    Returning rows count from INSERT FROM SELECT is not
                    supported.
-                 * If `with_column_types=False`: `list` of `tuples` with
+                 * if `with_column_types=False`: `list` of `tuples` with
                    rows/columns.
-                 * If `with_column_types=True`: `tuple` of 2 elements:
+                 * if `with_column_types=True`: `tuple` of 2 elements:
                     * The first element is `list` of `tuples` with
                       rows/columns.
                     * The second element information is about columns: names

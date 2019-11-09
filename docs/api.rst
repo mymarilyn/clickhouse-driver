@@ -8,6 +8,8 @@ API
 This part of the documentation covers basic classes of the driver: Client, Connection and others.
 
 
+.. _api-client:
+
 Client
 ------
 

@@ -42,7 +42,7 @@ class QueryResult(object):
 
     def get_result(self):
         """
-        :return: Stored query result.
+        :return: stored query result.
         """
 
         for packet in self.packet_generator:

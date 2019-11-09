@@ -15,6 +15,7 @@ if PY3:
     text_type = str
     binary_type = bytes
     range = range
+    StandardError = Exception
 
 else:
     from urlparse import parse_qs, urlparse  # noqa: F401
@@ -25,6 +26,7 @@ else:
     text_type = unicode  # noqa: F821
     binary_type = str
     range = xrange  # noqa: F821
+    StandardError = StandardError
 
 
 # from paste.deploy.converters

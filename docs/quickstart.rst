@@ -212,3 +212,6 @@ Client instances or implement a queue.
 The same thing is applied to multithreading. Queries from different threads
 can't use one Client instance with single connection. You should use different
 clients for different threads.
+
+However, if you are using DB API for communication with the server each cursor create
+its own Client instance. This makes communication thread-safe.

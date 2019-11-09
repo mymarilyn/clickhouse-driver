@@ -277,3 +277,75 @@ of hosts if previous host is unavailable:
 * host4:5678.
 
 The all queries within established connection will be sent to the same host.
+
+
+Python DB API 2.0
+-----------------
+
+*New in version 0.1.3.*
+
+This driver is also implements `DB API 2.0 specification
+<https://www.python.org/dev/peps/pep-0249/>`_. It can be useful for various
+integrations.
+
+Threads may share the module and connections.
+
+Parameters are expected in Python extended format codes, e.g.
+`...WHERE name=%(name)s`.
+
+    .. code-block:: python
+
+        >>> from clickhouse_driver import connect
+        >>> conn = connect('clickhouse://localhost')
+        >>> cursor = conn.cursor()
+        >>>
+        >>> cursor.execute('SHOW TABLES')
+        >>> cursor.fetchall()
+        [('test',)]
+        >>> cursor.execute('DROP TABLE IF EXISTS test')
+        >>> cursor.fetchall()
+        []
+        >>> cursor.execute('CREATE TABLE test (x Int32) ENGINE = Memory')
+        >>> cursor.fetchall()
+        []
+        >>> cursor.executemany(
+        ...     'INSERT INTO test (x) VALUES',
+        ...     [{'x': 100}]
+        ... )
+        >>> cursor.rowcount
+        1
+        >>> cursor.executemany('INSERT INTO test (x) VALUES', [[200]])
+        >>> cursor.rowcount
+        1
+        >>> cursor.execute(
+        ...     'INSERT INTO test (x) '
+        ...     'SELECT * FROM system.numbers LIMIT %(limit)s',
+        ...     {'limit': 3}
+        ... )
+        >>> cursor.rowcount
+        0
+        >>> cursor.execute('SELECT sum(x) FROM test')
+        >>> cursor.fetchall()
+        [(303,)]
+
+ClickHouse native protocol is synchronous: when you emit query in connection
+you must read whole server response before sending next query through this
+connection. To make DB API thread-safe each cursor should use it's own
+connection to the server. In  Under the hood :ref:`dbapi-cursor` is wrapper
+around pure :ref:`api-client`.
+
+:ref:`dbapi-connection` class is just wrapper for handling multiple cursors
+(clients) and do not initiate actual connections to the ClickHouse server.
+
+There are some non-standard ClickHouse-related :ref:`Cursor methods
+<dbapi-cursor>` for: external data, settings, etc.
+
+For automatic disposal Connection and Cursor instances can be used as context
+managers:
+
+    .. code-block:: python
+
+        >>> with connect('clickhouse://localhost') as conn:
+        >>>     with conn.cursor() as cursor:
+        >>>        cursor.execute('SHOW TABLES')
+        >>>        print(cursor.fetchall())
