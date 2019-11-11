@@ -71,7 +71,7 @@ jobs:
 
       install:
         - pip install --upgrade pip setuptools
-        - pip install cython cibuildwheel==0.11.1
+        - pip install cython cibuildwheel==1.0.0
 
       script:
         - cibuildwheel --output-dir wheelhouse
@@ -98,7 +98,7 @@ jobs:
 
       install:
         - pip install --upgrade pip setuptools
-        - pip install cython cibuildwheel==0.11.1
+        - pip install cython cibuildwheel==1.0.0
 
       script:
         - cibuildwheel --output-dir wheelhouse
@@ -128,7 +128,7 @@ jobs:
         - choco install --ignore-dependencies vcpython27
 
       script:
-        - C:/Python27/python -m pip install cibuildwheel==0.11.1
+        - C:/Python27/python -m pip install cibuildwheel==1.0.0
         - C:/Python27/python -m cibuildwheel --platform windows --output-dir wheelhouse
 
       env:
@@ -161,7 +161,7 @@ jobs:
         - export LIB="C:\\Program Files (x86)\\common files\\Microsoft\\Visual C++ for Python\\9.0\\VC\\Lib\\amd64;C:\\Program Files (x86)\\common files\\Microsoft\\Visual C++ for Python\\9.0\\WinSDK\\Lib\\x64"
 
       script:
-        - C:/Python27-x64/python -m pip install cibuildwheel==0.11.1
+        - C:/Python27-x64/python -m pip install cibuildwheel==1.0.0
         - C:/Python27-x64/python -m cibuildwheel --platform windows --output-dir wheelhouse
 
       env:
@@ -190,7 +190,7 @@ jobs:
 #        - export VS100COMNTOOLS="$VS140COMNTOOLS"
 #
 #      script:
-#        - C:/Python34/python -m pip install cibuildwheel==0.11.1
+#        - C:/Python34/python -m pip install cibuildwheel==1.0.0
 #        - C:/Python34/python -m cibuildwheel --platform windows --output-dir wheelhouse
 #
 #      env:
@@ -222,7 +222,7 @@ jobs:
 #        - export LIB="C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\LIB\\amd64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.17134.0\\ucrt\\x64;C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.17134.0\\um\\x64"
 #
 #      script:
-#        - C:/Python34-x64/python -m pip install cibuildwheel==0.11.1
+#        - C:/Python34-x64/python -m pip install cibuildwheel==1.0.0
 #        - C:/Python34-x64/python -m cibuildwheel --platform windows --output-dir wheelhouse
 #
 #      env:
@@ -250,7 +250,7 @@ jobs:
         - choco install python3 --version 3.5.2.20161029 -y --forcex86 --force --params "/InstallDir:C:\Python35"
 
       script:
-        - C:/Python35/python -m pip install cibuildwheel==0.11.1
+        - C:/Python35/python -m pip install cibuildwheel==1.0.0
         - C:/Python35/python -m cibuildwheel --platform windows --output-dir wheelhouse
 
       env:
@@ -278,7 +278,7 @@ jobs:
         - choco install python3 --version 3.5.2.20161029 -y --force --params "/InstallDir:C:\Python35-x64"
 
       script:
-        - C:/Python35-x64/python -m pip install cibuildwheel==0.11.1
+        - C:/Python35-x64/python -m pip install cibuildwheel==1.0.0
         - C:/Python35-x64/python -m cibuildwheel --platform windows --output-dir wheelhouse
 
       env:
@@ -298,7 +298,7 @@ jobs:
           tags: true
 
     - stage: wheels
-      name: Wheels for Windows Python 3.[67]
+      name: Wheels for Windows Python 3.[678]
       os: windows
       language: shell
 
@@ -308,12 +308,18 @@ jobs:
 
         - choco install python3 --version 3.7.4 --sidebyside -y --forcex86 --force --params "/InstallDir:C:\Python37"
         - choco install python3 --version 3.7.4 --sidebyside -y --force --params "/InstallDir:C:\Python37-x64"
-      script:
-        - C:/Python36/python -m pip install cibuildwheel==0.11.1
-        - C:/Python36-x64/python -m pip install cibuildwheel==0.11.1
 
-        - C:/Python37/python -m pip install cibuildwheel==0.11.1
-        - C:/Python37-x64/python -m pip install cibuildwheel==0.11.1
+        - choco install python3 --version 3.8.0 --sidebyside -y --forcex86 --force --params "/InstallDir:C:\Python38"
+        - choco install python3 --version 3.8.0 --sidebyside -y --force --params "/InstallDir:C:\Python38-x64"
+      script:
+        - C:/Python36/python -m pip install cibuildwheel==1.0.0
+        - C:/Python36-x64/python -m pip install cibuildwheel==1.0.0
+
+        - C:/Python37/python -m pip install cibuildwheel==1.0.0
+        - C:/Python37-x64/python -m pip install cibuildwheel==1.0.0
+
+        - C:/Python38/python -m pip install cibuildwheel==1.0.0
+        - C:/Python38-x64/python -m pip install cibuildwheel==1.0.0
 
         - C:/Python36/python -m cibuildwheel --platform windows --output-dir wheelhouse
         - C:/Python36-x64/python -m cibuildwheel --platform windows --output-dir wheelhouse
@@ -321,11 +327,14 @@ jobs:
         - C:/Python37/python -m cibuildwheel --platform windows --output-dir wheelhouse
         - C:/Python37-x64/python -m cibuildwheel --platform windows --output-dir wheelhouse
 
+        - C:/Python38/python -m cibuildwheel --platform windows --output-dir wheelhouse
+        - C:/Python38-x64/python -m cibuildwheel --platform windows --output-dir wheelhouse
+
       env:
-        - CIBW_BUILD='cp3[67]-*'
+        - CIBW_BUILD='cp3[678]-*'
         - CIBW_BEFORE_BUILD='python -m pip install cython'
       deploy:
-        name: Windows Python 3.[67]
+        name: Windows Python 3.[678]
         provider: releases
         api_key: $GITHUB_TOKEN
         file_glob: true
