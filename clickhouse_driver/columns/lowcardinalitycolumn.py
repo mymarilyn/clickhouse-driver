@@ -51,7 +51,7 @@ class LowCardinalityColumn(Column):
 
         if self.nested_column.nullable:
             # First element represents NULL if column is nullable.
-            index.append(0)
+            index.append(self.nested_column.null_value)
             # Prevent null map writing. Reset nested column nullable flag.
             self.nested_column.nullable = False
 

@@ -158,3 +158,21 @@ class LowCardinalityTestCase(BaseTestCase):
 
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
+
+    @require_server_version(19, 3, 3)
+    def test_nullable_string(self):
+        with self.create_table('a LowCardinality(Nullable(String))'):
+            data = [
+                ('test', ), ('', ), (None, )
+            ]
+            self.client.execute('INSERT INTO test (a) VALUES', data)
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted,
+                'test\n\n\\N\n'
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
