@@ -497,6 +497,8 @@ class Client(object):
                 kwargs[name] = getattr(ssl, value)
             elif name in ['ca_certs', 'ciphers']:
                 kwargs[name] = value
+            elif name == 'alt_hosts':
+                kwargs['alt_hosts'] = value
             else:
                 settings[name] = value
 

@@ -126,6 +126,27 @@ class ConnectTestCase(BaseTestCase):
             rv = self.client.execute('SELECT 1')
             self.assertEqual(rv, [(1, )])
 
+    def test_alt_hosts(self):
+        client = Client(
+            'wrong_host', 1234, self.database, self.user, self.password,
+            alt_hosts='{}:{}'.format(self.host, self.port)
+        )
+
+        getaddrinfo = socket.getaddrinfo
+
+        def side_getaddrinfo(host, *args, **kwargs):
+            if host == 'wrong_host':
+                raise socket.error(-2, 'Name or service not known')
+            return getaddrinfo(host, *args, **kwargs)
+
+        with patch('socket.getaddrinfo') as mocked_getaddrinfo:
+            mocked_getaddrinfo.side_effect = side_getaddrinfo
+
+            rv = client.execute('SELECT 1')
+            self.assertEqual(rv, [(1,)])
+
+        client.disconnect()
+
 
 class FakeBufferedReader(BufferedReader):
     def __init__(self, inputs, bufsize=128):
@@ -162,7 +183,7 @@ class TestBufferedReader(TestCase):
 
         self.assertRaises(EOFError, rdr.read, 10)
 
-    def test_cornder_case_read_to_end_of_buffer(self):
+    def test_corner_case_read_to_end_of_buffer(self):
         rdr = FakeBufferedReader([
             b'\x00' * 10,
             b'\xff' * 10,

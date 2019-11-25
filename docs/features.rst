@@ -251,3 +251,29 @@ Query logs can be received from server by using `send_logs_level` setting:
         2018-12-14 10:24:53,875 INFO     clickhouse_driver.log: {b328ad33-60e8-4012-b4cc-97f44a7b28f2} [ 25 ] <Information> executeQuery: Read 1 rows, 1.00 B in 0.004 sec., 262 rows/sec., 262.32 B/sec.
         2018-12-14 10:24:53,875 INFO     clickhouse_driver.log: {b328ad33-60e8-4012-b4cc-97f44a7b28f2} [ 25 ] <Debug> MemoryTracker: Peak memory usage (for query): 40.23 KiB.
         [(1,)]
+
+
+Multiple hosts
+--------------
+
+*New in version 0.1.3.*
+
+Additional connection points can be defined by using `alt_hosts`.
+If main connection point is unavailable driver will use next one from `alt_hosts`.
+
+This option is good for ClickHouse cluster with multiple replicas.
+
+    .. code-block:: python
+
+        >>> from clickhouse_driver import Client
+        >>> client = Client('host1', alt_hosts='host2:1234,host3,host4:5678')
+
+In example above on every *new* connection driver will use following sequence
+of hosts if previous host is unavailable:
+
+* host1:9000;
+* host2:1234;
+* host3:9000;
+* host4:5678.
+
+The all queries within established connection will be sent to the same host.

@@ -13,12 +13,12 @@ class ClientFromUrlTestCase(TestCase):
     def test_simple(self):
         c = Client.from_url('clickhouse://host')
 
-        assert c.connection.host == 'host'
+        assert c.connection.hosts == [('host', 9000)]
         assert c.connection.database == 'default'
 
         c = Client.from_url('clickhouse://host/db')
 
-        assert c.connection.host == 'host'
+        assert c.connection.hosts == [('host', 9000)]
         assert c.connection.database == 'db'
 
     def test_credentials(self):
@@ -49,25 +49,25 @@ class ClientFromUrlTestCase(TestCase):
 
     def test_port(self):
         c = Client.from_url('clickhouse://host')
-        assert c.connection.port == 9000
+        assert c.connection.hosts == [('host', 9000)]
 
         c = Client.from_url('clickhouses://host')
-        assert c.connection.port == 9440
+        assert c.connection.hosts == [('host', 9440)]
 
         c = Client.from_url('clickhouses://host:1234')
-        assert c.connection.port == 1234
+        assert c.connection.hosts == [('host', 1234)]
 
     def test_secure(self):
         c = Client.from_url('clickhouse://host?secure=n')
-        assert c.connection.port == 9000
+        assert c.connection.hosts == [('host', 9000)]
         assert c.connection.secure_socket is False
 
         c = Client.from_url('clickhouse://host?secure=y')
-        assert c.connection.port == 9440
+        assert c.connection.hosts == [('host', 9440)]
         assert c.connection.secure_socket is True
 
         c = Client.from_url('clickhouse://host:1234?secure=y')
-        assert c.connection.port == 1234
+        assert c.connection.hosts == [('host', 1234)]
         assert c.connection.secure_socket is True
 
         with self.assertRaises(ValueError):
@@ -153,3 +153,10 @@ class ClientFromUrlTestCase(TestCase):
             'ca_certs': '/tmp/certs',
             'ciphers': 'HIGH:-aNULL:-eNULL:-PSK:RC4-SHA:RC4-MD5'
         }
+
+    def test_alt_hosts(self):
+        c = Client.from_url('clickhouse://host?alt_hosts=host2:1234')
+        assert c.connection.hosts == [('host', 9000), ('host2', 1234)]
+
+        c = Client.from_url('clickhouse://host?alt_hosts=host2')
+        assert c.connection.hosts == [('host', 9000), ('host2', 9000)]
