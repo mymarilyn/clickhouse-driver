@@ -6,7 +6,7 @@ from time import time
 
 from . import defines
 from . import errors
-from .block import Block
+from .block import RowOrientedBlock
 from .blockstreamprofileinfo import BlockStreamProfileInfo
 from .bufferedreader import BufferedSocketReader
 from .bufferedwriter import BufferedSocketWriter
@@ -515,12 +515,12 @@ class Connection(object):
 
     def send_external_tables(self, tables, types_check=False):
         for table in tables or []:
-            block = Block(table['structure'], table['data'],
-                          types_check=types_check)
+            block = RowOrientedBlock(table['structure'], table['data'],
+                                     types_check=types_check)
             self.send_data(block, table_name=table['name'])
 
         # Empty block, end of data transfer.
-        self.send_data(Block())
+        self.send_data(RowOrientedBlock())
 
     @contextmanager
     def timeout_setter(self, new_timeout):

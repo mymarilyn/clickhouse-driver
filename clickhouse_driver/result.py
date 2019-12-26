@@ -25,7 +25,7 @@ class QueryResult(object):
             return
 
         # Header block contains no rows. Pick columns from it.
-        if block.rows:
+        if block.num_rows:
             if self.columnar:
                 columns = block.get_columns()
                 if self.data:

@@ -3,7 +3,7 @@ from time import time
 import types
 
 from . import errors, defines
-from .block import Block
+from .block import ColumnOrientedBlock, RowOrientedBlock
 from .connection import Connection
 from .protocol import ServerPacketTypes
 from .result import (
@@ -11,7 +11,7 @@ from .result import (
 )
 from .util.compat import urlparse, parse_qs, asbool
 from .util.escape import escape_params
-from .util.helpers import chunks
+from .util.helpers import column_chunks, chunks
 
 
 class Client(object):
@@ -177,8 +177,10 @@ class Client(object):
                          Defaults to ``None`` (no additional settings).
         :param types_check: enables type checking of data for INSERT queries.
                             Causes additional overhead. Defaults to ``False``.
-        :param columnar: if specified the result will be returned in
-                         column-oriented form.
+        :param columnar: if specified the result of the SELECT query will be
+                         returned in column-oriented form.
+                         It also allows to INSERT columnar data (`list` of
+                         `tuples` with column values)
                          Defaults to ``False`` (row-like form).
 
         :return: * Number of inserted rows for INSERT queries with data.
@@ -206,7 +208,8 @@ class Client(object):
             if is_insert:
                 rv = self.process_insert_query(
                     query, params, external_tables=external_tables,
-                    query_id=query_id, types_check=types_check
+                    query_id=query_id, types_check=types_check,
+                    columnar=columnar
                 )
             else:
                 rv = self.process_ordinary_query(
@@ -353,14 +356,15 @@ class Client(object):
 
     def process_insert_query(self, query_without_data, data,
                              external_tables=None, query_id=None,
-                             types_check=False):
+                             types_check=False, columnar=False):
         self.connection.send_query(query_without_data, query_id=query_id)
         self.connection.send_external_tables(external_tables,
                                              types_check=types_check)
 
         sample_block = self.receive_sample_block()
         if sample_block:
-            rv = self.send_data(sample_block, data, types_check=types_check)
+            rv = self.send_data(sample_block, data,
+                                types_check=types_check, columnar=columnar)
             packet = self.connection.receive_packet()
             if packet.exception:
                 raise packet.exception
@@ -385,18 +389,21 @@ class Client(object):
                 )
                 raise errors.UnexpectedPacketFromServerError(message)
 
-    def send_data(self, sample_block, data, types_check=False):
+    def send_data(self, sample_block, data, types_check=False, columnar=False):
         inserted_rows = 0
 
         client_settings = self.connection.context.client_settings
-        for chunk in chunks(data, client_settings['insert_block_size']):
-            block = Block(sample_block.columns_with_types, chunk,
-                          types_check=types_check)
+        block_cls = ColumnOrientedBlock if columnar else RowOrientedBlock
+        slicer = column_chunks if columnar else chunks
+
+        for chunk in slicer(data, client_settings['insert_block_size']):
+            block = block_cls(sample_block.columns_with_types, chunk,
+                              types_check=types_check)
             self.connection.send_data(block)
-            inserted_rows += len(chunk)
+            inserted_rows += block.num_rows
 
         # Empty block means end of data.
-        self.connection.send_data(Block())
+        self.connection.send_data(block_cls())
         return inserted_rows
 
     def cancel(self, with_column_types=False):
