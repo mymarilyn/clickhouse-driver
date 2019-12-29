@@ -65,12 +65,11 @@ class BaseBlock(object):
 
 
 class ColumnOrientedBlock(BaseBlock):
-    tuple_column_types = (list, tuple)
-
     def normalize(self, data):
         if not data:
             return []
 
+        self._check_number_of_columns(data)
         self._check_all_columns_equal_length(data)
         return data
 
@@ -90,6 +89,14 @@ class ColumnOrientedBlock(BaseBlock):
 
     def get_column_by_index(self, index):
         return self.data[index]
+
+    def _check_number_of_columns(self, data):
+        expected_row_len = len(self.columns_with_types)
+
+        got = len(data)
+        if expected_row_len != got:
+            msg = 'Expected {} columns, got {}'.format(expected_row_len, got)
+            raise ValueError(msg)
 
     def _check_all_columns_equal_length(self, data):
         expected = len(data[0])

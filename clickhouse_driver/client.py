@@ -179,8 +179,7 @@ class Client(object):
                             Causes additional overhead. Defaults to ``False``.
         :param columnar: if specified the result of the SELECT query will be
                          returned in column-oriented form.
-                         It also allows to INSERT columnar data (`list` of
-                         `tuples` with column values)
+                         It also allows to INSERT data in columnar form.
                          Defaults to ``False`` (row-like form).
 
         :return: * Number of inserted rows for INSERT queries with data.

@@ -174,30 +174,40 @@ class InsertColumnarTestCase(BaseTestCase):
                 )
             self.assertEqual(str(e.exception), 'Expected 3 rows, got 2')
 
+    def test_data_less_columns_then_expected(self):
+        with self.create_table('a Int8, b Int8'):
+            with self.assertRaises(ValueError) as e:
+                data = [(1, 2)]
+                self.client.execute(
+                    'INSERT INTO test (a, b) VALUES', data, columnar=True
+                )
+            self.assertEqual(str(e.exception), 'Expected 2 columns, got 1')
+
+    def test_data_more_columns_then_expected(self):
+        with self.create_table('a Int8, b Int8'):
+            with self.assertRaises(ValueError) as e:
+                data = [(1, 2), (3, 4), (5, 6)]
+                self.client.execute(
+                    'INSERT INTO test (a, b) VALUES', data, columnar=True
+                )
+            self.assertEqual(str(e.exception), 'Expected 2 columns, got 3')
+
     def test_data_invalid_types(self):
-        with self.create_table('a Int8'):
+        with self.create_table('a Int8, b Int8'):
             with self.assertRaises(TypeError) as e:
-                data = [{'a': 1}, (2, )]
+                data = [(1, 2), {'a': 3, 'b': 4}]
                 self.client.execute(
-                    'INSERT INTO test (a) VALUES', data,
+                    'INSERT INTO test (a, b) VALUES', data,
                     types_check=True, columnar=True
                 )
 
             self.assertIn('list or tuple is expected', str(e.exception))
 
             with self.assertRaises(TypeError) as e:
-                data = [(1, ), {'a': 2}]
+                data = [(1, 2), 3]
                 self.client.execute(
-                    'INSERT INTO test (a) VALUES', data,
+                    'INSERT INTO test (a, b) VALUES', data,
                     types_check=True, columnar=True
                 )
 
             self.assertIn('list or tuple is expected', str(e.exception))
-
-    def test_data_malformed_columns(self):
-        with self.create_table('a Int8'):
-            with self.assertRaises(TypeError):
-                data = [1]
-                self.client.execute(
-                    'INSERT INTO test (a) VALUES', data, columnar=True
-                )
