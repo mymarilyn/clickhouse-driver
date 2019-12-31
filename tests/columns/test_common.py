@@ -22,3 +22,24 @@ class CommonTestCase(BaseTestCase):
             self.assertEqual(inserted, data)
 
         client.disconnect()
+
+    def test_columnar_insert_block_size(self):
+        client = Client(
+            self.host, self.port, self.database, self.user, self.password,
+            settings={'insert_block_size': 1}
+        )
+
+        with self.create_table('a UInt8'):
+            data = [(0, 1, 2, 3)]
+            client.execute(
+                'INSERT INTO test (a) VALUES', data, columnar=True
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, '0\n1\n2\n3\n')
+            inserted = client.execute(query)
+            expected = [(0, ), (1, ), (2, ), (3, )]
+            self.assertEqual(inserted, expected)
+
+        client.disconnect()

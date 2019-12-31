@@ -147,3 +147,67 @@ class InsertTestCase(BaseTestCase):
                 'INSERT INTO test (a) VALUES', [(x,) for x in range(5)]
             )
             self.assertEqual(rv, 5)
+
+
+class InsertColumnarTestCase(BaseTestCase):
+    def test_insert_tuple_ok(self):
+        with self.create_table('a Int8, b Int8'):
+            data = [(1, 2, 3), (4, 5, 6)]
+            self.client.execute(
+                'INSERT INTO test (a, b) VALUES', data, columnar=True
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, '1\t4\n2\t5\n3\t6\n')
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, [(1, 4), (2, 5), (3, 6)])
+            inserted = self.client.execute(query, columnar=True)
+            self.assertEqual(inserted, [(1, 2, 3), (4, 5, 6)])
+
+    def test_insert_data_different_column_length(self):
+        with self.create_table('a Int8, b Int8'):
+            with self.assertRaises(ValueError) as e:
+                data = [(1, 2, 3), (4, 5)]
+                self.client.execute(
+                    'INSERT INTO test (a, b) VALUES', data, columnar=True
+                )
+            self.assertEqual(str(e.exception), 'Expected 3 rows, got 2')
+
+    def test_data_less_columns_then_expected(self):
+        with self.create_table('a Int8, b Int8'):
+            with self.assertRaises(ValueError) as e:
+                data = [(1, 2)]
+                self.client.execute(
+                    'INSERT INTO test (a, b) VALUES', data, columnar=True
+                )
+            self.assertEqual(str(e.exception), 'Expected 2 columns, got 1')
+
+    def test_data_more_columns_then_expected(self):
+        with self.create_table('a Int8, b Int8'):
+            with self.assertRaises(ValueError) as e:
+                data = [(1, 2), (3, 4), (5, 6)]
+                self.client.execute(
+                    'INSERT INTO test (a, b) VALUES', data, columnar=True
+                )
+            self.assertEqual(str(e.exception), 'Expected 2 columns, got 3')
+
+    def test_data_invalid_types(self):
+        with self.create_table('a Int8, b Int8'):
+            with self.assertRaises(TypeError) as e:
+                data = [(1, 2), {'a': 3, 'b': 4}]
+                self.client.execute(
+                    'INSERT INTO test (a, b) VALUES', data,
+                    types_check=True, columnar=True
+                )
+
+            self.assertIn('list or tuple is expected', str(e.exception))
+
+            with self.assertRaises(TypeError) as e:
+                data = [(1, 2), 3]
+                self.client.execute(
+                    'INSERT INTO test (a, b) VALUES', data,
+                    types_check=True, columnar=True
+                )
+
+            self.assertIn('list or tuple is expected', str(e.exception))

@@ -121,7 +121,7 @@ setup(
     ],
     ext_modules=extensions,
     extras_require={
-        'lz4': ['lz4', 'clickhouse-cityhash>=1.0.2.1'],
+        'lz4': ['lz4<=3.0.1', 'clickhouse-cityhash>=1.0.2.1'],
         'zstd': ['zstd', 'clickhouse-cityhash>=1.0.2.1']
     },
     test_suite='nose.collector',
@@ -129,7 +129,7 @@ setup(
         'nose',
         'mock',
         'freezegun',
-        'lz4',
+        'lz4<=3.0.1',
         'zstd',
         'clickhouse-cityhash>=1.0.2.1'
     ],
