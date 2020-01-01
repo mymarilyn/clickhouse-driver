@@ -26,12 +26,9 @@ class PacketsTestCase(BaseTestCase):
 
 class ConnectTestCase(BaseTestCase):
     def test_exception_on_hello_packet(self):
-        client = Client(self.host, self.port, self.database, 'wrong_user')
-
-        with self.assertRaises(errors.ServerException) as e:
-            client.execute('SHOW TABLES')
-
-        client.disconnect()
+        with self.created_client(user='wrong_user') as client:
+            with self.assertRaises(errors.ServerException) as e:
+                client.execute('SHOW TABLES')
 
         # Simple exception formatting checks
         exc = e.exception

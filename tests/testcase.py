@@ -61,10 +61,14 @@ class BaseTestCase(TestCase):
         return out.decode(encoding)
 
     def _create_client(self, **kwargs):
-        return Client(
-            self.host, self.port, self.database, self.user, self.password,
-            **kwargs
-        )
+        client_kwargs = {
+            'port': self.port,
+            'database': self.database,
+            'user': self.user,
+            'password': self.password
+        }
+        client_kwargs.update(kwargs)
+        return Client(self.host, **client_kwargs)
 
     @contextmanager
     def created_client(self, **kwargs):
