@@ -25,20 +25,6 @@ def write_binary_bytes(text, buf):
     buf.write(text)
 
 
-def write_binary_str_fixed_len(text, buf, length):
-    text = text.encode('utf-8')
-    write_binary_bytes_fixed_len(text, buf, length)
-
-
-def write_binary_bytes_fixed_len(text, buf, length):
-    diff = length - len(text)
-    if diff > 0:
-        text += _byte(0) * diff
-    elif diff < 0:
-        raise ValueError
-    buf.write(text)
-
-
 def write_binary_int(number, buf, fmt):
     """
     Writes int from buffer with provided format.
