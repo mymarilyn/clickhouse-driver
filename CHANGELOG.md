@@ -1,8 +1,23 @@
 # Changelog
 
-## [0.1.3] - Unreleased
+## [0.1.3] - 2020-02-21
 ### Added
+- Python DB API 2.0.
+- Multiple hosts support on connection errors.
+- Insert columnar data support. Pull request [#122](https://github.com/mymarilyn/clickhouse-driver/pull/122) by [Anexen](https://github.com/Anexen).
+- Wheels for Python 3.8.
 - DateTime64 type.
+- Settings update to v20.2.1.2201 server version. Pull request [#123](https://github.com/mymarilyn/clickhouse-driver/pull/123) by [azat](https://github.com/azat).
+
+### Fixed
+- `Client.from_url` settings detection.
+- Close socket on `KeyboardInterrupt` while running query.
+- Null handling in LowCardinality columns.
+
+### Changed
+- Protocol version bumped to 54421.
+- Increased speed (up to 20-30% compared to 0.1.2 release) on heavy `SELECT` and `INSERT` queries. Pull request [#122](https://github.com/mymarilyn/clickhouse-driver/pull/122) by [Anexen](https://github.com/Anexen).
+- Memory consumption decreased (up to 20% compared to 0.1.2 release). Pull request [#122](https://github.com/mymarilyn/clickhouse-driver/pull/122) by [Anexen](https://github.com/Anexen).
 
 ## [0.1.2] - 2019-10-18
 ### Added
@@ -233,7 +248,8 @@
 - Date/DateTime types.
 - String types.
 
-[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.2...HEAD
+[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.3...HEAD
+[0.1.3]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.2...0.1.3
 [0.1.2]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.1...0.1.2
 [0.1.1]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.0...0.1.1
 [0.1.0]: https://github.com/mymarilyn/clickhouse-driver/compare/0.0.20...0.1.0

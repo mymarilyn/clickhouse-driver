@@ -276,7 +276,7 @@ of hosts if previous host is unavailable:
 * host3:9000;
 * host4:5678.
 
-The all queries within established connection will be sent to the same host.
+All queries within established connection will be sent to the same host.
 
 
 Python DB API 2.0

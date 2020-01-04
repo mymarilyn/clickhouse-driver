@@ -54,6 +54,8 @@ Features
 
 - Receiving server logs.
 
+- Multiple hosts support.
+
 - Python DB API 2.0 specification support.
 
 Documentation
@@ -99,7 +101,7 @@ Pure Client example:
         >>> client.execute('SELECT sum(x) FROM test')
         [(303,)]
 
-    DB API example:
+DB API example:
 
     .. code-block:: python
 
