@@ -42,9 +42,9 @@ class Client(object):
         self.settings = kwargs.pop('settings', {}).copy()
 
         self.client_settings = {
-            'insert_block_size': self.settings.pop(
+            'insert_block_size': int(self.settings.pop(
                 'insert_block_size', defines.DEFAULT_INSERT_BLOCK_SIZE,
-            ),
+            )),
             'strings_as_bytes': self.settings.pop(
                 'strings_as_bytes', False
             )

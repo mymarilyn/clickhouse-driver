@@ -160,3 +160,7 @@ class ClientFromUrlTestCase(TestCase):
 
         c = Client.from_url('clickhouse://host?alt_hosts=host2')
         assert c.connection.hosts == [('host', 9000), ('host2', 9000)]
+
+    def test_parameters_cast(self):
+        c = Client.from_url('clickhouse://host?insert_block_size=123')
+        assert c.connection.context.client_settings['insert_block_size'] == 123
