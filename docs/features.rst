@@ -184,7 +184,7 @@ Statistics is sent from ClickHouse server and calculated on client side.
     - processed bytes;
     - total rows;
     - written rows (*new in version 0.1.3*);
-    - written rows (*new in version 0.1.3*);
+    - written bytes (*new in version 0.1.3*);
 
     .. code-block:: python
 
