@@ -61,6 +61,7 @@ class DBAPITestCase(DBAPITestCaseBase):
         rv = cursor.execute('SELECT 1')
         self.assertIsNone(rv)
         self.assertEqual(cursor.fetchall(), [(1, )])
+        connection.close()
 
     def test_execute_fetchone(self):
         with self.created_cursor() as cursor:
