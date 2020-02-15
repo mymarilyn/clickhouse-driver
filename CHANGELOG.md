@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.3] - Unreleased
+### Added
+- DateTime64 type.
+
 ## [0.1.2] - 2019-10-18
 ### Added
 - Settings update to 19.16.1 server version. Pull request [#111](https://github.com/mymarilyn/clickhouse-driver/pull/111) by [azat](https://github.com/azat).

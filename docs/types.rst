@@ -31,10 +31,11 @@ INSERT types: :class:`~datetime.date`, :class:`~datetime.datetime`.
 SELECT type: :class:`~datetime.date`.
 
 
-DateTime('timezone')
---------------------
+DateTime('timezone')/DateTime64('timezone')
+-------------------------------------------
 
 *Timezone support is new in version 0.0.11.*
+*DateTime64 support is new in version 0.1.3.*
 
 INSERT types: :class:`~datetime.datetime`, :class:`int`, :class:`long`.
 
@@ -46,6 +47,8 @@ SELECT type: :class:`~datetime.datetime`.
 Setting `use_client_time_zone <https://clickhouse.yandex/docs/en/single/#datetime>`_ is taken into consideration.
 
 You can cast DateTime column to integers if you are facing performance issues when selecting large amount of rows.
+
+Due to Python's current limitations minimal DateTime64 resolution is one microsecond.
 
 
 String/FixedString(N)

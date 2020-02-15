@@ -86,8 +86,27 @@ class DateTimeTestCase(BaseDateTimeTestCase):
             mocked_get_localzone.side_effect = UnknownTimeZoneError()
             self.client.execute('SELECT now()')
 
+    @require_server_version(20, 1, 2)
+    def test_datetime64_frac_trunc(self):
+        with self.create_table('a DateTime64'):
+            data = [(datetime(2012, 10, 25, 14, 7, 19, 125600), )]
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, '2012-10-25 14:07:19.125\n')
+
+            inserted = self.client.execute(query)
+            self.assertEqual(
+                inserted, [(datetime(2012, 10, 25, 14, 7, 19, 125000), )]
+            )
+
 
 class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
+    dt_type = 'DateTime'
+
     @contextmanager
     def patch_env_tz(self, tz_name):
         # Although in many cases, changing the TZ environment variable may
@@ -115,6 +134,12 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
     # INSERTs and SELECTs must be the same as clickhouse-client's
     # if column has no timezone.
 
+    def table_columns(self, with_tz=False):
+        if not with_tz:
+            return 'a {}'.format(self.dt_type)
+
+        return "a {}('{}')".format(self.dt_type, self.col_tz_name)
+
     def test_use_server_timezone(self):
         # Insert datetime with timezone UTC
         # into column with no timezone
@@ -126,7 +151,7 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
         timestamp = 1500010800 - int(offset)
 
         with self.patch_env_tz('Asia/Novosibirsk'):
-            with self.create_table('a DateTime'):
+            with self.create_table(self.table_columns()):
                 self.client.execute(
                     'INSERT INTO test (a) VALUES', [(self.dt, )]
                 )
@@ -157,7 +182,7 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
         settings = {'use_client_time_zone': True}
 
         with self.patch_env_tz('Asia/Novosibirsk'):
-            with self.create_table('a DateTime'):
+            with self.create_table(self.table_columns()):
                 self.client.execute(
                     'INSERT INTO test (a) VALUES', [(self.dt, )],
                     settings=settings
@@ -187,7 +212,7 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
         settings = {'use_client_time_zone': True}
 
         with self.patch_env_tz('Europe/Moscow'):
-            with self.create_table('a DateTime'):
+            with self.create_table(self.table_columns()):
                 self.client.execute(
                     'INSERT INTO test (a) VALUES', [(1530211034, )],
                     settings=settings
@@ -218,7 +243,7 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
         offset = timezone(server_tz_name).utcoffset(self.dt)
 
         with self.patch_env_tz('Asia/Novosibirsk'):
-            with self.create_table('a DateTime'):
+            with self.create_table(self.table_columns()):
                 self.client.execute(
                     'INSERT INTO test (a) VALUES', [(self.dt_tz, )]
                 )
@@ -251,7 +276,7 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
         settings = {'use_client_time_zone': True}
 
         with self.patch_env_tz('Asia/Novosibirsk'):
-            with self.create_table('a DateTime'):
+            with self.create_table(self.table_columns()):
                 self.client.execute(
                     'INSERT INTO test (a) VALUES', [(self.dt_tz, )],
                     settings=settings
@@ -288,8 +313,7 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
         # using server's timezone (Europe/Moscow)
 
         with self.patch_env_tz('Europe/Moscow'):
-            table_col = "a DateTime('{}')".format(self.col_tz_name)
-            with self.create_table(table_col):
+            with self.create_table(self.table_columns(with_tz=True)):
                 self.client.execute(
                     'INSERT INTO test (a) VALUES', [(self.dt, )]
                 )
@@ -325,8 +349,7 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
         settings = {'use_client_time_zone': True}
 
         with self.patch_env_tz('Europe/Moscow'):
-            table_col = "a DateTime('{}')".format(self.col_tz_name)
-            with self.create_table(table_col):
+            with self.create_table(self.table_columns(with_tz=True)):
                 self.client.execute(
                     'INSERT INTO test (a) VALUES', [(self.dt, )],
                     settings=settings
@@ -361,8 +384,7 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
         # using server's timezone (Europe/Moscow)
 
         with self.patch_env_tz('Europe/Moscow'):
-            table_col = "a DateTime('{}')".format(self.col_tz_name)
-            with self.create_table(table_col):
+            with self.create_table(self.table_columns(with_tz=True)):
                 self.client.execute(
                     'INSERT INTO test (a) VALUES', [(self.dt_tz, )]
                 )
@@ -402,8 +424,7 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
         settings = {'use_client_time_zone': True}
 
         with self.patch_env_tz('Europe/Moscow'):
-            table_col = "a DateTime('{}')".format(self.col_tz_name)
-            with self.create_table(table_col):
+            with self.create_table(self.table_columns(with_tz=True)):
                 self.client.execute(
                     'INSERT INTO test (a) VALUES', [(self.dt_tz, )],
                     settings=settings
@@ -435,3 +456,14 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
                     (self.col_tz.localize(dt), ),
                     (self.col_tz.localize(dt), )
                 ])
+
+
+class DateTime64TimezonesTestCase(DateTimeTimezonesTestCase):
+    dt_type = 'DateTime64'
+    required_server_version = (20, 1, 2)
+
+    def table_columns(self, with_tz=False):
+        if not with_tz:
+            return 'a {}(0)'.format(self.dt_type)
+
+        return "a {}(0, '{}')".format(self.dt_type, self.col_tz_name)
