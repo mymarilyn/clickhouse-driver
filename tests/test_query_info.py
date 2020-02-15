@@ -83,8 +83,7 @@ class QueryInfoTestCase(BaseTestCase):
         assert last_query.progress.rows == 10
         assert last_query.progress.bytes == 80
 
-        current = self.get_current_server_version()
-        total_rows = 10 if current > (19, 4) else 0
+        total_rows = 10 if self.server_version > (19, 4) else 0
         assert last_query.progress.total_rows == total_rows
 
         assert last_query.elapsed > 0
@@ -138,8 +137,7 @@ class QueryInfoTestCase(BaseTestCase):
         assert last_query.progress.rows > 100000000
         assert last_query.progress.bytes > 800000000
 
-        current = self.get_current_server_version()
-        total_rows = 100000000 if current > (19, 4) else 0
+        total_rows = 100000000 if self.server_version > (19, 4) else 0
         assert last_query.progress.total_rows == total_rows
 
     def test_progress_info_ddl(self):

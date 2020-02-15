@@ -1,9 +1,9 @@
 from tests.testcase import BaseTestCase
-from tests.util import require_server_version
 
 
 class SimpleAggregateFunctionTestCase(BaseTestCase):
-    @require_server_version(19, 8, 3)
+    required_server_version = (19, 8, 3)
+
     def test_simple(self):
         columns = 'a SimpleAggregateFunction(any, Int32)'
 
@@ -22,7 +22,6 @@ class SimpleAggregateFunctionTestCase(BaseTestCase):
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
 
-    @require_server_version(19, 8, 3)
     def test_nullable(self):
         columns = 'a SimpleAggregateFunction(any, Nullable(Int32))'
 

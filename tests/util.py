@@ -3,6 +3,14 @@ import logging
 from io import StringIO
 
 
+def skip_by_server_version(testcase, version_required):
+    testcase.skipTest(
+        'Mininum revision required: {}'.format(
+            '.'.join(str(x) for x in version_required)
+        )
+    )
+
+
 def require_server_version(*version_required):
     def check(f):
         @wraps(f)
@@ -15,11 +23,7 @@ def require_server_version(*version_required):
             if version_required <= current:
                 return f(*args, **kwargs)
             else:
-                self.skipTest(
-                    'Mininum revision required: {}'.format(
-                        '.'.join(str(x) for x in version_required)
-                    )
-                )
+                skip_by_server_version(self, version_required)
 
         return wrapper
     return check

@@ -4,7 +4,7 @@ from mock import patch
 
 from clickhouse_driver.errors import ServerException
 from tests.testcase import BaseTestCase
-from tests.util import capture_logging, require_server_version
+from tests.util import capture_logging
 
 
 class BlocksTestCase(BaseTestCase):
@@ -185,7 +185,8 @@ class IteratorTestCase(BaseTestCase):
 
 
 class LogTestCase(BaseTestCase):
-    @require_server_version(18, 12, 13)
+    required_server_version = (18, 12, 13)
+
     def test_logs(self):
         with capture_logging('clickhouse_driver.log', 'INFO') as buffer:
             settings = {'send_logs_level': 'debug'}

@@ -5,6 +5,7 @@ from unittest import TestCase
 from clickhouse_driver.client import Client
 from clickhouse_driver.util import compat
 from tests import log
+from tests.util import skip_by_server_version
 
 
 if compat.PY3:
@@ -21,6 +22,9 @@ log.configure(file_config.get('log', 'level'))
 
 
 class BaseTestCase(TestCase):
+    required_server_version = None
+    server_version = None
+
     host = file_config.get('db', 'host')
     port = file_config.getint('db', 'port')
     database = file_config.get('db', 'database')
@@ -86,14 +90,21 @@ class BaseTestCase(TestCase):
         )
         cls.emit_cli('CREATE DATABASE {}'.format(cls.database), 'default')
 
+        version_str = cls.emit_cli('SELECT version()').strip()
+        cls.server_version = tuple(int(x) for x in version_str.split('.'))
+
         super(BaseTestCase, cls).setUpClass()
 
     def setUp(self):
         super(BaseTestCase, self).setUp()
+
+        required = self.required_server_version
+
+        if required and required > self.server_version:
+            skip_by_server_version(self, self.required_server_version)
+
         if callable(self.client_kwargs):
-            version_str = self.emit_cli('SELECT version()')
-            version = tuple(int(x) for x in version_str.strip().split('.'))
-            client_kwargs = self.client_kwargs(version)
+            client_kwargs = self.client_kwargs(self.server_version)
         else:
             client_kwargs = self.client_kwargs
         client_kwargs = client_kwargs or {}
@@ -128,6 +139,3 @@ class BaseTestCase(TestCase):
             raise
         finally:
             self.emit_cli('DROP TABLE test')
-
-    def get_current_server_version(self):
-        return self.client.connection.server_info.version_tuple()

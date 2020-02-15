@@ -4,11 +4,11 @@ from clickhouse_driver import errors
 from ipaddress import IPv6Address, IPv4Address
 
 from tests.testcase import BaseTestCase
-from tests.util import require_server_version
 
 
 class IPv4TestCase(BaseTestCase):
-    @require_server_version(19, 3, 3)
+    required_server_version = (19, 3, 3)
+
     def test_simple(self):
         with self.create_table('a IPv4'):
             data = [
@@ -31,7 +31,6 @@ class IPv4TestCase(BaseTestCase):
                 (IPv4Address("192.168.253.42"),)
             ])
 
-    @require_server_version(19, 3, 3)
     def test_from_int(self):
         with self.create_table('a IPv4'):
             data = [
@@ -51,7 +50,6 @@ class IPv4TestCase(BaseTestCase):
                 (IPv4Address("10.0.0.1"),),
             ])
 
-    @require_server_version(19, 3, 3)
     def test_from_str(self):
         with self.create_table('a IPv4'):
             data = [
@@ -71,7 +69,6 @@ class IPv4TestCase(BaseTestCase):
                 (IPv4Address("10.0.0.1"),),
             ])
 
-    @require_server_version(19, 3, 3)
     def test_type_mismatch(self):
         data = [(1025.2147,)]
         with self.create_table('a IPv4'):
@@ -80,7 +77,6 @@ class IPv4TestCase(BaseTestCase):
                     'INSERT INTO test (a) VALUES', data, types_check=True
                 )
 
-    @require_server_version(19, 3, 3)
     def test_bad_ipv4(self):
         data = [('985.512.12.0',)]
         with self.create_table('a IPv4'):
@@ -89,7 +85,6 @@ class IPv4TestCase(BaseTestCase):
                     'INSERT INTO test (a) VALUES', data
                 )
 
-    @require_server_version(19, 3, 3)
     def test_bad_ipv4_with_type_check(self):
         data = [('985.512.12.0',)]
         with self.create_table('a IPv4'):
@@ -98,7 +93,6 @@ class IPv4TestCase(BaseTestCase):
                     'INSERT INTO test (a) VALUES', data, types_check=True
                 )
 
-    @require_server_version(19, 3, 3)
     def test_nullable(self):
         with self.create_table('a Nullable(IPv4)'):
             data = [(IPv4Address('10.10.10.10'),), (None,)]
@@ -116,7 +110,8 @@ class IPv4TestCase(BaseTestCase):
 
 
 class IPv6TestCase(BaseTestCase):
-    @require_server_version(19, 3, 3)
+    required_server_version = (19, 3, 3)
+
     def test_simple(self):
         with self.create_table('a IPv6'):
             data = [
@@ -142,7 +137,6 @@ class IPv6TestCase(BaseTestCase):
                 (IPv6Address('12ff::1'),)
             ])
 
-    @require_server_version(19, 3, 3)
     def test_from_str(self):
         with self.create_table('a IPv6'):
             data = [
@@ -162,7 +156,6 @@ class IPv6TestCase(BaseTestCase):
                 (IPv6Address('79f4:e698:45de:a59b:2765:28e3:8d3a:35ae'),),
             ])
 
-    @require_server_version(19, 3, 3)
     def test_from_bytes(self):
         with self.create_table('a IPv6'):
             data = [
@@ -182,7 +175,6 @@ class IPv6TestCase(BaseTestCase):
                 (IPv6Address('79f4:e698:45de:a59b:2765:28e3:8d3a:35ae'),),
             ])
 
-    @require_server_version(19, 3, 3)
     def test_type_mismatch(self):
         data = [(1025.2147,)]
         with self.create_table('a IPv6'):
@@ -191,7 +183,6 @@ class IPv6TestCase(BaseTestCase):
                     'INSERT INTO test (a) VALUES', data, types_check=True
                 )
 
-    @require_server_version(19, 3, 3)
     def test_bad_ipv6(self):
         data = [("ghjk:e698:45de:a59b:2765:28e3:8d3a:zzzz",)]
         with self.create_table('a IPv6'):
@@ -200,7 +191,6 @@ class IPv6TestCase(BaseTestCase):
                     'INSERT INTO test (a) VALUES', data
                 )
 
-    @require_server_version(19, 3, 3)
     def test_bad_ipv6_with_type_check(self):
         data = [("ghjk:e698:45de:a59b:2765:28e3:8d3a:zzzz",)]
         with self.create_table('a IPv6'):
@@ -209,7 +199,6 @@ class IPv6TestCase(BaseTestCase):
                     'INSERT INTO test (a) VALUES', data, types_check=True
                 )
 
-    @require_server_version(19, 3, 3)
     def test_nullable(self):
         with self.create_table('a Nullable(IPv6)'):
             data = [
