@@ -138,18 +138,43 @@ class Decimal128Column(DecimalColumn):
 
 
 def create_decimal_column(spec, column_options):
-    precision, scale = spec[8:-1].split(',')
-    precision, scale = int(precision), int(scale)
-
-    # Maximum precisions for underlying types are:
-    # Int32    9
-    # Int64   18
-    # Int128  38
-    if precision <= 9:
-        cls = Decimal32Column
-    elif precision <= 18:
-        cls = Decimal64Column
+    # `spec` may be of the following forms:
+    #   (1) - 'Decimal(P,S)'
+    #   (2) - 'Decimal32(S)'
+    #   (3) - 'Decimal64(S)'
+    #   (4) - 'Decimal128(S)'
+    if spec.startswith('Decimal('):
+        # Case (1)
+        precision, scale = spec[8:-1].split(',')
+        precision, scale = int(precision), int(scale)
+        # Maximum precisions for underlying types are:
+        # Int32    9
+        # Int64   18
+        # Int128  38
+        if precision <= 9:
+            cls = Decimal32Column
+        elif precision <= 18:
+            cls = Decimal64Column
+        else:
+            cls = Decimal128Column
     else:
-        cls = Decimal128Column
+        # Case (2), (3), (4)
+        bits = int(spec.split('(')[0][7:])
+        scale = int(spec.split('(')[1][:-1])
+        if bits == 32:
+            precision = 9 - scale
+            cls = Decimal32Column
+        elif bits == 64:
+            precision = 18 - scale
+            cls = Decimal64Column
+        elif bits == 128:
+            precision = 38 - scale
+            cls = Decimal128Column
+        else:
+            assert False, (
+                "Expected spec to be one of "
+                "{{ 'Decimal(P,S)', 'Decimal32(S)', 'Decimal64('S')', 'Decimal128(S)' }}, got '{}' instead."
+                .format(spec)
+            )
 
     return cls(precision, scale, **column_options)
