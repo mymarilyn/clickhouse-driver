@@ -1,5 +1,6 @@
 from decimal import Decimal, localcontext
 
+from .. import errors
 from ..writer import MAX_UINT64, MAX_INT64
 from ..util import compat
 from .base import FormatColumn
@@ -171,7 +172,7 @@ def create_decimal_column(spec, column_options):
             precision = 38 - scale
             cls = Decimal128Column
         else:
-            assert False, (
+            raise errors.UnknownTypeError(
                 "Expected spec to be one of "
                 "{{ 'Decimal(P,S)', 'Decimal32(S)', 'Decimal64('S')', 'Decimal128(S)' }}, got '{}' instead."
                 .format(spec)
