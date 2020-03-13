@@ -181,7 +181,7 @@ class ArrayColumn(Column):
             nested_data = []
             for (slice_from, slice_to), is_null in zip(slices, nulls_map):
                 nested_data.append(
-                    None if is_null else tuple(data[slice_from:slice_to])
+                    None if is_null else list(data[slice_from:slice_to])
                 )
 
             data = nested_data

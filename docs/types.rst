@@ -126,7 +126,9 @@ Array(T)
 
 INSERT types: :class:`list`, :class:`tuple`.
 
-SELECT type: :func:`tuple <tuple>`.
+SELECT type: :class:`list`.
+
+*Versions before 0.1.4:* SELECT type: :class:`tuple`.
 
 
     .. code-block:: python
@@ -244,3 +246,13 @@ INSERT types: ``T``.
 SELECT type: ``T``.
 
 AggregateFunctions for `AggregatingMergeTree` Engine are not supported.
+
+
+Tuple(T1, T2, ...)
+------------------
+
+*New in version 0.1.4.*
+
+INSERT types: :class:`list`, :class:`tuple`.
+
+SELECT type: :class:`tuple`.

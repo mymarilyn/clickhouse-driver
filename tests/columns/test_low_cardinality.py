@@ -85,7 +85,7 @@ class LowCardinalityTestCase(BaseTestCase):
 
     def test_array(self):
         with self.create_table('a Array(LowCardinality(Int16))'):
-            data = [((100, 500), )]
+            data = [([100, 500], )]
             self.client.execute('INSERT INTO test (a) VALUES', data)
 
             query = 'SELECT * FROM test'
@@ -97,7 +97,7 @@ class LowCardinalityTestCase(BaseTestCase):
 
     def test_empty_array(self):
         with self.create_table('a Array(LowCardinality(Int16))'):
-            data = [(tuple(), )]
+            data = [([], )]
             self.client.execute('INSERT INTO test (a) VALUES', data)
 
             query = 'SELECT * FROM test'

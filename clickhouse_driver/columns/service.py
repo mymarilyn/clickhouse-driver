@@ -18,6 +18,7 @@ from .simpleaggregatefunctioncolumn import (
     create_simple_aggregate_function_column
 )
 from .stringcolumn import create_string_column
+from .tuplecolumn import create_tuple_column
 from .uuidcolumn import UUIDColumn
 from .intervalcolumn import (
     IntervalYearColumn, IntervalMonthColumn, IntervalWeekColumn,
@@ -58,6 +59,9 @@ def get_column_by_spec(spec, column_options=None):
 
     elif spec.startswith('Array'):
         return create_array_column(spec, create_column_with_options)
+
+    elif spec.startswith('Tuple'):
+        return create_tuple_column(spec, create_column_with_options)
 
     elif spec.startswith('Nullable'):
         return create_nullable_column(spec, create_column_with_options)

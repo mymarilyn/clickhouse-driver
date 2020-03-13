@@ -94,7 +94,7 @@ class ParametersSubstitutionTestCase(BaseTestCase):
         self.assert_subst(self.single_tpl, params, 'SELECT [1, NULL, 2]')
 
         rv = self.client.execute(self.single_tpl, params)
-        self.assertEqual(rv, [((1, None, 2), )])
+        self.assertEqual(rv, [([1, None, 2], )])
 
         params = {'x': [[1, 2, 3], [4, 5], [6, 7]]}
 
@@ -102,7 +102,7 @@ class ParametersSubstitutionTestCase(BaseTestCase):
                           'SELECT [[1, 2, 3], [4, 5], [6, 7]]')
 
         rv = self.client.execute(self.single_tpl, params)
-        self.assertEqual(rv, [(((1, 2, 3), (4, 5), (6, 7)), )])
+        self.assertEqual(rv, [([[1, 2, 3], [4, 5], [6, 7]], )])
 
     def test_tuple(self):
         params = {'x': (1, None, 2)}

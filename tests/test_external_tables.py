@@ -13,4 +13,4 @@ class ExternalTablesTestCase(BaseTestCase):
             ]
         }]
         rv = self.client.execute('SELECT * FROM test', external_tables=tables)
-        self.assertEqual(rv, [(100, (2, 4, 6, 8)), (500, (1, 3, 5, 7))])
+        self.assertEqual(rv, [(100, [2, 4, 6, 8]), (500, [1, 3, 5, 7])])

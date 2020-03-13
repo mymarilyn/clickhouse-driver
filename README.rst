@@ -45,6 +45,7 @@ Features
   * IPv4/IPv6
   * LowCardinality(T)
   * SimpleAggregateFunction(F, T)
+  * Tuple(T1, T2, ...)
 
 - Query progress information.
 
