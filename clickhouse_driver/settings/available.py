@@ -14,6 +14,8 @@ SettingSeconds = SettingMilliseconds = SettingUInt64
 SettingLoadBalancing = SettingTotalsMode = SettingCompressionMethod = \
     SettingDistributedProductMode = SettingGlobalSubqueriesMethod = \
     SettingDateTimeInputFormat = \
+    SettingURI = \
+    SettingJoinAlgorithm = \
     SettingString
 
 settings = {
@@ -350,4 +352,19 @@ settings = {
     'mutations_sync': SettingUInt64,
     'optimize_if_chain_to_miltiif': SettingBool,
     'max_parser_depth': SettingUInt64,
+
+    'max_joined_block_size_rows': SettingUInt64,
+    'connect_timeout_with_failover_secure_ms': SettingMilliseconds,
+    'parallel_distributed_insert_select': SettingBool,
+    'force_optimize_skip_unused_shards_no_nested': SettingBool,
+    'format_avro_schema_registry_url': SettingURI,
+    'output_format_tsv_crlf_end_of_line': SettingBool,
+    'join_algorithm': SettingJoinAlgorithm,
+    'memory_profiler_step': SettingUInt64,
+    'output_format_csv_crlf_end_of_line': SettingBool,
+    'allow_experimental_alter_materialized_view_structure': SettingBool,
+    'enable_early_constant_folding': SettingBool,
+    'deduplicate_blocks_in_dependent_materialized_views': SettingBool,
+    'use_compact_format_in_distributed_parts_names': SettingBool,
+    'multiple_joins_rewriter_version': SettingUInt64,
 }
