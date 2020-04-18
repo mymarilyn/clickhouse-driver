@@ -27,6 +27,7 @@ There is an asynchronous wrapper for clickhouse-driver: aioch. It's available `h
    features
    types
    misc
+   unsupportedserverversions
 
 API Reference
 -------------
