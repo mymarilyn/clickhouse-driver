@@ -1,5 +1,6 @@
 env:
-  - VERSION=19.15.3.6  # latest
+  - VERSION=19.16.17.80
+  - VERSION=19.15.3.6
   - VERSION=19.9.2.4   # allow_suspicious_low_cardinality_types
   - VERSION=19.8.3.8   # SimpleAggregateFunction
   - VERSION=19.3.3

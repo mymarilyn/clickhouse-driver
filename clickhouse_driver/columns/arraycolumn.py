@@ -1,4 +1,4 @@
-
+from itertools import chain
 from struct import Struct
 
 from ..util import compat
@@ -97,18 +97,17 @@ class ArrayColumn(Column):
             value = value or []
 
         if isinstance(self.nested_column, ArrayColumn):
-            for x in value:
-                self.nested_column._write_data(list(x), buf)
-        else:
-            self.nested_column._write_data(value, buf)
+            value = list(chain.from_iterable(value))
+
+        self.nested_column._write_data(value, buf)
 
     def _write_nulls_data(self, value, buf):
         if self.nullable:
             value = value or []
 
         if isinstance(self.nested_column, ArrayColumn):
-            for x in value:
-                self.nested_column._write_nulls_data(x, buf)
+            value = list(chain.from_iterable(value))
+            self.nested_column._write_nulls_data(value, buf)
         else:
             if self.nested_column.nullable:
                 self.nested_column._write_nulls_map(value, buf)
@@ -128,7 +127,6 @@ class ArrayColumn(Column):
         q = Queue()
         q.put((self, size, 0))
 
-        data = []
         slices_series = []
 
         cur_depth = 0
@@ -139,6 +137,9 @@ class ArrayColumn(Column):
             nulls_map = self._read_nulls_map(size, buf)
         else:
             nulls_map = [0] * size
+
+        nested_column_size = size
+        nested_column = self.nested_column
 
         # Read and store info about slices.
         while not q.empty():
@@ -162,19 +163,19 @@ class ArrayColumn(Column):
             if isinstance(nested_column, ArrayColumn):
                 for _i in range(size):
                     offset = self.size_unpack(buf)
+                    nested_column_size = offset
                     q.put((nested_column, offset - prev_offset, cur_depth + 1))
                     slices.append((prev_offset, offset))
                     prev_offset = offset
 
             # Read data
             else:
-                data.extend(
-                    nested_column._read_data(
-                        size, buf,
-                        nulls_map=nulls_map[prev_offset:prev_offset + size]
-                    )
-                )
                 prev_offset += size
+
+        data = nested_column._read_data(
+            nested_column_size, buf,
+            nulls_map=nulls_map
+        )
 
         # Build nested tuple structure.
         for slices, nulls_map in reversed(slices_series):

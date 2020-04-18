@@ -15,9 +15,15 @@ class TupleColumn(Column):
         for i, x in enumerate(self.nested_columns):
             x.write_data(list(items[i]), buf)
 
+    def write_items(self, items, buf):
+        return self.write_data(items, buf)
+
     def read_data(self, n_items, buf):
         rv = [x.read_data(n_items, buf) for x in self.nested_columns]
         return list(zip(*rv))
+
+    def read_items(self, n_items, buf):
+        return self.read_data(n_items, buf)
 
 
 def create_tuple_column(spec, column_by_spec_getter):

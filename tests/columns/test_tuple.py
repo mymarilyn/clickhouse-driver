@@ -2,6 +2,7 @@ from datetime import date
 
 from clickhouse_driver import errors
 from tests.testcase import BaseTestCase
+from tests.util import require_server_version
 
 
 class TupleTestCase(BaseTestCase):
@@ -121,7 +122,7 @@ class TupleTestCase(BaseTestCase):
                 ]
             )
 
-    def test_array_of_tuples(self):
+    def test_tuple_of_arrays(self):
         with self.create_table('a Tuple(Array(Int32))'):
             data = [(([1, 2, 3], ), ), (([4, 5, 6], ), )]
             self.client.execute(
@@ -133,6 +134,35 @@ class TupleTestCase(BaseTestCase):
             self.assertEqual(
                 inserted,
                 "([1,2,3])\n([4,5,6])\n"
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
+
+    # Bug in Array of Tuple handing before 19.16.13:
+    # DESCRIBE TABLE test
+    #
+    # | a.1  | Array(UInt8) |
+    # | a.2  | Array(UInt8) |
+    # | a.3  | Array(UInt8) |
+    # https://github.com/ClickHouse/ClickHouse/pull/8866
+    @require_server_version(19, 16, 13)
+    def test_array_of_tuples(self):
+        with self.create_table('a Array(Tuple(UInt8, UInt8, UInt8))'):
+            data = [
+                ([(1, 2, 3), (4, 5, 6)], ),
+                ([(7, 8, 9)],),
+            ]
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted,
+                "[(1,2,3),(4,5,6)]\n"
+                "[(7,8,9)]\n"
             )
 
             inserted = self.client.execute(query)
