@@ -101,6 +101,8 @@ html_theme_options = {
     "github_user": "mymarilyn",
     "github_repo": "clickhouse-driver",
     "fixed_sidebar": True,
+    "sidebar_width": '300px',
+    "page_width": '1000px'
 }
 
 # Custom sidebar templates, must be a dictionary that maps document names
