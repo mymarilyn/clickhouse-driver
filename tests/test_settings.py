@@ -94,13 +94,11 @@ class SettingTestCase(BaseTestCase):
 
 class LimitsTestCase(BaseTestCase):
     def test_max_result_rows_apply(self):
+        query = 'SELECT number FROM system.numbers LIMIT 10'
         settings = {'max_result_rows': 5}
 
         with self.assertRaises(ServerException) as e:
-            self.client.execute(
-                'SELECT arrayJoin(range(10))',
-                settings=settings
-            )
+            self.client.execute(query, settings=settings)
         # New servers return TOO_MANY_ROWS_OR_BYTES.
         # Old servers return TOO_MANY_ROWS.
         error_codes = {
@@ -110,11 +108,8 @@ class LimitsTestCase(BaseTestCase):
         self.assertIn(e.exception.code, error_codes)
 
         settings = {'max_result_rows': 5, 'result_overflow_mode': 'break'}
-        rv = self.client.execute(
-            'SELECT arrayJoin(range(10))',
-            settings=settings
-        )
+        rv = self.client.execute(query, settings=settings)
         self.assertEqual(len(rv), 10)
 
-        rv = self.client.execute('SELECT arrayJoin(range(10))')
+        rv = self.client.execute(query)
         self.assertEqual(len(rv), 10)

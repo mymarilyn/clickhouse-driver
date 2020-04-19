@@ -121,13 +121,15 @@ class DBAPITestCase(DBAPITestCaseBase):
         with self.created_cursor(user='wrong_user') as cursor:
             with self.assertRaises(OperationalError) as e:
                 cursor.execute('SELECT 1')
-            self.assertIn('Code: 192', str(e.exception))
+            code = 516 if self.server_version > (20, ) else 192
+            self.assertIn('Code: {}'.format(code), str(e.exception))
 
     def test_exception_executemany(self):
         with self.created_cursor(user='wrong_user') as cursor:
             with self.assertRaises(OperationalError) as e:
                 cursor.executemany('INSERT INTO test VALUES', [(0, )])
-            self.assertIn('Code: 192', str(e.exception))
+            code = 516 if self.server_version > (20, ) else 192
+            self.assertIn('Code: {}'.format(code), str(e.exception))
             self.assertEqual(cursor.rowcount, -1)
 
     def test_rowcount_insert_from_select(self):

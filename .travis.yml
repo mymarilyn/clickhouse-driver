@@ -1,4 +1,5 @@
 env:
+  - VERSION=20.3.7.46
   - VERSION=19.16.17.80
   - VERSION=19.15.3.6
   - VERSION=19.9.2.4   # allow_suspicious_low_cardinality_types

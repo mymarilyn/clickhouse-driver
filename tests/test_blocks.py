@@ -85,7 +85,10 @@ class BlocksTestCase(BaseTestCase):
 class ProgressTestCase(BaseTestCase):
     def test_select_with_progress(self):
         progress = self.client.execute_with_progress('SELECT 2')
-        self.assertEqual(list(progress), [(1, 0)])
+        self.assertEqual(
+            list(progress),
+            [(1, 0), (1, 0)] if self.server_version > (20,) else [(1, 0)]
+        )
         self.assertEqual(progress.get_result(), [(2,)])
         self.assertTrue(self.client.connection.connected)
 

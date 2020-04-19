@@ -27,10 +27,13 @@ def log_block(block):
         else:
             priority = row[0]
 
+        # thread_number in servers prior 20.x
+        thread_id = row.get('thread_id') or row['thread_number']
+
         logger.info(
             '{%s} [ %s ] <%s> %s: %s',
             row['query_id'],
-            row['thread_number'],
+            thread_id,
             priority,
             row['source'],
             row['text']
