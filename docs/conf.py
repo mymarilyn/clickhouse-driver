@@ -105,6 +105,10 @@ html_theme_options = {
     "page_width": '1000px'
 }
 
+html_css_files = [
+    'css/custom.css',
+]
+
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
 #

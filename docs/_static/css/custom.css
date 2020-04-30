@@ -1,0 +1,18 @@
+
+table.table-small-text {
+    font-size: small;
+}
+
+
+table.table-center-header thead tr th {
+    text-align: center;
+}
+
+
+table.table-right-text-align-results tbody tr td {
+    text-align: right;
+}
+
+table.table-right-text-align-results tbody tr td:first-child {
+    text-align: inherit;
+}
