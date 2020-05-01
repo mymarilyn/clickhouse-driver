@@ -19,7 +19,7 @@ class FloatTestCase(BaseTestCase):
                     'INSERT INTO test (a, b) VALUES', data
                 )
 
-                self.assertIn('Column a', str(e.exception))
+            self.assertIn('Column a', str(e.exception))
 
     def test_simple(self):
         with self.create_table('a Float32, b Float64'):

@@ -133,7 +133,7 @@ class ByteStringTestCase(BaseTestCase):
                     types_check=True
                 )
 
-                self.assertIn('Column a', str(e.exception))
+            self.assertIn('for column "a"', str(e.exception))
 
     def test_nullable(self):
         with self.create_table('a Nullable(String)'):
