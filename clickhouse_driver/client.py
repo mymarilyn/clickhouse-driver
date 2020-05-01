@@ -31,11 +31,14 @@ class Client(object):
 
         * strings_as_bytes -- turns off string column encoding/decoding.
 
+        * strings_encoding -- specifies string encoding. UTF-8 by default.
+
     """
 
     available_client_settings = (
         'insert_block_size',  # TODO: rename to max_insert_block_size
-        'strings_as_bytes'
+        'strings_as_bytes',
+        'strings_encoding'
     )
 
     def __init__(self, *args, **kwargs):
@@ -47,6 +50,9 @@ class Client(object):
             )),
             'strings_as_bytes': self.settings.pop(
                 'strings_as_bytes', False
+            ),
+            'strings_encoding': self.settings.pop(
+                'strings_encoding', defines.STRINGS_ENCODING
             )
         }
 

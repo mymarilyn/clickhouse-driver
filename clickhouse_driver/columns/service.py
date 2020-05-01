@@ -39,9 +39,7 @@ column_by_type = {c.ch_type: c for c in [
 ]}
 
 
-def get_column_by_spec(spec, column_options=None):
-    column_options = column_options or {}
-
+def get_column_by_spec(spec, column_options):
     def create_column_with_options(x):
         return get_column_by_spec(x, column_options)
 
@@ -84,7 +82,7 @@ def get_column_by_spec(spec, column_options=None):
 
 def read_column(context, column_spec, n_items, buf):
     column_options = {'context': context}
-    column = get_column_by_spec(column_spec, column_options=column_options)
+    column = get_column_by_spec(column_spec, column_options)
     column.read_state_prefix(buf)
     return column.read_data(n_items, buf)
 

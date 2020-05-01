@@ -8,11 +8,10 @@ from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 from cpython.tuple cimport PyTuple_New, PyTuple_SET_ITEM
 from libc.string cimport memcpy, memset
 
+from .. import defines
 from .. import errors
 from ..util import compat
 from .base import Column
-
-from codecs import utf_8_encode
 
 
 class String(Column):
@@ -20,13 +19,17 @@ class String(Column):
     py_types = compat.string_types
     null_value = ''
 
-    # TODO: pass user encoding here
+    default_encoding = defines.STRINGS_ENCODING
+
+    def __init__(self, encoding=default_encoding, **kwargs):
+        self.encoding = encoding
+        super(String, self).__init__(**kwargs)
 
     def write_items(self, items, buf):
-        buf.write_strings(items, encode=True)
+        buf.write_strings(items, encoding=self.encoding)
 
     def read_items(self, n_items, buf):
-        return buf.read_strings(n_items, decode=True)
+        return buf.read_strings(n_items, encoding=self.encoding)
 
 
 class ByteString(String):
@@ -49,6 +52,8 @@ class FixedString(String):
 
     def read_items(self, Py_ssize_t n_items, buf):
         cdef Py_ssize_t i, j, length = self.length
+        encoding = self.encoding.encode('utf-8')
+        cdef char* c_encoding = encoding
         data = buf.read(length * n_items)
         cdef char* data_ptr = PyByteArray_AsString(data)
 
@@ -67,7 +72,7 @@ class FixedString(String):
                 j -= 1
 
             try:
-                item = c_string[:j + 1].decode('utf-8')
+                item = c_string[:j + 1].decode(c_encoding)
             except UnicodeDecodeError:
                 item = PyBytes_FromStringAndSize(c_string, length)
             Py_INCREF(item)
@@ -81,6 +86,7 @@ class FixedString(String):
         cdef Py_ssize_t buf_pos = 0
         cdef Py_ssize_t length = self.length
         cdef Py_ssize_t items_buf_size = length * len(items)
+        encoding = self.encoding
 
         cdef char* c_value
         cdef char* items_buf = <char *>PyMem_Malloc(items_buf_size)
@@ -90,17 +96,14 @@ class FixedString(String):
         memset(items_buf, 0, items_buf_size)
 
         for value in items:
-            if not isinstance(value, bytes):
-                value = utf_8_encode(value)[0]
+            if not PyBytes_Check(value):
+                value = value.encode(encoding)
 
             value_len = len(value)
             if length < value_len:
                 raise errors.TooLargeStringSize()
 
-            if PyBytes_Check(value):
-                c_value = PyBytes_AsString(value)
-            else:
-                c_value = PyByteArray_AsString(value)
+            c_value = PyBytes_AsString(value)
 
             memcpy(&items_buf[buf_pos], c_value, value_len)
             buf_pos += length
@@ -161,11 +164,12 @@ class ByteFixedString(FixedString):
 def create_string_column(spec, column_options):
     client_settings = column_options['context'].client_settings
     strings_as_bytes = client_settings['strings_as_bytes']
+    encoding = client_settings.get('strings_encoding', String.default_encoding)
 
     if spec == 'String':
         cls = ByteString if strings_as_bytes else String
-        return cls(**column_options)
+        return cls(encoding=encoding, **column_options)
     else:
         length = int(spec[12:-1])
         cls = ByteFixedString if strings_as_bytes else FixedString
-        return cls(length, **column_options)
+        return cls(length, encoding=encoding, **column_options)

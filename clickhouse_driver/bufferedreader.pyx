@@ -70,7 +70,7 @@ class BufferedReader(object):
         self.position += 1
         return rv
 
-    def read_strings(self, Py_ssize_t n_items, int decode=0):
+    def read_strings(self, Py_ssize_t n_items, encoding=None):
         """
         Python has great overhead between function calls.
         We inline strings reading logic here to avoid this overhead.
@@ -85,12 +85,16 @@ class BufferedReader(object):
         cdef Py_ssize_t right, position = self.position
         cdef Py_ssize_t current_buffer_size = self.current_buffer_size
         # String length vars
-        cdef Py_ssize_t size, shift
+        cdef Py_ssize_t size, shift, bytes_read
         cdef unsigned char b
 
         # String for decode vars.
         cdef char *c_string = NULL
         cdef Py_ssize_t c_string_size = 0, large_str_bytes
+        cdef char *c_encoding = NULL
+        if encoding:
+            encoding = encoding.encode('utf-8')
+            c_encoding = encoding
 
         for i in range(n_items):
             shift = size = 0
@@ -118,7 +122,7 @@ class BufferedReader(object):
 
             right = position + size
 
-            if decode:
+            if c_encoding:
                 c_string = maybe_resize_c_string(c_string, c_string_size,
                                                  size + 1)
                 c_string_size = max(c_string_size, size + 1)
@@ -129,7 +133,7 @@ class BufferedReader(object):
             # We need to copy it into buffer for adding null symbol at the end.
             # In ClickHouse block there is no null
             if right > current_buffer_size:
-                if decode:
+                if c_encoding:
                     memcpy(&c_string[bytes_read], &buffer_ptr[position],
                            current_buffer_size - position)
                 else:
@@ -151,22 +155,22 @@ class BufferedReader(object):
                     buffer_ptr = PyByteArray_AsString(buffer)
                     # There can be not enough data in buffer.
                     position = min(position, current_buffer_size)
-                    if decode:
+                    if c_encoding:
                         memcpy(&c_string[bytes_read], buffer_ptr, position)
                     else:
                         rv += PyBytes_FromStringAndSize(buffer_ptr, position)
                     bytes_read += position
 
             else:
-                if decode:
+                if c_encoding:
                     memcpy(c_string, &buffer_ptr[position], size)
                 else:
                     rv = PyBytes_FromStringAndSize(&buffer_ptr[position], size)
                 position = right
 
-            if decode:
+            if c_encoding:
                 try:
-                    rv = c_string[:size].decode('utf-8')
+                    rv = c_string[:size].decode(c_encoding)
                 except UnicodeDecodeError:
                     rv = PyBytes_FromStringAndSize(c_string, size)
 

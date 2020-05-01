@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from tests.testcase import BaseTestCase
 from clickhouse_driver import errors
+from clickhouse_driver.util.compat import text_type
 
 
 class FixedStringTestCase(BaseTestCase):
@@ -105,6 +106,32 @@ class FixedStringTestCase(BaseTestCase):
             query = 'SELECT * FROM test'
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
+
+
+class CustomEncodingFixedStringTestCase(BaseTestCase):
+    client_kwargs = {'settings': {'strings_encoding': 'cp1251'}}
+
+    def test_decoded(self):
+        columns = 'a FixedString(10)'
+
+        data = [(('яндекс'), ), (('test'), )]
+        with self.create_table(columns):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query, encoding='cp1251')
+            self.assertEqual(
+                inserted,
+                'яндекс\\0\\0\\0\\0\n'
+                'test\\0\\0\\0\\0\\0\\0\n'
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
+            self.assertIsInstance(inserted[0][0], text_type)
+            self.assertIsInstance(inserted[1][0], text_type)
 
 
 class ByteFixedStringTestCase(BaseTestCase):

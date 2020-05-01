@@ -3,8 +3,6 @@ from cpython.bytearray cimport PyByteArray_AsString, \
     PyByteArray_FromStringAndSize
 from libc.string cimport memcpy
 
-from codecs import utf_8_encode
-
 from .varint import write_varint
 
 
@@ -52,11 +50,13 @@ cdef class BufferedWriter(object):
     def flush(self):
         self.write_into_stream()
 
-    def write_strings(self, items, int encode=0):
+    def write_strings(self, items, encoding=None):
+        cdef int do_encode = encoding is not None
+
         for value in items:
-            if encode:
-                if not isinstance(value, bytes):
-                    value = utf_8_encode(value)[0]
+            if do_encode:
+                if not PyBytes_Check(value):
+                    value = value.encode(encoding)
 
             write_varint(len(value), self)
             self.write(value)

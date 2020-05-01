@@ -58,9 +58,21 @@ INSERT types: :class:`str`/:func:`basestring <basestring>`, :class:`bytearray`, 
 
 SELECT type: :class:`str`/:func:`basestring <basestring>`, :class:`bytes`. See note below.
 
-String column is encoded/decoded using UTF-8 encoding.
+String column is encoded/decoded with encoding specified by ``strings_encoding`` setting. Default encoding is UTF-8.
 
-String column can be returned without decoding. Return values are `bytes`:
+You can specify custom encoding:
+
+    .. code-block:: python
+
+        >>> settings = {'strings_encoding': 'cp1251'}
+        >>> rows = client.execute(
+        ...     'SELECT * FROM table_with_strings',
+        ...     settings=settings
+        ... )
+
+Encoding is applied to all string fields in query.
+
+String columns can be returned without any decoding. In this case return values are `bytes`:
 
     .. code-block:: python
 
@@ -74,9 +86,9 @@ String column can be returned without decoding. Return values are `bytes`:
 If a column has FixedString type, upon returning from SELECT it may contain trailing zeroes
 in accordance with ClickHouse's storage format. Trailing zeroes are stripped by driver for convenience.
 
-During SELECT, if a string cannot be decoded with UTF-8 encoding, it will return as :class:`bytes`.
+During SELECT, if a string cannot be decoded with specified encoding, it will return as :class:`bytes`.
 
-During INSERT, if ``strings_as_bytes`` setting is not specified and string cannot be encoded with ``UTF-8``,
+During INSERT, if ``strings_as_bytes`` setting is not specified and string cannot be encoded with encoding,
 a ``UnicodeEncodeError`` will be raised.
 
 
