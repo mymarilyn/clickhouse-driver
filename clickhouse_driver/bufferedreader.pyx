@@ -96,6 +96,8 @@ class BufferedReader(object):
             encoding = encoding.encode('utf-8')
             c_encoding = encoding
 
+        cdef object rv = object()
+
         for i in range(n_items):
             shift = size = 0
 
