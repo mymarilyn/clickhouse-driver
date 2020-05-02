@@ -2992,7 +2992,7 @@ static int __pyx_pf_17clickhouse_driver_14bufferedwriter_20BufferedSocketWriter_
  * 
  *     cpdef write_into_stream(self):             # <<<<<<<<<<<<<<
  *         self.sock.sendall(
- *             PyByteArray_FromStringAndSize(self.buffer, self.position)
+ *             PyBytes_FromStringAndSize(self.buffer, self.position)
  */
 
 static PyObject *__pyx_pw_17clickhouse_driver_14bufferedwriter_20BufferedSocketWriter_3write_into_stream(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
@@ -3055,7 +3055,7 @@ static PyObject *__pyx_f_17clickhouse_driver_14bufferedwriter_20BufferedSocketWr
  * 
  *     cpdef write_into_stream(self):
  *         self.sock.sendall(             # <<<<<<<<<<<<<<
- *             PyByteArray_FromStringAndSize(self.buffer, self.position)
+ *             PyBytes_FromStringAndSize(self.buffer, self.position)
  *         )
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->sock, __pyx_n_s_sendall); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 73, __pyx_L1_error)
@@ -3064,11 +3064,11 @@ static PyObject *__pyx_f_17clickhouse_driver_14bufferedwriter_20BufferedSocketWr
   /* "clickhouse_driver/bufferedwriter.pyx":74
  *     cpdef write_into_stream(self):
  *         self.sock.sendall(
- *             PyByteArray_FromStringAndSize(self.buffer, self.position)             # <<<<<<<<<<<<<<
+ *             PyBytes_FromStringAndSize(self.buffer, self.position)             # <<<<<<<<<<<<<<
  *         )
  *         self.position = 0
  */
-  __pyx_t_3 = PyByteArray_FromStringAndSize(__pyx_v_self->__pyx_base.buffer, __pyx_v_self->__pyx_base.position); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 74, __pyx_L1_error)
+  __pyx_t_3 = PyBytes_FromStringAndSize(__pyx_v_self->__pyx_base.buffer, __pyx_v_self->__pyx_base.position); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 74, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_4 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -3089,7 +3089,7 @@ static PyObject *__pyx_f_17clickhouse_driver_14bufferedwriter_20BufferedSocketWr
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "clickhouse_driver/bufferedwriter.pyx":76
- *             PyByteArray_FromStringAndSize(self.buffer, self.position)
+ *             PyBytes_FromStringAndSize(self.buffer, self.position)
  *         )
  *         self.position = 0             # <<<<<<<<<<<<<<
  * 
@@ -3102,7 +3102,7 @@ static PyObject *__pyx_f_17clickhouse_driver_14bufferedwriter_20BufferedSocketWr
  * 
  *     cpdef write_into_stream(self):             # <<<<<<<<<<<<<<
  *         self.sock.sendall(
- *             PyByteArray_FromStringAndSize(self.buffer, self.position)
+ *             PyBytes_FromStringAndSize(self.buffer, self.position)
  */
 
   /* function exit code */
@@ -3616,7 +3616,7 @@ static int __pyx_pf_17clickhouse_driver_14bufferedwriter_24CompressedBufferedWri
  * 
  *     cpdef write_into_stream(self):             # <<<<<<<<<<<<<<
  *         self.compressor.write(
- *             PyByteArray_FromStringAndSize(self.buffer, self.position)
+ *             PyBytes_FromStringAndSize(self.buffer, self.position)
  */
 
 static PyObject *__pyx_pw_17clickhouse_driver_14bufferedwriter_24CompressedBufferedWriter_3write_into_stream(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
@@ -3679,7 +3679,7 @@ static PyObject *__pyx_f_17clickhouse_driver_14bufferedwriter_24CompressedBuffer
  * 
  *     cpdef write_into_stream(self):
  *         self.compressor.write(             # <<<<<<<<<<<<<<
- *             PyByteArray_FromStringAndSize(self.buffer, self.position)
+ *             PyBytes_FromStringAndSize(self.buffer, self.position)
  *         )
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->compressor, __pyx_n_s_write); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 87, __pyx_L1_error)
@@ -3688,11 +3688,11 @@ static PyObject *__pyx_f_17clickhouse_driver_14bufferedwriter_24CompressedBuffer
   /* "clickhouse_driver/bufferedwriter.pyx":88
  *     cpdef write_into_stream(self):
  *         self.compressor.write(
- *             PyByteArray_FromStringAndSize(self.buffer, self.position)             # <<<<<<<<<<<<<<
+ *             PyBytes_FromStringAndSize(self.buffer, self.position)             # <<<<<<<<<<<<<<
  *         )
  *         self.position = 0
  */
-  __pyx_t_3 = PyByteArray_FromStringAndSize(__pyx_v_self->__pyx_base.buffer, __pyx_v_self->__pyx_base.position); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 88, __pyx_L1_error)
+  __pyx_t_3 = PyBytes_FromStringAndSize(__pyx_v_self->__pyx_base.buffer, __pyx_v_self->__pyx_base.position); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 88, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_4 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -3713,7 +3713,7 @@ static PyObject *__pyx_f_17clickhouse_driver_14bufferedwriter_24CompressedBuffer
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "clickhouse_driver/bufferedwriter.pyx":90
- *             PyByteArray_FromStringAndSize(self.buffer, self.position)
+ *             PyBytes_FromStringAndSize(self.buffer, self.position)
  *         )
  *         self.position = 0             # <<<<<<<<<<<<<<
  * 
@@ -3726,7 +3726,7 @@ static PyObject *__pyx_f_17clickhouse_driver_14bufferedwriter_24CompressedBuffer
  * 
  *     cpdef write_into_stream(self):             # <<<<<<<<<<<<<<
  *         self.compressor.write(
- *             PyByteArray_FromStringAndSize(self.buffer, self.position)
+ *             PyBytes_FromStringAndSize(self.buffer, self.position)
  */
 
   /* function exit code */
@@ -6267,9 +6267,9 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "clickhouse_driver/bufferedwriter.pyx":1
- * from cpython cimport PyMem_Malloc, PyMem_Free, PyBytes_AsString, PyBytes_Check             # <<<<<<<<<<<<<<
- * from cpython.bytearray cimport PyByteArray_AsString, \
- *     PyByteArray_FromStringAndSize
+ * from cpython cimport PyMem_Malloc, PyMem_Free, PyBytes_AsString, \             # <<<<<<<<<<<<<<
+ *     PyBytes_Check, PyBytes_FromStringAndSize
+ * from cpython.bytearray cimport PyByteArray_AsString
  */
   __pyx_t_2 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);

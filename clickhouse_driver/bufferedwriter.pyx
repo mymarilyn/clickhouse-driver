@@ -1,6 +1,6 @@
-from cpython cimport PyMem_Malloc, PyMem_Free, PyBytes_AsString, PyBytes_Check
-from cpython.bytearray cimport PyByteArray_AsString, \
-    PyByteArray_FromStringAndSize
+from cpython cimport PyMem_Malloc, PyMem_Free, PyBytes_AsString, \
+    PyBytes_Check, PyBytes_FromStringAndSize
+from cpython.bytearray cimport PyByteArray_AsString
 from libc.string cimport memcpy
 
 from .varint import write_varint
@@ -71,7 +71,7 @@ cdef class BufferedSocketWriter(BufferedWriter):
 
     cpdef write_into_stream(self):
         self.sock.sendall(
-            PyByteArray_FromStringAndSize(self.buffer, self.position)
+            PyBytes_FromStringAndSize(self.buffer, self.position)
         )
         self.position = 0
 
@@ -85,7 +85,7 @@ cdef class CompressedBufferedWriter(BufferedWriter):
 
     cpdef write_into_stream(self):
         self.compressor.write(
-            PyByteArray_FromStringAndSize(self.buffer, self.position)
+            PyBytes_FromStringAndSize(self.buffer, self.position)
         )
         self.position = 0
 
