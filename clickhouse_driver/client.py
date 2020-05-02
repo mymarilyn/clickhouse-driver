@@ -141,7 +141,7 @@ class Client(object):
             return True
 
     def make_query_settings(self, settings):
-        settings = settings or {}
+        settings = dict(settings or {})
 
         # Pick client-related settings.
         client_settings = self.client_settings.copy()
