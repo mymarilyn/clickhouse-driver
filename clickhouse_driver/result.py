@@ -31,9 +31,11 @@ class QueryResult(object):
                 if self.data:
                     # Extend corresponding column.
                     for i, column in enumerate(columns):
-                        self.data[i] += column
+                        self.data[i].extend(column)
                 else:
-                    self.data.extend(columns)
+                    # Cast tuples to lists for further extending.
+                    # Concatenating tuples produce new tuple. It's slow.
+                    self.data = [list(c) for c in columns]
             else:
                 self.data.extend(block.get_rows())
 
@@ -48,10 +50,14 @@ class QueryResult(object):
         for packet in self.packet_generator:
             self.store(packet)
 
+        data = self.data
+        if self.columnar:
+            data = [tuple(c) for c in self.data]
+
         if self.with_column_types:
-            return self.data, self.columns_with_types
+            return data, self.columns_with_types
         else:
-            return self.data
+            return data
 
 
 class ProgressQueryResult(QueryResult):
