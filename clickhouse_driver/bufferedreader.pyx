@@ -7,16 +7,10 @@ from cpython.tuple cimport PyTuple_New, PyTuple_SET_ITEM
 from libc.string cimport memcpy
 
 
-cdef char * maybe_resize_c_string(char *c_string, Py_ssize_t old_size,
-                                  Py_ssize_t new_size):
-    if new_size > old_size:
-        c_string = <char *> PyMem_Realloc(c_string, new_size)
-        if not c_string:
-            raise MemoryError()
-    return c_string
+cdef class BufferedReader(object):
+    cdef public Py_ssize_t position, current_buffer_size
+    cdef public bytearray buffer
 
-
-class BufferedReader(object):
     def __init__(self, bufsize):
         self.buffer = bytearray(bufsize)
 
@@ -31,7 +25,7 @@ class BufferedReader(object):
     def read(self, Py_ssize_t unread):
         # When the buffer is large enough bytes read are almost
         # always hit the buffer.
-        next_position = unread + self.position
+        cdef Py_ssize_t next_position = unread + self.position
         if next_position < self.current_buffer_size:
             t = self.position
             self.position = next_position
@@ -39,25 +33,20 @@ class BufferedReader(object):
 
         cdef char* buffer_ptr = PyByteArray_AsString(self.buffer)
         cdef Py_ssize_t read_bytes
-        cdef Py_ssize_t position = self.position
-        cdef Py_ssize_t current_buffer_size = self.current_buffer_size
         rv = bytes()
 
         while unread > 0:
-            if position == current_buffer_size:
+            if self.position == self.current_buffer_size:
                 self.read_into_buffer()
                 buffer_ptr = PyByteArray_AsString(self.buffer)
-                current_buffer_size = self.current_buffer_size
-                position = 0
+                self.position = 0
 
-            read_bytes = min(unread, current_buffer_size - position)
-            rv += PyBytes_FromStringAndSize(&buffer_ptr[position], read_bytes)
-            position += read_bytes
+            read_bytes = min(unread, self.current_buffer_size - self.position)
+            rv += PyBytes_FromStringAndSize(
+                &buffer_ptr[self.position], read_bytes
+            )
+            self.position += read_bytes
             unread -= read_bytes
-
-        # Restore self-variables.
-        self.position = position
-        self.current_buffer_size = current_buffer_size
 
         return bytearray(rv)
 
@@ -77,13 +66,10 @@ class BufferedReader(object):
         """
         items = PyTuple_New(n_items)
 
-        # Reduce getattr(self, ...), calls.
-        buffer = self.buffer
         cdef Py_ssize_t i
         # Buffer vars
-        cdef char* buffer_ptr = PyByteArray_AsString(buffer)
-        cdef Py_ssize_t right, position = self.position
-        cdef Py_ssize_t current_buffer_size = self.current_buffer_size
+        cdef char* buffer_ptr = PyByteArray_AsString(self.buffer)
+        cdef Py_ssize_t right
         # String length vars
         cdef Py_ssize_t size, shift, bytes_read
         cdef unsigned char b
@@ -97,24 +83,21 @@ class BufferedReader(object):
             c_encoding = encoding
 
         cdef object rv = object()
+        c_string = <char *> PyMem_Realloc(c_string, c_string_size)
 
         for i in range(n_items):
             shift = size = 0
 
             # Read string size
             while True:
-                if position == current_buffer_size:
+                if self.position == self.current_buffer_size:
                     self.read_into_buffer()
-                    # `read_into_buffer` can override
-                    # buffer, current_buffer_size
-                    # We need to restore them.
-                    buffer = self.buffer
-                    current_buffer_size = self.current_buffer_size
-                    buffer_ptr = PyByteArray_AsString(buffer)
-                    position = 0
+                    # `read_into_buffer` can override buffer
+                    buffer_ptr = PyByteArray_AsString(self.buffer)
+                    self.position = 0
 
-                b = buffer_ptr[position]
-                position += 1
+                b = buffer_ptr[self.position]
+                self.position += 1
 
                 size |= (b & 0x7f) << shift
                 if b < 0x80:
@@ -122,53 +105,60 @@ class BufferedReader(object):
 
                 shift += 7
 
-            right = position + size
+            right = self.position + size
 
             if c_encoding:
-                c_string = maybe_resize_c_string(c_string, c_string_size,
-                                                 size + 1)
-                c_string_size = max(c_string_size, size + 1)
+                if size + 1 > c_string_size:
+                    c_string = <char *> PyMem_Realloc(c_string, size + 1)
+                    if c_string is NULL:
+                        raise MemoryError()
+                    c_string_size = size + 1
                 c_string[size] = 0
                 bytes_read = 0
 
             # Decoding pure c strings in Cython is faster than in pure Python.
             # We need to copy it into buffer for adding null symbol at the end.
             # In ClickHouse block there is no null
-            if right > current_buffer_size:
+            if right > self.current_buffer_size:
                 if c_encoding:
-                    memcpy(&c_string[bytes_read], &buffer_ptr[position],
-                           current_buffer_size - position)
+                    memcpy(&c_string[bytes_read], &buffer_ptr[self.position],
+                           self.current_buffer_size - self.position)
                 else:
                     rv = PyBytes_FromStringAndSize(
-                        &buffer_ptr[position], current_buffer_size - position
+                        &buffer_ptr[self.position],
+                        self.current_buffer_size - self.position
                     )
 
-                bytes_read = current_buffer_size - position
+                bytes_read = self.current_buffer_size - self.position
                 # Read the rest of the string.
                 while bytes_read != size:
-                    position = size - bytes_read
+                    self.position = size - bytes_read
 
                     self.read_into_buffer()
-                    # `read_into_buffer` can override
-                    # buffer, current_buffer_size
-                    # We need to restore them.
-                    buffer = self.buffer
-                    current_buffer_size = self.current_buffer_size
-                    buffer_ptr = PyByteArray_AsString(buffer)
+                    # `read_into_buffer` can override buffer
+                    buffer_ptr = PyByteArray_AsString(self.buffer)
                     # There can be not enough data in buffer.
-                    position = min(position, current_buffer_size)
+                    self.position = min(
+                        self.position, self.current_buffer_size
+                    )
                     if c_encoding:
-                        memcpy(&c_string[bytes_read], buffer_ptr, position)
+                        memcpy(
+                            &c_string[bytes_read], buffer_ptr, self.position
+                        )
                     else:
-                        rv += PyBytes_FromStringAndSize(buffer_ptr, position)
-                    bytes_read += position
+                        rv += PyBytes_FromStringAndSize(
+                            buffer_ptr, self.position
+                        )
+                    bytes_read += self.position
 
             else:
                 if c_encoding:
-                    memcpy(c_string, &buffer_ptr[position], size)
+                    memcpy(c_string, &buffer_ptr[self.position], size)
                 else:
-                    rv = PyBytes_FromStringAndSize(&buffer_ptr[position], size)
-                position = right
+                    rv = PyBytes_FromStringAndSize(
+                        &buffer_ptr[self.position], size
+                    )
+                self.position = right
 
             if c_encoding:
                 try:
@@ -182,15 +172,12 @@ class BufferedReader(object):
         if c_string:
             PyMem_Free(c_string)
 
-        # Restore self-variables.
-        self.buffer = buffer
-        self.position = position
-        self.current_buffer_size = current_buffer_size
-
         return items
 
 
-class BufferedSocketReader(BufferedReader):
+cdef class BufferedSocketReader(BufferedReader):
+    cdef object sock
+
     def __init__(self, sock, bufsize):
         self.sock = sock
         super(BufferedSocketReader, self).__init__(bufsize)
@@ -202,7 +189,9 @@ class BufferedSocketReader(BufferedReader):
             raise EOFError('Unexpected EOF while reading bytes')
 
 
-class CompressedBufferedReader(BufferedReader):
+cdef class CompressedBufferedReader(BufferedReader):
+    cdef object read_block
+
     def __init__(self, read_block, bufsize):
         self.read_block = read_block
         super(CompressedBufferedReader, self).__init__(bufsize)
