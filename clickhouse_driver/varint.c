@@ -1499,6 +1499,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_6varint_2read_varint(CYTHON_UNUSED
   Py_ssize_t __pyx_v_shift;
   Py_ssize_t __pyx_v_result;
   unsigned char __pyx_v_i;
+  PyObject *__pyx_v_read_one = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -1529,22 +1530,33 @@ static PyObject *__pyx_pf_17clickhouse_driver_6varint_2read_varint(CYTHON_UNUSED
   /* "clickhouse_driver/varint.pyx":37
  *     cdef unsigned char i
  * 
+ *     read_one = f.read_one             # <<<<<<<<<<<<<<
+ * 
+ *     while True:
+ */
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_f, __pyx_n_s_read_one); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 37, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_v_read_one = __pyx_t_1;
+  __pyx_t_1 = 0;
+
+  /* "clickhouse_driver/varint.pyx":39
+ *     read_one = f.read_one
+ * 
  *     while True:             # <<<<<<<<<<<<<<
- *         i = f.read_one()
+ *         i = read_one()
  *         result |= (i & 0x7f) << shift
  */
   while (1) {
 
-    /* "clickhouse_driver/varint.pyx":38
+    /* "clickhouse_driver/varint.pyx":40
  * 
  *     while True:
- *         i = f.read_one()             # <<<<<<<<<<<<<<
+ *         i = read_one()             # <<<<<<<<<<<<<<
  *         result |= (i & 0x7f) << shift
  *         shift += 7
  */
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_f, __pyx_n_s_read_one); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 38, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = NULL;
+    __Pyx_INCREF(__pyx_v_read_one);
+    __pyx_t_2 = __pyx_v_read_one; __pyx_t_3 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
       __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
       if (likely(__pyx_t_3)) {
@@ -1556,24 +1568,24 @@ static PyObject *__pyx_pf_17clickhouse_driver_6varint_2read_varint(CYTHON_UNUSED
     }
     __pyx_t_1 = (__pyx_t_3) ? __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3) : __Pyx_PyObject_CallNoArg(__pyx_t_2);
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 38, __pyx_L1_error)
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 40, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_4 = __Pyx_PyInt_As_unsigned_char(__pyx_t_1); if (unlikely((__pyx_t_4 == (unsigned char)-1) && PyErr_Occurred())) __PYX_ERR(0, 38, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyInt_As_unsigned_char(__pyx_t_1); if (unlikely((__pyx_t_4 == (unsigned char)-1) && PyErr_Occurred())) __PYX_ERR(0, 40, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_v_i = __pyx_t_4;
 
-    /* "clickhouse_driver/varint.pyx":39
+    /* "clickhouse_driver/varint.pyx":41
  *     while True:
- *         i = f.read_one()
+ *         i = read_one()
  *         result |= (i & 0x7f) << shift             # <<<<<<<<<<<<<<
  *         shift += 7
  *         if i < 0x80:
  */
     __pyx_v_result = (__pyx_v_result | ((__pyx_v_i & 0x7f) << __pyx_v_shift));
 
-    /* "clickhouse_driver/varint.pyx":40
- *         i = f.read_one()
+    /* "clickhouse_driver/varint.pyx":42
+ *         i = read_one()
  *         result |= (i & 0x7f) << shift
  *         shift += 7             # <<<<<<<<<<<<<<
  *         if i < 0x80:
@@ -1581,7 +1593,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_6varint_2read_varint(CYTHON_UNUSED
  */
     __pyx_v_shift = (__pyx_v_shift + 7);
 
-    /* "clickhouse_driver/varint.pyx":41
+    /* "clickhouse_driver/varint.pyx":43
  *         result |= (i & 0x7f) << shift
  *         shift += 7
  *         if i < 0x80:             # <<<<<<<<<<<<<<
@@ -1591,7 +1603,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_6varint_2read_varint(CYTHON_UNUSED
     __pyx_t_5 = ((__pyx_v_i < 0x80) != 0);
     if (__pyx_t_5) {
 
-      /* "clickhouse_driver/varint.pyx":42
+      /* "clickhouse_driver/varint.pyx":44
  *         shift += 7
  *         if i < 0x80:
  *             break             # <<<<<<<<<<<<<<
@@ -1600,7 +1612,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_6varint_2read_varint(CYTHON_UNUSED
  */
       goto __pyx_L4_break;
 
-      /* "clickhouse_driver/varint.pyx":41
+      /* "clickhouse_driver/varint.pyx":43
  *         result |= (i & 0x7f) << shift
  *         shift += 7
  *         if i < 0x80:             # <<<<<<<<<<<<<<
@@ -1611,13 +1623,13 @@ static PyObject *__pyx_pf_17clickhouse_driver_6varint_2read_varint(CYTHON_UNUSED
   }
   __pyx_L4_break:;
 
-  /* "clickhouse_driver/varint.pyx":44
+  /* "clickhouse_driver/varint.pyx":46
  *             break
  * 
  *     return result             # <<<<<<<<<<<<<<
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyInt_FromSsize_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 44, __pyx_L1_error)
+  __pyx_t_1 = PyInt_FromSsize_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 46, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -1639,6 +1651,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_6varint_2read_varint(CYTHON_UNUSED
   __Pyx_AddTraceback("clickhouse_driver.varint.read_varint", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_read_one);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
@@ -1737,10 +1750,10 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *     """
  *     Reads integer of variable length using LEB128.
  */
-  __pyx_tuple__3 = PyTuple_Pack(4, __pyx_n_s_f, __pyx_n_s_shift, __pyx_n_s_result, __pyx_n_s_i); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(0, 29, __pyx_L1_error)
+  __pyx_tuple__3 = PyTuple_Pack(5, __pyx_n_s_f, __pyx_n_s_shift, __pyx_n_s_result, __pyx_n_s_i, __pyx_n_s_read_one); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(0, 29, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__3);
   __Pyx_GIVEREF(__pyx_tuple__3);
-  __pyx_codeobj__4 = (PyObject*)__Pyx_PyCode_New(1, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__3, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_clickhouse_driver_varint_pyx, __pyx_n_s_read_varint, 29, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__4)) __PYX_ERR(0, 29, __pyx_L1_error)
+  __pyx_codeobj__4 = (PyObject*)__Pyx_PyCode_New(1, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__3, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_clickhouse_driver_varint_pyx, __pyx_n_s_read_varint, 29, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__4)) __PYX_ERR(0, 29, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;

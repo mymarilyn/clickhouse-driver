@@ -1,7 +1,5 @@
 from cpython cimport Py_INCREF, PyBytes_AsString, PyBytes_FromStringAndSize, \
     PyBytes_Check
-from cpython.bytearray cimport PyByteArray_AsString, \
-    PyByteArray_FromStringAndSize
 # Using python's versions of pure c memory management functions for
 # proper memory statistics count.
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
@@ -33,7 +31,7 @@ class String(Column):
 
 
 class ByteString(String):
-    py_types = (bytearray, bytes)
+    py_types = (bytes, )
     null_value = b''
 
     def write_items(self, items, buf):
@@ -55,7 +53,7 @@ class FixedString(String):
         encoding = self.encoding.encode('utf-8')
         cdef char* c_encoding = encoding
         data = buf.read(length * n_items)
-        cdef char* data_ptr = PyByteArray_AsString(data)
+        cdef char* data_ptr = PyBytes_AsString(data)
 
         cdef char* c_string = <char *>PyMem_Malloc(length + 1)
         if not c_string:
@@ -121,14 +119,13 @@ class ByteFixedString(FixedString):
         cdef Py_ssize_t i
         cdef Py_ssize_t length = self.length
         data = buf.read(length * n_items)
-        cdef char* data_ptr = PyByteArray_AsString(data)
+        cdef char* data_ptr = PyBytes_AsString(data)
 
         items = PyTuple_New(n_items)
         for i in range(n_items):
             item = PyBytes_FromStringAndSize(&data_ptr[i * length], length)
             Py_INCREF(item)
             PyTuple_SET_ITEM(items, i, item)
-
         return items
 
     def write_items(self, items, buf):
@@ -148,10 +145,7 @@ class ByteFixedString(FixedString):
             if length < value_len:
                 raise errors.TooLargeStringSize()
 
-            if PyBytes_Check(value):
-                c_value = PyBytes_AsString(value)
-            else:
-                c_value = PyByteArray_AsString(value)
+            c_value = PyBytes_AsString(value)
 
             memcpy(&items_buf[buf_pos], c_value, value_len)
             buf_pos += length

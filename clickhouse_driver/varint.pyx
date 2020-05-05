@@ -34,8 +34,10 @@ def read_varint(f):
     cdef Py_ssize_t result = 0
     cdef unsigned char i
 
+    read_one = f.read_one
+
     while True:
-        i = f.read_one()
+        i = read_one()
         result |= (i & 0x7f) << shift
         shift += 7
         if i < 0x80:

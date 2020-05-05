@@ -29,7 +29,7 @@ cdef class BufferedReader(object):
         if next_position < self.current_buffer_size:
             t = self.position
             self.position = next_position
-            return self.buffer[t:self.position]
+            return bytes(self.buffer[t:self.position])
 
         cdef char* buffer_ptr = PyByteArray_AsString(self.buffer)
         cdef Py_ssize_t read_bytes
@@ -48,7 +48,7 @@ cdef class BufferedReader(object):
             self.position += read_bytes
             unread -= read_bytes
 
-        return bytearray(rv)
+        return rv
 
     def read_one(self):
         if self.position == self.current_buffer_size:
@@ -76,14 +76,16 @@ cdef class BufferedReader(object):
 
         # String for decode vars.
         cdef char *c_string = NULL
-        cdef Py_ssize_t c_string_size = 0, large_str_bytes
+        cdef Py_ssize_t c_string_size = 1024
         cdef char *c_encoding = NULL
         if encoding:
             encoding = encoding.encode('utf-8')
             c_encoding = encoding
 
         cdef object rv = object()
-        c_string = <char *> PyMem_Realloc(c_string, c_string_size)
+        # String for decode vars.
+        if c_encoding:
+            c_string = <char *> PyMem_Realloc(NULL, c_string_size)
 
         for i in range(n_items):
             shift = size = 0
@@ -109,10 +111,10 @@ cdef class BufferedReader(object):
 
             if c_encoding:
                 if size + 1 > c_string_size:
-                    c_string = <char *> PyMem_Realloc(c_string, size + 1)
+                    c_string_size = size + 1
+                    c_string = <char *> PyMem_Realloc(c_string, c_string_size)
                     if c_string is NULL:
                         raise MemoryError()
-                    c_string_size = size + 1
                 c_string[size] = 0
                 bytes_read = 0
 

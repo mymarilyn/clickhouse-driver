@@ -846,7 +846,7 @@ struct __pyx_obj_17clickhouse_driver_14bufferedreader_BufferedReader {
 };
 
 
-/* "clickhouse_driver/bufferedreader.pyx":178
+/* "clickhouse_driver/bufferedreader.pyx":180
  * 
  * 
  * cdef class BufferedSocketReader(BufferedReader):             # <<<<<<<<<<<<<<
@@ -859,7 +859,7 @@ struct __pyx_obj_17clickhouse_driver_14bufferedreader_BufferedSocketReader {
 };
 
 
-/* "clickhouse_driver/bufferedreader.pyx":192
+/* "clickhouse_driver/bufferedreader.pyx":194
  * 
  * 
  * cdef class CompressedBufferedReader(BufferedReader):             # <<<<<<<<<<<<<<
@@ -1822,7 +1822,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  *         if next_position < self.current_buffer_size:
  *             t = self.position             # <<<<<<<<<<<<<<
  *             self.position = next_position
- *             return self.buffer[t:self.position]
+ *             return bytes(self.buffer[t:self.position])
  */
     __pyx_t_2 = __pyx_v_self->position;
     __pyx_v_t = __pyx_t_2;
@@ -1831,7 +1831,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  *         if next_position < self.current_buffer_size:
  *             t = self.position
  *             self.position = next_position             # <<<<<<<<<<<<<<
- *             return self.buffer[t:self.position]
+ *             return bytes(self.buffer[t:self.position])
  * 
  */
     __pyx_v_self->position = __pyx_v_next_position;
@@ -1839,7 +1839,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
     /* "clickhouse_driver/bufferedreader.pyx":32
  *             t = self.position
  *             self.position = next_position
- *             return self.buffer[t:self.position]             # <<<<<<<<<<<<<<
+ *             return bytes(self.buffer[t:self.position])             # <<<<<<<<<<<<<<
  * 
  *         cdef char* buffer_ptr = PyByteArray_AsString(self.buffer)
  */
@@ -1850,8 +1850,11 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
     }
     __pyx_t_3 = PySequence_GetSlice(__pyx_v_self->buffer, __pyx_v_t, __pyx_v_self->position); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 32, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_r = __pyx_t_3;
-    __pyx_t_3 = 0;
+    __pyx_t_4 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyBytes_Type)), __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 32, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_r = __pyx_t_4;
+    __pyx_t_4 = 0;
     goto __pyx_L0;
 
     /* "clickhouse_driver/bufferedreader.pyx":29
@@ -1864,16 +1867,16 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
   }
 
   /* "clickhouse_driver/bufferedreader.pyx":34
- *             return self.buffer[t:self.position]
+ *             return bytes(self.buffer[t:self.position])
  * 
  *         cdef char* buffer_ptr = PyByteArray_AsString(self.buffer)             # <<<<<<<<<<<<<<
  *         cdef Py_ssize_t read_bytes
  *         rv = bytes()
  */
-  __pyx_t_3 = __pyx_v_self->buffer;
-  __Pyx_INCREF(__pyx_t_3);
-  __pyx_v_buffer_ptr = PyByteArray_AsString(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_4 = __pyx_v_self->buffer;
+  __Pyx_INCREF(__pyx_t_4);
+  __pyx_v_buffer_ptr = PyByteArray_AsString(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
   /* "clickhouse_driver/bufferedreader.pyx":36
  *         cdef char* buffer_ptr = PyByteArray_AsString(self.buffer)
@@ -1882,10 +1885,10 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  * 
  *         while unread > 0:
  */
-  __pyx_t_3 = __Pyx_PyObject_CallNoArg(((PyObject *)(&PyBytes_Type))); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 36, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_v_rv = ((PyObject*)__pyx_t_3);
-  __pyx_t_3 = 0;
+  __pyx_t_4 = __Pyx_PyObject_CallNoArg(((PyObject *)(&PyBytes_Type))); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 36, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_v_rv = ((PyObject*)__pyx_t_4);
+  __pyx_t_4 = 0;
 
   /* "clickhouse_driver/bufferedreader.pyx":38
  *         rv = bytes()
@@ -1915,24 +1918,24 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  *                 buffer_ptr = PyByteArray_AsString(self.buffer)
  *                 self.position = 0
  */
-      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_read_into_buffer); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 40, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
+      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_read_into_buffer); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 40, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
       __pyx_t_5 = NULL;
-      if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_4))) {
-        __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_4);
+      if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
+        __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_3);
         if (likely(__pyx_t_5)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
           __Pyx_INCREF(__pyx_t_5);
           __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_4, function);
+          __Pyx_DECREF_SET(__pyx_t_3, function);
         }
       }
-      __pyx_t_3 = (__pyx_t_5) ? __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5) : __Pyx_PyObject_CallNoArg(__pyx_t_4);
+      __pyx_t_4 = (__pyx_t_5) ? __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_5) : __Pyx_PyObject_CallNoArg(__pyx_t_3);
       __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-      if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 40, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 40, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
       /* "clickhouse_driver/bufferedreader.pyx":41
  *             if self.position == self.current_buffer_size:
@@ -1941,10 +1944,10 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  *                 self.position = 0
  * 
  */
-      __pyx_t_3 = __pyx_v_self->buffer;
-      __Pyx_INCREF(__pyx_t_3);
-      __pyx_v_buffer_ptr = PyByteArray_AsString(__pyx_t_3);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __pyx_t_4 = __pyx_v_self->buffer;
+      __Pyx_INCREF(__pyx_t_4);
+      __pyx_v_buffer_ptr = PyByteArray_AsString(__pyx_t_4);
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
       /* "clickhouse_driver/bufferedreader.pyx":42
  *                 self.read_into_buffer()
@@ -1987,13 +1990,13 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  *                 &buffer_ptr[self.position], read_bytes
  *             )
  */
-    __pyx_t_3 = PyBytes_FromStringAndSize((&(__pyx_v_buffer_ptr[__pyx_v_self->position])), __pyx_v_read_bytes); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 45, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = PyNumber_InPlaceAdd(__pyx_v_rv, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 45, __pyx_L1_error)
+    __pyx_t_4 = PyBytes_FromStringAndSize((&(__pyx_v_buffer_ptr[__pyx_v_self->position])), __pyx_v_read_bytes); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 45, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __Pyx_DECREF_SET(__pyx_v_rv, ((PyObject*)__pyx_t_4));
-    __pyx_t_4 = 0;
+    __pyx_t_3 = PyNumber_InPlaceAdd(__pyx_v_rv, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 45, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __Pyx_DECREF_SET(__pyx_v_rv, ((PyObject*)__pyx_t_3));
+    __pyx_t_3 = 0;
 
     /* "clickhouse_driver/bufferedreader.pyx":48
  *                 &buffer_ptr[self.position], read_bytes
@@ -2009,7 +2012,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  *             self.position += read_bytes
  *             unread -= read_bytes             # <<<<<<<<<<<<<<
  * 
- *         return bytearray(rv)
+ *         return rv
  */
     __pyx_v_unread = (__pyx_v_unread - __pyx_v_read_bytes);
   }
@@ -2017,15 +2020,13 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
   /* "clickhouse_driver/bufferedreader.pyx":51
  *             unread -= read_bytes
  * 
- *         return bytearray(rv)             # <<<<<<<<<<<<<<
+ *         return rv             # <<<<<<<<<<<<<<
  * 
  *     def read_one(self):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_4 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyByteArray_Type)), __pyx_v_rv); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 51, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_r = __pyx_t_4;
-  __pyx_t_4 = 0;
+  __Pyx_INCREF(__pyx_v_rv);
+  __pyx_r = __pyx_v_rv;
   goto __pyx_L0;
 
   /* "clickhouse_driver/bufferedreader.pyx":25
@@ -2051,7 +2052,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
 }
 
 /* "clickhouse_driver/bufferedreader.pyx":53
- *         return bytearray(rv)
+ *         return rv
  * 
  *     def read_one(self):             # <<<<<<<<<<<<<<
  *         if self.position == self.current_buffer_size:
@@ -2170,7 +2171,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
   goto __pyx_L0;
 
   /* "clickhouse_driver/bufferedreader.pyx":53
- *         return bytearray(rv)
+ *         return rv
  * 
  *     def read_one(self):             # <<<<<<<<<<<<<<
  *         if self.position == self.current_buffer_size:
@@ -2326,7 +2327,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  * 
  *         # String for decode vars.
  *         cdef char *c_string = NULL             # <<<<<<<<<<<<<<
- *         cdef Py_ssize_t c_string_size = 0, large_str_bytes
+ *         cdef Py_ssize_t c_string_size = 1024
  *         cdef char *c_encoding = NULL
  */
   __pyx_v_c_string = NULL;
@@ -2334,15 +2335,15 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
   /* "clickhouse_driver/bufferedreader.pyx":79
  *         # String for decode vars.
  *         cdef char *c_string = NULL
- *         cdef Py_ssize_t c_string_size = 0, large_str_bytes             # <<<<<<<<<<<<<<
+ *         cdef Py_ssize_t c_string_size = 1024             # <<<<<<<<<<<<<<
  *         cdef char *c_encoding = NULL
  *         if encoding:
  */
-  __pyx_v_c_string_size = 0;
+  __pyx_v_c_string_size = 0x400;
 
   /* "clickhouse_driver/bufferedreader.pyx":80
  *         cdef char *c_string = NULL
- *         cdef Py_ssize_t c_string_size = 0, large_str_bytes
+ *         cdef Py_ssize_t c_string_size = 1024
  *         cdef char *c_encoding = NULL             # <<<<<<<<<<<<<<
  *         if encoding:
  *             encoding = encoding.encode('utf-8')
@@ -2350,7 +2351,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
   __pyx_v_c_encoding = NULL;
 
   /* "clickhouse_driver/bufferedreader.pyx":81
- *         cdef Py_ssize_t c_string_size = 0, large_str_bytes
+ *         cdef Py_ssize_t c_string_size = 1024
  *         cdef char *c_encoding = NULL
  *         if encoding:             # <<<<<<<<<<<<<<
  *             encoding = encoding.encode('utf-8')
@@ -2397,7 +2398,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
     __pyx_v_c_encoding = __pyx_t_5;
 
     /* "clickhouse_driver/bufferedreader.pyx":81
- *         cdef Py_ssize_t c_string_size = 0, large_str_bytes
+ *         cdef Py_ssize_t c_string_size = 1024
  *         cdef char *c_encoding = NULL
  *         if encoding:             # <<<<<<<<<<<<<<
  *             encoding = encoding.encode('utf-8')
@@ -2409,25 +2410,44 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  *             c_encoding = encoding
  * 
  *         cdef object rv = object()             # <<<<<<<<<<<<<<
- *         c_string = <char *> PyMem_Realloc(c_string, c_string_size)
- * 
+ *         # String for decode vars.
+ *         if c_encoding:
  */
   __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_builtin_object); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 85, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_rv = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "clickhouse_driver/bufferedreader.pyx":86
- * 
+  /* "clickhouse_driver/bufferedreader.pyx":87
  *         cdef object rv = object()
- *         c_string = <char *> PyMem_Realloc(c_string, c_string_size)             # <<<<<<<<<<<<<<
+ *         # String for decode vars.
+ *         if c_encoding:             # <<<<<<<<<<<<<<
+ *             c_string = <char *> PyMem_Realloc(NULL, c_string_size)
+ * 
+ */
+  __pyx_t_2 = (__pyx_v_c_encoding != 0);
+  if (__pyx_t_2) {
+
+    /* "clickhouse_driver/bufferedreader.pyx":88
+ *         # String for decode vars.
+ *         if c_encoding:
+ *             c_string = <char *> PyMem_Realloc(NULL, c_string_size)             # <<<<<<<<<<<<<<
  * 
  *         for i in range(n_items):
  */
-  __pyx_v_c_string = ((char *)PyMem_Realloc(__pyx_v_c_string, __pyx_v_c_string_size));
+    __pyx_v_c_string = ((char *)PyMem_Realloc(NULL, __pyx_v_c_string_size));
 
-  /* "clickhouse_driver/bufferedreader.pyx":88
- *         c_string = <char *> PyMem_Realloc(c_string, c_string_size)
+    /* "clickhouse_driver/bufferedreader.pyx":87
+ *         cdef object rv = object()
+ *         # String for decode vars.
+ *         if c_encoding:             # <<<<<<<<<<<<<<
+ *             c_string = <char *> PyMem_Realloc(NULL, c_string_size)
+ * 
+ */
+  }
+
+  /* "clickhouse_driver/bufferedreader.pyx":90
+ *             c_string = <char *> PyMem_Realloc(NULL, c_string_size)
  * 
  *         for i in range(n_items):             # <<<<<<<<<<<<<<
  *             shift = size = 0
@@ -2438,7 +2458,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
   for (__pyx_t_8 = 0; __pyx_t_8 < __pyx_t_7; __pyx_t_8+=1) {
     __pyx_v_i = __pyx_t_8;
 
-    /* "clickhouse_driver/bufferedreader.pyx":89
+    /* "clickhouse_driver/bufferedreader.pyx":91
  * 
  *         for i in range(n_items):
  *             shift = size = 0             # <<<<<<<<<<<<<<
@@ -2448,7 +2468,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
     __pyx_v_shift = 0;
     __pyx_v_size = 0;
 
-    /* "clickhouse_driver/bufferedreader.pyx":92
+    /* "clickhouse_driver/bufferedreader.pyx":94
  * 
  *             # Read string size
  *             while True:             # <<<<<<<<<<<<<<
@@ -2457,7 +2477,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  */
     while (1) {
 
-      /* "clickhouse_driver/bufferedreader.pyx":93
+      /* "clickhouse_driver/bufferedreader.pyx":95
  *             # Read string size
  *             while True:
  *                 if self.position == self.current_buffer_size:             # <<<<<<<<<<<<<<
@@ -2467,14 +2487,14 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
       __pyx_t_2 = ((__pyx_v_self->position == __pyx_v_self->current_buffer_size) != 0);
       if (__pyx_t_2) {
 
-        /* "clickhouse_driver/bufferedreader.pyx":94
+        /* "clickhouse_driver/bufferedreader.pyx":96
  *             while True:
  *                 if self.position == self.current_buffer_size:
  *                     self.read_into_buffer()             # <<<<<<<<<<<<<<
  *                     # `read_into_buffer` can override buffer
  *                     buffer_ptr = PyByteArray_AsString(self.buffer)
  */
-        __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_read_into_buffer); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 94, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_read_into_buffer); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 96, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
         __pyx_t_4 = NULL;
         if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
@@ -2488,12 +2508,12 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
         }
         __pyx_t_1 = (__pyx_t_4) ? __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4) : __Pyx_PyObject_CallNoArg(__pyx_t_3);
         __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-        if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 94, __pyx_L1_error)
+        if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 96, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-        /* "clickhouse_driver/bufferedreader.pyx":96
+        /* "clickhouse_driver/bufferedreader.pyx":98
  *                     self.read_into_buffer()
  *                     # `read_into_buffer` can override buffer
  *                     buffer_ptr = PyByteArray_AsString(self.buffer)             # <<<<<<<<<<<<<<
@@ -2505,7 +2525,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
         __pyx_v_buffer_ptr = PyByteArray_AsString(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-        /* "clickhouse_driver/bufferedreader.pyx":97
+        /* "clickhouse_driver/bufferedreader.pyx":99
  *                     # `read_into_buffer` can override buffer
  *                     buffer_ptr = PyByteArray_AsString(self.buffer)
  *                     self.position = 0             # <<<<<<<<<<<<<<
@@ -2514,7 +2534,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  */
         __pyx_v_self->position = 0;
 
-        /* "clickhouse_driver/bufferedreader.pyx":93
+        /* "clickhouse_driver/bufferedreader.pyx":95
  *             # Read string size
  *             while True:
  *                 if self.position == self.current_buffer_size:             # <<<<<<<<<<<<<<
@@ -2523,7 +2543,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  */
       }
 
-      /* "clickhouse_driver/bufferedreader.pyx":99
+      /* "clickhouse_driver/bufferedreader.pyx":101
  *                     self.position = 0
  * 
  *                 b = buffer_ptr[self.position]             # <<<<<<<<<<<<<<
@@ -2532,7 +2552,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  */
       __pyx_v_b = (__pyx_v_buffer_ptr[__pyx_v_self->position]);
 
-      /* "clickhouse_driver/bufferedreader.pyx":100
+      /* "clickhouse_driver/bufferedreader.pyx":102
  * 
  *                 b = buffer_ptr[self.position]
  *                 self.position += 1             # <<<<<<<<<<<<<<
@@ -2541,7 +2561,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  */
       __pyx_v_self->position = (__pyx_v_self->position + 1);
 
-      /* "clickhouse_driver/bufferedreader.pyx":102
+      /* "clickhouse_driver/bufferedreader.pyx":104
  *                 self.position += 1
  * 
  *                 size |= (b & 0x7f) << shift             # <<<<<<<<<<<<<<
@@ -2550,7 +2570,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  */
       __pyx_v_size = (__pyx_v_size | ((__pyx_v_b & 0x7f) << __pyx_v_shift));
 
-      /* "clickhouse_driver/bufferedreader.pyx":103
+      /* "clickhouse_driver/bufferedreader.pyx":105
  * 
  *                 size |= (b & 0x7f) << shift
  *                 if b < 0x80:             # <<<<<<<<<<<<<<
@@ -2560,16 +2580,16 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
       __pyx_t_2 = ((__pyx_v_b < 0x80) != 0);
       if (__pyx_t_2) {
 
-        /* "clickhouse_driver/bufferedreader.pyx":104
+        /* "clickhouse_driver/bufferedreader.pyx":106
  *                 size |= (b & 0x7f) << shift
  *                 if b < 0x80:
  *                     break             # <<<<<<<<<<<<<<
  * 
  *                 shift += 7
  */
-        goto __pyx_L7_break;
+        goto __pyx_L8_break;
 
-        /* "clickhouse_driver/bufferedreader.pyx":103
+        /* "clickhouse_driver/bufferedreader.pyx":105
  * 
  *                 size |= (b & 0x7f) << shift
  *                 if b < 0x80:             # <<<<<<<<<<<<<<
@@ -2578,7 +2598,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  */
       }
 
-      /* "clickhouse_driver/bufferedreader.pyx":106
+      /* "clickhouse_driver/bufferedreader.pyx":108
  *                     break
  * 
  *                 shift += 7             # <<<<<<<<<<<<<<
@@ -2587,9 +2607,9 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  */
       __pyx_v_shift = (__pyx_v_shift + 7);
     }
-    __pyx_L7_break:;
+    __pyx_L8_break:;
 
-    /* "clickhouse_driver/bufferedreader.pyx":108
+    /* "clickhouse_driver/bufferedreader.pyx":110
  *                 shift += 7
  * 
  *             right = self.position + size             # <<<<<<<<<<<<<<
@@ -2598,92 +2618,92 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  */
     __pyx_v_right = (__pyx_v_self->position + __pyx_v_size);
 
-    /* "clickhouse_driver/bufferedreader.pyx":110
+    /* "clickhouse_driver/bufferedreader.pyx":112
  *             right = self.position + size
  * 
  *             if c_encoding:             # <<<<<<<<<<<<<<
  *                 if size + 1 > c_string_size:
- *                     c_string = <char *> PyMem_Realloc(c_string, size + 1)
+ *                     c_string_size = size + 1
  */
     __pyx_t_2 = (__pyx_v_c_encoding != 0);
     if (__pyx_t_2) {
 
-      /* "clickhouse_driver/bufferedreader.pyx":111
+      /* "clickhouse_driver/bufferedreader.pyx":113
  * 
  *             if c_encoding:
  *                 if size + 1 > c_string_size:             # <<<<<<<<<<<<<<
- *                     c_string = <char *> PyMem_Realloc(c_string, size + 1)
- *                     if c_string is NULL:
+ *                     c_string_size = size + 1
+ *                     c_string = <char *> PyMem_Realloc(c_string, c_string_size)
  */
       __pyx_t_2 = (((__pyx_v_size + 1) > __pyx_v_c_string_size) != 0);
       if (__pyx_t_2) {
 
-        /* "clickhouse_driver/bufferedreader.pyx":112
+        /* "clickhouse_driver/bufferedreader.pyx":114
  *             if c_encoding:
  *                 if size + 1 > c_string_size:
- *                     c_string = <char *> PyMem_Realloc(c_string, size + 1)             # <<<<<<<<<<<<<<
+ *                     c_string_size = size + 1             # <<<<<<<<<<<<<<
+ *                     c_string = <char *> PyMem_Realloc(c_string, c_string_size)
+ *                     if c_string is NULL:
+ */
+        __pyx_v_c_string_size = (__pyx_v_size + 1);
+
+        /* "clickhouse_driver/bufferedreader.pyx":115
+ *                 if size + 1 > c_string_size:
+ *                     c_string_size = size + 1
+ *                     c_string = <char *> PyMem_Realloc(c_string, c_string_size)             # <<<<<<<<<<<<<<
  *                     if c_string is NULL:
  *                         raise MemoryError()
  */
-        __pyx_v_c_string = ((char *)PyMem_Realloc(__pyx_v_c_string, (__pyx_v_size + 1)));
+        __pyx_v_c_string = ((char *)PyMem_Realloc(__pyx_v_c_string, __pyx_v_c_string_size));
 
-        /* "clickhouse_driver/bufferedreader.pyx":113
- *                 if size + 1 > c_string_size:
- *                     c_string = <char *> PyMem_Realloc(c_string, size + 1)
+        /* "clickhouse_driver/bufferedreader.pyx":116
+ *                     c_string_size = size + 1
+ *                     c_string = <char *> PyMem_Realloc(c_string, c_string_size)
  *                     if c_string is NULL:             # <<<<<<<<<<<<<<
  *                         raise MemoryError()
- *                     c_string_size = size + 1
+ *                 c_string[size] = 0
  */
         __pyx_t_2 = ((__pyx_v_c_string == NULL) != 0);
         if (unlikely(__pyx_t_2)) {
 
-          /* "clickhouse_driver/bufferedreader.pyx":114
- *                     c_string = <char *> PyMem_Realloc(c_string, size + 1)
+          /* "clickhouse_driver/bufferedreader.pyx":117
+ *                     c_string = <char *> PyMem_Realloc(c_string, c_string_size)
  *                     if c_string is NULL:
  *                         raise MemoryError()             # <<<<<<<<<<<<<<
- *                     c_string_size = size + 1
- *                 c_string[size] = 0
- */
-          PyErr_NoMemory(); __PYX_ERR(0, 114, __pyx_L1_error)
-
-          /* "clickhouse_driver/bufferedreader.pyx":113
- *                 if size + 1 > c_string_size:
- *                     c_string = <char *> PyMem_Realloc(c_string, size + 1)
- *                     if c_string is NULL:             # <<<<<<<<<<<<<<
- *                         raise MemoryError()
- *                     c_string_size = size + 1
- */
-        }
-
-        /* "clickhouse_driver/bufferedreader.pyx":115
- *                     if c_string is NULL:
- *                         raise MemoryError()
- *                     c_string_size = size + 1             # <<<<<<<<<<<<<<
  *                 c_string[size] = 0
  *                 bytes_read = 0
  */
-        __pyx_v_c_string_size = (__pyx_v_size + 1);
+          PyErr_NoMemory(); __PYX_ERR(0, 117, __pyx_L1_error)
 
-        /* "clickhouse_driver/bufferedreader.pyx":111
+          /* "clickhouse_driver/bufferedreader.pyx":116
+ *                     c_string_size = size + 1
+ *                     c_string = <char *> PyMem_Realloc(c_string, c_string_size)
+ *                     if c_string is NULL:             # <<<<<<<<<<<<<<
+ *                         raise MemoryError()
+ *                 c_string[size] = 0
+ */
+        }
+
+        /* "clickhouse_driver/bufferedreader.pyx":113
  * 
  *             if c_encoding:
  *                 if size + 1 > c_string_size:             # <<<<<<<<<<<<<<
- *                     c_string = <char *> PyMem_Realloc(c_string, size + 1)
- *                     if c_string is NULL:
+ *                     c_string_size = size + 1
+ *                     c_string = <char *> PyMem_Realloc(c_string, c_string_size)
  */
       }
 
-      /* "clickhouse_driver/bufferedreader.pyx":116
+      /* "clickhouse_driver/bufferedreader.pyx":118
+ *                     if c_string is NULL:
  *                         raise MemoryError()
- *                     c_string_size = size + 1
  *                 c_string[size] = 0             # <<<<<<<<<<<<<<
  *                 bytes_read = 0
  * 
  */
       (__pyx_v_c_string[__pyx_v_size]) = 0;
 
-      /* "clickhouse_driver/bufferedreader.pyx":117
- *                     c_string_size = size + 1
+      /* "clickhouse_driver/bufferedreader.pyx":119
+ *                         raise MemoryError()
  *                 c_string[size] = 0
  *                 bytes_read = 0             # <<<<<<<<<<<<<<
  * 
@@ -2691,16 +2711,16 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  */
       __pyx_v_bytes_read = 0;
 
-      /* "clickhouse_driver/bufferedreader.pyx":110
+      /* "clickhouse_driver/bufferedreader.pyx":112
  *             right = self.position + size
  * 
  *             if c_encoding:             # <<<<<<<<<<<<<<
  *                 if size + 1 > c_string_size:
- *                     c_string = <char *> PyMem_Realloc(c_string, size + 1)
+ *                     c_string_size = size + 1
  */
     }
 
-    /* "clickhouse_driver/bufferedreader.pyx":122
+    /* "clickhouse_driver/bufferedreader.pyx":124
  *             # We need to copy it into buffer for adding null symbol at the end.
  *             # In ClickHouse block there is no null
  *             if right > self.current_buffer_size:             # <<<<<<<<<<<<<<
@@ -2710,7 +2730,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
     __pyx_t_2 = ((__pyx_v_right > __pyx_v_self->current_buffer_size) != 0);
     if (__pyx_t_2) {
 
-      /* "clickhouse_driver/bufferedreader.pyx":123
+      /* "clickhouse_driver/bufferedreader.pyx":125
  *             # In ClickHouse block there is no null
  *             if right > self.current_buffer_size:
  *                 if c_encoding:             # <<<<<<<<<<<<<<
@@ -2720,7 +2740,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
       __pyx_t_2 = (__pyx_v_c_encoding != 0);
       if (__pyx_t_2) {
 
-        /* "clickhouse_driver/bufferedreader.pyx":124
+        /* "clickhouse_driver/bufferedreader.pyx":126
  *             if right > self.current_buffer_size:
  *                 if c_encoding:
  *                     memcpy(&c_string[bytes_read], &buffer_ptr[self.position],             # <<<<<<<<<<<<<<
@@ -2729,17 +2749,17 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  */
         (void)(memcpy((&(__pyx_v_c_string[__pyx_v_bytes_read])), (&(__pyx_v_buffer_ptr[__pyx_v_self->position])), (__pyx_v_self->current_buffer_size - __pyx_v_self->position)));
 
-        /* "clickhouse_driver/bufferedreader.pyx":123
+        /* "clickhouse_driver/bufferedreader.pyx":125
  *             # In ClickHouse block there is no null
  *             if right > self.current_buffer_size:
  *                 if c_encoding:             # <<<<<<<<<<<<<<
  *                     memcpy(&c_string[bytes_read], &buffer_ptr[self.position],
  *                            self.current_buffer_size - self.position)
  */
-        goto __pyx_L14;
+        goto __pyx_L15;
       }
 
-      /* "clickhouse_driver/bufferedreader.pyx":127
+      /* "clickhouse_driver/bufferedreader.pyx":129
  *                            self.current_buffer_size - self.position)
  *                 else:
  *                     rv = PyBytes_FromStringAndSize(             # <<<<<<<<<<<<<<
@@ -2748,21 +2768,21 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  */
       /*else*/ {
 
-        /* "clickhouse_driver/bufferedreader.pyx":129
+        /* "clickhouse_driver/bufferedreader.pyx":131
  *                     rv = PyBytes_FromStringAndSize(
  *                         &buffer_ptr[self.position],
  *                         self.current_buffer_size - self.position             # <<<<<<<<<<<<<<
  *                     )
  * 
  */
-        __pyx_t_1 = PyBytes_FromStringAndSize((&(__pyx_v_buffer_ptr[__pyx_v_self->position])), (__pyx_v_self->current_buffer_size - __pyx_v_self->position)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 127, __pyx_L1_error)
+        __pyx_t_1 = PyBytes_FromStringAndSize((&(__pyx_v_buffer_ptr[__pyx_v_self->position])), (__pyx_v_self->current_buffer_size - __pyx_v_self->position)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 129, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF_SET(__pyx_v_rv, __pyx_t_1);
         __pyx_t_1 = 0;
       }
-      __pyx_L14:;
+      __pyx_L15:;
 
-      /* "clickhouse_driver/bufferedreader.pyx":132
+      /* "clickhouse_driver/bufferedreader.pyx":134
  *                     )
  * 
  *                 bytes_read = self.current_buffer_size - self.position             # <<<<<<<<<<<<<<
@@ -2771,7 +2791,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  */
       __pyx_v_bytes_read = (__pyx_v_self->current_buffer_size - __pyx_v_self->position);
 
-      /* "clickhouse_driver/bufferedreader.pyx":134
+      /* "clickhouse_driver/bufferedreader.pyx":136
  *                 bytes_read = self.current_buffer_size - self.position
  *                 # Read the rest of the string.
  *                 while bytes_read != size:             # <<<<<<<<<<<<<<
@@ -2782,7 +2802,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
         __pyx_t_2 = ((__pyx_v_bytes_read != __pyx_v_size) != 0);
         if (!__pyx_t_2) break;
 
-        /* "clickhouse_driver/bufferedreader.pyx":135
+        /* "clickhouse_driver/bufferedreader.pyx":137
  *                 # Read the rest of the string.
  *                 while bytes_read != size:
  *                     self.position = size - bytes_read             # <<<<<<<<<<<<<<
@@ -2791,14 +2811,14 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  */
         __pyx_v_self->position = (__pyx_v_size - __pyx_v_bytes_read);
 
-        /* "clickhouse_driver/bufferedreader.pyx":137
+        /* "clickhouse_driver/bufferedreader.pyx":139
  *                     self.position = size - bytes_read
  * 
  *                     self.read_into_buffer()             # <<<<<<<<<<<<<<
  *                     # `read_into_buffer` can override buffer
  *                     buffer_ptr = PyByteArray_AsString(self.buffer)
  */
-        __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_read_into_buffer); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 137, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_read_into_buffer); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 139, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
         __pyx_t_4 = NULL;
         if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
@@ -2812,12 +2832,12 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
         }
         __pyx_t_1 = (__pyx_t_4) ? __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4) : __Pyx_PyObject_CallNoArg(__pyx_t_3);
         __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-        if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 137, __pyx_L1_error)
+        if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 139, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-        /* "clickhouse_driver/bufferedreader.pyx":139
+        /* "clickhouse_driver/bufferedreader.pyx":141
  *                     self.read_into_buffer()
  *                     # `read_into_buffer` can override buffer
  *                     buffer_ptr = PyByteArray_AsString(self.buffer)             # <<<<<<<<<<<<<<
@@ -2829,7 +2849,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
         __pyx_v_buffer_ptr = PyByteArray_AsString(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-        /* "clickhouse_driver/bufferedreader.pyx":142
+        /* "clickhouse_driver/bufferedreader.pyx":144
  *                     # There can be not enough data in buffer.
  *                     self.position = min(
  *                         self.position, self.current_buffer_size             # <<<<<<<<<<<<<<
@@ -2844,7 +2864,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
           __pyx_t_11 = __pyx_t_10;
         }
 
-        /* "clickhouse_driver/bufferedreader.pyx":141
+        /* "clickhouse_driver/bufferedreader.pyx":143
  *                     buffer_ptr = PyByteArray_AsString(self.buffer)
  *                     # There can be not enough data in buffer.
  *                     self.position = min(             # <<<<<<<<<<<<<<
@@ -2853,7 +2873,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  */
         __pyx_v_self->position = __pyx_t_11;
 
-        /* "clickhouse_driver/bufferedreader.pyx":144
+        /* "clickhouse_driver/bufferedreader.pyx":146
  *                         self.position, self.current_buffer_size
  *                     )
  *                     if c_encoding:             # <<<<<<<<<<<<<<
@@ -2863,7 +2883,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
         __pyx_t_2 = (__pyx_v_c_encoding != 0);
         if (__pyx_t_2) {
 
-          /* "clickhouse_driver/bufferedreader.pyx":145
+          /* "clickhouse_driver/bufferedreader.pyx":147
  *                     )
  *                     if c_encoding:
  *                         memcpy(             # <<<<<<<<<<<<<<
@@ -2872,17 +2892,17 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  */
           (void)(memcpy((&(__pyx_v_c_string[__pyx_v_bytes_read])), __pyx_v_buffer_ptr, __pyx_v_self->position));
 
-          /* "clickhouse_driver/bufferedreader.pyx":144
+          /* "clickhouse_driver/bufferedreader.pyx":146
  *                         self.position, self.current_buffer_size
  *                     )
  *                     if c_encoding:             # <<<<<<<<<<<<<<
  *                         memcpy(
  *                             &c_string[bytes_read], buffer_ptr, self.position
  */
-          goto __pyx_L17;
+          goto __pyx_L18;
         }
 
-        /* "clickhouse_driver/bufferedreader.pyx":149
+        /* "clickhouse_driver/bufferedreader.pyx":151
  *                         )
  *                     else:
  *                         rv += PyBytes_FromStringAndSize(             # <<<<<<<<<<<<<<
@@ -2891,32 +2911,32 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  */
         /*else*/ {
 
-          /* "clickhouse_driver/bufferedreader.pyx":150
+          /* "clickhouse_driver/bufferedreader.pyx":152
  *                     else:
  *                         rv += PyBytes_FromStringAndSize(
  *                             buffer_ptr, self.position             # <<<<<<<<<<<<<<
  *                         )
  *                     bytes_read += self.position
  */
-          __pyx_t_1 = PyBytes_FromStringAndSize(__pyx_v_buffer_ptr, __pyx_v_self->position); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 149, __pyx_L1_error)
+          __pyx_t_1 = PyBytes_FromStringAndSize(__pyx_v_buffer_ptr, __pyx_v_self->position); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 151, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_1);
 
-          /* "clickhouse_driver/bufferedreader.pyx":149
+          /* "clickhouse_driver/bufferedreader.pyx":151
  *                         )
  *                     else:
  *                         rv += PyBytes_FromStringAndSize(             # <<<<<<<<<<<<<<
  *                             buffer_ptr, self.position
  *                         )
  */
-          __pyx_t_3 = PyNumber_InPlaceAdd(__pyx_v_rv, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 149, __pyx_L1_error)
+          __pyx_t_3 = PyNumber_InPlaceAdd(__pyx_v_rv, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 151, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_3);
           __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
           __Pyx_DECREF_SET(__pyx_v_rv, __pyx_t_3);
           __pyx_t_3 = 0;
         }
-        __pyx_L17:;
+        __pyx_L18:;
 
-        /* "clickhouse_driver/bufferedreader.pyx":152
+        /* "clickhouse_driver/bufferedreader.pyx":154
  *                             buffer_ptr, self.position
  *                         )
  *                     bytes_read += self.position             # <<<<<<<<<<<<<<
@@ -2926,17 +2946,17 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
         __pyx_v_bytes_read = (__pyx_v_bytes_read + __pyx_v_self->position);
       }
 
-      /* "clickhouse_driver/bufferedreader.pyx":122
+      /* "clickhouse_driver/bufferedreader.pyx":124
  *             # We need to copy it into buffer for adding null symbol at the end.
  *             # In ClickHouse block there is no null
  *             if right > self.current_buffer_size:             # <<<<<<<<<<<<<<
  *                 if c_encoding:
  *                     memcpy(&c_string[bytes_read], &buffer_ptr[self.position],
  */
-      goto __pyx_L13;
+      goto __pyx_L14;
     }
 
-    /* "clickhouse_driver/bufferedreader.pyx":155
+    /* "clickhouse_driver/bufferedreader.pyx":157
  * 
  *             else:
  *                 if c_encoding:             # <<<<<<<<<<<<<<
@@ -2947,7 +2967,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
       __pyx_t_2 = (__pyx_v_c_encoding != 0);
       if (__pyx_t_2) {
 
-        /* "clickhouse_driver/bufferedreader.pyx":156
+        /* "clickhouse_driver/bufferedreader.pyx":158
  *             else:
  *                 if c_encoding:
  *                     memcpy(c_string, &buffer_ptr[self.position], size)             # <<<<<<<<<<<<<<
@@ -2956,17 +2976,17 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  */
         (void)(memcpy(__pyx_v_c_string, (&(__pyx_v_buffer_ptr[__pyx_v_self->position])), __pyx_v_size));
 
-        /* "clickhouse_driver/bufferedreader.pyx":155
+        /* "clickhouse_driver/bufferedreader.pyx":157
  * 
  *             else:
  *                 if c_encoding:             # <<<<<<<<<<<<<<
  *                     memcpy(c_string, &buffer_ptr[self.position], size)
  *                 else:
  */
-        goto __pyx_L18;
+        goto __pyx_L19;
       }
 
-      /* "clickhouse_driver/bufferedreader.pyx":158
+      /* "clickhouse_driver/bufferedreader.pyx":160
  *                     memcpy(c_string, &buffer_ptr[self.position], size)
  *                 else:
  *                     rv = PyBytes_FromStringAndSize(             # <<<<<<<<<<<<<<
@@ -2975,21 +2995,21 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  */
       /*else*/ {
 
-        /* "clickhouse_driver/bufferedreader.pyx":159
+        /* "clickhouse_driver/bufferedreader.pyx":161
  *                 else:
  *                     rv = PyBytes_FromStringAndSize(
  *                         &buffer_ptr[self.position], size             # <<<<<<<<<<<<<<
  *                     )
  *                 self.position = right
  */
-        __pyx_t_3 = PyBytes_FromStringAndSize((&(__pyx_v_buffer_ptr[__pyx_v_self->position])), __pyx_v_size); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 158, __pyx_L1_error)
+        __pyx_t_3 = PyBytes_FromStringAndSize((&(__pyx_v_buffer_ptr[__pyx_v_self->position])), __pyx_v_size); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 160, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
         __Pyx_DECREF_SET(__pyx_v_rv, __pyx_t_3);
         __pyx_t_3 = 0;
       }
-      __pyx_L18:;
+      __pyx_L19:;
 
-      /* "clickhouse_driver/bufferedreader.pyx":161
+      /* "clickhouse_driver/bufferedreader.pyx":163
  *                         &buffer_ptr[self.position], size
  *                     )
  *                 self.position = right             # <<<<<<<<<<<<<<
@@ -2998,9 +3018,9 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  */
       __pyx_v_self->position = __pyx_v_right;
     }
-    __pyx_L13:;
+    __pyx_L14:;
 
-    /* "clickhouse_driver/bufferedreader.pyx":163
+    /* "clickhouse_driver/bufferedreader.pyx":165
  *                 self.position = right
  * 
  *             if c_encoding:             # <<<<<<<<<<<<<<
@@ -3010,7 +3030,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
     __pyx_t_2 = (__pyx_v_c_encoding != 0);
     if (__pyx_t_2) {
 
-      /* "clickhouse_driver/bufferedreader.pyx":164
+      /* "clickhouse_driver/bufferedreader.pyx":166
  * 
  *             if c_encoding:
  *                 try:             # <<<<<<<<<<<<<<
@@ -3026,19 +3046,19 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
         __Pyx_XGOTREF(__pyx_t_14);
         /*try:*/ {
 
-          /* "clickhouse_driver/bufferedreader.pyx":165
+          /* "clickhouse_driver/bufferedreader.pyx":167
  *             if c_encoding:
  *                 try:
  *                     rv = c_string[:size].decode(c_encoding)             # <<<<<<<<<<<<<<
  *                 except UnicodeDecodeError:
  *                     rv = PyBytes_FromStringAndSize(c_string, size)
  */
-          __pyx_t_3 = __Pyx_decode_c_string(__pyx_v_c_string, 0, __pyx_v_size, __pyx_v_c_encoding, NULL, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 165, __pyx_L20_error)
+          __pyx_t_3 = __Pyx_decode_c_string(__pyx_v_c_string, 0, __pyx_v_size, __pyx_v_c_encoding, NULL, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 167, __pyx_L21_error)
           __Pyx_GOTREF(__pyx_t_3);
           __Pyx_DECREF_SET(__pyx_v_rv, __pyx_t_3);
           __pyx_t_3 = 0;
 
-          /* "clickhouse_driver/bufferedreader.pyx":164
+          /* "clickhouse_driver/bufferedreader.pyx":166
  * 
  *             if c_encoding:
  *                 try:             # <<<<<<<<<<<<<<
@@ -3049,13 +3069,13 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
         __Pyx_XDECREF(__pyx_t_12); __pyx_t_12 = 0;
         __Pyx_XDECREF(__pyx_t_13); __pyx_t_13 = 0;
         __Pyx_XDECREF(__pyx_t_14); __pyx_t_14 = 0;
-        goto __pyx_L27_try_end;
-        __pyx_L20_error:;
+        goto __pyx_L28_try_end;
+        __pyx_L21_error:;
         __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
         __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
         __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-        /* "clickhouse_driver/bufferedreader.pyx":166
+        /* "clickhouse_driver/bufferedreader.pyx":168
  *                 try:
  *                     rv = c_string[:size].decode(c_encoding)
  *                 except UnicodeDecodeError:             # <<<<<<<<<<<<<<
@@ -3065,31 +3085,31 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
         __pyx_t_15 = __Pyx_PyErr_ExceptionMatches(__pyx_builtin_UnicodeDecodeError);
         if (__pyx_t_15) {
           __Pyx_AddTraceback("clickhouse_driver.bufferedreader.BufferedReader.read_strings", __pyx_clineno, __pyx_lineno, __pyx_filename);
-          if (__Pyx_GetException(&__pyx_t_3, &__pyx_t_1, &__pyx_t_4) < 0) __PYX_ERR(0, 166, __pyx_L22_except_error)
+          if (__Pyx_GetException(&__pyx_t_3, &__pyx_t_1, &__pyx_t_4) < 0) __PYX_ERR(0, 168, __pyx_L23_except_error)
           __Pyx_GOTREF(__pyx_t_3);
           __Pyx_GOTREF(__pyx_t_1);
           __Pyx_GOTREF(__pyx_t_4);
 
-          /* "clickhouse_driver/bufferedreader.pyx":167
+          /* "clickhouse_driver/bufferedreader.pyx":169
  *                     rv = c_string[:size].decode(c_encoding)
  *                 except UnicodeDecodeError:
  *                     rv = PyBytes_FromStringAndSize(c_string, size)             # <<<<<<<<<<<<<<
  * 
  *             Py_INCREF(rv)
  */
-          __pyx_t_16 = PyBytes_FromStringAndSize(__pyx_v_c_string, __pyx_v_size); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 167, __pyx_L22_except_error)
+          __pyx_t_16 = PyBytes_FromStringAndSize(__pyx_v_c_string, __pyx_v_size); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 169, __pyx_L23_except_error)
           __Pyx_GOTREF(__pyx_t_16);
           __Pyx_DECREF_SET(__pyx_v_rv, __pyx_t_16);
           __pyx_t_16 = 0;
           __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
           __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
           __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-          goto __pyx_L21_exception_handled;
+          goto __pyx_L22_exception_handled;
         }
-        goto __pyx_L22_except_error;
-        __pyx_L22_except_error:;
+        goto __pyx_L23_except_error;
+        __pyx_L23_except_error:;
 
-        /* "clickhouse_driver/bufferedreader.pyx":164
+        /* "clickhouse_driver/bufferedreader.pyx":166
  * 
  *             if c_encoding:
  *                 try:             # <<<<<<<<<<<<<<
@@ -3101,15 +3121,15 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
         __Pyx_XGIVEREF(__pyx_t_14);
         __Pyx_ExceptionReset(__pyx_t_12, __pyx_t_13, __pyx_t_14);
         goto __pyx_L1_error;
-        __pyx_L21_exception_handled:;
+        __pyx_L22_exception_handled:;
         __Pyx_XGIVEREF(__pyx_t_12);
         __Pyx_XGIVEREF(__pyx_t_13);
         __Pyx_XGIVEREF(__pyx_t_14);
         __Pyx_ExceptionReset(__pyx_t_12, __pyx_t_13, __pyx_t_14);
-        __pyx_L27_try_end:;
+        __pyx_L28_try_end:;
       }
 
-      /* "clickhouse_driver/bufferedreader.pyx":163
+      /* "clickhouse_driver/bufferedreader.pyx":165
  *                 self.position = right
  * 
  *             if c_encoding:             # <<<<<<<<<<<<<<
@@ -3118,7 +3138,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  */
     }
 
-    /* "clickhouse_driver/bufferedreader.pyx":169
+    /* "clickhouse_driver/bufferedreader.pyx":171
  *                     rv = PyBytes_FromStringAndSize(c_string, size)
  * 
  *             Py_INCREF(rv)             # <<<<<<<<<<<<<<
@@ -3127,7 +3147,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  */
     Py_INCREF(__pyx_v_rv);
 
-    /* "clickhouse_driver/bufferedreader.pyx":170
+    /* "clickhouse_driver/bufferedreader.pyx":172
  * 
  *             Py_INCREF(rv)
  *             PyTuple_SET_ITEM(items, i, rv)             # <<<<<<<<<<<<<<
@@ -3137,7 +3157,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
     PyTuple_SET_ITEM(__pyx_v_items, __pyx_v_i, __pyx_v_rv);
   }
 
-  /* "clickhouse_driver/bufferedreader.pyx":172
+  /* "clickhouse_driver/bufferedreader.pyx":174
  *             PyTuple_SET_ITEM(items, i, rv)
  * 
  *         if c_string:             # <<<<<<<<<<<<<<
@@ -3147,7 +3167,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
   __pyx_t_2 = (__pyx_v_c_string != 0);
   if (__pyx_t_2) {
 
-    /* "clickhouse_driver/bufferedreader.pyx":173
+    /* "clickhouse_driver/bufferedreader.pyx":175
  * 
  *         if c_string:
  *             PyMem_Free(c_string)             # <<<<<<<<<<<<<<
@@ -3156,7 +3176,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  */
     PyMem_Free(__pyx_v_c_string);
 
-    /* "clickhouse_driver/bufferedreader.pyx":172
+    /* "clickhouse_driver/bufferedreader.pyx":174
  *             PyTuple_SET_ITEM(items, i, rv)
  * 
  *         if c_string:             # <<<<<<<<<<<<<<
@@ -3165,7 +3185,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
  */
   }
 
-  /* "clickhouse_driver/bufferedreader.pyx":175
+  /* "clickhouse_driver/bufferedreader.pyx":177
  *             PyMem_Free(c_string)
  * 
  *         return items             # <<<<<<<<<<<<<<
@@ -3748,7 +3768,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_14BufferedReader_
   return __pyx_r;
 }
 
-/* "clickhouse_driver/bufferedreader.pyx":181
+/* "clickhouse_driver/bufferedreader.pyx":183
  *     cdef object sock
  * 
  *     def __init__(self, sock, bufsize):             # <<<<<<<<<<<<<<
@@ -3787,11 +3807,11 @@ static int __pyx_pw_17clickhouse_driver_14bufferedreader_20BufferedSocketReader_
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_bufsize)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, 1); __PYX_ERR(0, 181, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, 1); __PYX_ERR(0, 183, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 181, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 183, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -3804,7 +3824,7 @@ static int __pyx_pw_17clickhouse_driver_14bufferedreader_20BufferedSocketReader_
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 181, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 183, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("clickhouse_driver.bufferedreader.BufferedSocketReader.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3825,7 +3845,7 @@ static int __pyx_pf_17clickhouse_driver_14bufferedreader_20BufferedSocketReader_
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "clickhouse_driver/bufferedreader.pyx":182
+  /* "clickhouse_driver/bufferedreader.pyx":184
  * 
  *     def __init__(self, sock, bufsize):
  *         self.sock = sock             # <<<<<<<<<<<<<<
@@ -3838,14 +3858,14 @@ static int __pyx_pf_17clickhouse_driver_14bufferedreader_20BufferedSocketReader_
   __Pyx_DECREF(__pyx_v_self->sock);
   __pyx_v_self->sock = __pyx_v_sock;
 
-  /* "clickhouse_driver/bufferedreader.pyx":183
+  /* "clickhouse_driver/bufferedreader.pyx":185
  *     def __init__(self, sock, bufsize):
  *         self.sock = sock
  *         super(BufferedSocketReader, self).__init__(bufsize)             # <<<<<<<<<<<<<<
  * 
  *     def read_into_buffer(self):
  */
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 183, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 185, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(((PyObject *)__pyx_ptype_17clickhouse_driver_14bufferedreader_BufferedSocketReader));
   __Pyx_GIVEREF(((PyObject *)__pyx_ptype_17clickhouse_driver_14bufferedreader_BufferedSocketReader));
@@ -3853,10 +3873,10 @@ static int __pyx_pf_17clickhouse_driver_14bufferedreader_20BufferedSocketReader_
   __Pyx_INCREF(((PyObject *)__pyx_v_self));
   __Pyx_GIVEREF(((PyObject *)__pyx_v_self));
   PyTuple_SET_ITEM(__pyx_t_2, 1, ((PyObject *)__pyx_v_self));
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_super, __pyx_t_2, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 183, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_super, __pyx_t_2, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 185, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_init); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 183, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_init); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 185, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_3 = NULL;
@@ -3871,12 +3891,12 @@ static int __pyx_pf_17clickhouse_driver_14bufferedreader_20BufferedSocketReader_
   }
   __pyx_t_1 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_3, __pyx_v_bufsize) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_bufsize);
   __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 183, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 185, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "clickhouse_driver/bufferedreader.pyx":181
+  /* "clickhouse_driver/bufferedreader.pyx":183
  *     cdef object sock
  * 
  *     def __init__(self, sock, bufsize):             # <<<<<<<<<<<<<<
@@ -3898,7 +3918,7 @@ static int __pyx_pf_17clickhouse_driver_14bufferedreader_20BufferedSocketReader_
   return __pyx_r;
 }
 
-/* "clickhouse_driver/bufferedreader.pyx":185
+/* "clickhouse_driver/bufferedreader.pyx":187
  *         super(BufferedSocketReader, self).__init__(bufsize)
  * 
  *     def read_into_buffer(self):             # <<<<<<<<<<<<<<
@@ -3929,14 +3949,14 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_20BufferedSocketR
   int __pyx_t_5;
   __Pyx_RefNannySetupContext("read_into_buffer", 0);
 
-  /* "clickhouse_driver/bufferedreader.pyx":186
+  /* "clickhouse_driver/bufferedreader.pyx":188
  * 
  *     def read_into_buffer(self):
  *         self.current_buffer_size = self.sock.recv_into(self.buffer)             # <<<<<<<<<<<<<<
  * 
  *         if self.current_buffer_size == 0:
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->sock, __pyx_n_s_recv_into); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 186, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->sock, __pyx_n_s_recv_into); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 188, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -3950,14 +3970,14 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_20BufferedSocketR
   }
   __pyx_t_1 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_3, __pyx_v_self->__pyx_base.buffer) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_self->__pyx_base.buffer);
   __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 186, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 188, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyIndex_AsSsize_t(__pyx_t_1); if (unlikely((__pyx_t_4 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 186, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyIndex_AsSsize_t(__pyx_t_1); if (unlikely((__pyx_t_4 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 188, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_self->__pyx_base.current_buffer_size = __pyx_t_4;
 
-  /* "clickhouse_driver/bufferedreader.pyx":188
+  /* "clickhouse_driver/bufferedreader.pyx":190
  *         self.current_buffer_size = self.sock.recv_into(self.buffer)
  * 
  *         if self.current_buffer_size == 0:             # <<<<<<<<<<<<<<
@@ -3967,20 +3987,20 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_20BufferedSocketR
   __pyx_t_5 = ((__pyx_v_self->__pyx_base.current_buffer_size == 0) != 0);
   if (unlikely(__pyx_t_5)) {
 
-    /* "clickhouse_driver/bufferedreader.pyx":189
+    /* "clickhouse_driver/bufferedreader.pyx":191
  * 
  *         if self.current_buffer_size == 0:
  *             raise EOFError('Unexpected EOF while reading bytes')             # <<<<<<<<<<<<<<
  * 
  * 
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_EOFError, __pyx_tuple_, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 189, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_EOFError, __pyx_tuple_, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 191, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 189, __pyx_L1_error)
+    __PYX_ERR(0, 191, __pyx_L1_error)
 
-    /* "clickhouse_driver/bufferedreader.pyx":188
+    /* "clickhouse_driver/bufferedreader.pyx":190
  *         self.current_buffer_size = self.sock.recv_into(self.buffer)
  * 
  *         if self.current_buffer_size == 0:             # <<<<<<<<<<<<<<
@@ -3989,7 +4009,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_20BufferedSocketR
  */
   }
 
-  /* "clickhouse_driver/bufferedreader.pyx":185
+  /* "clickhouse_driver/bufferedreader.pyx":187
  *         super(BufferedSocketReader, self).__init__(bufsize)
  * 
  *     def read_into_buffer(self):             # <<<<<<<<<<<<<<
@@ -4323,7 +4343,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_20BufferedSocketR
   return __pyx_r;
 }
 
-/* "clickhouse_driver/bufferedreader.pyx":195
+/* "clickhouse_driver/bufferedreader.pyx":197
  *     cdef object read_block
  * 
  *     def __init__(self, read_block, bufsize):             # <<<<<<<<<<<<<<
@@ -4362,11 +4382,11 @@ static int __pyx_pw_17clickhouse_driver_14bufferedreader_24CompressedBufferedRea
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_bufsize)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, 1); __PYX_ERR(0, 195, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, 1); __PYX_ERR(0, 197, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 195, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 197, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -4379,7 +4399,7 @@ static int __pyx_pw_17clickhouse_driver_14bufferedreader_24CompressedBufferedRea
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 195, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 197, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("clickhouse_driver.bufferedreader.CompressedBufferedReader.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -4400,7 +4420,7 @@ static int __pyx_pf_17clickhouse_driver_14bufferedreader_24CompressedBufferedRea
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "clickhouse_driver/bufferedreader.pyx":196
+  /* "clickhouse_driver/bufferedreader.pyx":198
  * 
  *     def __init__(self, read_block, bufsize):
  *         self.read_block = read_block             # <<<<<<<<<<<<<<
@@ -4413,14 +4433,14 @@ static int __pyx_pf_17clickhouse_driver_14bufferedreader_24CompressedBufferedRea
   __Pyx_DECREF(__pyx_v_self->read_block);
   __pyx_v_self->read_block = __pyx_v_read_block;
 
-  /* "clickhouse_driver/bufferedreader.pyx":197
+  /* "clickhouse_driver/bufferedreader.pyx":199
  *     def __init__(self, read_block, bufsize):
  *         self.read_block = read_block
  *         super(CompressedBufferedReader, self).__init__(bufsize)             # <<<<<<<<<<<<<<
  * 
  *     def read_into_buffer(self):
  */
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 197, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 199, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(((PyObject *)__pyx_ptype_17clickhouse_driver_14bufferedreader_CompressedBufferedReader));
   __Pyx_GIVEREF(((PyObject *)__pyx_ptype_17clickhouse_driver_14bufferedreader_CompressedBufferedReader));
@@ -4428,10 +4448,10 @@ static int __pyx_pf_17clickhouse_driver_14bufferedreader_24CompressedBufferedRea
   __Pyx_INCREF(((PyObject *)__pyx_v_self));
   __Pyx_GIVEREF(((PyObject *)__pyx_v_self));
   PyTuple_SET_ITEM(__pyx_t_2, 1, ((PyObject *)__pyx_v_self));
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_super, __pyx_t_2, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 197, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_super, __pyx_t_2, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 199, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_init); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 197, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_init); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 199, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_3 = NULL;
@@ -4446,12 +4466,12 @@ static int __pyx_pf_17clickhouse_driver_14bufferedreader_24CompressedBufferedRea
   }
   __pyx_t_1 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_3, __pyx_v_bufsize) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_bufsize);
   __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 197, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 199, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "clickhouse_driver/bufferedreader.pyx":195
+  /* "clickhouse_driver/bufferedreader.pyx":197
  *     cdef object read_block
  * 
  *     def __init__(self, read_block, bufsize):             # <<<<<<<<<<<<<<
@@ -4473,7 +4493,7 @@ static int __pyx_pf_17clickhouse_driver_14bufferedreader_24CompressedBufferedRea
   return __pyx_r;
 }
 
-/* "clickhouse_driver/bufferedreader.pyx":199
+/* "clickhouse_driver/bufferedreader.pyx":201
  *         super(CompressedBufferedReader, self).__init__(bufsize)
  * 
  *     def read_into_buffer(self):             # <<<<<<<<<<<<<<
@@ -4504,7 +4524,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_24CompressedBuffe
   int __pyx_t_5;
   __Pyx_RefNannySetupContext("read_into_buffer", 0);
 
-  /* "clickhouse_driver/bufferedreader.pyx":200
+  /* "clickhouse_driver/bufferedreader.pyx":202
  * 
  *     def read_into_buffer(self):
  *         self.buffer = bytearray(self.read_block())             # <<<<<<<<<<<<<<
@@ -4524,10 +4544,10 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_24CompressedBuffe
   }
   __pyx_t_1 = (__pyx_t_3) ? __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3) : __Pyx_PyObject_CallNoArg(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 200, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 202, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyByteArray_Type)), __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 200, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyByteArray_Type)), __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 202, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_GIVEREF(__pyx_t_2);
@@ -4536,7 +4556,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_24CompressedBuffe
   __pyx_v_self->__pyx_base.buffer = ((PyObject*)__pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "clickhouse_driver/bufferedreader.pyx":201
+  /* "clickhouse_driver/bufferedreader.pyx":203
  *     def read_into_buffer(self):
  *         self.buffer = bytearray(self.read_block())
  *         self.current_buffer_size = len(self.buffer)             # <<<<<<<<<<<<<<
@@ -4547,13 +4567,13 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_24CompressedBuffe
   __Pyx_INCREF(__pyx_t_2);
   if (unlikely(__pyx_t_2 == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
-    __PYX_ERR(0, 201, __pyx_L1_error)
+    __PYX_ERR(0, 203, __pyx_L1_error)
   }
-  __pyx_t_4 = PyByteArray_GET_SIZE(__pyx_t_2); if (unlikely(__pyx_t_4 == ((Py_ssize_t)-1))) __PYX_ERR(0, 201, __pyx_L1_error)
+  __pyx_t_4 = PyByteArray_GET_SIZE(__pyx_t_2); if (unlikely(__pyx_t_4 == ((Py_ssize_t)-1))) __PYX_ERR(0, 203, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_self->__pyx_base.current_buffer_size = __pyx_t_4;
 
-  /* "clickhouse_driver/bufferedreader.pyx":203
+  /* "clickhouse_driver/bufferedreader.pyx":205
  *         self.current_buffer_size = len(self.buffer)
  * 
  *         if self.current_buffer_size == 0:             # <<<<<<<<<<<<<<
@@ -4562,18 +4582,18 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_24CompressedBuffe
   __pyx_t_5 = ((__pyx_v_self->__pyx_base.current_buffer_size == 0) != 0);
   if (unlikely(__pyx_t_5)) {
 
-    /* "clickhouse_driver/bufferedreader.pyx":204
+    /* "clickhouse_driver/bufferedreader.pyx":206
  * 
  *         if self.current_buffer_size == 0:
  *             raise EOFError('Unexpected EOF while reading bytes')             # <<<<<<<<<<<<<<
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_EOFError, __pyx_tuple_, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 204, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_EOFError, __pyx_tuple_, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 206, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 204, __pyx_L1_error)
+    __PYX_ERR(0, 206, __pyx_L1_error)
 
-    /* "clickhouse_driver/bufferedreader.pyx":203
+    /* "clickhouse_driver/bufferedreader.pyx":205
  *         self.current_buffer_size = len(self.buffer)
  * 
  *         if self.current_buffer_size == 0:             # <<<<<<<<<<<<<<
@@ -4581,7 +4601,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedreader_24CompressedBuffe
  */
   }
 
-  /* "clickhouse_driver/bufferedreader.pyx":199
+  /* "clickhouse_driver/bufferedreader.pyx":201
  *         super(CompressedBufferedReader, self).__init__(bufsize)
  * 
  *     def read_into_buffer(self):             # <<<<<<<<<<<<<<
@@ -6654,10 +6674,10 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
   __pyx_builtin_super = __Pyx_GetBuiltinName(__pyx_n_s_super); if (!__pyx_builtin_super) __PYX_ERR(0, 20, __pyx_L1_error)
   __pyx_builtin_NotImplementedError = __Pyx_GetBuiltinName(__pyx_n_s_NotImplementedError); if (!__pyx_builtin_NotImplementedError) __PYX_ERR(0, 23, __pyx_L1_error)
   __pyx_builtin_object = __Pyx_GetBuiltinName(__pyx_n_s_object); if (!__pyx_builtin_object) __PYX_ERR(0, 85, __pyx_L1_error)
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 88, __pyx_L1_error)
-  __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(0, 114, __pyx_L1_error)
-  __pyx_builtin_UnicodeDecodeError = __Pyx_GetBuiltinName(__pyx_n_s_UnicodeDecodeError); if (!__pyx_builtin_UnicodeDecodeError) __PYX_ERR(0, 166, __pyx_L1_error)
-  __pyx_builtin_EOFError = __Pyx_GetBuiltinName(__pyx_n_s_EOFError); if (!__pyx_builtin_EOFError) __PYX_ERR(0, 189, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 90, __pyx_L1_error)
+  __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(0, 117, __pyx_L1_error)
+  __pyx_builtin_UnicodeDecodeError = __Pyx_GetBuiltinName(__pyx_n_s_UnicodeDecodeError); if (!__pyx_builtin_UnicodeDecodeError) __PYX_ERR(0, 168, __pyx_L1_error)
+  __pyx_builtin_EOFError = __Pyx_GetBuiltinName(__pyx_n_s_EOFError); if (!__pyx_builtin_EOFError) __PYX_ERR(0, 191, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
   return -1;
@@ -6667,14 +6687,14 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "clickhouse_driver/bufferedreader.pyx":189
+  /* "clickhouse_driver/bufferedreader.pyx":191
  * 
  *         if self.current_buffer_size == 0:
  *             raise EOFError('Unexpected EOF while reading bytes')             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_tuple_ = PyTuple_Pack(1, __pyx_kp_u_Unexpected_EOF_while_reading_byt); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 189, __pyx_L1_error)
+  __pyx_tuple_ = PyTuple_Pack(1, __pyx_kp_u_Unexpected_EOF_while_reading_byt); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 191, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple_);
   __Pyx_GIVEREF(__pyx_tuple_);
 
@@ -6759,26 +6779,26 @@ static int __Pyx_modinit_type_init_code(void) {
   if (__Pyx_setup_reduce((PyObject*)&__pyx_type_17clickhouse_driver_14bufferedreader_BufferedReader) < 0) __PYX_ERR(0, 10, __pyx_L1_error)
   __pyx_ptype_17clickhouse_driver_14bufferedreader_BufferedReader = &__pyx_type_17clickhouse_driver_14bufferedreader_BufferedReader;
   __pyx_type_17clickhouse_driver_14bufferedreader_BufferedSocketReader.tp_base = __pyx_ptype_17clickhouse_driver_14bufferedreader_BufferedReader;
-  if (PyType_Ready(&__pyx_type_17clickhouse_driver_14bufferedreader_BufferedSocketReader) < 0) __PYX_ERR(0, 178, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_17clickhouse_driver_14bufferedreader_BufferedSocketReader) < 0) __PYX_ERR(0, 180, __pyx_L1_error)
   #if PY_VERSION_HEX < 0x030800B1
   __pyx_type_17clickhouse_driver_14bufferedreader_BufferedSocketReader.tp_print = 0;
   #endif
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_17clickhouse_driver_14bufferedreader_BufferedSocketReader.tp_dictoffset && __pyx_type_17clickhouse_driver_14bufferedreader_BufferedSocketReader.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_17clickhouse_driver_14bufferedreader_BufferedSocketReader.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
-  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_BufferedSocketReader, (PyObject *)&__pyx_type_17clickhouse_driver_14bufferedreader_BufferedSocketReader) < 0) __PYX_ERR(0, 178, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_17clickhouse_driver_14bufferedreader_BufferedSocketReader) < 0) __PYX_ERR(0, 178, __pyx_L1_error)
+  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_BufferedSocketReader, (PyObject *)&__pyx_type_17clickhouse_driver_14bufferedreader_BufferedSocketReader) < 0) __PYX_ERR(0, 180, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_17clickhouse_driver_14bufferedreader_BufferedSocketReader) < 0) __PYX_ERR(0, 180, __pyx_L1_error)
   __pyx_ptype_17clickhouse_driver_14bufferedreader_BufferedSocketReader = &__pyx_type_17clickhouse_driver_14bufferedreader_BufferedSocketReader;
   __pyx_type_17clickhouse_driver_14bufferedreader_CompressedBufferedReader.tp_base = __pyx_ptype_17clickhouse_driver_14bufferedreader_BufferedReader;
-  if (PyType_Ready(&__pyx_type_17clickhouse_driver_14bufferedreader_CompressedBufferedReader) < 0) __PYX_ERR(0, 192, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_17clickhouse_driver_14bufferedreader_CompressedBufferedReader) < 0) __PYX_ERR(0, 194, __pyx_L1_error)
   #if PY_VERSION_HEX < 0x030800B1
   __pyx_type_17clickhouse_driver_14bufferedreader_CompressedBufferedReader.tp_print = 0;
   #endif
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_17clickhouse_driver_14bufferedreader_CompressedBufferedReader.tp_dictoffset && __pyx_type_17clickhouse_driver_14bufferedreader_CompressedBufferedReader.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_17clickhouse_driver_14bufferedreader_CompressedBufferedReader.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
-  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_CompressedBufferedReader, (PyObject *)&__pyx_type_17clickhouse_driver_14bufferedreader_CompressedBufferedReader) < 0) __PYX_ERR(0, 192, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_17clickhouse_driver_14bufferedreader_CompressedBufferedReader) < 0) __PYX_ERR(0, 192, __pyx_L1_error)
+  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_CompressedBufferedReader, (PyObject *)&__pyx_type_17clickhouse_driver_14bufferedreader_CompressedBufferedReader) < 0) __PYX_ERR(0, 194, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_17clickhouse_driver_14bufferedreader_CompressedBufferedReader) < 0) __PYX_ERR(0, 194, __pyx_L1_error)
   __pyx_ptype_17clickhouse_driver_14bufferedreader_CompressedBufferedReader = &__pyx_type_17clickhouse_driver_14bufferedreader_CompressedBufferedReader;
   __Pyx_RefNannyFinishContext();
   return 0;

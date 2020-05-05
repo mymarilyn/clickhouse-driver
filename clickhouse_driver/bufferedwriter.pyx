@@ -1,6 +1,5 @@
 from cpython cimport PyMem_Malloc, PyMem_Free, PyBytes_AsString, \
     PyBytes_Check, PyBytes_FromStringAndSize
-from cpython.bytearray cimport PyByteArray_AsString
 from libc.string cimport memcpy
 
 from .varint import write_varint
@@ -32,10 +31,7 @@ cdef class BufferedWriter(object):
         cdef Py_ssize_t data_len = len(data)
         cdef char* c_data
 
-        if PyBytes_Check(data):
-            c_data = PyBytes_AsString(data)
-        else:
-            c_data = PyByteArray_AsString(data)
+        c_data = PyBytes_AsString(data)
 
         while written < data_len:
             size = min(data_len - written, self.buffer_size - self.position)
@@ -54,9 +50,11 @@ cdef class BufferedWriter(object):
         cdef int do_encode = encoding is not None
 
         for value in items:
-            if do_encode:
-                if not PyBytes_Check(value):
+            if not PyBytes_Check(value):
+                if do_encode:
                     value = value.encode(encoding)
+                else:
+                    raise ValueError('bytes object expected')
 
             write_varint(len(value), self)
             self.write(value)

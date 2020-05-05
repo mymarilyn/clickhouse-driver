@@ -54,7 +54,7 @@ Due to Python's current limitations minimal DateTime64 resolution is one microse
 String/FixedString(N)
 ---------------------
 
-INSERT types: :class:`str`/:func:`basestring <basestring>`, :class:`bytearray`, :class:`bytes`. See note below.
+INSERT types: :class:`str`/:func:`basestring <basestring>`, :class:`bytes`. See note below.
 
 SELECT type: :class:`str`/:func:`basestring <basestring>`, :class:`bytes`. See note below.
 

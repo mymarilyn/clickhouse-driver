@@ -8,10 +8,8 @@ from clickhouse_driver.util.compat import text_type
 
 class FixedStringTestCase(BaseTestCase):
     def test_simple(self):
-        columns = 'a FixedString(4)'
-
         data = [('a', ), ('bb', ), ('ccc', ), ('dddd', ), ('я', )]
-        with self.create_table(columns):
+        with self.create_table('a FixedString(4)'):
             self.client.execute(
                 'INSERT INTO test (a) VALUES', data
             )
@@ -32,10 +30,8 @@ class FixedStringTestCase(BaseTestCase):
             self.assertEqual(inserted, data)
 
     def test_non_utf(self):
-        columns = 'a FixedString(6)'
-
         data = [('яндекс'.encode('koi8-r'), )]
-        with self.create_table(columns):
+        with self.create_table('a FixedString(6)'):
             self.client.execute(
                 'INSERT INTO test (a) VALUES', data
             )
@@ -82,10 +78,8 @@ class FixedStringTestCase(BaseTestCase):
             self.assertEqual(inserted, data)
 
     def test_null_byte_in_the_middle(self):
-        columns = 'a FixedString(9)'
-
         data = [('test\0test', )]
-        with self.create_table(columns):
+        with self.create_table('a FixedString(9)'):
             self.client.execute(
                 'INSERT INTO test (a) VALUES', data
             )
@@ -95,10 +89,8 @@ class FixedStringTestCase(BaseTestCase):
             self.assertEqual(inserted, data)
 
     def test_empty(self):
-        columns = 'a FixedString(5)'
-
         data = [('',)]
-        with self.create_table(columns):
+        with self.create_table('a FixedString(5)'):
             self.client.execute(
                 'INSERT INTO test (a) VALUES', data
             )
@@ -107,17 +99,13 @@ class FixedStringTestCase(BaseTestCase):
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
 
-
-class CustomEncodingFixedStringTestCase(BaseTestCase):
-    client_kwargs = {'settings': {'strings_encoding': 'cp1251'}}
-
-    def test_decoded(self):
-        columns = 'a FixedString(10)'
+    def test_custom_encoding(self):
+        settings = {'strings_encoding': 'cp1251'}
 
         data = [(('яндекс'), ), (('test'), )]
-        with self.create_table(columns):
+        with self.create_table('a FixedString(10)'):
             self.client.execute(
-                'INSERT INTO test (a) VALUES', data
+                'INSERT INTO test (a) VALUES', data, settings=settings
             )
 
             query = 'SELECT * FROM test'
@@ -128,10 +116,30 @@ class CustomEncodingFixedStringTestCase(BaseTestCase):
                 'test\\0\\0\\0\\0\\0\\0\n'
             )
 
-            inserted = self.client.execute(query)
+            inserted = self.client.execute(query, settings=settings)
             self.assertEqual(inserted, data)
             self.assertIsInstance(inserted[0][0], text_type)
             self.assertIsInstance(inserted[1][0], text_type)
+
+    def test_not_supported_types(self):
+        datas = [
+            [(bytearray(b'asd'), )],
+            [(123, )]
+        ]
+        with self.create_table('a String'):
+            for data in datas:
+                with self.assertRaises(errors.TypeMismatchError) as e:
+                    self.client.execute(
+                        'INSERT INTO test (a) VALUES', data,
+                        types_check=True
+                    )
+
+                self.assertIn('for column "a"', str(e.exception))
+
+                with self.assertRaises(AttributeError):
+                    self.client.execute(
+                        'INSERT INTO test (a) VALUES', data
+                    )
 
 
 class ByteFixedStringTestCase(BaseTestCase):
@@ -155,13 +163,11 @@ class ByteFixedStringTestCase(BaseTestCase):
                 )
 
     def test_not_decoded(self):
-        columns = 'a FixedString(8)'
-
         data = [
-            (bytearray('яндекс'.encode('cp1251')), ),
+            (bytes('яндекс'.encode('cp1251')), ),
             (bytes('test'.encode('cp1251')), ),
         ]
-        with self.create_table(columns):
+        with self.create_table('a FixedString(8)'):
             self.client.execute(
                 'INSERT INTO test (a) VALUES', data
             )
@@ -204,3 +210,26 @@ class ByteFixedStringTestCase(BaseTestCase):
 
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
+
+    def test_not_supported_types(self):
+        datas = [
+            [('asd', )],
+            [(bytearray(b'asd'), )],
+            [(123, )]
+        ]
+        with self.create_table('a String'):
+            for data in datas:
+                with self.assertRaises(errors.TypeMismatchError) as e:
+                    self.client.execute(
+                        'INSERT INTO test (a) VALUES', data,
+                        types_check=True
+                    )
+
+                self.assertIn('for column "a"', str(e.exception))
+
+                with self.assertRaises(ValueError) as e:
+                    self.client.execute(
+                        'INSERT INTO test (a) VALUES', data
+                    )
+
+                self.assertIn('bytes object expected', str(e.exception))
