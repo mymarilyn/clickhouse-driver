@@ -61,7 +61,7 @@ class BaseBlock(object):
         raise NotImplementedError
 
     def transposed(self):
-        return list(map(tuple, zip(*self.data)))
+        return list(zip(*self.data))
 
 
 class ColumnOrientedBlock(BaseBlock):
