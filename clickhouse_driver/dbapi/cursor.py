@@ -1,8 +1,12 @@
+import logging
 from collections import namedtuple
 from itertools import islice
 
 from ..errors import Error as DriverError
 from .errors import InterfaceError, OperationalError, ProgrammingError
+
+
+logger = logging.getLogger(__name__)
 
 
 Column = namedtuple(
@@ -123,6 +127,8 @@ class Cursor(object):
 
         try:
             execute, execute_kwargs = self._prepare()
+
+            operation = self._fix_executemany_operation(operation)
 
             response = execute(
                 operation, params=seq_of_parameters, **execute_kwargs
@@ -334,3 +340,17 @@ class Cursor(object):
     def _check_query_started(self):
         if self._state == self._states.NONE:
             raise ProgrammingError('no results to fetch')
+
+    def _fix_executemany_operation(self, operation):
+        pos = operation.lower().rfind('values (')
+        # Remove (%s)-templates from VALUES clause if exists.
+        # ClickHouse server since version 19.3.3 parse query after VALUES and
+        # allows inplace parameters.
+        # Example: INSERT INTO test (x) VALUES (1), (2).
+        if pos != -1:
+            logger.warning(
+                'Column placeholders after VALUES will be truncated: %s',
+                operation
+            )
+            operation = operation[:pos + 6]
+        return operation

@@ -6,6 +6,7 @@ from clickhouse_driver.dbapi import (
     ProgrammingError, InterfaceError, OperationalError
 )
 from tests.testcase import BaseTestCase
+from tests.util import capture_logging
 
 
 class DBAPITestCaseBase(BaseTestCase):
@@ -108,6 +109,23 @@ class DBAPITestCase(DBAPITestCaseBase):
             rv = cursor.executemany('INSERT INTO test VALUES', data)
             self.assertIsNone(rv, None)
             self.assertEqual(cursor.rowcount, 3)
+
+            cursor.execute('SELECT * FROM test')
+            self.assertEqual(cursor.fetchall(), data)
+
+    def test_executemany_strip_values(self):
+        with self.created_cursor() as cursor, self.create_table('a UInt32'):
+            data = [(0, ), (1, ), (2, )]
+            logger = 'clickhouse_driver.dbapi.cursor'
+            query = 'INSERT INTO test VALUES (%(a)s)'
+            with capture_logging(logger, 'INFO') as buffer:
+                rv = cursor.executemany(query, data)
+            self.assertIsNone(rv, None)
+            self.assertEqual(cursor.rowcount, 3)
+            self.assertIn(
+                'Column placeholders after VALUES will be truncated: '
+                'INSERT INTO test VALUES (%(a)s)', buffer.getvalue()
+            )
 
             cursor.execute('SELECT * FROM test')
             self.assertEqual(cursor.fetchall(), data)
