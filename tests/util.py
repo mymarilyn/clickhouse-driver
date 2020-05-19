@@ -1,6 +1,6 @@
 from functools import wraps
 import logging
-from io import StringIO
+from .compat import StringIO
 
 
 def skip_by_server_version(testcase, version_required):
