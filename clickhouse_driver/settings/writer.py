@@ -7,7 +7,7 @@ from .available import settings as available_settings
 logger = logging.getLogger(__name__)
 
 
-def write_settings(settings, buf):
+def write_settings(settings, buf, settings_as_strings):
     for setting, value in (settings or {}).items():
         setting_writer = available_settings.get(setting)
 
@@ -16,6 +16,6 @@ def write_settings(settings, buf):
             continue
 
         write_binary_str(setting, buf)
-        setting_writer.write(value, buf)
+        setting_writer.write(value, buf, settings_as_strings)
 
     write_binary_str('', buf)  # end of settings

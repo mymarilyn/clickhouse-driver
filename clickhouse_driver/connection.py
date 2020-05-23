@@ -522,7 +522,11 @@ class Connection(object):
 
             client_info.write(revision, self.fout)
 
-        write_settings(self.context.settings, self.fout)
+        settings_as_strings = (
+            revision >= defines
+            .DBMS_MIN_REVISION_WITH_SETTINGS_SERIALIZED_AS_STRINGS
+        )
+        write_settings(self.context.settings, self.fout, settings_as_strings)
 
         write_varint(QueryProcessingStage.COMPLETE, self.fout)
         write_varint(self.compression, self.fout)
