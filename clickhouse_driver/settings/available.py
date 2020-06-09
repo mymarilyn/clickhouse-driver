@@ -16,6 +16,9 @@ SettingLoadBalancing = SettingTotalsMode = SettingCompressionMethod = \
     SettingDateTimeInputFormat = \
     SettingURI = \
     SettingJoinAlgorithm = \
+    SettingSpecialSort = \
+    SettingLogQueriesType = \
+    SettingDefaultDatabaseEngine = \
     SettingString
 
 settings = {
@@ -367,4 +370,36 @@ settings = {
     'deduplicate_blocks_in_dependent_materialized_views': SettingBool,
     'use_compact_format_in_distributed_parts_names': SettingBool,
     'multiple_joins_rewriter_version': SettingUInt64,
+
+    'min_insert_block_size_rows_for_materialized_views': SettingUInt64,
+    'min_insert_block_size_bytes_for_materialized_views': SettingUInt64,
+    'max_final_threads': SettingUInt64,
+    'background_buffer_flush_schedule_pool_size': SettingUInt64,
+    'background_distributed_schedule_pool_size': SettingUInt64,
+    'special_sort': SettingSpecialSort,
+    'optimize_distributed_group_by_sharding_key': SettingBool,
+    'log_queries_min_type': SettingLogQueriesType,
+    'allow_suspicious_codecs': SettingBool,
+    'metrics_perf_events_enabled': SettingBool,
+    'metrics_perf_events_list': SettingString,
+    'join_on_disk_max_files_to_merge': SettingUInt64,
+    'temporary_files_codec': SettingString,
+    'max_untracked_memory': SettingUInt64,
+    'memory_profiler_sample_probability': SettingFloat,
+    'optimize_aggregation_in_order': SettingBool,
+    'default_database_engine': SettingDefaultDatabaseEngine,
+    'allow_experimental_database_atomic': SettingBool,
+    'show_table_uuid_in_table_create_query_if_not_nil': SettingBool,
+    'optimize_arithmetic_operations_in_aggregate_functions': SettingBool,
+    'validate_polygons': SettingBool,
+    'transform_null_in': SettingBool,
+    'allow_nondeterministic_mutations': SettingBool,
+    'lock_acquire_timeout': SettingSeconds,
+    'materialize_ttl_after_modify': SettingBool,
+    'allow_experimental_geo_types': SettingBool,
+    'output_format_pretty_max_value_width': SettingUInt64,
+    'format_regexp': SettingString,
+    'format_regexp_escaping_rule': SettingString,
+    'format_regexp_skip_unmatched': SettingBool,
+    'output_format_enable_streaming': SettingBool,
 }
