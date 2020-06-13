@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.1.4] - 2020-06-13
+### Added
+- Tuple type.
+- Custom String column encoding.
+- Settings update to v20.4.1.2742 server version. Pull request [#133](https://github.com/mymarilyn/clickhouse-driver/pull/133) by [azat](https://github.com/azat).
+- Settings update to v20.5.1.3657 server version. Pull request [#141](https://github.com/mymarilyn/clickhouse-driver/pull/141) by [azat](https://github.com/azat).
+- Unsupported server versions to documentation.
+- Performance section to documentation.
+- Python 3.9 in Travis CI build matrix.
+
+### Fixed
+- Reading/writing Array(Tuple).
+- 20.x server version support.
+- Settings mutation in `execute`.
+- Slow columnar results returning (`columnar=True`).
+- Segfault on passing not encoded strings during `INSERT` into ByteString column.
+
+### Changed
+- Miscellaneous read/write optimizations
+- Protocol version bumped to 54429.
+
 ## [0.1.3] - 2020-02-21
 ### Added
 - Python DB API 2.0.
@@ -248,7 +269,8 @@
 - Date/DateTime types.
 - String types.
 
-[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.3...HEAD
+[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.4...HEAD
+[0.1.4]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.3...0.1.4
 [0.1.3]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.2...0.1.3
 [0.1.2]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.1...0.1.2
 [0.1.1]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.0...0.1.1
