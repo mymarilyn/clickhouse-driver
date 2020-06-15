@@ -2,7 +2,6 @@ from clickhouse_driver.errors import ServerException, ErrorCodes
 from tests.testcase import BaseTestCase
 from tests.util import require_server_version
 
-
 class SettingTestCase(BaseTestCase):
     def test_int_apply(self):
         settings = {'max_query_size': 142}
@@ -25,7 +24,7 @@ class SettingTestCase(BaseTestCase):
         self.assertEqual(rv, [('totals_auto_threshold', '1.23', 1)])
 
     def test_bool_apply(self):
-        settings = {'force_index_by_date': 2}
+        settings = {'force_index_by_date': 1}
 
         rv = self.client.execute(
             "SELECT name, value, changed FROM system.settings "
@@ -36,7 +35,7 @@ class SettingTestCase(BaseTestCase):
 
     @require_server_version(1, 1, 54388)
     def test_char_apply(self):
-        settings = {'format_csv_delimiter': 'delimiter'}
+        settings = {'format_csv_delimiter': 'd'}
 
         rv = self.client.execute(
             "SELECT name, value, changed FROM system.settings "
@@ -64,8 +63,14 @@ class SettingTestCase(BaseTestCase):
         )
 
     def test_unknown_setting(self):
+        # For both cases unknown setting will be ignored:
+        # - rev >= DBMS_MIN_REVISION_WITH_SETTINGS_SERIALIZED_AS_STRINGS
+        #   the setting will be ignored by the server with the warning message
+        #   (since clickhouse-server does not ignore only important settings,
+        #   the one that has important flag)
+        # - otherwise the unknown setting will be ignored by the driver.
         settings = {'unknown_setting': 100500}
-        self.client.execute('SHOW tables', settings=settings)
+        self.client.execute('SELECT 1', settings=settings)
 
     def test_client_settings(self):
         settings = {'max_query_size': 142}
