@@ -31,9 +31,10 @@ def log_block(block):
         thread_id = row.get('thread_id') or row['thread_number']
 
         logger.info(
-            '{%s} [ %s ] <%s> %s: %s',
-            row['query_id'],
+            '[ %s ] [ %s ] {%s} <%s> %s: %s',
+            row['host_name'],
             thread_id,
+            row['query_id'],
             priority,
             row['source'],
             row['text']
