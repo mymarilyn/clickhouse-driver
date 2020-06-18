@@ -111,3 +111,15 @@ corresponding setting type from package or write your own type.
         >>> client = Client('localhost', settings={'allow_suspicious_low_cardinality_types': True})
         >>> client.execute('CREATE TABLE test (x LowCardinality(Int32)) Engine = Null')
         []
+
+
+*New in version 0.1.5.*
+
+Modern ClickHouse servers (20.*+) use text serialization for settings instead of
+binary serialization. You don't have to add missed settings manually into
+available. Just specify new settings and it will work.
+
+    .. code-block:: python
+
+        >>> client = Client('localhost', settings={'brand_new_setting': 42})
+        >>> client.execute('SELECT 1')

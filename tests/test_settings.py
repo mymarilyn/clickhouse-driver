@@ -2,6 +2,7 @@ from clickhouse_driver.errors import ServerException, ErrorCodes
 from tests.testcase import BaseTestCase
 from tests.util import require_server_version
 
+
 class SettingTestCase(BaseTestCase):
     def test_int_apply(self):
         settings = {'max_query_size': 142}
