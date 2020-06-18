@@ -47,11 +47,22 @@ class ConnectTestCase(BaseTestCase):
                 client.execute('SHOW TABLES')
 
     def test_timeout_error(self):
-        with patch('socket.socket') as mocked_socket:
-            mocked_socket.return_value.connect.side_effect = socket.timeout
+        with patch('socket.socket') as ms:
+            ms.return_value.connect.side_effect = socket.timeout
 
-            with self.assertRaises(errors.SocketTimeoutError):
+            with self.assertRaises(errors.SocketTimeoutError) as e:
                 self.client.execute('SHOW TABLES')
+            self.assertEqual(
+                str(e.exception), 'Code: 209. ({}:9000)'.format(self.host)
+            )
+
+            ms.return_value.connect.side_effect = socket.timeout(42, 'Test')
+
+            with self.assertRaises(errors.SocketTimeoutError) as e:
+                self.client.execute('SHOW TABLES')
+            self.assertEqual(
+                str(e.exception), 'Code: 209. Test ({}:9000)'.format(self.host)
+            )
 
     def test_transport_not_connection_on_disconnect(self):
         # Create connection.

@@ -240,6 +240,10 @@ class Connection(object):
         self.block_in = self.get_block_in_stream()
         self.block_out = self.get_block_out_stream()
 
+    def _format_connection_error(self, e, host, port):
+        err = (e.strerror + ' ') if e.strerror else ''
+        return err + '({}:{})'.format(host, port)
+
     def connect(self):
         if self.connected:
             self.disconnect()
@@ -260,18 +264,16 @@ class Connection(object):
                 logger.warning(
                     'Failed to connect to %s:%s', host, port, exc_info=True
                 )
-                err = errors.SocketTimeoutError(
-                    '{} ({})'.format(e.strerror, self.get_description())
-                )
+                err_str = self._format_connection_error(e, host, port)
+                err = errors.SocketTimeoutError(err_str)
 
             except socket.error as e:
                 self.disconnect()
                 logger.warning(
                     'Failed to connect to %s:%s', host, port, exc_info=True
                 )
-                err = errors.NetworkError(
-                    '{} ({})'.format(e.strerror, self.get_description())
-                )
+                err_str = self._format_connection_error(e, host, port)
+                err = errors.NetworkError(err_str)
 
         if err is not None:
             raise err
