@@ -4,6 +4,12 @@ from tests.util import require_server_version
 
 
 class SettingTestCase(BaseTestCase):
+    def test_settings_immutable(self):
+        settings = {'strings_encoding': 'utf-8'}
+
+        self.client.execute('SELECT 1', settings=settings)
+        self.assertEqual(settings, {'strings_encoding': 'utf-8'})
+
     def test_int_apply(self):
         settings = {'max_query_size': 142}
 
