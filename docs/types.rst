@@ -268,3 +268,56 @@ Tuple(T1, T2, ...)
 INSERT types: :class:`list`, :class:`tuple`.
 
 SELECT type: :class:`tuple`.
+
+
+Nested
+------
+
+Nested type is represented by sequence of arrays. In example below actual
+columns for are ``col.name`` and ``col.version``.
+
+    .. code-block:: sql
+
+      :) CREATE TABLE test_nested (col Nested(name String, version UInt16)) Engine = Memory;
+
+      CREATE TABLE test_nested
+      (
+          `col` Nested(
+          name String,
+          version UInt16)
+      )
+      ENGINE = Memory
+
+      Ok.
+
+      0 rows in set. Elapsed: 0.005 sec.
+
+      :) DESCRIBE TABLE test_nested FORMAT TSV;
+
+      DESCRIBE TABLE test_nested
+      FORMAT TSV
+
+      col.name	Array(String)
+      col.version	Array(UInt16)
+
+      2 rows in set. Elapsed: 0.004 sec.
+
+Inserting data into nested column in ``clickhouse-client``:
+
+    .. code-block:: sql
+
+      :) INSERT INTO test_nested VALUES (['a', 'b', 'c'], [100, 200, 300]);
+
+      INSERT INTO test_nested VALUES
+
+      Ok.
+
+      1 rows in set. Elapsed: 0.003 sec.
+
+Inserting data into nested column with ``clickhouse-driver``:
+
+    .. code-block:: python
+
+      client.execute('INSERT INTO test_nested VALUES', [
+          (['a', 'b', 'c'], [100, 200, 300]),
+      ])

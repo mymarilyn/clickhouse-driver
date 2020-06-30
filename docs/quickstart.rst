@@ -56,6 +56,8 @@ Of course queries can and should be parameterized to avoid SQL injections:
         ... )
         [('2018-10-21', 3)]
 
+Customisation ``SELECT`` output with ``FORMAT`` clause is not supported.
+
 .. _execute-with-progress:
 
 Selecting data with progress statistics
@@ -134,7 +136,7 @@ This INSERT would be extremely slow if executed with thousands rows of data:
         ... )
 
 
-To insert data efficiently, provide data separately, and end your statement with a `VALUES` clause:
+To insert data efficiently, provide data separately, and end your statement with a ``VALUES`` clause:
 
     .. code-block:: python
 
@@ -172,7 +174,7 @@ The following WILL NOT work:
         ... )
 
 
-Of course for `INSERT ... SELECT` queries data is not needed:
+Of course for ``INSERT ... SELECT`` queries data is not needed:
 
     .. code-block:: python
 
@@ -183,7 +185,11 @@ Of course for `INSERT ... SELECT` queries data is not needed:
         ... )
         []
 
-ClickHouse will execute this query like a usual `SELECT` query.
+ClickHouse will execute this query like a usual ``SELECT`` query.
+
+Inserting data in different formats with ``FORMAT`` clause is not supported.
+
+See :ref:`insert-from-csv-file` if you need to data in custom format.
 
 DDL
 ---

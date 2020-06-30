@@ -37,6 +37,7 @@ Querystring arguments will be passed along to the :meth:`~clickhouse_driver.conn
 
 If parameter doesn't match Connection's init signature will be treated as settings parameter.
 
+.. _insert-from-csv-file:
 
 Inserting data from CSV file
 ----------------------------

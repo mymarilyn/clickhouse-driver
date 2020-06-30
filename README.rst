@@ -46,6 +46,7 @@ Features
   * LowCardinality(T)
   * SimpleAggregateFunction(F, T)
   * Tuple(T1, T2, ...)
+  * Nested
 
 - Query progress information.
 
