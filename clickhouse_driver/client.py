@@ -9,7 +9,7 @@ from .protocol import ServerPacketTypes
 from .result import (
     IterQueryResult, ProgressQueryResult, QueryResult, QueryInfo
 )
-from .util.compat import urlparse, parse_qs, asbool
+from .util.compat import urlparse, parse_qs, asbool, unquote
 from .util.escape import escape_params
 from .util.helpers import column_chunks, chunks
 
@@ -456,10 +456,10 @@ class Client(object):
             kwargs['database'] = path
 
         if url.username is not None:
-            kwargs['user'] = url.username
+            kwargs['user'] = unquote(url.username)
 
         if url.password is not None:
-            kwargs['password'] = url.password
+            kwargs['password'] = unquote(url.password)
 
         if url.scheme == 'clickhouses':
             kwargs['secure'] = True

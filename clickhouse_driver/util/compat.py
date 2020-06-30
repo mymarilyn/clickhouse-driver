@@ -7,7 +7,7 @@ PY3 = sys.version_info[0] == 3
 
 
 if PY3:
-    from urllib.parse import parse_qs, urlparse  # noqa: F401
+    from urllib.parse import parse_qs, urlparse, unquote  # noqa: F401
 
     string_types = str,
     integer_types = int,
@@ -18,7 +18,7 @@ if PY3:
     StandardError = Exception
 
 else:
-    from urlparse import parse_qs, urlparse  # noqa: F401
+    from urlparse import parse_qs, urlparse, unquote  # noqa: F401
 
     string_types = basestring,    # noqa: F821
     integer_types = (int, long)  # noqa: F821

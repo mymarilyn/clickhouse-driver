@@ -37,6 +37,12 @@ class ClientFromUrlTestCase(TestCase):
         assert c.connection.user == 'user'
         assert c.connection.password == ''
 
+    def test_credentials_unescaping(self):
+        c = Client.from_url('clickhouse://ad%3Amin:se%2Fcure@host/db')
+
+        assert c.connection.user == 'ad:min'
+        assert c.connection.password == 'se/cure'
+
     def test_schema(self):
         c = Client.from_url('clickhouse://host')
         assert c.connection.secure_socket is False
