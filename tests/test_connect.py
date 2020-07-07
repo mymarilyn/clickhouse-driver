@@ -229,7 +229,9 @@ class TestBufferedReader(TestCase):
 
         for split in range(1, len(buf) - 1):
             for split_2 in range(split + 1, len(buf) - 2):
-                assert buf[:split] + buf[split:split_2] + buf[split_2:] == buf
+                self.assertEqual(
+                    buf[:split] + buf[split:split_2] + buf[split_2:], buf
+                )
                 bufs = [
                     buf[:split],
                     buf[split:split_2],
