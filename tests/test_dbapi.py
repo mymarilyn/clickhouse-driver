@@ -214,6 +214,32 @@ class ReprTestCase(DBAPITestCaseBase):
 
 
 class ExtrasTestCase(DBAPITestCaseBase):
+    def test_columns_with_types_select(self):
+        with self.created_cursor() as cursor:
+            self.assertIsNone(cursor.columns_with_types)
+            cursor.execute(
+                'SELECT CAST(number AS UInt64) AS x '
+                'FROM system.numbers LIMIT 4'
+            )
+            cursor.fetchall()
+            self.assertEqual(cursor.columns_with_types, [('x', 'UInt64')])
+
+    def test_columns_with_types_insert(self):
+        with self.created_cursor() as cursor, self.create_table('a UInt8'):
+            cursor.executemany('INSERT INTO test (a) VALUES', [(123, )])
+            self.assertIsNone(cursor.columns_with_types)
+
+    def test_columns_with_types_streaming(self):
+        with self.created_cursor() as cursor:
+            cursor.set_stream_results(True, 2)
+            cursor.execute(
+                'SELECT CAST(number AS UInt64) AS x '
+                'FROM system.numbers LIMIT 4'
+            )
+            self.assertEqual(cursor.columns_with_types, [('x', 'UInt64')])
+            list(cursor)
+            self.assertEqual(cursor.columns_with_types, [('x', 'UInt64')])
+
     def test_set_external_tables(self):
         with self.created_cursor() as cursor:
             data = [(0, ), (1, ), (2, )]

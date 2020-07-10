@@ -29,6 +29,10 @@ class Cursor(object):
 
         self.arraysize = 1
 
+        # Begin non-PEP attributes
+        self._columns_with_types = None
+        # End non-PEP attributes
+
         super(Cursor, self).__init__()
 
     def __repr__(self):
@@ -206,6 +210,14 @@ class Cursor(object):
         pass
 
     # Begin non-PEP methods
+    @property
+    def columns_with_types(self):
+        """
+        :return: list of column names with corresponding types of the last
+                 .execute*(). E.g. [('x', 'UInt64')].
+        """
+        return self._columns_with_types
+
     def set_stream_results(self, stream_results, max_row_buffer):
         """
         Toggles results streaming from server. Driver will consume
@@ -301,6 +313,8 @@ class Cursor(object):
 
         else:
             rows, columns_with_types = response
+
+        self._columns_with_types = columns_with_types
 
         # Only SELECT queries have columns_with_types.
         # DDL and INSERT INTO ... SELECT queries have empty columns header.
