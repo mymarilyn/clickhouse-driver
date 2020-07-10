@@ -252,6 +252,15 @@ class Cursor(object):
         :return: None
         """
         self._external_tables[name] = (structure, data)
+
+    def set_query_id(self, query_id):
+        """
+        Specifies the query identifier for cursor.
+
+        :param query_id: the query identifier.
+        :return: None
+        """
+        self._query_id = query_id
     # End non-PEP methods
 
     # Private methods.
@@ -271,7 +280,8 @@ class Cursor(object):
         execute_kwargs = {
             'settings': self._settings,
             'external_tables': external_tables,
-            'types_check': self._types_check
+            'types_check': self._types_check,
+            'query_id': self._query_id
         }
 
         return execute, execute_kwargs
@@ -318,6 +328,7 @@ class Cursor(object):
         self._stream_results = False
         self._max_row_buffer = 0
         self._settings = None
+        self._query_id = None
         self._external_tables = {}
         self._types_check = False
 

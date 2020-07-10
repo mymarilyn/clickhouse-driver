@@ -231,6 +231,18 @@ class ExtrasTestCase(DBAPITestCaseBase):
             )
             self.assertEqual(cursor.fetchall(), [('max_threads', '100500', 1)])
 
+    def test_set_query_id(self):
+        with self.created_cursor() as cursor:
+            query_id = 'my_query_id'
+            cursor.set_query_id(query_id)
+            cursor.execute(
+                'SELECT query_id '
+                'FROM system.processes '
+                'WHERE query_id = %(query_id)s',
+                {'query_id': query_id}
+            )
+            self.assertEqual(cursor.fetchall(), [(query_id, )])
+
     def test_types_check(self):
         with self.created_cursor() as cursor, self.create_table('a UInt8'):
             cursor.set_types_check(True)
