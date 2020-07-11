@@ -89,7 +89,8 @@ class Cursor(object):
         :param operation: query or command to execute.
         :param parameters: sequence or mapping that will be bound to
                            variables in the operation.
-        :return: None
+        :return: Number of affected rows
+        :rtype: int
         """
         self._check_cursor_closed()
         self._begin_query()
@@ -101,12 +102,14 @@ class Cursor(object):
                 operation, params=parameters, with_column_types=True,
                 **execute_kwargs
             )
+            response_num = len(response[0])
 
         except DriverError as orig:
             raise OperationalError(orig)
 
         self._process_response(response)
         self._end_query()
+        return response_num
 
     def executemany(self, operation, seq_of_parameters):
         """
