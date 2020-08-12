@@ -105,6 +105,24 @@ class ArrayTestCase(BaseTestCase):
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
 
+    def test_empty_nested(self):
+        columns = "a Array(Array(Array(Int32))), b Array(Array(Array(Int32)))"
+        data = [
+            ([], [[]],),
+        ]
+
+        with self.create_table(columns):
+            self.client.execute("INSERT INTO test (a, b) VALUES", data)
+
+            query = "SELECT * FROM test"
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted, "[]\t[[]]\n",
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
+
     def test_type_mismatch_error(self):
         columns = 'a Array(Int32)'
         data = [('test', )]
