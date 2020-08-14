@@ -172,10 +172,11 @@ class ArrayColumn(Column):
             else:
                 prev_offset += size
 
-        data = nested_column._read_data(
-            nested_column_size, buf,
-            nulls_map=nulls_map
-        )
+        data = []
+        if nested_column_size:
+            data = nested_column._read_data(
+                nested_column_size, buf, nulls_map=nulls_map
+            )
 
         # Build nested tuple structure.
         for slices, nulls_map in reversed(slices_series):
