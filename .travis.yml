@@ -65,6 +65,37 @@ after_success:
 
 jobs:
   include:
+    - stage: valgrind
+      name: Valgrind check
+      os: linux
+      language: python
+      python:
+        - "3.6"
+      addons:
+        apt:
+          packages:
+            - valgrind
+      install:
+        - docker run -e "TZ=Europe/Moscow" -d -p 127.0.0.1:9000:9000 --name test-clickhouse-server --ulimit nofile=262144:262144 yandex/clickhouse-server:$VERSION
+        - docker run -d --entrypoint "/bin/sh" --name test-clickhouse-client --link test-clickhouse-server:clickhouse-server yandex/clickhouse-client:$VERSION -c 'while :; do sleep 1; done'
+        - docker ps -a
+        # Faking clickhouse-client real communication with container via docker exec.
+        - echo -e '#!/bin/bash\n\ndocker exec -e "`env | grep ^TZ=`" test-clickhouse-client clickhouse-client "$@"' | sudo tee /usr/local/bin/clickhouse-client > /dev/null
+        - sudo chmod +x /usr/local/bin/clickhouse-client
+        # Overriding setup.cfg. Set host=clickhouse-server
+        - sed -i 's/^host=localhost$/host=clickhouse-server/' setup.cfg
+        # Make host think that clickhouse-server is localhost
+        - echo '127.0.0.1 clickhouse-server' | sudo tee /etc/hosts > /dev/null
+        - pip install --upgrade pip setuptools
+        - pip install cython
+
+      script:
+        - valgrind --error-exitcode=1 python setup.py test
+
+      env:
+        - VERSION=20.3.7.46
+        - PYTHONMALLOC=malloc
+
     - stage: wheels
       name: Wheels for Linux
       os: linux

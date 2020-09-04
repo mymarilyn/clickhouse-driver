@@ -8,7 +8,7 @@ from libc.string cimport memcpy
 
 
 cdef class BufferedReader(object):
-    cdef public Py_ssize_t position, current_buffer_size
+    cdef public unsigned long long position, current_buffer_size
     cdef public bytearray buffer
 
     def __init__(self, bufsize):
@@ -22,17 +22,17 @@ cdef class BufferedReader(object):
     def read_into_buffer(self):
         raise NotImplementedError
 
-    def read(self, Py_ssize_t unread):
+    def read(self, unsigned long long unread):
         # When the buffer is large enough bytes read are almost
         # always hit the buffer.
-        cdef Py_ssize_t next_position = unread + self.position
+        cdef unsigned long long next_position = unread + self.position
         if next_position < self.current_buffer_size:
             t = self.position
             self.position = next_position
             return bytes(self.buffer[t:self.position])
 
         cdef char* buffer_ptr = PyByteArray_AsString(self.buffer)
-        cdef Py_ssize_t read_bytes
+        cdef unsigned long long read_bytes
         rv = bytes()
 
         while unread > 0:
@@ -59,24 +59,24 @@ cdef class BufferedReader(object):
         self.position += 1
         return rv
 
-    def read_strings(self, Py_ssize_t n_items, encoding=None):
+    def read_strings(self, unsigned long long n_items, encoding=None):
         """
         Python has great overhead between function calls.
         We inline strings reading logic here to avoid this overhead.
         """
         items = PyTuple_New(n_items)
 
-        cdef Py_ssize_t i
+        cdef unsigned long long i
         # Buffer vars
         cdef char* buffer_ptr = PyByteArray_AsString(self.buffer)
-        cdef Py_ssize_t right
+        cdef unsigned long long right
         # String length vars
-        cdef Py_ssize_t size, shift, bytes_read
-        cdef unsigned char b
+        cdef unsigned long long size, shift, bytes_read
+        cdef unsigned long long b
 
         # String for decode vars.
         cdef char *c_string = NULL
-        cdef Py_ssize_t c_string_size = 1024
+        cdef unsigned long long c_string_size = 1024
         cdef char *c_encoding = NULL
         if encoding:
             encoding = encoding.encode('utf-8')

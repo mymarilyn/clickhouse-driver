@@ -7,9 +7,9 @@ from .varint import write_varint
 
 cdef class BufferedWriter(object):
     cdef char* buffer
-    cdef Py_ssize_t position, buffer_size
+    cdef unsigned long long position, buffer_size
 
-    def __init__(self, Py_ssize_t bufsize):
+    def __init__(self, unsigned long long bufsize):
         self.buffer = <char *> PyMem_Malloc(bufsize)
         if not self.buffer:
             raise MemoryError()
@@ -26,9 +26,9 @@ cdef class BufferedWriter(object):
         raise NotImplementedError
 
     cpdef write(self, data):
-        cdef Py_ssize_t written = 0
-        cdef Py_ssize_t to_write, size
-        cdef Py_ssize_t data_len = len(data)
+        cdef unsigned long long written = 0
+        cdef unsigned long long to_write, size
+        cdef unsigned long long data_len = len(data)
         cdef char* c_data
 
         c_data = PyBytes_AsString(data)
