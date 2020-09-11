@@ -1064,8 +1064,11 @@ static void __pyx_insert_code_object(int code_line, PyCodeObject* code_object);
 static void __Pyx_AddTraceback(const char *funcname, int c_line,
                                int py_line, const char *filename);
 
+/* CIntToPy.proto */
+static CYTHON_INLINE PyObject* __Pyx_PyInt_From_unsigned_PY_LONG_LONG(unsigned PY_LONG_LONG value);
+
 /* CIntFromPy.proto */
-static CYTHON_INLINE unsigned char __Pyx_PyInt_As_unsigned_char(PyObject *);
+static CYTHON_INLINE unsigned PY_LONG_LONG __Pyx_PyInt_As_unsigned_PY_LONG_LONG(PyObject *);
 
 /* CIntToPy.proto */
 static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value);
@@ -1196,8 +1199,8 @@ static const char __pyx_k_write[] = "write";
 static const char __pyx_k_number[] = "number";
 static const char __pyx_k_result[] = "result";
 static const char __pyx_k_num_buf[] = "num_buf";
-static const char __pyx_k_towrite[] = "towrite";
 static const char __pyx_k_read_one[] = "read_one";
+static const char __pyx_k_to_write[] = "to_write";
 static const char __pyx_k_read_varint[] = "read_varint";
 static const char __pyx_k_write_varint[] = "write_varint";
 static const char __pyx_k_cline_in_traceback[] = "cline_in_traceback";
@@ -1218,10 +1221,10 @@ static PyObject *__pyx_n_s_read_varint;
 static PyObject *__pyx_n_s_result;
 static PyObject *__pyx_n_s_shift;
 static PyObject *__pyx_n_s_test;
-static PyObject *__pyx_n_s_towrite;
+static PyObject *__pyx_n_s_to_write;
 static PyObject *__pyx_n_s_write;
 static PyObject *__pyx_n_s_write_varint;
-static PyObject *__pyx_pf_17clickhouse_driver_6varint_write_varint(CYTHON_UNUSED PyObject *__pyx_self, Py_ssize_t __pyx_v_number, PyObject *__pyx_v_buf); /* proto */
+static PyObject *__pyx_pf_17clickhouse_driver_6varint_write_varint(CYTHON_UNUSED PyObject *__pyx_self, unsigned PY_LONG_LONG __pyx_v_number, PyObject *__pyx_v_buf); /* proto */
 static PyObject *__pyx_pf_17clickhouse_driver_6varint_2read_varint(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_f); /* proto */
 static PyObject *__pyx_tuple_;
 static PyObject *__pyx_tuple__3;
@@ -1232,7 +1235,7 @@ static PyObject *__pyx_codeobj__4;
 /* "clickhouse_driver/varint.pyx":4
  * 
  * 
- * def write_varint(Py_ssize_t number, buf):             # <<<<<<<<<<<<<<
+ * def write_varint(unsigned long long number, buf):             # <<<<<<<<<<<<<<
  *     """
  *     Writes integer of variable length using LEB128.
  */
@@ -1242,7 +1245,7 @@ static PyObject *__pyx_pw_17clickhouse_driver_6varint_1write_varint(PyObject *__
 static char __pyx_doc_17clickhouse_driver_6varint_write_varint[] = "\n    Writes integer of variable length using LEB128.\n    ";
 static PyMethodDef __pyx_mdef_17clickhouse_driver_6varint_1write_varint = {"write_varint", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_17clickhouse_driver_6varint_1write_varint, METH_VARARGS|METH_KEYWORDS, __pyx_doc_17clickhouse_driver_6varint_write_varint};
 static PyObject *__pyx_pw_17clickhouse_driver_6varint_1write_varint(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  Py_ssize_t __pyx_v_number;
+  unsigned PY_LONG_LONG __pyx_v_number;
   PyObject *__pyx_v_buf = 0;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
@@ -1282,7 +1285,7 @@ static PyObject *__pyx_pw_17clickhouse_driver_6varint_1write_varint(PyObject *__
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
-    __pyx_v_number = __Pyx_PyIndex_AsSsize_t(values[0]); if (unlikely((__pyx_v_number == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 4, __pyx_L3_error)
+    __pyx_v_number = __Pyx_PyInt_As_unsigned_PY_LONG_LONG(values[0]); if (unlikely((__pyx_v_number == (unsigned PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 4, __pyx_L3_error)
     __pyx_v_buf = values[1];
   }
   goto __pyx_L4_argument_unpacking_done;
@@ -1300,9 +1303,9 @@ static PyObject *__pyx_pw_17clickhouse_driver_6varint_1write_varint(PyObject *__
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_17clickhouse_driver_6varint_write_varint(CYTHON_UNUSED PyObject *__pyx_self, Py_ssize_t __pyx_v_number, PyObject *__pyx_v_buf) {
-  Py_ssize_t __pyx_v_i;
-  unsigned char __pyx_v_towrite;
+static PyObject *__pyx_pf_17clickhouse_driver_6varint_write_varint(CYTHON_UNUSED PyObject *__pyx_self, unsigned PY_LONG_LONG __pyx_v_number, PyObject *__pyx_v_buf) {
+  unsigned char __pyx_v_to_write;
+  unsigned char __pyx_v_i;
   unsigned char __pyx_v_num_buf[32];
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -1316,98 +1319,98 @@ static PyObject *__pyx_pf_17clickhouse_driver_6varint_write_varint(CYTHON_UNUSED
   /* "clickhouse_driver/varint.pyx":8
  *     Writes integer of variable length using LEB128.
  *     """
- *     cdef Py_ssize_t i = 0             # <<<<<<<<<<<<<<
- *     cdef unsigned char towrite
- *     # Py_ssize_t checks integer on function call and
+ *     cdef unsigned char to_write, i = 0             # <<<<<<<<<<<<<<
+ *     # unsigned PY_LONG_LONG checks integer on function call and
+ *     # raises OverflowError if integer overflows unsigned PY_LONG_LONG.
  */
   __pyx_v_i = 0;
 
-  /* "clickhouse_driver/varint.pyx":15
+  /* "clickhouse_driver/varint.pyx":14
  *     cdef unsigned char num_buf[32]
  * 
  *     while True:             # <<<<<<<<<<<<<<
- *         towrite = number & 0x7f
+ *         to_write = number & 0x7f
  *         number >>= 7
  */
   while (1) {
 
-    /* "clickhouse_driver/varint.pyx":16
+    /* "clickhouse_driver/varint.pyx":15
  * 
  *     while True:
- *         towrite = number & 0x7f             # <<<<<<<<<<<<<<
+ *         to_write = number & 0x7f             # <<<<<<<<<<<<<<
  *         number >>= 7
  *         if number:
  */
-    __pyx_v_towrite = (__pyx_v_number & 0x7f);
+    __pyx_v_to_write = (__pyx_v_number & 0x7f);
 
-    /* "clickhouse_driver/varint.pyx":17
+    /* "clickhouse_driver/varint.pyx":16
  *     while True:
- *         towrite = number & 0x7f
+ *         to_write = number & 0x7f
  *         number >>= 7             # <<<<<<<<<<<<<<
  *         if number:
- *             num_buf[i] = towrite | 0x80
+ *             num_buf[i] = to_write | 0x80
  */
     __pyx_v_number = (__pyx_v_number >> 7);
 
-    /* "clickhouse_driver/varint.pyx":18
- *         towrite = number & 0x7f
+    /* "clickhouse_driver/varint.pyx":17
+ *         to_write = number & 0x7f
  *         number >>= 7
  *         if number:             # <<<<<<<<<<<<<<
- *             num_buf[i] = towrite | 0x80
+ *             num_buf[i] = to_write | 0x80
  *             i += 1
  */
     __pyx_t_1 = (__pyx_v_number != 0);
     if (__pyx_t_1) {
 
-      /* "clickhouse_driver/varint.pyx":19
+      /* "clickhouse_driver/varint.pyx":18
  *         number >>= 7
  *         if number:
- *             num_buf[i] = towrite | 0x80             # <<<<<<<<<<<<<<
+ *             num_buf[i] = to_write | 0x80             # <<<<<<<<<<<<<<
  *             i += 1
  *         else:
  */
-      (__pyx_v_num_buf[__pyx_v_i]) = (__pyx_v_towrite | 0x80);
+      (__pyx_v_num_buf[__pyx_v_i]) = (__pyx_v_to_write | 0x80);
 
-      /* "clickhouse_driver/varint.pyx":20
+      /* "clickhouse_driver/varint.pyx":19
  *         if number:
- *             num_buf[i] = towrite | 0x80
+ *             num_buf[i] = to_write | 0x80
  *             i += 1             # <<<<<<<<<<<<<<
  *         else:
- *             num_buf[i] = towrite
+ *             num_buf[i] = to_write
  */
       __pyx_v_i = (__pyx_v_i + 1);
 
-      /* "clickhouse_driver/varint.pyx":18
- *         towrite = number & 0x7f
+      /* "clickhouse_driver/varint.pyx":17
+ *         to_write = number & 0x7f
  *         number >>= 7
  *         if number:             # <<<<<<<<<<<<<<
- *             num_buf[i] = towrite | 0x80
+ *             num_buf[i] = to_write | 0x80
  *             i += 1
  */
       goto __pyx_L5;
     }
 
-    /* "clickhouse_driver/varint.pyx":22
+    /* "clickhouse_driver/varint.pyx":21
  *             i += 1
  *         else:
- *             num_buf[i] = towrite             # <<<<<<<<<<<<<<
+ *             num_buf[i] = to_write             # <<<<<<<<<<<<<<
  *             i += 1
  *             break
  */
     /*else*/ {
-      (__pyx_v_num_buf[__pyx_v_i]) = __pyx_v_towrite;
+      (__pyx_v_num_buf[__pyx_v_i]) = __pyx_v_to_write;
 
-      /* "clickhouse_driver/varint.pyx":23
+      /* "clickhouse_driver/varint.pyx":22
  *         else:
- *             num_buf[i] = towrite
+ *             num_buf[i] = to_write
  *             i += 1             # <<<<<<<<<<<<<<
  *             break
  * 
  */
       __pyx_v_i = (__pyx_v_i + 1);
 
-      /* "clickhouse_driver/varint.pyx":24
- *             num_buf[i] = towrite
+      /* "clickhouse_driver/varint.pyx":23
+ *             num_buf[i] = to_write
  *             i += 1
  *             break             # <<<<<<<<<<<<<<
  * 
@@ -1419,16 +1422,16 @@ static PyObject *__pyx_pf_17clickhouse_driver_6varint_write_varint(CYTHON_UNUSED
   }
   __pyx_L4_break:;
 
-  /* "clickhouse_driver/varint.pyx":26
+  /* "clickhouse_driver/varint.pyx":25
  *             break
  * 
  *     buf.write(PyBytes_FromStringAndSize(<char *>num_buf, i))             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_buf, __pyx_n_s_write); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 26, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_buf, __pyx_n_s_write); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 25, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyBytes_FromStringAndSize(((char *)__pyx_v_num_buf), __pyx_v_i); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 26, __pyx_L1_error)
+  __pyx_t_4 = PyBytes_FromStringAndSize(((char *)__pyx_v_num_buf), __pyx_v_i); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 25, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_t_5 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
@@ -1443,7 +1446,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_6varint_write_varint(CYTHON_UNUSED
   __pyx_t_2 = (__pyx_t_5) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_5, __pyx_t_4) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 26, __pyx_L1_error)
+  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 25, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -1451,7 +1454,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_6varint_write_varint(CYTHON_UNUSED
   /* "clickhouse_driver/varint.pyx":4
  * 
  * 
- * def write_varint(Py_ssize_t number, buf):             # <<<<<<<<<<<<<<
+ * def write_varint(unsigned long long number, buf):             # <<<<<<<<<<<<<<
  *     """
  *     Writes integer of variable length using LEB128.
  */
@@ -1472,7 +1475,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_6varint_write_varint(CYTHON_UNUSED
   return __pyx_r;
 }
 
-/* "clickhouse_driver/varint.pyx":29
+/* "clickhouse_driver/varint.pyx":28
  * 
  * 
  * def read_varint(f):             # <<<<<<<<<<<<<<
@@ -1496,50 +1499,50 @@ static PyObject *__pyx_pw_17clickhouse_driver_6varint_3read_varint(PyObject *__p
 }
 
 static PyObject *__pyx_pf_17clickhouse_driver_6varint_2read_varint(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_f) {
-  Py_ssize_t __pyx_v_shift;
-  Py_ssize_t __pyx_v_result;
-  unsigned char __pyx_v_i;
+  unsigned char __pyx_v_shift;
+  unsigned PY_LONG_LONG __pyx_v_i;
+  unsigned PY_LONG_LONG __pyx_v_result;
   PyObject *__pyx_v_read_one = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
-  unsigned char __pyx_t_4;
+  unsigned PY_LONG_LONG __pyx_t_4;
   int __pyx_t_5;
   __Pyx_RefNannySetupContext("read_varint", 0);
 
-  /* "clickhouse_driver/varint.pyx":33
+  /* "clickhouse_driver/varint.pyx":32
  *     Reads integer of variable length using LEB128.
  *     """
- *     cdef Py_ssize_t shift = 0             # <<<<<<<<<<<<<<
- *     cdef Py_ssize_t result = 0
- *     cdef unsigned char i
+ *     cdef unsigned char shift = 0             # <<<<<<<<<<<<<<
+ *     cdef unsigned long long i, result = 0
+ * 
  */
   __pyx_v_shift = 0;
 
-  /* "clickhouse_driver/varint.pyx":34
+  /* "clickhouse_driver/varint.pyx":33
  *     """
- *     cdef Py_ssize_t shift = 0
- *     cdef Py_ssize_t result = 0             # <<<<<<<<<<<<<<
- *     cdef unsigned char i
+ *     cdef unsigned char shift = 0
+ *     cdef unsigned long long i, result = 0             # <<<<<<<<<<<<<<
  * 
+ *     read_one = f.read_one
  */
   __pyx_v_result = 0;
 
-  /* "clickhouse_driver/varint.pyx":37
- *     cdef unsigned char i
+  /* "clickhouse_driver/varint.pyx":35
+ *     cdef unsigned long long i, result = 0
  * 
  *     read_one = f.read_one             # <<<<<<<<<<<<<<
  * 
  *     while True:
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_f, __pyx_n_s_read_one); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 37, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_f, __pyx_n_s_read_one); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 35, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_read_one = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "clickhouse_driver/varint.pyx":39
+  /* "clickhouse_driver/varint.pyx":37
  *     read_one = f.read_one
  * 
  *     while True:             # <<<<<<<<<<<<<<
@@ -1548,7 +1551,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_6varint_2read_varint(CYTHON_UNUSED
  */
   while (1) {
 
-    /* "clickhouse_driver/varint.pyx":40
+    /* "clickhouse_driver/varint.pyx":38
  * 
  *     while True:
  *         i = read_one()             # <<<<<<<<<<<<<<
@@ -1568,14 +1571,14 @@ static PyObject *__pyx_pf_17clickhouse_driver_6varint_2read_varint(CYTHON_UNUSED
     }
     __pyx_t_1 = (__pyx_t_3) ? __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3) : __Pyx_PyObject_CallNoArg(__pyx_t_2);
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 40, __pyx_L1_error)
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 38, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_4 = __Pyx_PyInt_As_unsigned_char(__pyx_t_1); if (unlikely((__pyx_t_4 == (unsigned char)-1) && PyErr_Occurred())) __PYX_ERR(0, 40, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyInt_As_unsigned_PY_LONG_LONG(__pyx_t_1); if (unlikely((__pyx_t_4 == (unsigned PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(0, 38, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_v_i = __pyx_t_4;
 
-    /* "clickhouse_driver/varint.pyx":41
+    /* "clickhouse_driver/varint.pyx":39
  *     while True:
  *         i = read_one()
  *         result |= (i & 0x7f) << shift             # <<<<<<<<<<<<<<
@@ -1584,7 +1587,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_6varint_2read_varint(CYTHON_UNUSED
  */
     __pyx_v_result = (__pyx_v_result | ((__pyx_v_i & 0x7f) << __pyx_v_shift));
 
-    /* "clickhouse_driver/varint.pyx":42
+    /* "clickhouse_driver/varint.pyx":40
  *         i = read_one()
  *         result |= (i & 0x7f) << shift
  *         shift += 7             # <<<<<<<<<<<<<<
@@ -1593,7 +1596,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_6varint_2read_varint(CYTHON_UNUSED
  */
     __pyx_v_shift = (__pyx_v_shift + 7);
 
-    /* "clickhouse_driver/varint.pyx":43
+    /* "clickhouse_driver/varint.pyx":41
  *         result |= (i & 0x7f) << shift
  *         shift += 7
  *         if i < 0x80:             # <<<<<<<<<<<<<<
@@ -1603,7 +1606,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_6varint_2read_varint(CYTHON_UNUSED
     __pyx_t_5 = ((__pyx_v_i < 0x80) != 0);
     if (__pyx_t_5) {
 
-      /* "clickhouse_driver/varint.pyx":44
+      /* "clickhouse_driver/varint.pyx":42
  *         shift += 7
  *         if i < 0x80:
  *             break             # <<<<<<<<<<<<<<
@@ -1612,7 +1615,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_6varint_2read_varint(CYTHON_UNUSED
  */
       goto __pyx_L4_break;
 
-      /* "clickhouse_driver/varint.pyx":43
+      /* "clickhouse_driver/varint.pyx":41
  *         result |= (i & 0x7f) << shift
  *         shift += 7
  *         if i < 0x80:             # <<<<<<<<<<<<<<
@@ -1623,19 +1626,19 @@ static PyObject *__pyx_pf_17clickhouse_driver_6varint_2read_varint(CYTHON_UNUSED
   }
   __pyx_L4_break:;
 
-  /* "clickhouse_driver/varint.pyx":46
+  /* "clickhouse_driver/varint.pyx":44
  *             break
  * 
  *     return result             # <<<<<<<<<<<<<<
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyInt_FromSsize_t(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 46, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_unsigned_PY_LONG_LONG(__pyx_v_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 44, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "clickhouse_driver/varint.pyx":29
+  /* "clickhouse_driver/varint.pyx":28
  * 
  * 
  * def read_varint(f):             # <<<<<<<<<<<<<<
@@ -1718,7 +1721,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_result, __pyx_k_result, sizeof(__pyx_k_result), 0, 0, 1, 1},
   {&__pyx_n_s_shift, __pyx_k_shift, sizeof(__pyx_k_shift), 0, 0, 1, 1},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
-  {&__pyx_n_s_towrite, __pyx_k_towrite, sizeof(__pyx_k_towrite), 0, 0, 1, 1},
+  {&__pyx_n_s_to_write, __pyx_k_to_write, sizeof(__pyx_k_to_write), 0, 0, 1, 1},
   {&__pyx_n_s_write, __pyx_k_write, sizeof(__pyx_k_write), 0, 0, 1, 1},
   {&__pyx_n_s_write_varint, __pyx_k_write_varint, sizeof(__pyx_k_write_varint), 0, 0, 1, 1},
   {0, 0, 0, 0, 0, 0, 0}
@@ -1734,26 +1737,26 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   /* "clickhouse_driver/varint.pyx":4
  * 
  * 
- * def write_varint(Py_ssize_t number, buf):             # <<<<<<<<<<<<<<
+ * def write_varint(unsigned long long number, buf):             # <<<<<<<<<<<<<<
  *     """
  *     Writes integer of variable length using LEB128.
  */
-  __pyx_tuple_ = PyTuple_Pack(5, __pyx_n_s_number, __pyx_n_s_buf, __pyx_n_s_i, __pyx_n_s_towrite, __pyx_n_s_num_buf); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 4, __pyx_L1_error)
+  __pyx_tuple_ = PyTuple_Pack(5, __pyx_n_s_number, __pyx_n_s_buf, __pyx_n_s_to_write, __pyx_n_s_i, __pyx_n_s_num_buf); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple_);
   __Pyx_GIVEREF(__pyx_tuple_);
   __pyx_codeobj__2 = (PyObject*)__Pyx_PyCode_New(2, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple_, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_clickhouse_driver_varint_pyx, __pyx_n_s_write_varint, 4, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__2)) __PYX_ERR(0, 4, __pyx_L1_error)
 
-  /* "clickhouse_driver/varint.pyx":29
+  /* "clickhouse_driver/varint.pyx":28
  * 
  * 
  * def read_varint(f):             # <<<<<<<<<<<<<<
  *     """
  *     Reads integer of variable length using LEB128.
  */
-  __pyx_tuple__3 = PyTuple_Pack(5, __pyx_n_s_f, __pyx_n_s_shift, __pyx_n_s_result, __pyx_n_s_i, __pyx_n_s_read_one); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(0, 29, __pyx_L1_error)
+  __pyx_tuple__3 = PyTuple_Pack(5, __pyx_n_s_f, __pyx_n_s_shift, __pyx_n_s_i, __pyx_n_s_result, __pyx_n_s_read_one); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(0, 28, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__3);
   __Pyx_GIVEREF(__pyx_tuple__3);
-  __pyx_codeobj__4 = (PyObject*)__Pyx_PyCode_New(1, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__3, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_clickhouse_driver_varint_pyx, __pyx_n_s_read_varint, 29, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__4)) __PYX_ERR(0, 29, __pyx_L1_error)
+  __pyx_codeobj__4 = (PyObject*)__Pyx_PyCode_New(1, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__3, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_clickhouse_driver_varint_pyx, __pyx_n_s_read_varint, 28, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__4)) __PYX_ERR(0, 28, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -2058,7 +2061,7 @@ if (!__Pyx_RefNanny) {
   /* "clickhouse_driver/varint.pyx":4
  * 
  * 
- * def write_varint(Py_ssize_t number, buf):             # <<<<<<<<<<<<<<
+ * def write_varint(unsigned long long number, buf):             # <<<<<<<<<<<<<<
  *     """
  *     Writes integer of variable length using LEB128.
  */
@@ -2067,16 +2070,16 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_write_varint, __pyx_t_1) < 0) __PYX_ERR(0, 4, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "clickhouse_driver/varint.pyx":29
+  /* "clickhouse_driver/varint.pyx":28
  * 
  * 
  * def read_varint(f):             # <<<<<<<<<<<<<<
  *     """
  *     Reads integer of variable length using LEB128.
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_17clickhouse_driver_6varint_3read_varint, NULL, __pyx_n_s_clickhouse_driver_varint); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 29, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_17clickhouse_driver_6varint_3read_varint, NULL, __pyx_n_s_clickhouse_driver_varint); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 28, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_read_varint, __pyx_t_1) < 0) __PYX_ERR(0, 29, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_read_varint, __pyx_t_1) < 0) __PYX_ERR(0, 28, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "clickhouse_driver/varint.pyx":1
@@ -2900,20 +2903,51 @@ bad:
         return (target_type) value;\
     }
 
+/* CIntToPy */
+static CYTHON_INLINE PyObject* __Pyx_PyInt_From_unsigned_PY_LONG_LONG(unsigned PY_LONG_LONG value) {
+    const unsigned PY_LONG_LONG neg_one = (unsigned PY_LONG_LONG) ((unsigned PY_LONG_LONG) 0 - (unsigned PY_LONG_LONG) 1), const_zero = (unsigned PY_LONG_LONG) 0;
+    const int is_unsigned = neg_one > const_zero;
+    if (is_unsigned) {
+        if (sizeof(unsigned PY_LONG_LONG) < sizeof(long)) {
+            return PyInt_FromLong((long) value);
+        } else if (sizeof(unsigned PY_LONG_LONG) <= sizeof(unsigned long)) {
+            return PyLong_FromUnsignedLong((unsigned long) value);
+#ifdef HAVE_LONG_LONG
+        } else if (sizeof(unsigned PY_LONG_LONG) <= sizeof(unsigned PY_LONG_LONG)) {
+            return PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG) value);
+#endif
+        }
+    } else {
+        if (sizeof(unsigned PY_LONG_LONG) <= sizeof(long)) {
+            return PyInt_FromLong((long) value);
+#ifdef HAVE_LONG_LONG
+        } else if (sizeof(unsigned PY_LONG_LONG) <= sizeof(PY_LONG_LONG)) {
+            return PyLong_FromLongLong((PY_LONG_LONG) value);
+#endif
+        }
+    }
+    {
+        int one = 1; int little = (int)*(unsigned char *)&one;
+        unsigned char *bytes = (unsigned char *)&value;
+        return _PyLong_FromByteArray(bytes, sizeof(unsigned PY_LONG_LONG),
+                                     little, !is_unsigned);
+    }
+}
+
 /* CIntFromPy */
-static CYTHON_INLINE unsigned char __Pyx_PyInt_As_unsigned_char(PyObject *x) {
-    const unsigned char neg_one = (unsigned char) ((unsigned char) 0 - (unsigned char) 1), const_zero = (unsigned char) 0;
+static CYTHON_INLINE unsigned PY_LONG_LONG __Pyx_PyInt_As_unsigned_PY_LONG_LONG(PyObject *x) {
+    const unsigned PY_LONG_LONG neg_one = (unsigned PY_LONG_LONG) ((unsigned PY_LONG_LONG) 0 - (unsigned PY_LONG_LONG) 1), const_zero = (unsigned PY_LONG_LONG) 0;
     const int is_unsigned = neg_one > const_zero;
 #if PY_MAJOR_VERSION < 3
     if (likely(PyInt_Check(x))) {
-        if (sizeof(unsigned char) < sizeof(long)) {
-            __PYX_VERIFY_RETURN_INT(unsigned char, long, PyInt_AS_LONG(x))
+        if (sizeof(unsigned PY_LONG_LONG) < sizeof(long)) {
+            __PYX_VERIFY_RETURN_INT(unsigned PY_LONG_LONG, long, PyInt_AS_LONG(x))
         } else {
             long val = PyInt_AS_LONG(x);
             if (is_unsigned && unlikely(val < 0)) {
                 goto raise_neg_overflow;
             }
-            return (unsigned char) val;
+            return (unsigned PY_LONG_LONG) val;
         }
     } else
 #endif
@@ -2922,32 +2956,32 @@ static CYTHON_INLINE unsigned char __Pyx_PyInt_As_unsigned_char(PyObject *x) {
 #if CYTHON_USE_PYLONG_INTERNALS
             const digit* digits = ((PyLongObject*)x)->ob_digit;
             switch (Py_SIZE(x)) {
-                case  0: return (unsigned char) 0;
-                case  1: __PYX_VERIFY_RETURN_INT(unsigned char, digit, digits[0])
+                case  0: return (unsigned PY_LONG_LONG) 0;
+                case  1: __PYX_VERIFY_RETURN_INT(unsigned PY_LONG_LONG, digit, digits[0])
                 case 2:
-                    if (8 * sizeof(unsigned char) > 1 * PyLong_SHIFT) {
+                    if (8 * sizeof(unsigned PY_LONG_LONG) > 1 * PyLong_SHIFT) {
                         if (8 * sizeof(unsigned long) > 2 * PyLong_SHIFT) {
-                            __PYX_VERIFY_RETURN_INT(unsigned char, unsigned long, (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
-                        } else if (8 * sizeof(unsigned char) >= 2 * PyLong_SHIFT) {
-                            return (unsigned char) (((((unsigned char)digits[1]) << PyLong_SHIFT) | (unsigned char)digits[0]));
+                            __PYX_VERIFY_RETURN_INT(unsigned PY_LONG_LONG, unsigned long, (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(unsigned PY_LONG_LONG) >= 2 * PyLong_SHIFT) {
+                            return (unsigned PY_LONG_LONG) (((((unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
                         }
                     }
                     break;
                 case 3:
-                    if (8 * sizeof(unsigned char) > 2 * PyLong_SHIFT) {
+                    if (8 * sizeof(unsigned PY_LONG_LONG) > 2 * PyLong_SHIFT) {
                         if (8 * sizeof(unsigned long) > 3 * PyLong_SHIFT) {
-                            __PYX_VERIFY_RETURN_INT(unsigned char, unsigned long, (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
-                        } else if (8 * sizeof(unsigned char) >= 3 * PyLong_SHIFT) {
-                            return (unsigned char) (((((((unsigned char)digits[2]) << PyLong_SHIFT) | (unsigned char)digits[1]) << PyLong_SHIFT) | (unsigned char)digits[0]));
+                            __PYX_VERIFY_RETURN_INT(unsigned PY_LONG_LONG, unsigned long, (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(unsigned PY_LONG_LONG) >= 3 * PyLong_SHIFT) {
+                            return (unsigned PY_LONG_LONG) (((((((unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
                         }
                     }
                     break;
                 case 4:
-                    if (8 * sizeof(unsigned char) > 3 * PyLong_SHIFT) {
+                    if (8 * sizeof(unsigned PY_LONG_LONG) > 3 * PyLong_SHIFT) {
                         if (8 * sizeof(unsigned long) > 4 * PyLong_SHIFT) {
-                            __PYX_VERIFY_RETURN_INT(unsigned char, unsigned long, (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
-                        } else if (8 * sizeof(unsigned char) >= 4 * PyLong_SHIFT) {
-                            return (unsigned char) (((((((((unsigned char)digits[3]) << PyLong_SHIFT) | (unsigned char)digits[2]) << PyLong_SHIFT) | (unsigned char)digits[1]) << PyLong_SHIFT) | (unsigned char)digits[0]));
+                            __PYX_VERIFY_RETURN_INT(unsigned PY_LONG_LONG, unsigned long, (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(unsigned PY_LONG_LONG) >= 4 * PyLong_SHIFT) {
+                            return (unsigned PY_LONG_LONG) (((((((((unsigned PY_LONG_LONG)digits[3]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
                         }
                     }
                     break;
@@ -2961,86 +2995,86 @@ static CYTHON_INLINE unsigned char __Pyx_PyInt_As_unsigned_char(PyObject *x) {
             {
                 int result = PyObject_RichCompareBool(x, Py_False, Py_LT);
                 if (unlikely(result < 0))
-                    return (unsigned char) -1;
+                    return (unsigned PY_LONG_LONG) -1;
                 if (unlikely(result == 1))
                     goto raise_neg_overflow;
             }
 #endif
-            if (sizeof(unsigned char) <= sizeof(unsigned long)) {
-                __PYX_VERIFY_RETURN_INT_EXC(unsigned char, unsigned long, PyLong_AsUnsignedLong(x))
+            if (sizeof(unsigned PY_LONG_LONG) <= sizeof(unsigned long)) {
+                __PYX_VERIFY_RETURN_INT_EXC(unsigned PY_LONG_LONG, unsigned long, PyLong_AsUnsignedLong(x))
 #ifdef HAVE_LONG_LONG
-            } else if (sizeof(unsigned char) <= sizeof(unsigned PY_LONG_LONG)) {
-                __PYX_VERIFY_RETURN_INT_EXC(unsigned char, unsigned PY_LONG_LONG, PyLong_AsUnsignedLongLong(x))
+            } else if (sizeof(unsigned PY_LONG_LONG) <= sizeof(unsigned PY_LONG_LONG)) {
+                __PYX_VERIFY_RETURN_INT_EXC(unsigned PY_LONG_LONG, unsigned PY_LONG_LONG, PyLong_AsUnsignedLongLong(x))
 #endif
             }
         } else {
 #if CYTHON_USE_PYLONG_INTERNALS
             const digit* digits = ((PyLongObject*)x)->ob_digit;
             switch (Py_SIZE(x)) {
-                case  0: return (unsigned char) 0;
-                case -1: __PYX_VERIFY_RETURN_INT(unsigned char, sdigit, (sdigit) (-(sdigit)digits[0]))
-                case  1: __PYX_VERIFY_RETURN_INT(unsigned char,  digit, +digits[0])
+                case  0: return (unsigned PY_LONG_LONG) 0;
+                case -1: __PYX_VERIFY_RETURN_INT(unsigned PY_LONG_LONG, sdigit, (sdigit) (-(sdigit)digits[0]))
+                case  1: __PYX_VERIFY_RETURN_INT(unsigned PY_LONG_LONG,  digit, +digits[0])
                 case -2:
-                    if (8 * sizeof(unsigned char) - 1 > 1 * PyLong_SHIFT) {
+                    if (8 * sizeof(unsigned PY_LONG_LONG) - 1 > 1 * PyLong_SHIFT) {
                         if (8 * sizeof(unsigned long) > 2 * PyLong_SHIFT) {
-                            __PYX_VERIFY_RETURN_INT(unsigned char, long, -(long) (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
-                        } else if (8 * sizeof(unsigned char) - 1 > 2 * PyLong_SHIFT) {
-                            return (unsigned char) (((unsigned char)-1)*(((((unsigned char)digits[1]) << PyLong_SHIFT) | (unsigned char)digits[0])));
+                            __PYX_VERIFY_RETURN_INT(unsigned PY_LONG_LONG, long, -(long) (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(unsigned PY_LONG_LONG) - 1 > 2 * PyLong_SHIFT) {
+                            return (unsigned PY_LONG_LONG) (((unsigned PY_LONG_LONG)-1)*(((((unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0])));
                         }
                     }
                     break;
                 case 2:
-                    if (8 * sizeof(unsigned char) > 1 * PyLong_SHIFT) {
+                    if (8 * sizeof(unsigned PY_LONG_LONG) > 1 * PyLong_SHIFT) {
                         if (8 * sizeof(unsigned long) > 2 * PyLong_SHIFT) {
-                            __PYX_VERIFY_RETURN_INT(unsigned char, unsigned long, (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
-                        } else if (8 * sizeof(unsigned char) - 1 > 2 * PyLong_SHIFT) {
-                            return (unsigned char) ((((((unsigned char)digits[1]) << PyLong_SHIFT) | (unsigned char)digits[0])));
+                            __PYX_VERIFY_RETURN_INT(unsigned PY_LONG_LONG, unsigned long, (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(unsigned PY_LONG_LONG) - 1 > 2 * PyLong_SHIFT) {
+                            return (unsigned PY_LONG_LONG) ((((((unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0])));
                         }
                     }
                     break;
                 case -3:
-                    if (8 * sizeof(unsigned char) - 1 > 2 * PyLong_SHIFT) {
+                    if (8 * sizeof(unsigned PY_LONG_LONG) - 1 > 2 * PyLong_SHIFT) {
                         if (8 * sizeof(unsigned long) > 3 * PyLong_SHIFT) {
-                            __PYX_VERIFY_RETURN_INT(unsigned char, long, -(long) (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
-                        } else if (8 * sizeof(unsigned char) - 1 > 3 * PyLong_SHIFT) {
-                            return (unsigned char) (((unsigned char)-1)*(((((((unsigned char)digits[2]) << PyLong_SHIFT) | (unsigned char)digits[1]) << PyLong_SHIFT) | (unsigned char)digits[0])));
+                            __PYX_VERIFY_RETURN_INT(unsigned PY_LONG_LONG, long, -(long) (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(unsigned PY_LONG_LONG) - 1 > 3 * PyLong_SHIFT) {
+                            return (unsigned PY_LONG_LONG) (((unsigned PY_LONG_LONG)-1)*(((((((unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0])));
                         }
                     }
                     break;
                 case 3:
-                    if (8 * sizeof(unsigned char) > 2 * PyLong_SHIFT) {
+                    if (8 * sizeof(unsigned PY_LONG_LONG) > 2 * PyLong_SHIFT) {
                         if (8 * sizeof(unsigned long) > 3 * PyLong_SHIFT) {
-                            __PYX_VERIFY_RETURN_INT(unsigned char, unsigned long, (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
-                        } else if (8 * sizeof(unsigned char) - 1 > 3 * PyLong_SHIFT) {
-                            return (unsigned char) ((((((((unsigned char)digits[2]) << PyLong_SHIFT) | (unsigned char)digits[1]) << PyLong_SHIFT) | (unsigned char)digits[0])));
+                            __PYX_VERIFY_RETURN_INT(unsigned PY_LONG_LONG, unsigned long, (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(unsigned PY_LONG_LONG) - 1 > 3 * PyLong_SHIFT) {
+                            return (unsigned PY_LONG_LONG) ((((((((unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0])));
                         }
                     }
                     break;
                 case -4:
-                    if (8 * sizeof(unsigned char) - 1 > 3 * PyLong_SHIFT) {
+                    if (8 * sizeof(unsigned PY_LONG_LONG) - 1 > 3 * PyLong_SHIFT) {
                         if (8 * sizeof(unsigned long) > 4 * PyLong_SHIFT) {
-                            __PYX_VERIFY_RETURN_INT(unsigned char, long, -(long) (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
-                        } else if (8 * sizeof(unsigned char) - 1 > 4 * PyLong_SHIFT) {
-                            return (unsigned char) (((unsigned char)-1)*(((((((((unsigned char)digits[3]) << PyLong_SHIFT) | (unsigned char)digits[2]) << PyLong_SHIFT) | (unsigned char)digits[1]) << PyLong_SHIFT) | (unsigned char)digits[0])));
+                            __PYX_VERIFY_RETURN_INT(unsigned PY_LONG_LONG, long, -(long) (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(unsigned PY_LONG_LONG) - 1 > 4 * PyLong_SHIFT) {
+                            return (unsigned PY_LONG_LONG) (((unsigned PY_LONG_LONG)-1)*(((((((((unsigned PY_LONG_LONG)digits[3]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0])));
                         }
                     }
                     break;
                 case 4:
-                    if (8 * sizeof(unsigned char) > 3 * PyLong_SHIFT) {
+                    if (8 * sizeof(unsigned PY_LONG_LONG) > 3 * PyLong_SHIFT) {
                         if (8 * sizeof(unsigned long) > 4 * PyLong_SHIFT) {
-                            __PYX_VERIFY_RETURN_INT(unsigned char, unsigned long, (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
-                        } else if (8 * sizeof(unsigned char) - 1 > 4 * PyLong_SHIFT) {
-                            return (unsigned char) ((((((((((unsigned char)digits[3]) << PyLong_SHIFT) | (unsigned char)digits[2]) << PyLong_SHIFT) | (unsigned char)digits[1]) << PyLong_SHIFT) | (unsigned char)digits[0])));
+                            __PYX_VERIFY_RETURN_INT(unsigned PY_LONG_LONG, unsigned long, (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(unsigned PY_LONG_LONG) - 1 > 4 * PyLong_SHIFT) {
+                            return (unsigned PY_LONG_LONG) ((((((((((unsigned PY_LONG_LONG)digits[3]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0])));
                         }
                     }
                     break;
             }
 #endif
-            if (sizeof(unsigned char) <= sizeof(long)) {
-                __PYX_VERIFY_RETURN_INT_EXC(unsigned char, long, PyLong_AsLong(x))
+            if (sizeof(unsigned PY_LONG_LONG) <= sizeof(long)) {
+                __PYX_VERIFY_RETURN_INT_EXC(unsigned PY_LONG_LONG, long, PyLong_AsLong(x))
 #ifdef HAVE_LONG_LONG
-            } else if (sizeof(unsigned char) <= sizeof(PY_LONG_LONG)) {
-                __PYX_VERIFY_RETURN_INT_EXC(unsigned char, PY_LONG_LONG, PyLong_AsLongLong(x))
+            } else if (sizeof(unsigned PY_LONG_LONG) <= sizeof(PY_LONG_LONG)) {
+                __PYX_VERIFY_RETURN_INT_EXC(unsigned PY_LONG_LONG, PY_LONG_LONG, PyLong_AsLongLong(x))
 #endif
             }
         }
@@ -3049,7 +3083,7 @@ static CYTHON_INLINE unsigned char __Pyx_PyInt_As_unsigned_char(PyObject *x) {
             PyErr_SetString(PyExc_RuntimeError,
                             "_PyLong_AsByteArray() not available in PyPy, cannot convert large numbers");
 #else
-            unsigned char val;
+            unsigned PY_LONG_LONG val;
             PyObject *v = __Pyx_PyNumber_IntOrLong(x);
  #if PY_MAJOR_VERSION < 3
             if (likely(v) && !PyLong_Check(v)) {
@@ -3069,24 +3103,24 @@ static CYTHON_INLINE unsigned char __Pyx_PyInt_As_unsigned_char(PyObject *x) {
                     return val;
             }
 #endif
-            return (unsigned char) -1;
+            return (unsigned PY_LONG_LONG) -1;
         }
     } else {
-        unsigned char val;
+        unsigned PY_LONG_LONG val;
         PyObject *tmp = __Pyx_PyNumber_IntOrLong(x);
-        if (!tmp) return (unsigned char) -1;
-        val = __Pyx_PyInt_As_unsigned_char(tmp);
+        if (!tmp) return (unsigned PY_LONG_LONG) -1;
+        val = __Pyx_PyInt_As_unsigned_PY_LONG_LONG(tmp);
         Py_DECREF(tmp);
         return val;
     }
 raise_overflow:
     PyErr_SetString(PyExc_OverflowError,
-        "value too large to convert to unsigned char");
-    return (unsigned char) -1;
+        "value too large to convert to unsigned PY_LONG_LONG");
+    return (unsigned PY_LONG_LONG) -1;
 raise_neg_overflow:
     PyErr_SetString(PyExc_OverflowError,
-        "can't convert negative value to unsigned char");
-    return (unsigned char) -1;
+        "can't convert negative value to unsigned PY_LONG_LONG");
+    return (unsigned PY_LONG_LONG) -1;
 }
 
 /* CIntToPy */
