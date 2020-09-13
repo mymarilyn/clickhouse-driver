@@ -1,14 +1,9 @@
+from collections import deque
 from itertools import chain
 from struct import Struct
 
-from ..util import compat
 from .base import Column
 from .intcolumn import UInt64Column
-
-if compat.PY3:
-    from queue import Queue
-else:
-    from Queue import Queue
 
 
 class ArrayColumn(Column):
@@ -61,15 +56,15 @@ class ArrayColumn(Column):
         return self._read(rows, buf)
 
     def _write_sizes(self, value, buf):
-        q = Queue()
-        q.put((self, value, 0))
+        q = deque()
+        q.appendleft((self, value, 0))
 
         cur_depth = 0
         offset = 0
         nulls_map = []
 
-        while not q.empty():
-            column, value, depth = q.get_nowait()
+        while q:
+            column, value, depth = q.pop()
 
             if cur_depth != depth:
                 cur_depth = depth
@@ -89,7 +84,7 @@ class ArrayColumn(Column):
             nested_column = column.nested_column
             if isinstance(nested_column, ArrayColumn):
                 for x in value:
-                    q.put((nested_column, x, cur_depth + 1))
+                    q.appendleft((nested_column, x, cur_depth + 1))
                     nulls_map.append(None if x is None else False)
 
     def _write_data(self, value, buf):
@@ -124,8 +119,8 @@ class ArrayColumn(Column):
         self.nested_column.write_state_prefix(buf)
 
     def _read(self, size, buf):
-        q = Queue()
-        q.put((self, size, 0))
+        q = deque()
+        q.appendleft((self, size, 0))
 
         slices_series = []
 
@@ -142,8 +137,8 @@ class ArrayColumn(Column):
         nested_column = self.nested_column
 
         # Read and store info about slices.
-        while not q.empty():
-            column, size, depth = q.get_nowait()
+        while q:
+            column, size, depth = q.pop()
 
             nested_column = column.nested_column
 
@@ -164,7 +159,8 @@ class ArrayColumn(Column):
                 for _i in range(size):
                     offset = self.size_unpack(buf)
                     nested_column_size = offset
-                    q.put((nested_column, offset - prev_offset, cur_depth + 1))
+                    q.appendleft(
+                        (nested_column, offset - prev_offset, cur_depth + 1))
                     slices.append((prev_offset, offset))
                     prev_offset = offset
 
