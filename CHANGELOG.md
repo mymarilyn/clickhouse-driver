@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.1.5] - 2020-09-19
+### Added
+- Do not require settings declaration if server support setting-as-string. Pull request [#142](https://github.com/mymarilyn/clickhouse-driver/pull/142) by [azat](https://github.com/azat).
+- `host_name` in logs. Pull request [#144](https://github.com/mymarilyn/clickhouse-driver/pull/144) by [azat](https://github.com/azat).
+- Cursor attribute `columns_with_types` to DB API. Issue [#149](https://github.com/mymarilyn/clickhouse-driver/issues/149).
+- Cursor method `set_query_id` to DB API. Issue [#152](https://github.com/mymarilyn/clickhouse-driver/issues/152).
+
+
+### Fixed
+- Connection error messages formatting.
+- `Client.from_url` credentials unquoting. Issue [#146](https://github.com/mymarilyn/clickhouse-driver/issues/146).
+- Empty nested array handling. Pull request [#161](https://github.com/mymarilyn/clickhouse-driver/pull/161) by [dourvaris](https://github.com/dourvaris).
+- `read_varint` overflow. Issue [#163](https://github.com/mymarilyn/clickhouse-driver/issues/163).
+- Malformed reads/writes in `BufferedReader`.
+
+### Changed
+- Use deque for ~4x speedup when reading Array columns. Pull request [#164](https://github.com/mymarilyn/clickhouse-driver/pull/164) by [dourvaris](https://github.com/dourvaris).
+
 ## [0.1.4] - 2020-06-13
 ### Added
 - Tuple type.
@@ -269,7 +287,8 @@
 - Date/DateTime types.
 - String types.
 
-[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.4...HEAD
+[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.5...HEAD
+[0.1.5]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.4...0.1.5
 [0.1.4]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.3...0.1.4
 [0.1.3]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.2...0.1.3
 [0.1.2]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.1...0.1.2
