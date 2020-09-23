@@ -121,7 +121,7 @@ setup(
         'pytz',
         'enum34; python_version<"3.4"',
         'ipaddress; python_version<"3.4"',
-        'tzlocal'
+        'tzlocal<3.0'
     ],
     ext_modules=extensions,
     extras_require={
