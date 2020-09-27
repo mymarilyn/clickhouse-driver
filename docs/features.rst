@@ -349,3 +349,63 @@ managers:
         >>>     with conn.cursor() as cursor:
         >>>        cursor.execute('SHOW TABLES')
         >>>        print(cursor.fetchall())
+
+
+Reading into NumPy arrays
+-------------------------
+
+*New in version 0.1.6.*
+
+Starting from version 0.1.6 package can return columns as NumPy arrays.
+Additional packages are required for :ref:`installation-numpy-support`.
+
+    .. code-block:: python
+
+        >>> client = Client('localhost', settings={'use_numpy': True}):
+        >>> client.execute(
+        ...     'SELECT * FROM system.numbers LIMIT 10000',
+        ...     columnar=True
+        ... )
+        [array([   0,    1,    2, ..., 9997, 9998, 9999], dtype=uint64)]
+
+Inserting using NumPy arrays currently is not supported. You can insert data
+without ``use_numpy`` option.
+
+Supported types:
+
+  * Float32/64
+  * [U]Int8/16/32/64
+  * Date/DateTime('timezone')/DateTime64('timezone')
+  * String/FixedString(N)
+  * LowCardinality(T)
+
+NumPy arrays are not used when reading nullable columns and columns of
+unsupported types.
+
+Direct loading into NumPy arrays increases performance and lowers memory
+requirements on large amounts of rows.
+
+Direct loading into pandas dataframe is also supported by using
+`query_dataframe`:
+
+    .. code-block:: python
+
+        >>> client = Client('localhost', settings={'use_numpy': True}):
+        >>> client.query_dataframe(' FROM table')
+        ...     'SELECT number AS x, (number + 100) AS y '
+        ...     'FROM system.numbers LIMIT 10000'
+        ... )
+                 x      y
+        0        0    100
+        1        1    101
+        2        2    102
+        3        3    103
+        4        4    104
+        ...    ...    ...
+        9995  9995  10095
+        9996  9996  10096
+        9997  9997  10097
+        9998  9998  10098
+        9999  9999  10099
+
+        [10000 rows x 2 columns]

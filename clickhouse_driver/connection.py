@@ -55,6 +55,21 @@ class ServerInfo(object):
     def version_tuple(self):
         return self.version_major, self.version_minor, self.version_patch
 
+    def __repr__(self):
+        version = '%s.%s.%s' % (
+            self.version_major, self.version_minor, self.version_patch
+        )
+        items = [
+            ('name', self.name),
+            ('version', version),
+            ('revision', self.revision),
+            ('timezone', self.timezone),
+            ('display_name', self.display_name)
+        ]
+
+        params = ', '.join('{}={}'.format(key, value) for key, value in items)
+        return '<ServerInfo(%s)>' % (params)
+
 
 class Connection(object):
     """

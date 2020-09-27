@@ -12,6 +12,8 @@ except ImportError:
 else:
     USE_CYTHON = True
 
+USE_NUMPY = bool(os.getenv('USE_NUMPY', False))
+
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -55,6 +57,17 @@ if USE_CYTHON:
         extensions, compiler_directives={'language_level': '3'}
     )
 
+tests_require = [
+    'nose',
+    'mock',
+    'freezegun',
+    'lz4<=3.0.1',
+    'zstd',
+    'clickhouse-cityhash>=1.0.2.1'
+]
+
+if USE_NUMPY:
+    tests_require.extend(['numpy', 'pandas'])
 
 setup(
     name='clickhouse-driver',
@@ -122,15 +135,9 @@ setup(
     ext_modules=extensions,
     extras_require={
         'lz4': ['lz4<=3.0.1', 'clickhouse-cityhash>=1.0.2.1'],
-        'zstd': ['zstd', 'clickhouse-cityhash>=1.0.2.1']
+        'zstd': ['zstd', 'clickhouse-cityhash>=1.0.2.1'],
+        'numpy': ['numpy>=1.12.0', 'pandas>=0.24.0']
     },
     test_suite='nose.collector',
-    tests_require=[
-        'nose',
-        'mock',
-        'freezegun',
-        'lz4<=3.0.1',
-        'zstd',
-        'clickhouse-cityhash>=1.0.2.1'
-    ],
+    tests_require=tests_require
 )

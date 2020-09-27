@@ -1,3 +1,4 @@
+import re
 import ssl
 from time import time
 import types
@@ -33,12 +34,15 @@ class Client(object):
 
         * strings_encoding -- specifies string encoding. UTF-8 by default.
 
+        * use_numpy -- Use numpy for columns reading.
+
     """
 
     available_client_settings = (
         'insert_block_size',  # TODO: rename to max_insert_block_size
         'strings_as_bytes',
-        'strings_encoding'
+        'strings_encoding',
+        'use_numpy'
     )
 
     def __init__(self, *args, **kwargs):
@@ -53,8 +57,27 @@ class Client(object):
             ),
             'strings_encoding': self.settings.pop(
                 'strings_encoding', defines.STRINGS_ENCODING
+            ),
+            'use_numpy': self.settings.pop(
+                'use_numpy', False
             )
         }
+
+        if self.client_settings['use_numpy']:
+            try:
+                from .numpy.result import (
+                    NumpyIterQueryResult, NumpyProgressQueryResult,
+                    NumpyQueryResult
+                )
+                self.query_result_cls = NumpyQueryResult
+                self.iter_query_result_cls = NumpyIterQueryResult
+                self.progress_query_result_cls = NumpyProgressQueryResult
+            except ImportError:
+                raise RuntimeError('Extras for NumPy must be installed')
+        else:
+            self.query_result_cls = QueryResult
+            self.iter_query_result_cls = IterQueryResult
+            self.progress_query_result_cls = ProgressQueryResult
 
         self.connection = Connection(*args, **kwargs)
         self.connection.context.settings = self.settings
@@ -78,12 +101,12 @@ class Client(object):
         gen = self.packet_generator()
 
         if progress:
-            return ProgressQueryResult(
+            return self.progress_query_result_cls(
                 gen, with_column_types=with_column_types, columnar=columnar
             )
 
         else:
-            result = QueryResult(
+            result = self.query_result_cls(
                 gen, with_column_types=with_column_types, columnar=columnar
             )
             return result.get_result()
@@ -91,7 +114,11 @@ class Client(object):
     def iter_receive_result(self, with_column_types=False):
         gen = self.packet_generator()
 
-        for rows in IterQueryResult(gen, with_column_types=with_column_types):
+        result = self.iter_query_result_cls(
+            gen, with_column_types=with_column_types
+        )
+
+        for rows in result:
             for row in rows:
                 yield row
 
@@ -318,6 +345,23 @@ class Client(object):
             self.disconnect()
             raise
 
+    def query_dataframe(self, query, params=None, external_tables=None,
+                        query_id=None, settings=None):
+        try:
+            import pandas as pd
+        except ImportError:
+            raise RuntimeError('Extras for NumPy must be installed')
+
+        data, columns = self.execute(
+            query, columnar=True, with_column_types=True, params=params,
+            external_tables=external_tables, query_id=query_id,
+            settings=settings
+        )
+
+        return pd.DataFrame(
+            {re.sub(r'\W', '_', col[0]): d for d, col in zip(data, columns)}
+        )
+
     def process_ordinary_query_with_progress(
             self, query, params=None, with_column_types=False,
             external_tables=None, query_id=None,
@@ -485,6 +529,9 @@ class Client(object):
                     kwargs[name] = asbool(value)
 
             elif name == 'secure':
+                kwargs[name] = asbool(value)
+
+            elif name == 'use_numpy':
                 kwargs[name] = asbool(value)
 
             elif name == 'client_name':

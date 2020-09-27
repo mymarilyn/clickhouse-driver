@@ -75,7 +75,13 @@ class BlockInputStream(object):
                                      self.fin)
                 data.append(column)
 
-        block = ColumnOrientedBlock(
+        if self.context.client_settings['use_numpy']:
+            from ..numpy.block import NumpyColumnOrientedBlock
+            block_cls = NumpyColumnOrientedBlock
+        else:
+            block_cls = ColumnOrientedBlock
+
+        block = block_cls(
             columns_with_types=list(zip(names, types)),
             data=data,
             info=info,

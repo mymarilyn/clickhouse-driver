@@ -29,3 +29,8 @@ class Context(object):
     @client_settings.setter
     def client_settings(self, value):
         self._client_settings = value.copy()
+
+    def __repr__(self):
+        return '<Context(server_info=%s, client_settings=%s, settings=%s)>' % (
+            self._server_info, self._client_settings, self._settings
+        )

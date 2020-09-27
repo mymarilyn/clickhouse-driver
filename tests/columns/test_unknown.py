@@ -10,4 +10,4 @@ class UnknownColumnTestCase(TestCase):
         with self.assertRaises(errors.UnknownTypeError) as e:
             get_column_by_spec('Unicorn', {'context': {}})
 
-            self.assertIn('Unicorn', str(e.exception))
+        self.assertIn('Unicorn', str(e.exception))

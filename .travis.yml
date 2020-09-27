@@ -6,6 +6,7 @@ env:
   - VERSION=20.5.5.74
   - VERSION=20.4.9.110
   - VERSION=20.3.20.6
+  - VERSION=20.3.20.6 USE_NUMPY=1
   - VERSION=19.16.17.80
   - VERSION=19.15.3.6
   - VERSION=19.9.2.4   # allow_suspicious_low_cardinality_types
@@ -65,11 +66,23 @@ install:
   - pip install --upgrade pip setuptools
   - pip install flake8 flake8-print coveralls cython
 script:
+  - if [ -z ${USE_NUMPY+x} ]; then pip uninstall -y numpy pandas; fi
   - flake8 && coverage run --source=clickhouse_driver setup.py test
 after_success:
   coveralls
 
 jobs:
+  # Exclude numpy unsupported versions,
+  exclude:
+    - python: 3.4
+      env: VERSION=20.3.20.6 USE_NUMPY=1
+    - python: 3.9-dev
+      env: VERSION=20.3.20.6 USE_NUMPY=1
+    - python: pypy2.7-5.10.0
+      env: VERSION=20.3.20.6 USE_NUMPY=1
+    - python: pypy3.5
+      env: VERSION=20.3.20.6 USE_NUMPY=1
+
   include:
     - stage: valgrind
       name: Valgrind check
@@ -100,6 +113,7 @@ jobs:
 
       env:
         - VERSION=20.3.7.46
+        - USE_NUMPY=1
         - PYTHONMALLOC=malloc
 
     - stage: wheels

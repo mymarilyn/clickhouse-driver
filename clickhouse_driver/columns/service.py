@@ -5,7 +5,7 @@ from .datetimecolumn import create_datetime_column
 from .decimalcolumn import create_decimal_column
 from . import exceptions as column_exceptions
 from .enumcolumn import create_enum_column
-from .floatcolumn import Float32, Float64
+from .floatcolumn import Float32Column, Float64Column
 from .intcolumn import (
     Int8Column, Int16Column, Int32Column, Int64Column,
     UInt8Column, UInt16Column, UInt32Column, UInt64Column
@@ -29,7 +29,7 @@ from .ipcolumn import IPv4Column, IPv6Column
 
 
 column_by_type = {c.ch_type: c for c in [
-    DateColumn, Float32, Float64,
+    DateColumn, Float32Column, Float64Column,
     Int8Column, Int16Column, Int32Column, Int64Column,
     UInt8Column, UInt16Column, UInt32Column, UInt64Column,
     NothingColumn, NullColumn, UUIDColumn,
@@ -40,6 +40,13 @@ column_by_type = {c.ch_type: c for c in [
 
 
 def get_column_by_spec(spec, column_options):
+    context = column_options['context']
+    use_numpy = context.client_settings['use_numpy'] if context else False
+
+    if use_numpy:
+        from .numpy.service import get_numpy_column_by_spec
+        return get_numpy_column_by_spec(spec, column_options)
+
     def create_column_with_options(x):
         return get_column_by_spec(x, column_options)
 
