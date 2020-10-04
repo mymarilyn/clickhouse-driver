@@ -1,7 +1,8 @@
 from cpython cimport PyMem_Malloc, PyMem_Free, PyBytes_AsString, \
     PyBytes_Check, PyBytes_FromStringAndSize
-from libc.string cimport memcpy
+from libc.string cimport memcpy, memset
 
+from . import errors
 from .varint import write_varint
 
 
@@ -58,6 +59,63 @@ cdef class BufferedWriter(object):
 
             write_varint(len(value), self)
             self.write(value)
+
+    def write_fixed_strings_as_bytes(self, items, Py_ssize_t length):
+        cdef Py_ssize_t buf_pos = 0
+        cdef Py_ssize_t items_buf_size = length * len(items)
+
+        cdef char* c_value
+        cdef char* items_buf = <char *>PyMem_Malloc(items_buf_size)
+        if not items_buf:
+            raise MemoryError()
+
+        memset(items_buf, 0, items_buf_size)
+
+        for value in items:
+            value_len = len(value)
+            if length < value_len:
+                raise errors.TooLargeStringSize()
+
+            c_value = PyBytes_AsString(value)
+
+            memcpy(&items_buf[buf_pos], c_value, value_len)
+            buf_pos += length
+
+        self.write(PyBytes_FromStringAndSize(items_buf, items_buf_size))
+
+        PyMem_Free(items_buf)
+
+    def write_fixed_strings(self, items, Py_ssize_t length, encoding=None):
+        if encoding is None:
+            self.write_fixed_strings_as_bytes(items, length)
+            return
+
+        cdef Py_ssize_t buf_pos = 0
+        cdef Py_ssize_t items_buf_size = length * len(items)
+
+        cdef char* c_value
+        cdef char* items_buf = <char *>PyMem_Malloc(items_buf_size)
+        if not items_buf:
+            raise MemoryError()
+
+        memset(items_buf, 0, items_buf_size)
+
+        for value in items:
+            if not PyBytes_Check(value):
+                value = value.encode(encoding)
+
+            value_len = len(value)
+            if length < value_len:
+                raise errors.TooLargeStringSize()
+
+            c_value = PyBytes_AsString(value)
+
+            memcpy(&items_buf[buf_pos], c_value, value_len)
+            buf_pos += length
+
+        self.write(PyBytes_FromStringAndSize(items_buf, items_buf_size))
+
+        PyMem_Free(items_buf)
 
 
 cdef class BufferedSocketWriter(BufferedWriter):

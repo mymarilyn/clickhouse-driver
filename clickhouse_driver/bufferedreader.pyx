@@ -1,4 +1,4 @@
-from cpython cimport Py_INCREF, PyBytes_FromStringAndSize
+from cpython cimport Py_INCREF, PyBytes_FromStringAndSize, PyBytes_AsString
 from cpython.bytearray cimport PyByteArray_AsString
 # Using python's versions of pure c memory management functions for
 # proper memory statistics count.
@@ -173,6 +173,55 @@ cdef class BufferedReader(object):
 
         if c_string:
             PyMem_Free(c_string)
+
+        return items
+
+    def read_fixed_strings_as_bytes(self, Py_ssize_t n_items,
+                                    Py_ssize_t length):
+        cdef Py_ssize_t i
+        data = self.read(length * n_items)
+        cdef char* data_ptr = PyBytes_AsString(data)
+
+        items = PyTuple_New(n_items)
+        for i in range(n_items):
+            item = PyBytes_FromStringAndSize(&data_ptr[i * length], length)
+            Py_INCREF(item)
+            PyTuple_SET_ITEM(items, i, item)
+        return items
+
+    def read_fixed_strings(self, Py_ssize_t n_items, Py_ssize_t length,
+                           encoding=None):
+        if encoding is None:
+            return self.read_fixed_strings_as_bytes(n_items, length)
+
+        cdef Py_ssize_t i, j
+        encoding = encoding.encode('utf-8')
+        cdef char* c_encoding = encoding
+        data = self.read(length * n_items)
+        cdef char* data_ptr = PyBytes_AsString(data)
+
+        cdef char* c_string = <char *>PyMem_Malloc(length + 1)
+        if not c_string:
+            raise MemoryError()
+        c_string[length] = 0
+
+        items = PyTuple_New(n_items)
+        for i in range(n_items):
+            memcpy(c_string, &data_ptr[i * length], length)
+
+            # Get last non zero byte of string from the end.
+            j = length - 1
+            while j >= 0 and not c_string[j]:
+                j -= 1
+
+            try:
+                item = c_string[:j + 1].decode(c_encoding)
+            except UnicodeDecodeError:
+                item = PyBytes_FromStringAndSize(c_string, length)
+            Py_INCREF(item)
+            PyTuple_SET_ITEM(items, i, item)
+
+        PyMem_Free(c_string)
 
         return items
 
