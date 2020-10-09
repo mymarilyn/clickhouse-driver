@@ -1,9 +1,10 @@
 from cpython cimport PyMem_Malloc, PyMem_Free, PyBytes_AsString, \
-    PyBytes_Check, PyBytes_FromStringAndSize
+    PyBytes_Check, PyBytes_FromStringAndSize, PyBytes_AS_STRING, \
+    PyBytes_GET_SIZE
 from libc.string cimport memcpy, memset
 
 from . import errors
-from .varint import write_varint
+from .varint import make_varint
 
 
 cdef class BufferedWriter(object):
@@ -27,12 +28,9 @@ cdef class BufferedWriter(object):
         raise NotImplementedError
 
     cpdef write(self, data):
-        cdef unsigned long long written = 0
-        cdef unsigned long long to_write, size
-        cdef unsigned long long data_len = len(data)
-        cdef char* c_data
-
-        c_data = PyBytes_AsString(data)
+        cdef unsigned long long size, written = 0
+        cdef unsigned long long data_len = PyBytes_GET_SIZE(data)
+        cdef char* c_data = PyBytes_AS_STRING(data)
 
         while written < data_len:
             size = min(data_len - written, self.buffer_size - self.position)
@@ -57,7 +55,7 @@ cdef class BufferedWriter(object):
                 else:
                     raise ValueError('bytes object expected')
 
-            write_varint(len(value), self)
+            self.write(make_varint(PyBytes_GET_SIZE(value)))
             self.write(value)
 
     def write_fixed_strings_as_bytes(self, items, Py_ssize_t length):
