@@ -2,11 +2,21 @@ from itertools import islice
 
 
 def chunks(seq, n):
-    it = iter(seq)
-    item = list(islice(it, n))
-    while item:
-        yield item
+    # islice is MUCH slower than slice for lists and tuples.
+    if isinstance(seq, (list, tuple)):
+        i = 0
+        item = seq[i:i+n]
+        while item:
+            yield list(item)
+            i += n
+            item = seq[i:i+n]
+
+    else:
+        it = iter(seq)
         item = list(islice(it, n))
+        while item:
+            yield item
+            item = list(islice(it, n))
 
 
 def column_chunks(columns, n):
