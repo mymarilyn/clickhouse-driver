@@ -53,7 +53,8 @@ class ConnectTestCase(BaseTestCase):
             with self.assertRaises(errors.SocketTimeoutError) as e:
                 self.client.execute('SHOW TABLES')
             self.assertEqual(
-                str(e.exception), 'Code: 209. ({}:9000)'.format(self.host)
+                str(e.exception),
+                'Code: 209. ({}:{})'.format(self.host, self.port)
             )
 
             ms.return_value.connect.side_effect = socket.timeout(42, 'Test')
@@ -61,7 +62,8 @@ class ConnectTestCase(BaseTestCase):
             with self.assertRaises(errors.SocketTimeoutError) as e:
                 self.client.execute('SHOW TABLES')
             self.assertEqual(
-                str(e.exception), 'Code: 209. Test ({}:9000)'.format(self.host)
+                str(e.exception),
+                'Code: 209. Test ({}:{})'.format(self.host, self.port)
             )
 
     def test_transport_not_connection_on_disconnect(self):
