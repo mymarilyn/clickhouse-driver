@@ -14,7 +14,11 @@ def read_binary_bytes(buf):
 
 
 def read_binary_str_fixed_len(buf, length):
-    return read_binary_bytes_fixed_len(buf, length).decode('utf-8')
+    s = read_binary_bytes_fixed_len(buf, length)
+    try:
+        return s.decode('utf-8')
+    except UnicodeDecodeError:
+        return s
 
 
 def read_binary_bytes_fixed_len(buf, length):

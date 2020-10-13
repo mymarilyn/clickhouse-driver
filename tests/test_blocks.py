@@ -63,6 +63,10 @@ class BlocksTestCase(BaseTestCase):
         )
         self.assertEqual(rv, ([(1,)], [('x', 'Int32')]))
 
+    def test_select_with_column_types_not_decoded_utf_8(self):
+        rv = self.client.execute(r'SELECT 1 AS "\x80"', with_column_types=True)
+        self.assertEqual(rv, ([(1,)], [(b'\x80', 'UInt8')]))
+
     def test_select_with_columnar_with_column_types(self):
         progress = self.client.execute_with_progress(
             'SELECT arrayJoin(A) -1 as j,'
