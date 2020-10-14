@@ -43,4 +43,8 @@ class DateTestCase(BaseTestCase):
             )
             query = 'SELECT * FROM test'
             inserted = self.emit_cli(query)
-            self.assertEqual(inserted, '0000-00-00\n0000-00-00\n')
+            expected = (
+                '1970-01-01\n1970-01-01\n' if self.server_version > (20, 7, 2)
+                else '0000-00-00\n0000-00-00\n'
+            )
+            self.assertEqual(inserted, expected)

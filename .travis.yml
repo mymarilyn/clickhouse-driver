@@ -1,5 +1,11 @@
 env:
-  - VERSION=20.3.7.46
+  - VERSION=20.9.3.45
+  - VERSION=20.8.4.11
+  - VERSION=20.7.4.11
+  - VERSION=20.6.8.5
+  - VERSION=20.5.5.74
+  - VERSION=20.4.9.110
+  - VERSION=20.3.20.6
   - VERSION=19.16.17.80
   - VERSION=19.15.3.6
   - VERSION=19.9.2.4   # allow_suspicious_low_cardinality_types
@@ -12,11 +18,11 @@ env:
   - VERSION=18.5.1
   - VERSION=18.4.0
   - VERSION=18.1.0
-  - VERSION=1.1.54394
-  - VERSION=1.1.54390
-  - VERSION=1.1.54388
-  - VERSION=1.1.54385
-  - VERSION=1.1.54383
+#  - VERSION=1.1.54394
+#  - VERSION=1.1.54390
+#  - VERSION=1.1.54388
+#  - VERSION=1.1.54385
+#  - VERSION=1.1.54383
 #  - VERSION=1.1.54381
 #  - VERSION=1.1.54380
 #  - VERSION=1.1.54378 client's image miss tzdata package: https://github.com/yandex/ClickHouse/commit/1bf49fe8446c7dea95beaef2b131e6c6708b0b62#diff-cc737435a5ba74620a889b7718f39a80
