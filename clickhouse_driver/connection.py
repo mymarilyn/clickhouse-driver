@@ -545,6 +545,9 @@ class Connection(object):
         )
         write_settings(self.context.settings, self.fout, settings_as_strings)
 
+        if revision >= defines.DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET:
+            write_binary_str('', self.fout)
+
         write_varint(QueryProcessingStage.COMPLETE, self.fout)
         write_varint(self.compression, self.fout)
 
