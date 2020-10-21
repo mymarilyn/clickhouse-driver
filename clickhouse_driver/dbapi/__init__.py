@@ -16,14 +16,14 @@ def connect(dsn=None, user=None, password=None, host=None, port=None,
     """
     Create a new database connection.
 
-    The connection parameters can be specified via DSN:
+    The connection can be specified via DSN:
 
-        ``conn = clickhouse_driver.connect("clickhouse://localhost/test")``
+        ``conn = connect("clickhouse://localhost/test?param1=value1&...")``
 
     or using database and credentials arguments:
 
-        ``conn = clickhouse_driver.connect(database="test", user="default",
-        password="default", host="localhost")``
+        ``conn = connect(database="test", user="default", password="default",
+        host="localhost", **kwargs)``
 
     The basic connection parameters are:
 
