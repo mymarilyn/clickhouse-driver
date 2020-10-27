@@ -532,7 +532,7 @@ class Client(object):
                 kwargs[name] = asbool(value)
 
             elif name == 'use_numpy':
-                kwargs[name] = asbool(value)
+                settings[name] = asbool(value)
 
             elif name == 'client_name':
                 kwargs[name] = value

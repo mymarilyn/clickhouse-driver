@@ -6,6 +6,7 @@ from clickhouse_driver.compression.lz4 import Compressor as LZ4Compressor
 from clickhouse_driver.compression.lz4hc import Compressor as LZHC4Compressor
 from clickhouse_driver.compression.zstd import Compressor as ZSTDCompressor
 from clickhouse_driver.protocol import Compression
+from tests.numpy.util import check_numpy
 
 
 class ClientFromUrlTestCase(TestCase):
@@ -172,3 +173,8 @@ class ClientFromUrlTestCase(TestCase):
         self.assertEqual(
             c.connection.context.client_settings['insert_block_size'], 123
         )
+
+    @check_numpy
+    def test_use_numpy(self):
+        c = Client.from_url('clickhouse://host?use_numpy=true')
+        self.assertTrue(c.connection.context.client_settings['use_numpy'])
