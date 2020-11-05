@@ -6,6 +6,7 @@ import types
 from . import errors, defines
 from .block import ColumnOrientedBlock, RowOrientedBlock
 from .connection import Connection
+from .log import log_block
 from .protocol import ServerPacketTypes
 from .result import (
     IterQueryResult, ProgressQueryResult, QueryResult, QueryInfo
@@ -414,9 +415,7 @@ class Client(object):
         if sample_block:
             rv = self.send_data(sample_block, data,
                                 types_check=types_check, columnar=columnar)
-            packet = self.connection.receive_packet()
-            if packet.exception:
-                raise packet.exception
+            self.receive_end_of_query()
             return rv
 
     def receive_sample_block(self):
@@ -429,12 +428,15 @@ class Client(object):
             elif packet.type == ServerPacketTypes.EXCEPTION:
                 raise packet.exception
 
+            elif packet.type == ServerPacketTypes.LOG:
+                log_block(packet.block)
+
             elif packet.type == ServerPacketTypes.TABLE_COLUMNS:
                 pass
 
             else:
                 message = self.connection.unexpected_packet_message(
-                    'Data, Exception or TableColumns', packet.type
+                    'Data, Exception, Log or TableColumns', packet.type
                 )
                 raise errors.UnexpectedPacketFromServerError(message)
 
@@ -454,6 +456,28 @@ class Client(object):
         # Empty block means end of data.
         self.connection.send_data(block_cls())
         return inserted_rows
+
+    def receive_end_of_query(self):
+        while True:
+            packet = self.connection.receive_packet()
+
+            if packet.type == ServerPacketTypes.END_OF_STREAM:
+                break
+
+            elif packet.type == ServerPacketTypes.EXCEPTION:
+                raise packet.exception
+
+            elif packet.type == ServerPacketTypes.LOG:
+                log_block(packet.block)
+
+            elif packet.type == ServerPacketTypes.TABLE_COLUMNS:
+                pass
+
+            else:
+                message = self.connection.unexpected_packet_message(
+                    'Exception, EndOfStream or Log', packet.type
+                )
+                raise errors.UnexpectedPacketFromServerError(message)
 
     def cancel(self, with_column_types=False):
         # TODO: Add warning if already cancelled.

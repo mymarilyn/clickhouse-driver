@@ -17,6 +17,9 @@ log_priorities = (
 
 
 def log_block(block):
+    if block is None:
+        return
+
     column_names = [x[0] for x in block.columns_with_types]
 
     for row in block.get_rows():

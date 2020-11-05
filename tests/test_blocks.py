@@ -196,3 +196,20 @@ class LogTestCase(BaseTestCase):
             query = 'SELECT 1'
             self.client.execute(query, settings=settings)
             self.assertIn(query, buffer.getvalue())
+
+    def test_logs_insert(self):
+        with capture_logging('clickhouse_driver.log', 'INFO') as buffer:
+            with self.create_table('a Int32'):
+                settings = {'send_logs_level': 'debug'}
+
+                query = 'INSERT INTO test (a) VALUES'
+                self.client.execute(query, [(1, )], settings=settings)
+                logs = buffer.getvalue()
+                self.assertIn(query, logs)
+
+                if self.server_version > (19, ):
+                    self.assertIn('MemoryTracker', logs)
+
+                # Test all packets of INSERT query are consumed.
+                rv = self.client.execute('SELECT 1', settings=settings)
+                self.assertEqual(rv, [(1, )])
