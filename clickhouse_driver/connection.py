@@ -222,7 +222,8 @@ class Connection(object):
                 sock.settimeout(self.connect_timeout)
 
                 if self.secure_socket:
-                    sock = ssl.wrap_socket(sock, **ssl_options)
+                    ssl_context = self._create_ssl_context(ssl_options)
+                    sock = ssl_context.wrap_socket(sock, server_hostname=host)
 
                 sock.connect(sa)
                 return sock
@@ -236,6 +237,25 @@ class Connection(object):
             raise err
         else:
             raise socket.error("getaddrinfo returns an empty list")
+
+    def _create_ssl_context(self, ssl_options):
+        purpose = ssl.Purpose.SERVER_AUTH
+
+        version = ssl_options.get('ssl_version', ssl.PROTOCOL_TLS)
+        context = ssl.SSLContext(version)
+
+        if 'ca_certs' in ssl_options:
+            context.load_verify_locations(ssl_options['ca_certs'])
+        elif ssl_options.get('cert_reqs') != ssl.CERT_NONE:
+            context.load_default_certs(purpose
+                                       )
+        if 'ciphers' in ssl_options:
+            context.set_ciphers(ssl_options['ciphers'])
+
+        if 'cert_reqs' in ssl_options:
+            context.options = ssl_options['cert_reqs']
+
+        return context
 
     def _init_connection(self, host, port):
         self.socket = self._create_socket(host, port)
