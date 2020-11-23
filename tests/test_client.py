@@ -174,6 +174,17 @@ class ClientFromUrlTestCase(TestCase):
             c.connection.context.client_settings['insert_block_size'], 123
         )
 
+    def test_settings_is_important(self):
+        c = Client.from_url('clickhouse://host?settings_is_important=1')
+        self.assertEqual(c.connection.settings_is_important, True)
+
+        with self.assertRaises(ValueError):
+            c = Client.from_url('clickhouse://host?settings_is_important=2')
+            self.assertEqual(c.connection.settings_is_important, True)
+
+        c = Client.from_url('clickhouse://host?settings_is_important=0')
+        self.assertEqual(c.connection.settings_is_important, False)
+
     @check_numpy
     def test_use_numpy(self):
         c = Client.from_url('clickhouse://host?use_numpy=true')

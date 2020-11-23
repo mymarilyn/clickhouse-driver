@@ -7,9 +7,7 @@ from .available import settings as available_settings
 logger = logging.getLogger(__name__)
 
 
-def write_settings(settings, buf, settings_as_strings):
-    is_important = 0
-
+def write_settings(settings, buf, settings_as_strings, is_important=0):
     for setting, value in (settings or {}).items():
         # If the server support settings as string we do not need to know
         # anything about them, so we can write any setting.
