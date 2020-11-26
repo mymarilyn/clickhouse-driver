@@ -26,16 +26,12 @@ class ArrayColumn(Column):
     After sizes info comes flatten data: 3 -> 4 -> 5 -> 6
     """
     py_types = (list, tuple)
-    size_struct = Struct('<Q')
 
     def __init__(self, nested_column, **kwargs):
         self.size_column = UInt64Column()
         self.nested_column = nested_column
         self._write_depth_0_size = True
         super(ArrayColumn, self).__init__(**kwargs)
-
-    def size_pack(self, value):
-        return self.size_struct.pack(value)
 
     def write_data(self, data, buf):
         # Column of Array(T) is stored in "compact" format and passed to server
@@ -53,36 +49,33 @@ class ArrayColumn(Column):
         return self._read(rows, buf)
 
     def _write_sizes(self, value, buf):
-        q = deque()
-        q.appendleft((self, value, 0))
-
-        cur_depth = 0
-        offset = 0
         nulls_map = []
 
-        while q:
-            column, value, depth = q.pop()
+        column = self
+        sizes = [len(value)] if self._write_depth_0_size else []
 
-            if cur_depth != depth:
-                cur_depth = depth
-                offset = 0
-                if column.nullable:
-                    self._write_nulls_map(nulls_map, buf)
-
-                nulls_map = []
-
-            if column.nullable:
-                value = value or []
-
-            offset += len(value)
-            if (cur_depth == 0 and self._write_depth_0_size) or cur_depth > 0:
-                buf.write(self.size_pack(offset))
-
+        while True:
             nested_column = column.nested_column
-            if isinstance(nested_column, ArrayColumn):
-                for x in value:
-                    q.appendleft((nested_column, x, cur_depth + 1))
-                    nulls_map.append(None if x is None else False)
+            if not isinstance(nested_column, ArrayColumn):
+                if column.nullable:
+                    nulls_map = [x is None for x in value]
+                break
+
+            offset = 0
+            new_value = []
+            for x in value:
+                offset += len(x)
+                sizes.append(offset)
+                new_value.extend(x)
+
+            value = new_value
+            column = nested_column
+
+        if nulls_map:
+            self._write_nulls_map(nulls_map, buf)
+
+        ns = Struct('<{}Q'.format(len(sizes)))
+        buf.write(ns.pack(*sizes))
 
     def _write_data(self, value, buf):
         if self.nullable:
