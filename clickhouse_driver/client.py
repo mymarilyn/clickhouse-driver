@@ -567,6 +567,9 @@ class Client(object):
             elif name == 'compress_block_size':
                 kwargs[name] = int(value)
 
+            elif name == 'settings_is_important':
+                kwargs[name] = asbool(value)
+
             # ssl
             elif name == 'verify':
                 kwargs[name] = asbool(value)
