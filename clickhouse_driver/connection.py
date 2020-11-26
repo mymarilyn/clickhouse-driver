@@ -110,9 +110,10 @@ class Connection(object):
     :param ciphers: see :func:`ssl.wrap_socket` docs.
     :param alt_hosts: list of alternative hosts for connection.
                       Example: alt_hosts=host1:port1,host2:port2.
-    :param settings_is_important: 0 means unknown settings will be ignored,
-                                  1 means that the query will fail with
-                                  UNKNOWN_SETTING error.
+    :param settings_is_important: ``False`` means unknown settings will be
+                                  ignored, ``True`` means that the query will
+                                  fail with UNKNOWN_SETTING error.
+                                  Defaults to ``False``.
     """
 
     def __init__(
@@ -128,7 +129,7 @@ class Connection(object):
             # Secure socket parameters.
             verify=True, ssl_version=None, ca_certs=None, ciphers=None,
             alt_hosts=None,
-            settings_is_important=0,
+            settings_is_important=False,
     ):
         if secure:
             default_port = defines.DEFAULT_SECURE_PORT
@@ -568,7 +569,8 @@ class Connection(object):
             revision >= defines
             .DBMS_MIN_REVISION_WITH_SETTINGS_SERIALIZED_AS_STRINGS
         )
-        write_settings(self.context.settings, self.fout, settings_as_strings, self.settings_is_important)
+        write_settings(self.context.settings, self.fout, settings_as_strings,
+                       self.settings_is_important)
 
         if revision >= defines.DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET:
             write_binary_str('', self.fout)
