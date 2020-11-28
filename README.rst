@@ -7,10 +7,13 @@ ClickHouse Python Driver
 .. image:: https://coveralls.io/repos/github/mymarilyn/clickhouse-driver/badge.svg?branch=master
     :target: https://coveralls.io/github/mymarilyn/clickhouse-driver?branch=master
 
+.. image:: https://img.shields.io/pypi/l/clickhouse-driver.svg
+    :target: https://pypi.org/project/clickhouse-driver
+
 .. image:: https://img.shields.io/pypi/pyversions/clickhouse-driver.svg
     :target: https://pypi.org/project/clickhouse-driver
 
-.. image:: https://img.shields.io/pypi/l/clickhouse-driver.svg
+.. image:: https://img.shields.io/pypi/dm/clickhouse-driver.svg
     :target: https://pypi.org/project/clickhouse-driver
 
 .. image:: https://travis-ci.org/mymarilyn/clickhouse-driver.svg?branch=master
