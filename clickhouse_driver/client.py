@@ -346,8 +346,26 @@ class Client(object):
             self.disconnect()
             raise
 
-    def query_dataframe(self, query, params=None, external_tables=None,
-                        query_id=None, settings=None):
+    def query_dataframe(
+            self, query, params=None, external_tables=None, query_id=None,
+            settings=None):
+        """
+        *New in version 0.0.16.*
+
+        Queries DataFrame with specified SELECT query.
+
+        :param query: query that will be send to server.
+        :param params: substitution parameters.
+                       Defaults to ``None`` (no parameters  or data).
+        :param external_tables: external tables to send.
+                                Defaults to ``None`` (no external tables).
+        :param query_id: the query identifier. If no query id specified
+                         ClickHouse server will generate it.
+        :param settings: dictionary of query settings.
+                         Defaults to ``None`` (no additional settings).
+        :return: pandas DataFrame.
+        """
+
         try:
             import pandas as pd
         except ImportError:
@@ -361,6 +379,43 @@ class Client(object):
 
         return pd.DataFrame(
             {re.sub(r'\W', '_', col[0]): d for d, col in zip(data, columns)}
+        )
+
+    def insert_dataframe(
+            self, query, dataframe, transpose=True, external_tables=None,
+            query_id=None, settings=None):
+        """
+        *New in version 0.0.16.*
+
+        Inserts pandas DataFrame with specified query.
+
+        :param query: query that will be send to server.
+        :param dataframe: pandas DataFrame.
+        :param transpose: whether or not transpose DataFrame before sending.
+                          This is necessary action as DataFrame can be sent in
+                          columnar form. If DataFrame is already in columnar
+                          form set this parameter to ``False``.
+                          Defaults to ``True``.
+        :param external_tables: external tables to send.
+                                Defaults to ``None`` (no external tables).
+        :param query_id: the query identifier. If no query id specified
+                         ClickHouse server will generate it.
+        :param settings: dictionary of query settings.
+                         Defaults to ``None`` (no additional settings).
+        :return: number of inserted rows.
+        """
+
+        try:
+            import pandas as pd  # noqa: F401
+        except ImportError:
+            raise RuntimeError('Extras for NumPy must be installed')
+
+        frame = dataframe.transpose() if transpose else dataframe
+        columns = list(frame.values)
+
+        return self.execute(
+            query, columns, columnar=True, external_tables=external_tables,
+            query_id=query_id, settings=settings
         )
 
     def process_ordinary_query_with_progress(
@@ -445,7 +500,23 @@ class Client(object):
 
         client_settings = self.connection.context.client_settings
         block_cls = ColumnOrientedBlock if columnar else RowOrientedBlock
-        slicer = column_chunks if columnar else chunks
+
+        if client_settings['use_numpy']:
+            try:
+                from .numpy.helpers import column_chunks as numpy_column_chunks
+
+                if columnar:
+                    slicer = numpy_column_chunks
+                else:
+                    raise ValueError(
+                        'NumPy inserts is only allowed with columnar=True'
+                    )
+
+            except ImportError:
+                raise RuntimeError('Extras for NumPy must be installed')
+
+        else:
+            slicer = column_chunks if columnar else chunks
 
         for chunk in slicer(data, client_settings['insert_block_size']):
             block = block_cls(sample_block.columns_with_types, chunk,

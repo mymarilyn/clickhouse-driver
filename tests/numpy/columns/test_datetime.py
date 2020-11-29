@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from datetime import date, datetime
+from datetime import datetime
 import os
 from time import tzset
 
@@ -25,8 +25,6 @@ from tests.util import require_server_version
 class BaseDateTimeTestCase(NumpyBaseTestCase):
     def setUp(self):
         super(BaseDateTimeTestCase, self).setUp()
-        # TODO: remove common client when inserts will be implemented
-        self.common_client = self._create_client()
 
         # Bust tzlocal cache.
         try:
@@ -39,9 +37,8 @@ class BaseDateTimeTestCase(NumpyBaseTestCase):
         except AttributeError:
             pass
 
-    def tearDown(self):
-        self.common_client.disconnect()
-        super(BaseDateTimeTestCase, self).tearDown()
+    def make_numpy_d64ns(self, items):
+        return np.array(items, dtype='datetime64[ns]')
 
 
 class DateTimeTestCase(BaseDateTimeTestCase):
@@ -60,9 +57,12 @@ class DateTimeTestCase(BaseDateTimeTestCase):
 
     def test_simple(self):
         with self.create_table('a Date, b DateTime'):
-            data = [(date(2012, 10, 25), datetime(2012, 10, 25, 14, 7, 19))]
-            self.common_client.execute(
-                'INSERT INTO test (a, b) VALUES', data
+            data = [
+                np.array(['2012-10-25'], dtype='datetime64[D]'),
+                np.array(['2012-10-25T14:07:19'], dtype='datetime64[ns]')
+            ]
+            self.client.execute(
+                'INSERT INTO test (a, b) VALUES', data, columnar=True
             )
 
             query = 'SELECT * FROM test'
@@ -74,8 +74,7 @@ class DateTimeTestCase(BaseDateTimeTestCase):
                 inserted[0], np.array(['2012-10-25'], dtype='datetime64[D]')
             )
             self.assertArraysEqual(
-                inserted[1],
-                np.array(['2012-10-25T14:07:19'], dtype='datetime64[ns]')
+                inserted[1], self.make_numpy_d64ns(['2012-10-25T14:07:19'])
             )
 
     def test_handle_errors_from_tzlocal(self):
@@ -86,9 +85,9 @@ class DateTimeTestCase(BaseDateTimeTestCase):
     @require_server_version(20, 1, 2)
     def test_datetime64_frac_trunc(self):
         with self.create_table('a DateTime64'):
-            data = [(datetime(2012, 10, 25, 14, 7, 19, 125600), )]
-            self.common_client.execute(
-                'INSERT INTO test (a) VALUES', data
+            data = [self.make_numpy_d64ns(['2012-10-25T14:07:19.125600'])]
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data, columnar=True
             )
 
             query = 'SELECT * FROM test'
@@ -97,16 +96,15 @@ class DateTimeTestCase(BaseDateTimeTestCase):
 
             inserted = self.client.execute(query, columnar=True)
             self.assertArraysEqual(
-                inserted[0],
-                np.array(['2012-10-25T14:07:19.125'], dtype='datetime64[ns]')
+                inserted[0], self.make_numpy_d64ns(['2012-10-25T14:07:19.125'])
             )
 
     @require_server_version(20, 1, 2)
     def test_datetime64_explicit_frac(self):
         with self.create_table('a DateTime64(1)'):
-            data = [(datetime(2012, 10, 25, 14, 7, 19, 125600),)]
-            self.common_client.execute(
-                'INSERT INTO test (a) VALUES', data
+            data = [self.make_numpy_d64ns(['2012-10-25T14:07:19.125600'])]
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data, columnar=True
             )
 
             query = 'SELECT * FROM test'
@@ -115,17 +113,53 @@ class DateTimeTestCase(BaseDateTimeTestCase):
 
             inserted = self.client.execute(query, columnar=True)
             self.assertArraysEqual(
-                inserted[0],
-                np.array(['2012-10-25T14:07:19.1'], dtype='datetime64[ns]')
+                inserted[0], self.make_numpy_d64ns(['2012-10-25T14:07:19.1'])
             )
+
+    def test_insert_integers_datetime(self):
+        with self.create_table('a DateTime'):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES',
+                [np.array([1530211034], dtype=np.uint32)], columnar=True
+            )
+
+            query = 'SELECT toUInt32(a), a FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, '1530211034\t2018-06-28 21:37:14\n')
+
+    @require_server_version(20, 1, 2)
+    def test_insert_integers_datetime64(self):
+        with self.create_table('a DateTime64'):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES',
+                [np.array([1530211034123], dtype=np.uint64)], columnar=True
+            )
+
+            query = 'SELECT toUInt32(a), a FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, '1530211034\t2018-06-28 21:37:14.123\n')
+
+    def test_insert_integer_bounds(self):
+        with self.create_table('a DateTime'):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES',
+                [np.array([0, 1, 1500000000, 2**32-1], dtype=np.uint32)],
+                columnar=True
+            )
+
+            query = 'SELECT toUInt32(a) FROM test ORDER BY a'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, '0\n1\n1500000000\n4294967295\n')
 
 
 class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
     dt_type = 'DateTime'
 
     def make_tz_numpy_array(self, dt, tz_name):
-        return pd.to_datetime(np.array([dt] * 2, dtype='datetime64[ns]')) \
-            .tz_localize(tz_name).to_numpy()
+        dtype = 'datetime64[ns]'
+
+        return pd.to_datetime(np.array([dt] * 2, dtype=dtype)) \
+            .tz_localize(tz_name).to_numpy(dtype)
 
     @contextmanager
     def patch_env_tz(self, tz_name):
@@ -146,8 +180,17 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
     # 1500010800 second since epoch in Europe/Moscow.
     # 1500000000 second since epoch in UTC.
     dt = datetime(2017, 7, 14, 5, 40)
-    dt_str = '2017-07-14T05:40:00'
-    dt_tz = timezone('Asia/Kamchatka').localize(dt)
+    dt_str = dt.isoformat()
+
+    # properties for lazy evaluation for dealing with AttributeError when no
+    # numpy/pandas installed
+    @property
+    def dt_arr(self):
+        return np.array([self.dt_str], dtype='datetime64[s]')
+
+    @property
+    def dt_tz(self):
+        return pd.to_datetime(self.dt_arr).tz_localize('Asia/Kamchatka')
 
     col_tz_name = 'Asia/Novosibirsk'
     col_tz = timezone(col_tz_name)
@@ -167,14 +210,14 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
         # using server's timezone (Europe/Moscow)
 
         # Determine server timezone and calculate expected timestamp.
-        server_tz_name = self.common_client.execute('SELECT timezone()')[0][0]
+        server_tz_name = self.client.execute('SELECT timezone()')[0][0]
         offset = timezone(server_tz_name).utcoffset(self.dt).total_seconds()
         timestamp = 1500010800 - int(offset)
 
         with self.patch_env_tz('Asia/Novosibirsk'):
             with self.create_table(self.table_columns()):
-                self.common_client.execute(
-                    'INSERT INTO test (a) VALUES', [(self.dt, )]
+                self.client.execute(
+                    'INSERT INTO test (a) VALUES', [self.dt_arr], columnar=True
                 )
 
                 self.emit_cli(
@@ -194,8 +237,7 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
 
                 inserted = self.client.execute(query, columnar=True)
                 self.assertArraysEqual(
-                    inserted[0],
-                    np.array([self.dt_str] * 2, dtype='datetime64[ns]')
+                    inserted[0], self.make_numpy_d64ns([self.dt_str] * 2)
                 )
 
     def test_use_client_timezone(self):
@@ -207,9 +249,9 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
 
         with self.patch_env_tz('Asia/Novosibirsk'):
             with self.create_table(self.table_columns()):
-                self.common_client.execute(
-                    'INSERT INTO test (a) VALUES', [(self.dt, )],
-                    settings=settings
+                self.client.execute(
+                    'INSERT INTO test (a) VALUES', [self.dt_arr],
+                    settings=settings, columnar=True
                 )
 
                 self.emit_cli(
@@ -232,35 +274,8 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
                 inserted = self.client.execute(query, columnar=True,
                                                settings=settings)
                 self.assertArraysEqual(
-                    inserted[0],
-                    np.array([self.dt_str] * 2, dtype='datetime64[ns]')
+                    inserted[0], self.make_numpy_d64ns([self.dt_str] * 2)
                 )
-
-    # def test_insert_integers(self):
-    #     settings = {'use_client_time_zone': True}
-    #
-    #     with self.patch_env_tz('Europe/Moscow'):
-    #         with self.create_table(self.table_columns()):
-    #             self.client.execute(
-    #                 'INSERT INTO test (a) VALUES', [(1530211034, )],
-    #                 settings=settings
-    #             )
-    #
-    #             query = 'SELECT toUInt32(a), a FROM test'
-    #             inserted = self.emit_cli(query, use_client_time_zone=1)
-    #             self.assertEqual(inserted,
-    #             '1530211034\t2018-06-28 21:37:14\n')
-    #
-    # def test_insert_integer_bounds(self):
-    #     with self.create_table('a DateTime'):
-    #         self.client.execute(
-    #             'INSERT INTO test (a) VALUES',
-    #             [(0, ), (1, ), (1500000000, ), (2**32-1, )]
-    #         )
-    #
-    #         query = 'SELECT toUInt32(a) FROM test ORDER BY a'
-    #         inserted = self.emit_cli(query)
-    #         self.assertEqual(inserted, '0\n1\n1500000000\n4294967295\n')
 
     @require_server_version(1, 1, 54337)
     def test_datetime_with_timezone_use_server_timezone(self):
@@ -273,8 +288,8 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
 
         with self.patch_env_tz('Asia/Novosibirsk'):
             with self.create_table(self.table_columns()):
-                self.common_client.execute(
-                    'INSERT INTO test (a) VALUES', [(self.dt_tz, )]
+                self.client.execute(
+                    'INSERT INTO test (a) VALUES', [self.dt_tz], columnar=True
                 )
 
                 self.emit_cli(
@@ -290,13 +305,13 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
                 query = 'SELECT * FROM test'
                 inserted = self.emit_cli(query)
 
-                dt = (self.dt_tz.astimezone(utc) + offset).replace(tzinfo=None)
+                dt = (self.dt_tz.to_pydatetime()[0].astimezone(utc) + offset) \
+                    .replace(tzinfo=None)
                 self.assertEqual(inserted, '{dt}\n{dt}\n'.format(dt=dt))
 
                 inserted = self.client.execute(query, columnar=True)
                 self.assertArraysEqual(
-                    inserted[0],
-                    np.array([dt.isoformat()] * 2, dtype='datetime64[ns]')
+                    inserted[0], self.make_numpy_d64ns([dt.isoformat()] * 2)
                 )
 
     @require_server_version(1, 1, 54337)
@@ -309,9 +324,9 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
 
         with self.patch_env_tz('Asia/Novosibirsk'):
             with self.create_table(self.table_columns()):
-                self.common_client.execute(
-                    'INSERT INTO test (a) VALUES', [(self.dt_tz, )],
-                    settings=settings
+                self.client.execute(
+                    'INSERT INTO test (a) VALUES', [self.dt_tz],
+                    settings=settings, columnar=True
                 )
 
                 self.emit_cli(
@@ -338,8 +353,7 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
                                                settings=settings)
                 dt = datetime(2017, 7, 14, 0, 40)
                 self.assertArraysEqual(
-                    inserted[0],
-                    np.array([dt.isoformat()] * 2, dtype='datetime64[ns]')
+                    inserted[0], self.make_numpy_d64ns([dt.isoformat()] * 2)
                 )
 
     @require_server_version(1, 1, 54337)
@@ -350,8 +364,8 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
 
         with self.patch_env_tz('Europe/Moscow'):
             with self.create_table(self.table_columns(with_tz=True)):
-                self.common_client.execute(
-                    'INSERT INTO test (a) VALUES', [(self.dt, )]
+                self.client.execute(
+                    'INSERT INTO test (a) VALUES', [self.dt_arr], columnar=True
                 )
 
                 self.emit_cli(
@@ -386,9 +400,9 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
 
         with self.patch_env_tz('Europe/Moscow'):
             with self.create_table(self.table_columns(with_tz=True)):
-                self.common_client.execute(
-                    'INSERT INTO test (a) VALUES', [(self.dt, )],
-                    settings=settings
+                self.client.execute(
+                    'INSERT INTO test (a) VALUES', [self.dt_arr],
+                    settings=settings, columnar=True
                 )
                 self.emit_cli(
                     "INSERT INTO test (a) VALUES ('2017-07-14 05:40:00')",
@@ -422,8 +436,8 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
 
         with self.patch_env_tz('Europe/Moscow'):
             with self.create_table(self.table_columns(with_tz=True)):
-                self.common_client.execute(
-                    'INSERT INTO test (a) VALUES', [(self.dt_tz, )]
+                self.client.execute(
+                    'INSERT INTO test (a) VALUES', [self.dt_tz], columnar=True
                 )
 
                 self.emit_cli(
@@ -461,9 +475,9 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
 
         with self.patch_env_tz('Europe/Moscow'):
             with self.create_table(self.table_columns(with_tz=True)):
-                self.common_client.execute(
-                    'INSERT INTO test (a) VALUES', [(self.dt_tz, )],
-                    settings=settings
+                self.client.execute(
+                    'INSERT INTO test (a) VALUES', [self.dt_tz],
+                    settings=settings, columnar=True
                 )
 
                 self.emit_cli(

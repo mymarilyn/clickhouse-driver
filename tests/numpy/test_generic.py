@@ -31,15 +31,18 @@ class GenericTestCase(NumpyBaseTestCase):
         self.assertIsInstance(rv[0], (np.ndarray, ))
 
     def test_insert_not_supported(self):
-        data = [(300,)]
+        data = [np.array(range(self.n))]
 
         with self.create_table('a Int32'):
-            with self.assertRaises(RuntimeError) as e:
+            with self.assertRaises(ValueError) as e:
                 self.client.execute(
                     'INSERT INTO test (a) VALUES', data
                 )
 
-                self.assertEqual('Write is not implemented', str(e.exception))
+            self.assertEqual(
+                'NumPy inserts is only allowed with columnar=True',
+                str(e.exception)
+            )
 
     def test_with_column_types(self):
         rv = self.client.execute(
@@ -89,20 +92,48 @@ class NumpyIteratorTestCase(NumpyBaseTestCase):
         self.assertEqual(list(result), [])
 
 
-class QueryDataFrameTestCase(NumpyBaseTestCase):
-    def test_simple(self):
+class DataFrameTestCase(NumpyBaseTestCase):
+    def test_query_simple(self):
         df = self.client.query_dataframe(
             'SELECT CAST(number AS Int64) AS x FROM system.numbers LIMIT 100'
         )
 
         self.assertTrue(df.equals(pd.DataFrame({'x': range(100)})))
 
-    def test_replace_whitespace_in_column_names(self):
+    def test_query_replace_whitespace_in_column_names(self):
         df = self.client.query_dataframe(
             'SELECT number AS "test me" FROM system.numbers LIMIT 100'
         )
 
         self.assertIn('test_me', df)
+
+    def test_insert_simple(self):
+        n = 10
+        df = pd.DataFrame({
+            'a': range(n),
+            'b': [float(x) for x in range(n)]
+        })
+
+        with self.create_table('a Int64, b Float64'):
+            rv = self.client.insert_dataframe('INSERT INTO test VALUES', df)
+            self.assertEqual(rv, n)
+            df2 = self.client.query_dataframe('SELECT * FROM test ORDER BY a')
+            self.assertTrue(df.equals(df2))
+
+    def test_insert_transposed(self):
+        n = 10
+        df = pd.DataFrame({
+            'a': range(n),
+            'b': [float(x) for x in range(n)]
+        })
+
+        with self.create_table('a Int64, b Float64'):
+            rv = self.client.insert_dataframe(
+                'INSERT INTO test VALUES', df.transpose(), transpose=False
+            )
+            self.assertEqual(rv, n)
+            df2 = self.client.query_dataframe('SELECT * FROM test ORDER BY a')
+            self.assertTrue(df.equals(df2))
 
 
 class NoNumPyTestCase(BaseTestCase):

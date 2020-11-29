@@ -351,13 +351,13 @@ managers:
         >>>        print(cursor.fetchall())
 
 
-Reading into NumPy arrays
--------------------------
+NumPy arrays support
+--------------------
 
 *New in version 0.1.6.*
 
-Starting from version 0.1.6 package can return columns as NumPy arrays.
-Additional packages are required for :ref:`installation-numpy-support`.
+Starting from version 0.1.6 package can SELECT and INSERT columns as NumPy
+arrays. Additional packages are required for :ref:`installation-numpy-support`.
 
     .. code-block:: python
 
@@ -368,8 +368,6 @@ Additional packages are required for :ref:`installation-numpy-support`.
         ... )
         [array([   0,    1,    2, ..., 9997, 9998, 9999], dtype=uint64)]
 
-Inserting using NumPy arrays currently is not supported. You can insert data
-without ``use_numpy`` option.
 
 Supported types:
 

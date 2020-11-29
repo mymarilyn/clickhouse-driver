@@ -11,4 +11,4 @@ class NumpyColumn(Column):
         return np.frombuffer(data, self.dtype, n_items)
 
     def write_items(self, items, buf):
-        raise RuntimeError('Write is not implemented')
+        buf.write(items.astype(self.dtype).tobytes())

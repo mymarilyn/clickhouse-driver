@@ -1,47 +1,70 @@
-try:
-    import numpy as np
-except ImportError:
-    numpy = None
-
-try:
-    import pandas as pd
-except ImportError:
-    pandas = None
-
+import numpy as np
+import pandas as pd
 from pytz import timezone as get_timezone
 from tzlocal import get_localzone
 
 from .base import NumpyColumn
 
 
-class NumpyDateTimeColumn(NumpyColumn):
-    dtype = np.dtype(np.uint32)
+class NumpyDateTimeColumnBase(NumpyColumn):
+    datetime_dtype = None
 
     def __init__(self, timezone=None, offset_naive=True, local_timezone=None,
                  **kwargs):
         self.timezone = timezone
         self.offset_naive = offset_naive
         self.local_timezone = local_timezone
-        super(NumpyDateTimeColumn, self).__init__(**kwargs)
+        super(NumpyDateTimeColumnBase, self).__init__(**kwargs)
 
-    def apply_timezones(self, dt):
-        ts = pd.to_datetime(dt, utc=True)
+    def apply_timezones_after_read(self, dt):
         timezone = self.timezone if self.timezone else self.local_timezone
 
-        ts = ts.tz_convert(timezone)
+        ts = pd.to_datetime(dt, utc=True).tz_convert(timezone)
+
         if self.offset_naive:
             ts = ts.tz_localize(None)
 
-        return ts.to_numpy()
+        return ts.to_numpy(self.datetime_dtype)
+
+    def apply_timezones_before_write(self, items):
+        if isinstance(items, pd.DatetimeIndex):
+            ts = items
+        else:
+            timezone = self.timezone if self.timezone else self.local_timezone
+            ts = pd.to_datetime(items).tz_localize(timezone)
+
+        ts = ts.tz_convert('UTC')
+        return ts.tz_localize(None).to_numpy(self.datetime_dtype)
+
+    def is_items_integer(self, items):
+        return (
+            isinstance(items, np.ndarray) and
+            np.issubdtype(items.dtype, np.integer)
+        )
+
+
+class NumpyDateTimeColumn(NumpyDateTimeColumnBase):
+    dtype = np.dtype(np.uint32)
+    datetime_dtype = 'datetime64[s]'
+
+    def write_items(self, items, buf):
+        # write int 'as is'.
+        if self.is_items_integer(items):
+            super(NumpyDateTimeColumn, self).write_items(items, buf)
+            return
+
+        items = self.apply_timezones_before_write(items)
+
+        super(NumpyDateTimeColumn, self).write_items(items, buf)
 
     def read_items(self, n_items, buf):
-        data = super(NumpyDateTimeColumn, self).read_items(n_items, buf)
-        dt = data.astype('datetime64[s]')
-        return self.apply_timezones(dt)
+        items = super(NumpyDateTimeColumn, self).read_items(n_items, buf)
+        return self.apply_timezones_after_read(items.astype('datetime64[s]'))
 
 
-class NumpyDateTime64Column(NumpyDateTimeColumn):
+class NumpyDateTime64Column(NumpyDateTimeColumnBase):
     dtype = np.dtype(np.uint64)
+    datetime_dtype = 'datetime64[ns]'
 
     max_scale = 6
 
@@ -53,12 +76,32 @@ class NumpyDateTime64Column(NumpyDateTimeColumn):
         scale = 10 ** self.scale
         frac_scale = 10 ** (self.max_scale - self.scale)
 
-        data = super(NumpyDateTimeColumn, self).read_items(n_items, buf)
-        seconds = (data // scale).astype('datetime64[s]')
-        microseconds = ((data % scale) * frac_scale).astype('timedelta64[us]')
+        items = super(NumpyDateTime64Column, self).read_items(n_items, buf)
+
+        seconds = (items // scale).astype('datetime64[s]')
+        microseconds = ((items % scale) * frac_scale).astype('timedelta64[us]')
 
         dt = seconds + microseconds
-        return self.apply_timezones(dt)
+        return self.apply_timezones_after_read(dt)
+
+    def write_items(self, items, buf):
+        # write int 'as is'.
+        if self.is_items_integer(items):
+            super(NumpyDateTime64Column, self).write_items(items, buf)
+            return
+
+        scale = 10 ** self.scale
+        frac_scale = 10 ** (self.max_scale - self.scale)
+
+        items = self.apply_timezones_before_write(items)
+
+        seconds = items.astype('datetime64[s]')
+        microseconds = (items - seconds).astype(dtype='timedelta64[us]') \
+            .astype(np.uint32) // frac_scale
+
+        items = seconds.astype(self.dtype) * scale + microseconds
+
+        super(NumpyDateTime64Column, self).write_items(items, buf)
 
 
 def create_numpy_datetime_column(spec, column_options):

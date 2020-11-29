@@ -103,6 +103,38 @@ class DateTimeTestCase(BaseDateTimeTestCase):
                 inserted, [(datetime(2012, 10, 25, 14, 7, 19, 125000), )]
             )
 
+    def test_insert_integers(self):
+        with self.create_table('a DateTime'):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', [(1530211034, )]
+            )
+
+            query = 'SELECT toUInt32(a), a FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, '1530211034\t2018-06-28 21:37:14\n')
+
+    @require_server_version(20, 1, 2)
+    def test_insert_integers_datetime64(self):
+        with self.create_table('a DateTime64'):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', [(1530211034123, )]
+            )
+
+            query = 'SELECT toUInt32(a), a FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, '1530211034\t2018-06-28 21:37:14.123\n')
+
+    def test_insert_integer_bounds(self):
+        with self.create_table('a DateTime'):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES',
+                [(0, ), (1, ), (1500000000, ), (2**32-1, )]
+            )
+
+            query = 'SELECT toUInt32(a) FROM test ORDER BY a'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, '0\n1\n1500000000\n4294967295\n')
+
 
 class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
     dt_type = 'DateTime'
@@ -207,31 +239,6 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
 
                 inserted = self.client.execute(query, settings=settings)
                 self.assertEqual(inserted, [(self.dt, ), (self.dt, )])
-
-    def test_insert_integers(self):
-        settings = {'use_client_time_zone': True}
-
-        with self.patch_env_tz('Europe/Moscow'):
-            with self.create_table(self.table_columns()):
-                self.client.execute(
-                    'INSERT INTO test (a) VALUES', [(1530211034, )],
-                    settings=settings
-                )
-
-                query = 'SELECT toUInt32(a), a FROM test'
-                inserted = self.emit_cli(query, use_client_time_zone=1)
-                self.assertEqual(inserted, '1530211034\t2018-06-28 21:37:14\n')
-
-    def test_insert_integer_bounds(self):
-        with self.create_table('a DateTime'):
-            self.client.execute(
-                'INSERT INTO test (a) VALUES',
-                [(0, ), (1, ), (1500000000, ), (2**32-1, )]
-            )
-
-            query = 'SELECT toUInt32(a) FROM test ORDER BY a'
-            inserted = self.emit_cli(query)
-            self.assertEqual(inserted, '0\n1\n1500000000\n4294967295\n')
 
     @require_server_version(1, 1, 54337)
     def test_datetime_with_timezone_use_server_timezone(self):

@@ -18,10 +18,16 @@ class NumpyStringColumn(NumpyColumn):
             buf.read_strings(n_items, encoding=self.encoding), dtype=self.dtype
         )
 
+    def write_items(self, items, buf):
+        return buf.write_strings(items.tolist(), encoding=self.encoding)
+
 
 class NumpyByteStringColumn(NumpyColumn):
     def read_items(self, n_items, buf):
         return np.array(buf.read_strings(n_items), dtype=self.dtype)
+
+    def write_items(self, items, buf):
+        return buf.write_strings(items.tolist())
 
 
 class NumpyFixedString(NumpyStringColumn):
@@ -34,6 +40,11 @@ class NumpyFixedString(NumpyStringColumn):
             n_items, self.length, encoding=self.encoding
         ), dtype=self.dtype)
 
+    def write_items(self, items, buf):
+        return buf.write_fixed_strings(
+            items.tolist(), self.length, encoding=self.encoding
+        )
+
 
 class NumpyByteFixedString(NumpyByteStringColumn):
     def __init__(self, length, **kwargs):
@@ -44,6 +55,9 @@ class NumpyByteFixedString(NumpyByteStringColumn):
         return np.array(
             buf.read_fixed_strings(n_items, self.length), dtype=self.dtype
         )
+
+    def write_items(self, items, buf):
+        return buf.write_fixed_strings(items.tolist(), self.length)
 
 
 def create_string_column(spec, column_options):

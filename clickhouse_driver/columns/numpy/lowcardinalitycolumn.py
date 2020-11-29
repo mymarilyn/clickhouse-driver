@@ -1,7 +1,10 @@
+from math import log
+
 import pandas as pd
 
 from ..lowcardinalitycolumn import LowCardinalityColumn
 from ...reader import read_binary_uint64
+from ...writer import write_binary_int64
 from .intcolumn import (
     NumpyUInt8Column, NumpyUInt16Column, NumpyUInt32Column, NumpyUInt64Column
 )
@@ -18,6 +21,31 @@ class NumpyLowCardinalityColumn(LowCardinalityColumn):
     def __init__(self, nested_column, **kwargs):
         super(NumpyLowCardinalityColumn, self).__init__(nested_column,
                                                         **kwargs)
+
+    def _write_data(self, items, buf):
+        # TODO: nullable support
+
+        # Do not write anything for empty column.
+        # May happen while writing empty arrays.
+        if not len(items):
+            return
+
+        c = pd.Categorical(items)
+
+        int_type = int(log(len(c.codes), 2) / 8)
+        int_column = self.int_types[int_type]()
+
+        serialization_type = self.serialization_type | int_type
+
+        index = c.categories
+        keys = c.codes
+
+        write_binary_int64(serialization_type, buf)
+        write_binary_int64(len(index), buf)
+
+        self.nested_column.write_data(index.to_numpy(items.dtype), buf)
+        write_binary_int64(len(items), buf)
+        int_column.write_data(keys, buf)
 
     def _read_data(self, n_items, buf, nulls_map=None):
         if not n_items:
@@ -46,8 +74,7 @@ class NumpyLowCardinalityColumn(LowCardinalityColumn):
             # index = (None, ) + index[1:]
             keys = keys - 1
             index = index[1:]
-        result = pd.Categorical.from_codes(keys, index)
-        return result
+        return pd.Categorical.from_codes(keys, index)
 
 
 def create_numpy_low_cardinality_column(spec, column_by_spec_getter):
