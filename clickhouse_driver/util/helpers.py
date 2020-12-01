@@ -1,4 +1,4 @@
-from itertools import islice
+from itertools import islice, tee
 
 
 def chunks(seq, n):
@@ -17,6 +17,12 @@ def chunks(seq, n):
         while item:
             yield item
             item = list(islice(it, n))
+
+
+def pairwise(iterable):
+    a, b = tee(iterable)
+    next(b, None)
+    return zip(a, b)
 
 
 def column_chunks(columns, n):

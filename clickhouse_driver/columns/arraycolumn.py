@@ -4,6 +4,7 @@ from struct import Struct
 
 from .base import Column
 from .intcolumn import UInt64Column
+from ..util.helpers import pairwise
 
 
 class ArrayColumn(Column):
@@ -113,18 +114,13 @@ class ArrayColumn(Column):
         q.appendleft((self, [size], 0))
 
         slices_series = []
-
-        cur_depth = 0
-        prev_offset = 0
         slices = []
 
-        if self.nested_column.nullable:
-            nulls_map = self._read_nulls_map(size, buf)
-        else:
-            nulls_map = [0] * size
+        cur_depth = 0
 
-        nested_column_size = size
+        nulls_map = None
         nested_column = self.nested_column
+        n_items = 0
 
         # Read and store info about slices.
         while q:
@@ -135,40 +131,37 @@ class ArrayColumn(Column):
             if cur_depth != depth:
                 cur_depth = depth
 
-                slices_series.append((slices, nulls_map))
+                slices_series.append(slices)
 
+                # The last element in slice is index(number) of the last
+                # element in current level. On the last iteration this
+                # represents number of elements in fully flatten array.
+                n_items = slices[-1]
                 if nested_column.nullable:
-                    nulls_map = self._read_nulls_map(prev_offset, buf)
-                else:
-                    nulls_map = [0] * prev_offset
+                    nulls_map = self._read_nulls_map(n_items, buf)
 
-                prev_offset = 0
                 slices = []
 
             if isinstance(nested_column, ArrayColumn):
+                slices.append(0)
+                prev = 0
                 for size in sizes:
-                    next_sizes = []
-                    ns = Struct('<{}Q'.format(size))
-                    for nested_column_size in ns.unpack(buf.read(ns.size)):
-                        next_sizes.append(nested_column_size - prev_offset)
-                        slices.append((prev_offset, nested_column_size))
-                        prev_offset = nested_column_size
+                    ns = Struct('<{}Q'.format(size - prev))
+                    nested_sizes = ns.unpack(buf.read(ns.size))
+                    slices.extend(nested_sizes)
+                    prev = size
 
-                    q.appendleft((nested_column, next_sizes, cur_depth + 1))
+                    q.appendleft((nested_column, nested_sizes, cur_depth + 1))
 
         data = []
-        if nested_column_size:
-            nested_nulls_map = nulls_map if nested_column.nullable else None
+        if n_items:
             data = list(nested_column._read_data(
-                nested_column_size, buf, nulls_map=nested_nulls_map
+                n_items, buf, nulls_map=nulls_map
             ))
 
-        # Build nested tuple structure.
-        for slices, nulls_map in reversed(slices_series):
-            data = [
-                None if is_null else data[slice_from:slice_to]
-                for (slice_from, slice_to), is_null in zip(slices, nulls_map)
-            ]
+        # Build nested structure.
+        for slices in reversed(slices_series):
+            data = [data[begin:end] for begin, end in pairwise(slices)]
 
         return tuple(data)
 
