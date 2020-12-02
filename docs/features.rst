@@ -383,13 +383,13 @@ unsupported types.
 Direct loading into NumPy arrays increases performance and lowers memory
 requirements on large amounts of rows.
 
-Direct loading into pandas dataframe is also supported by using
+Direct loading into pandas DataFrame is also supported by using
 `query_dataframe`:
 
     .. code-block:: python
 
-        >>> client = Client('localhost', settings={'use_numpy': True}):
-        >>> client.query_dataframe(' FROM table')
+        >>> client = Client('localhost', settings={'use_numpy': True})
+        >>> client.query_dataframe('
         ...     'SELECT number AS x, (number + 100) AS y '
         ...     'FROM system.numbers LIMIT 10000'
         ... )
@@ -407,3 +407,19 @@ Direct loading into pandas dataframe is also supported by using
         9999  9999  10099
 
         [10000 rows x 2 columns]
+
+Writing pandas DataFrame is also supported with `insert_dataframe`:
+
+    .. code-block:: python
+
+        >>> client = Client('localhost', settings={'use_numpy': True})
+        >>> client.execute(
+        ...    'CREATE TABLE test (x Int64, y Int64) Engine = Memory'
+        ... )
+        >>> []
+        >>> df = client.query_dataframe(
+        ...     'SELECT number AS x, (number + 100) AS y '
+        ...     'FROM system.numbers LIMIT 10000'
+        ... )
+        >>> client.insert_dataframe('INSERT INTO test VALUES', df)
+        >>> 10000

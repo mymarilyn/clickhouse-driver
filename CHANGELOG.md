@@ -1,12 +1,32 @@
 # Changelog
 
+## [0.2.0] - 2020-12-14
+### Added
+- NumPy reading/writing for columns: Float32/64, [U]Int8/16/32/64, Date/DateTime(‘timezone’)/DateTime64(‘timezone’), String/FixedString(N), LowCardinality(T). Merge [Arturus's](https://github.com/Arturus/clickhouse-driver) fork.
+- pandas DataFrame reading/writing.
+- Ability to mark all settings as important to fail on unknown settings on sever side.
+- SSL SNI support. Solves issue [#172](https://github.com/mymarilyn/clickhouse-driver/issues/172).
+- Wheels for Python 3.9 and PyPy.
+- Remember last successful host on connection. Solves issue [#168](https://github.com/mymarilyn/clickhouse-driver/issues/168).
+
+### Fixed
+- Server logs displaying on INSERT.
+- Make exceptions picklable. Pull request [#169](https://github.com/mymarilyn/clickhouse-driver/pull/169) by [azat](https://github.com/azat).
+- Enum type deserializing when it wrapped in SimpleAggregateFunction. Pull request [#170](https://github.com/mymarilyn/clickhouse-driver/pull/170) by [flyAwayGG](https://github.com/flyAwayGG).
+- Pin major `tzlocal` version. Solves issue [#166](https://github.com/mymarilyn/clickhouse-driver/issues/166).
+
+### Changed
+- String and DateTime columns writing optimization.
+- Array columns reading/writing optimization.
+- Chunking optimization for large lists/tuples.
+- Protocol version bumped to 54441.
+
 ## [0.1.5] - 2020-09-19
 ### Added
 - Do not require settings declaration if server support setting-as-string. Pull request [#142](https://github.com/mymarilyn/clickhouse-driver/pull/142) by [azat](https://github.com/azat).
 - `host_name` in logs. Pull request [#144](https://github.com/mymarilyn/clickhouse-driver/pull/144) by [azat](https://github.com/azat).
 - Cursor attribute `columns_with_types` to DB API. Issue [#149](https://github.com/mymarilyn/clickhouse-driver/issues/149).
 - Cursor method `set_query_id` to DB API. Issue [#152](https://github.com/mymarilyn/clickhouse-driver/issues/152).
-
 
 ### Fixed
 - Connection error messages formatting.
@@ -287,7 +307,8 @@
 - Date/DateTime types.
 - String types.
 
-[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.5...HEAD
+[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.0...HEAD
+[0.2.0]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.5...0.2.0
 [0.1.5]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.4...0.1.5
 [0.1.4]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.3...0.1.4
 [0.1.3]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.2...0.1.3

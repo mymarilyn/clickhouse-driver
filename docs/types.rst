@@ -30,6 +30,7 @@ INSERT types: :class:`~datetime.date`, :class:`~datetime.datetime`.
 
 SELECT type: :class:`~datetime.date`.
 
+Only values after the beginning of the epoch (1970-01-01) are supported.
 
 DateTime('timezone')/DateTime64('timezone')
 -------------------------------------------
@@ -49,6 +50,8 @@ Setting `use_client_time_zone <https://clickhouse.yandex/docs/en/single/#datetim
 You can cast DateTime column to integers if you are facing performance issues when selecting large amount of rows.
 
 Due to Python's current limitations minimal DateTime64 resolution is one microsecond.
+
+Only values after the beginning of the epoch (1970-01-01) are supported.
 
 
 String/FixedString(N)

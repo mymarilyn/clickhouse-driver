@@ -35,7 +35,7 @@ class Client(object):
 
         * strings_encoding -- specifies string encoding. UTF-8 by default.
 
-        * use_numpy -- Use numpy for columns reading.
+        * use_numpy -- Use numpy for columns reading. New in version *0.2.0*.
 
     """
 
@@ -350,7 +350,7 @@ class Client(object):
             self, query, params=None, external_tables=None, query_id=None,
             settings=None):
         """
-        *New in version 0.0.16.*
+        *New in version 0.2.0.*
 
         Queries DataFrame with specified SELECT query.
 
@@ -385,7 +385,7 @@ class Client(object):
             self, query, dataframe, transpose=True, external_tables=None,
             query_id=None, settings=None):
         """
-        *New in version 0.0.16.*
+        *New in version 0.2.0.*
 
         Inserts pandas DataFrame with specified query.
 
