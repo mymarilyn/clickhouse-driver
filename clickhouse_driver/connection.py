@@ -548,7 +548,7 @@ class Connection(object):
             write_binary_str(table_name, self.fout)
 
         self.block_out.write(block)
-        logger.debug('Block send time: %f', time() - start)
+        logger.debug('Block "%s" send time: %f', table_name, time() - start)
 
     def send_query(self, query, query_id=None):
         if not self.connected:
