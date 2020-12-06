@@ -25,6 +25,7 @@ class Connection(object):
         self.database = database
         self.connection_kwargs = kwargs
         self.is_closed = False
+        self._hosts = None
         super(Connection, self).__init__()
 
     def __repr__(self):
@@ -83,6 +84,10 @@ class Connection(object):
             raise InterfaceError('connection already closed')
 
         client = self._make_client()
+        if self._hosts is None:
+            self._hosts = client.connection.hosts
+        else:
+            client.connection.hosts = self._hosts
         cursor = Cursor(client)
         self.cursors.append(cursor)
         return cursor

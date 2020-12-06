@@ -10,16 +10,18 @@ from tests.numpy.util import check_numpy
 
 
 class ClientFromUrlTestCase(TestCase):
+    def assertHostsEqual(self, client, another, msg=None):
+        self.assertEqual(list(client.connection.hosts), another, msg=msg)
 
     def test_simple(self):
         c = Client.from_url('clickhouse://host')
 
-        self.assertEqual(c.connection.hosts, [('host', 9000)])
+        self.assertHostsEqual(c, [('host', 9000)])
         self.assertEqual(c.connection.database, 'default')
 
         c = Client.from_url('clickhouse://host/db')
 
-        self.assertEqual(c.connection.hosts, [('host', 9000)])
+        self.assertHostsEqual(c, [('host', 9000)])
         self.assertEqual(c.connection.database, 'db')
 
     def test_credentials(self):
@@ -56,25 +58,25 @@ class ClientFromUrlTestCase(TestCase):
 
     def test_port(self):
         c = Client.from_url('clickhouse://host')
-        self.assertEqual(c.connection.hosts, [('host', 9000)])
+        self.assertHostsEqual(c, [('host', 9000)])
 
         c = Client.from_url('clickhouses://host')
-        self.assertEqual(c.connection.hosts, [('host', 9440)])
+        self.assertHostsEqual(c, [('host', 9440)])
 
         c = Client.from_url('clickhouses://host:1234')
-        self.assertEqual(c.connection.hosts, [('host', 1234)])
+        self.assertHostsEqual(c, [('host', 1234)])
 
     def test_secure(self):
         c = Client.from_url('clickhouse://host?secure=n')
-        self.assertEqual(c.connection.hosts, [('host', 9000)])
+        self.assertHostsEqual(c, [('host', 9000)])
         self.assertFalse(c.connection.secure_socket)
 
         c = Client.from_url('clickhouse://host?secure=y')
-        self.assertEqual(c.connection.hosts, [('host', 9440)])
+        self.assertHostsEqual(c, [('host', 9440)])
         self.assertTrue(c.connection.secure_socket)
 
         c = Client.from_url('clickhouse://host:1234?secure=y')
-        self.assertEqual(c.connection.hosts, [('host', 1234)])
+        self.assertHostsEqual(c, [('host', 1234)])
         self.assertTrue(c.connection.secure_socket)
 
         with self.assertRaises(ValueError):
@@ -163,10 +165,10 @@ class ClientFromUrlTestCase(TestCase):
 
     def test_alt_hosts(self):
         c = Client.from_url('clickhouse://host?alt_hosts=host2:1234')
-        self.assertEqual(c.connection.hosts, [('host', 9000), ('host2', 1234)])
+        self.assertHostsEqual(c, [('host', 9000), ('host2', 1234)])
 
         c = Client.from_url('clickhouse://host?alt_hosts=host2')
-        self.assertEqual(c.connection.hosts, [('host', 9000), ('host2', 9000)])
+        self.assertHostsEqual(c, [('host', 9000), ('host2', 9000)])
 
     def test_parameters_cast(self):
         c = Client.from_url('clickhouse://host?insert_block_size=123')

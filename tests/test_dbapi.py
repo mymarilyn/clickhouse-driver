@@ -1,5 +1,8 @@
 import types
 from contextlib import contextmanager
+import socket
+
+from mock import patch
 
 from clickhouse_driver import connect
 from clickhouse_driver.dbapi import (
@@ -159,6 +162,39 @@ class DBAPITestCase(DBAPITestCaseBase):
             cursor.execute('DROP TABLE IF EXISTS test')
             self.assertEqual(cursor.fetchall(), [])
             self.assertEqual(cursor.rowcount, -1)
+
+    def test_remember_last_host(self):
+        self.n_calls = 0
+        getaddrinfo = socket.getaddrinfo
+
+        def side_getaddrinfo(host, *args, **kwargs):
+            if host == 'wrong_host':
+                self.n_calls += 1
+                raise socket.error(-2, 'Name or service not known')
+            return getaddrinfo(host, *args, **kwargs)
+
+        with patch('socket.getaddrinfo') as mocked_getaddrinfo:
+            mocked_getaddrinfo.side_effect = side_getaddrinfo
+
+            conn_kwargs = {
+                'host': 'wrong_host',
+                'port': 1234,
+                'alt_hosts': '{}:{}'.format(self.host, self.port)
+            }
+            with self.created_connection(**conn_kwargs) as connection:
+                cursor = connection.cursor()
+                cursor.execute('SELECT 1')
+                self.assertEqual(cursor.fetchall(), [(1, )])
+                cursor.close()
+
+                cursor = connection.cursor()
+                cursor.execute('SELECT 1')
+                self.assertEqual(cursor.fetchall(), [(1, )])
+                cursor.close()
+
+        # Last host must be remembered and getaddrinfo must call exactly
+        # once with host == 'wrong_host'.
+        self.assertEqual(self.n_calls, 1)
 
 
 class StreamingTestCase(DBAPITestCaseBase):

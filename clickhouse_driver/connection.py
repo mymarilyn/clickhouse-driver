@@ -1,6 +1,7 @@
 import logging
 import socket
 import ssl
+from collections import deque
 from contextlib import contextmanager
 from time import time
 
@@ -136,7 +137,7 @@ class Connection(object):
         else:
             default_port = defines.DEFAULT_PORT
 
-        self.hosts = [(host, port or default_port)]
+        self.hosts = deque([(host, port or default_port)])
 
         if alt_hosts:
             for host in alt_hosts.split(','):
@@ -294,7 +295,8 @@ class Connection(object):
         )
 
         err = None
-        for host, port in self.hosts:
+        for i in range(len(self.hosts)):
+            host, port = self.hosts[0]
             logger.debug('Connecting to %s:%s', host, port)
 
             try:
@@ -315,6 +317,8 @@ class Connection(object):
                 )
                 err_str = self._format_connection_error(e, host, port)
                 err = errors.NetworkError(err_str)
+
+            self.hosts.rotate(-1)
 
         if err is not None:
             raise err

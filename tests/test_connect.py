@@ -142,10 +142,12 @@ class ConnectTestCase(BaseTestCase):
             alt_hosts='{}:{}'.format(self.host, self.port)
         )
 
+        self.n_calls = 0
         getaddrinfo = socket.getaddrinfo
 
         def side_getaddrinfo(host, *args, **kwargs):
             if host == 'wrong_host':
+                self.n_calls += 1
                 raise socket.error(-2, 'Name or service not known')
             return getaddrinfo(host, *args, **kwargs)
 
@@ -154,6 +156,14 @@ class ConnectTestCase(BaseTestCase):
 
             rv = client.execute('SELECT 1')
             self.assertEqual(rv, [(1,)])
+
+            client.disconnect()
+
+            rv = client.execute('SELECT 1')
+            self.assertEqual(rv, [(1,)])
+            # Last host must be remembered and getaddrinfo must call exactly
+            # once with host == 'wrong_host'.
+            self.assertEqual(self.n_calls, 1)
 
         client.disconnect()
 
