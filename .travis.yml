@@ -64,7 +64,7 @@ install:
   # Make host think that clickhouse-server is localhost
   - echo '127.0.0.1 clickhouse-server' | sudo tee /etc/hosts > /dev/null
   - pip install --upgrade pip setuptools
-  - pip install flake8 flake8-print coveralls cython
+  - pip install flake8 flake8-print coveralls cython 'cryptography<3.3'
 script:
   - if [ -z ${USE_NUMPY+x} ]; then pip uninstall -y numpy pandas; fi
   - flake8 && coverage run --source=clickhouse_driver setup.py test
