@@ -85,7 +85,8 @@ class ArrayColumn(Column):
         if isinstance(self.nested_column, ArrayColumn):
             value = list(chain.from_iterable(value))
 
-        self.nested_column._write_data(value, buf)
+        if value:
+            self.nested_column._write_data(value, buf)
 
     def _write_nulls_data(self, value, buf):
         if self.nullable:

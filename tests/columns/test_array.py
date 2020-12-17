@@ -2,6 +2,7 @@ from uuid import UUID
 
 from tests.testcase import BaseTestCase
 from clickhouse_driver import errors
+from tests.util import require_server_version
 
 
 class ArrayTestCase(BaseTestCase):
@@ -216,6 +217,25 @@ class ArrayTestCase(BaseTestCase):
                 "['c0fcbba9-0752-44ed-a5d6-4dfb4342b89d',"
                 "NULL,"
                 "'2efcead4-ff55-4db5-bdb4-6b36a308d8e0']\n"
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
+
+    @require_server_version(19, 16, 13)
+    def test_tuple_array(self):
+        columns = 'a Array(Tuple(Int32))'
+        data = [([], )]
+
+        with self.create_table(columns):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted, "[]\n"
             )
 
             inserted = self.client.execute(query)
