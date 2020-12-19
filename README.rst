@@ -63,6 +63,8 @@ Features
 
 - Python DB API 2.0 specification support.
 
+- Optional NumPy arrays support.
+
 Documentation
 =============
 
