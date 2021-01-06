@@ -13,6 +13,7 @@ else:
     USE_CYTHON = True
 
 USE_NUMPY = bool(os.getenv('USE_NUMPY', False))
+CYTHON_TRACE = bool(os.getenv('CYTHON_TRACE', False))
 
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -57,9 +58,11 @@ extensions = [
 ]
 
 if USE_CYTHON:
-    extensions = cythonize(
-        extensions, compiler_directives={'language_level': '3'}
-    )
+    compiler_directives = {'language_level': '3'}
+    if CYTHON_TRACE:
+        compiler_directives['linetrace'] = True
+
+    extensions = cythonize(extensions, compiler_directives=compiler_directives)
 
 tests_require = [
     'nose',
