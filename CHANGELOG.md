@@ -33,7 +33,7 @@
 - `Client.from_url` credentials unquoting. Issue [#146](https://github.com/mymarilyn/clickhouse-driver/issues/146).
 - Empty nested array handling. Pull request [#161](https://github.com/mymarilyn/clickhouse-driver/pull/161) by [dourvaris](https://github.com/dourvaris).
 - `read_varint` overflow. Issue [#163](https://github.com/mymarilyn/clickhouse-driver/issues/163).
-- Malformed reads/writes in `BufferedReader`.
+- Malformed reads/writes in `BufferedReader`. This addresses [CVE-2020-26759](https://nvd.nist.gov/vuln/detail/CVE-2020-26759).
 
 ### Changed
 - Use deque for ~4x speedup when reading Array columns. Pull request [#164](https://github.com/mymarilyn/clickhouse-driver/pull/164) by [dourvaris](https://github.com/dourvaris).
