@@ -1,13 +1,12 @@
 from decimal import Decimal, localcontext
 
 from ..writer import MAX_UINT64, MAX_INT64
-from ..util import compat
 from .base import FormatColumn
 from .exceptions import ColumnTypeMismatchException
 
 
 class DecimalColumn(FormatColumn):
-    py_types = (Decimal, float) + compat.integer_types
+    py_types = (Decimal, float, int)
     max_precision = None
     int_size = None
 

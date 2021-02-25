@@ -1,12 +1,11 @@
 from enum import Enum
 
 from .. import errors
-from ..util import compat
 from .intcolumn import IntColumn
 
 
 class EnumColumn(IntColumn):
-    py_types = (Enum, ) + compat.integer_types + compat.string_types
+    py_types = (Enum, int, str)
 
     def __init__(self, enum_cls, **kwargs):
         self.enum_cls = enum_cls
@@ -26,7 +25,7 @@ class EnumColumn(IntColumn):
 
             # Check real enum value
             try:
-                if isinstance(source_value, compat.string_types):
+                if isinstance(source_value, str):
                     items[i] = enum_cls[source_value].value
                 else:
                     items[i] = enum_cls(source_value).value

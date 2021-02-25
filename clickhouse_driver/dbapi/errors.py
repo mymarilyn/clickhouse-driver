@@ -1,11 +1,10 @@
-from ..util.compat import StandardError
 
 
-class Warning(StandardError):
+class Warning(Exception):
     pass
 
 
-class Error(StandardError):
+class Error(Exception):
     pass
 
 

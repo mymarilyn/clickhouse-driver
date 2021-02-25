@@ -1,11 +1,10 @@
 from ctypes import c_float
 
-from ..util import compat
 from .base import FormatColumn
 
 
 class FloatColumn(FormatColumn):
-    py_types = (float, ) + compat.integer_types
+    py_types = (float, int)
 
 
 class Float32Column(FloatColumn):

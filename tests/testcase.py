@@ -1,17 +1,11 @@
+import configparser
 from contextlib import contextmanager
 import subprocess
 from unittest import TestCase
 
 from clickhouse_driver.client import Client
-from clickhouse_driver.util import compat
 from tests import log
 from tests.util import skip_by_server_version
-
-
-if compat.PY3:
-    import configparser
-else:
-    import ConfigParser as configparser
 
 
 file_config = configparser.ConfigParser()

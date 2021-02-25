@@ -1,8 +1,7 @@
 # coding: utf-8
 import socket
-
-from mock import patch
 from io import BytesIO
+from unittest.mock import patch
 
 from clickhouse_driver import errors
 from clickhouse_driver.client import Client

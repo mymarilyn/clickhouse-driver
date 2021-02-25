@@ -1,8 +1,8 @@
 import os
 from datetime import date, datetime
+from unittest.mock import patch
 
 from freezegun import freeze_time
-from mock import patch
 
 from tests.testcase import BaseTestCase
 

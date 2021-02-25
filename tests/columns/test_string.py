@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 from tests.testcase import BaseTestCase
 from clickhouse_driver import errors
-from clickhouse_driver.util.compat import text_type
 
 
 class StringTestCase(BaseTestCase):
@@ -103,8 +102,8 @@ class StringTestCase(BaseTestCase):
 
             inserted = self.client.execute(query, settings=settings)
             self.assertEqual(inserted, data)
-            self.assertIsInstance(inserted[0][0], text_type)
-            self.assertIsInstance(inserted[1][0], text_type)
+            self.assertIsInstance(inserted[0][0], str)
+            self.assertIsInstance(inserted[1][0], str)
 
     def test_not_supported_types(self):
         datas = [

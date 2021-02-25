@@ -1,11 +1,10 @@
 
-from ..util import compat
 from .exceptions import ColumnTypeMismatchException
 from .base import FormatColumn
 
 
 class IntColumn(FormatColumn):
-    py_types = compat.integer_types
+    py_types = (int, )
     int_size = None
 
     def __init__(self, types_check=False, **kwargs):

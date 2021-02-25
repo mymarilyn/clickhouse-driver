@@ -1,7 +1,6 @@
 from ipaddress import IPv4Address, IPv6Address, AddressValueError
 
 from .. import errors
-from ..util import compat
 from .exceptions import ColumnTypeMismatchException
 from .stringcolumn import ByteFixedString
 from .intcolumn import UInt32Column
@@ -9,7 +8,7 @@ from .intcolumn import UInt32Column
 
 class IPv4Column(UInt32Column):
     ch_type = "IPv4"
-    py_types = compat.string_types + (IPv4Address, int)
+    py_types = (str, IPv4Address, int)
 
     def __init__(self, types_check=False, **kwargs):
         # UIntColumn overrides before_write_item and check_item
@@ -67,7 +66,7 @@ class IPv4Column(UInt32Column):
 
 class IPv6Column(ByteFixedString):
     ch_type = "IPv6"
-    py_types = compat.string_types + (IPv6Address, bytes)
+    py_types = (str, IPv6Address, bytes)
 
     def __init__(self, types_check=False, **kwargs):
         super(IPv6Column, self).__init__(16, types_check=types_check, **kwargs)

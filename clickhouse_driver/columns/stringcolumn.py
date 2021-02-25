@@ -1,12 +1,11 @@
 
 from .. import defines
-from ..util import compat
 from .base import Column
 
 
 class String(Column):
     ch_type = 'String'
-    py_types = compat.string_types
+    py_types = (str, )
     null_value = ''
 
     default_encoding = defines.STRINGS_ENCODING

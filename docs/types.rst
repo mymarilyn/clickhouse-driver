@@ -127,8 +127,6 @@ SELECT type: :class:`str`/:func:`basestring <basestring>`.
         >>> client.execute('SELECT * FROM test')
         [('foo',), ('bar',), ('foo',)]
 
-For Python 2.7 `enum34 <https://pypi.org/project/enum34>`_ package is used.
-
 Currently clickhouse-driver can't handle empty enum value due to Python's `Enum` mechanics.
 Enum member name must be not empty. See `issue`_ and  `workaround`_.
 
@@ -237,8 +235,6 @@ SELECT type: :class:`~ipaddress.IPv4Address`/:class:`~ipaddress.IPv6Address`.
         >>> client.execute('SELECT * FROM test')
         [(IPv6Address('79f4:e698:45de:a59b:2765:28e3:8d3a:35ae'),), (IPv6Address('12ff::1'),), (IPv6Address('79f4:e698:45de:a59b:2765:28e3:8d3a:35ae'),)]
         >>>
-
-For Python 2.7 `ipaddress <https://pypi.org/project/ipaddress>`_ package is used.
 
 
 LowCardinality(T)

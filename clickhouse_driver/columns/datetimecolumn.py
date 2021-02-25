@@ -1,12 +1,9 @@
 from datetime import datetime
-from time import mktime
 
 from pytz import timezone as get_timezone, utc
 from tzlocal import get_localzone
 
-from ..util import compat
 from .base import FormatColumn
-
 
 EPOCH = datetime(1970, 1, 1, tzinfo=utc)
 
@@ -20,15 +17,6 @@ class DateTimeColumn(FormatColumn):
         self.timezone = timezone
         self.offset_naive = offset_naive
         super(DateTimeColumn, self).__init__(**kwargs)
-
-    def timestamp_py2(self, dt):
-        """Return POSIX timestamp as float"""
-        if dt.tzinfo is None:
-            return mktime((dt.year, dt.month, dt.day,
-                           dt.hour, dt.minute, dt.second,
-                           -1, -1, -1))
-        else:
-            return (dt - EPOCH).total_seconds()
 
     def after_read_items(self, items, nulls_map=None):
         tz = self.timezone
@@ -70,7 +58,7 @@ class DateTimeColumn(FormatColumn):
     def before_write_items(self, items, nulls_map=None):
         timezone = self.timezone
         null_value = self.null_value
-        to_timestamp = datetime.timestamp if compat.PY3 else self.timestamp_py2
+        to_timestamp = datetime.timestamp
 
         for i, item in enumerate(items):
             if nulls_map and nulls_map[i]:
@@ -106,15 +94,6 @@ class DateTime64Column(DateTimeColumn):
     def __init__(self, scale=0, **kwargs):
         self.scale = scale
         super(DateTime64Column, self).__init__(**kwargs)
-
-    def timestamp_py2(self, dt):
-        """Return POSIX timestamp as float"""
-        if dt.tzinfo is None:
-            return mktime((dt.year, dt.month, dt.day,
-                           dt.hour, dt.minute, dt.second,
-                           -1, -1, -1)) + dt.microsecond / 1e6
-        else:
-            return (dt - EPOCH).total_seconds()
 
     def after_read_items(self, items, nulls_map=None):
         scale = float(10 ** self.scale)
@@ -161,7 +140,7 @@ class DateTime64Column(DateTimeColumn):
 
         timezone = self.timezone
         null_value = self.null_value
-        to_timestamp = datetime.timestamp if compat.PY3 else self.timestamp_py2
+        to_timestamp = datetime.timestamp
 
         for i, item in enumerate(items):
             if nulls_map and nulls_map[i]:

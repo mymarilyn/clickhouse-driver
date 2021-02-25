@@ -1,8 +1,7 @@
 import types
 from contextlib import contextmanager
 import socket
-
-from mock import patch
+from unittest.mock import patch
 
 from clickhouse_driver import connect
 from clickhouse_driver.dbapi import (

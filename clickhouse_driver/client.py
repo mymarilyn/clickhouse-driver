@@ -2,6 +2,7 @@ import re
 import ssl
 from time import time
 import types
+from urllib.parse import urlparse, parse_qs, unquote
 
 from . import errors, defines
 from .block import ColumnOrientedBlock, RowOrientedBlock
@@ -11,9 +12,8 @@ from .protocol import ServerPacketTypes
 from .result import (
     IterQueryResult, ProgressQueryResult, QueryResult, QueryInfo
 )
-from .util.compat import urlparse, parse_qs, asbool, unquote
 from .util.escape import escape_params
-from .util.helpers import column_chunks, chunks
+from .util.helpers import column_chunks, chunks, asbool
 
 
 class Client(object):

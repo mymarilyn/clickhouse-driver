@@ -1,18 +1,14 @@
 import struct
 
 from .varint import write_varint
-from .util import compat
 
 
 MAX_UINT64 = (1 << 64) - 1
 MAX_INT64 = (1 << 63) - 1
 
 
-if compat.PY3:
-    def _byte(b):
-        return bytes((b, ))
-else:
-    _byte = chr
+def _byte(b):
+    return bytes((b, ))
 
 
 def write_binary_str(text, buf):

@@ -2,8 +2,7 @@ from contextlib import contextmanager
 from datetime import datetime
 import os
 from time import tzset
-
-from mock import patch
+from unittest.mock import patch
 
 try:
     import numpy as np

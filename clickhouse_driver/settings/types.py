@@ -1,4 +1,4 @@
-from ..util.compat import asbool
+from ..util.helpers import asbool
 from ..varint import write_varint
 from ..writer import write_binary_str
 

@@ -4,6 +4,7 @@ import ssl
 from collections import deque
 from contextlib import contextmanager
 from time import time
+from urllib.parse import urlparse
 
 from . import defines
 from . import errors
@@ -21,7 +22,6 @@ from .queryprocessingstage import QueryProcessingStage
 from .reader import read_binary_str
 from .readhelpers import read_exception
 from .settings.writer import write_settings
-from .util.compat import urlparse
 from .varint import write_varint, read_varint
 from .writer import write_binary_str
 

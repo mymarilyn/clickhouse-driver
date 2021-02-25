@@ -59,7 +59,6 @@ if USE_CYTHON:
 
 tests_require = [
     'nose',
-    'mock',
     'freezegun',
     'lz4<=3.0.1',
     'zstd',
@@ -101,7 +100,6 @@ setup(
 
 
         'Programming Language :: SQL',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
@@ -125,11 +123,9 @@ setup(
         'Documentation': 'https://clickhouse-driver.readthedocs.io',
     },
     packages=find_packages('.', exclude=['tests*']),
-    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
+    python_requires='>=3.4.*, <4',
     install_requires=[
         'pytz',
-        'enum34; python_version<"3.4"',
-        'ipaddress; python_version<"3.4"',
         'tzlocal<3.0'
     ],
     ext_modules=extensions,

@@ -1,6 +1,4 @@
 
-from .util import compat
-
 
 class ErrorCodes(object):
     UNSUPPORTED_METHOD = 1
@@ -376,57 +374,28 @@ class ErrorCodes(object):
     ILLEGAL_PROJECTION_MANIPULATOR = 2002
 
 
-if compat.PY3:
-    class Error(Exception):
-        code = None
+class Error(Exception):
+    code = None
 
-        def __init__(self, message=None):
-            self.message = message
-            super().__init__(message)
+    def __init__(self, message=None):
+        self.message = message
+        super(Error, self).__init__(message)
 
-        def __str__(self):
-            message = ' ' + self.message if self.message is not None else ''
-            return 'Code: {}.{}'.format(self.code, message)
+    def __str__(self):
+        message = ' ' + self.message if self.message is not None else ''
+        return 'Code: {}.{}'.format(self.code, message)
 
-    class ServerException(Error):
-        def __init__(self, message, code=None, nested=None):
-            self.message = message
-            self.code = code
-            self.nested = nested
-            super().__init__(message)
 
-        def __str__(self):
-            nested = '\nNested: {}'.format(self.nested) if self.nested else ''
-            return 'Code: {}.{}\n{}'.format(self.code, nested, self.message)
+class ServerException(Error):
+    def __init__(self, message, code=None, nested=None):
+        self.message = message
+        self.code = code
+        self.nested = nested
+        super(ServerException, self).__init__(message)
 
-else:
-    class Error(Exception):
-        code = None
-
-        def __init__(self, message=None):
-            self.message = message
-            super(Error, self).__init__(message)
-
-        def __unicode__(self):
-            message = ' ' + self.message if self.message is not None else ''
-            return 'Code: {}.{}'.format(self.code, message)
-
-        def __str__(self):
-            return compat.text_type(self).encode('utf-8')
-
-    class ServerException(Error):
-        def __init__(self, message, code=None, nested=None):
-            self.message = message
-            self.code = code
-            self.nested = nested
-            super(ServerException, self).__init__(message)
-
-        def __unicode__(self):
-            nested = '\nNested: {}'.format(self.nested) if self.nested else ''
-            return 'Code: {}.{}\n{}'.format(self.code, nested, self.message)
-
-        def __str__(self):
-            return compat.text_type(self).encode('utf-8')
+    def __str__(self):
+        nested = '\nNested: {}'.format(self.nested) if self.nested else ''
+        return 'Code: {}.{}\n{}'.format(self.code, nested, self.message)
 
 
 class LogicalError(Error):

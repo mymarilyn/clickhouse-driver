@@ -2,8 +2,8 @@ from contextlib import contextmanager
 from datetime import date, datetime
 import os
 from time import tzset
+from unittest.mock import patch
 
-from mock import patch
 from pytz import timezone, utc, UnknownTimeZoneError
 import tzlocal
 

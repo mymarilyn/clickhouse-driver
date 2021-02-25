@@ -2,13 +2,12 @@ from uuid import UUID
 
 from .base import FormatColumn
 from .. import errors
-from ..util import compat
 from ..writer import MAX_UINT64
 
 
 class UUIDColumn(FormatColumn):
     ch_type = 'UUID'
-    py_types = compat.string_types + (UUID, )
+    py_types = (str, UUID)
     format = 'Q'
 
     # UUID is stored by two uint64 numbers.

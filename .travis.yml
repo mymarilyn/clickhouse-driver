@@ -40,14 +40,12 @@ env:
 
 language: python
 python:
-  - "2.7"
   - "3.4"
   - "3.5"
   - "3.6"
   - "3.7"
   - "3.8"
   - "3.9-dev"
-  - "pypy2.7-5.10.0"
   - "pypy3.5"
 cache: pip
 services:
@@ -78,8 +76,6 @@ jobs:
     - python: 3.4
       env: VERSION=20.3.20.6 USE_NUMPY=1
     - python: 3.9-dev
-      env: VERSION=20.3.20.6 USE_NUMPY=1
-    - python: pypy2.7-5.10.0
       env: VERSION=20.3.20.6 USE_NUMPY=1
     - python: pypy3.5
       env: VERSION=20.3.20.6 USE_NUMPY=1
@@ -132,6 +128,7 @@ jobs:
         - cibuildwheel --output-dir wheelhouse
 
       env:
+        - CIBW_BUILD='*p3*'
         - CIBW_BEFORE_BUILD='pip install cython'
       deploy:
         name: Linux
@@ -147,35 +144,7 @@ jobs:
           tags: true
 
     - stage: wheels
-      name: Wheels for OS X Python 2
-      os: osx
-      language: generic
-
-      install:
-        - pip3 install --upgrade pip setuptools
-        - pip3 install cython cibuildwheel==1.4.0
-
-      script:
-        - cibuildwheel --output-dir wheelhouse
-
-      env:
-        - CIBW_BUILD='*p2*'
-        - CIBW_BEFORE_BUILD='pip install cython'
-      deploy:
-        name: Mac OS X
-        provider: releases
-        api_key: $GITHUB_TOKEN
-        file_glob: true
-        file: wheelhouse/*
-        skip_cleanup: true
-        draft: true
-        prerelease: true
-        overwrite: true
-        on:
-          tags: true
-
-    - stage: wheels
-      name: Wheels for OS X Python 3
+      name: Wheels for OS X
       os: osx
       language: generic
 
@@ -191,72 +160,6 @@ jobs:
         - CIBW_BEFORE_BUILD='pip install cython'
       deploy:
         name: Mac OS X
-        provider: releases
-        api_key: $GITHUB_TOKEN
-        file_glob: true
-        file: wheelhouse/*
-        skip_cleanup: true
-        draft: true
-        prerelease: true
-        overwrite: true
-        on:
-          tags: true
-
-    - stage: wheels
-      name: Wheels for Windows Python 2.7
-      os: windows
-      language: shell
-
-      install:
-        - choco install python2 --version 2.7.16 --sidebyside -y --forcex86 --force --params "/InstallDir:C:\Python27"
-        - choco install --ignore-dependencies vcpython27
-
-      script:
-        - C:/Python27/python -m pip install cibuildwheel==1.1.0 certifi
-        - export SSL_CERT_FILE=`C:/Python27/python -c "import certifi;print(certifi.where())"`
-        - echo $SSL_CERT_FILE
-        - C:/Python27/python -m cibuildwheel --platform windows --output-dir wheelhouse
-
-      env:
-        - CIBW_BUILD='cp27-win32'
-        - CIBW_BEFORE_BUILD='python -m pip install cython'
-      deploy:
-        name: Windows Python 2.7
-        provider: releases
-        api_key: $GITHUB_TOKEN
-        file_glob: true
-        file: wheelhouse/*
-        skip_cleanup: true
-        draft: true
-        prerelease: true
-        overwrite: true
-        on:
-          tags: true
-
-    - stage: wheels
-      name: Wheels for Windows Python 2.7 x64
-      os: windows
-      language: shell
-
-      install:
-        - choco install python2 --version 2.7.16 --sidebyside -y --force --params "/InstallDir:C:\Python27-x64"
-        - choco install --ignore-dependencies vcpython27
-
-        - export PATH="C:\\Program Files (x86)\\common files\\Microsoft\\Visual C++ for Python\\9.0\\VC\\bin\\amd64;$PATH"
-        - export INCLUDE="C:\\Program Files (x86)\\common files\\Microsoft\\Visual C++ for Python\\9.0\\VC\\Include;C:\\Program Files (x86)\\common files\\Microsoft\\Visual C++ for Python\\9.0\\WinSDK\\Include"
-        - export LIB="C:\\Program Files (x86)\\common files\\Microsoft\\Visual C++ for Python\\9.0\\VC\\Lib\\amd64;C:\\Program Files (x86)\\common files\\Microsoft\\Visual C++ for Python\\9.0\\WinSDK\\Lib\\x64"
-
-      script:
-        - C:/Python27-x64/python -m pip install cibuildwheel==1.1.0 certifi
-        - export SSL_CERT_FILE=`C:/Python27-x64/python -c "import certifi;print(certifi.where())"`
-        - echo $SSL_CERT_FILE
-        - C:/Python27-x64/python -m cibuildwheel --platform windows --output-dir wheelhouse
-
-      env:
-        - CIBW_BUILD='cp27-win_amd64'
-        - CIBW_BEFORE_BUILD='python -m pip install cython'
-      deploy:
-        name: Windows Python 2.7 x64
         provider: releases
         api_key: $GITHUB_TOKEN
         file_glob: true
@@ -330,7 +233,7 @@ jobs:
 #          tags: true
 
     - stage: wheels
-      name: Wheels for Windows Python 3
+      name: Wheels for Windows
       os: windows
       language: shell
 

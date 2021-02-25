@@ -1,6 +1,5 @@
 import types
-
-from mock import patch
+from unittest.mock import patch
 
 from clickhouse_driver.errors import ServerException
 from tests.testcase import BaseTestCase
