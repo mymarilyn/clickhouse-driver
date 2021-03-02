@@ -24,7 +24,7 @@ class Client(object):
     :param settings: Dictionary of settings that passed to every query.
                      Defaults to ``None`` (no additional settings). See all
                      available settings in `ClickHouse docs
-                     <https://clickhouse.yandex/docs/en/single/#settings>`_.
+                     <https://clickhouse.tech/docs/en/operations/settings/settings/>`_.
 
     Driver's settings:
 
