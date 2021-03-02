@@ -177,3 +177,17 @@ class DecimalTestCase(BaseTestCase):
                 )
 
             self.assertIn('Column a', str(e.exception))
+
+    def test_preserve_precision(self):
+        data = [(1.66, ), (1.15, )]
+
+        with self.create_table('a Decimal(18, 2)'):
+            self.client.execute('INSERT INTO test (a) VALUES', data)
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, '1.66\n1.15\n')
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, [
+                (Decimal('1.66'), ),
+                (Decimal('1.15'), )
+            ])

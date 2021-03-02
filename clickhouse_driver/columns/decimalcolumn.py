@@ -54,14 +54,14 @@ class DecimalColumn(FormatColumn):
                 if nulls_map and nulls_map[i]:
                     items[i] = null_value
                 else:
-                    items[i] = int(Decimal(item) * scale)
+                    items[i] = int(Decimal(str(item)) * scale)
 
         else:
             for i, item in enumerate(items):
                 if nulls_map and nulls_map[i]:
                     items[i] = null_value
                 else:
-                    items[i] = int(Decimal(item))
+                    items[i] = int(Decimal(str(item)))
 
     # Override default precision to the maximum supported by underlying type.
     def _write_data(self, items, buf):
