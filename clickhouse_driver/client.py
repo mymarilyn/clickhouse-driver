@@ -21,21 +21,24 @@ class Client(object):
     Client for communication with the ClickHouse server.
     Single connection is established per each connected instance of the client.
 
-    :param settings: Dictionary of settings that passed to every query.
-                     Defaults to ``None`` (no additional settings). See all
-                     available settings in `ClickHouse docs
-                     <https://clickhouse.yandex/docs/en/single/#settings>`_.
+    :param settings: Dictionary of settings that passed to every query (except
+                     for the client settings, see below). Defaults to ``None``
+                     (no additional settings). See all available settings in
+                     `ClickHouse docs
+                     <https://clickhouse.tech/docs/en/operations/settings/settings/>`_.
+    :param \\**kwargs: All other args are passed to the
+                       :py:class:`~clickhouse_driver.connection.Connection`
+                       constructor.
 
-    Driver's settings:
+    The following keys when passed in ``settings`` are used for configuring the
+    client itself:
 
-        * insert_block_size -- chunk size to split rows for ``INSERT``.
+        * ``insert_block_size`` -- chunk size to split rows for ``INSERT``.
           Defaults to ``1048576``.
-
-        * strings_as_bytes -- turns off string column encoding/decoding.
-
-        * strings_encoding -- specifies string encoding. UTF-8 by default.
-
-        * use_numpy -- Use numpy for columns reading. New in version *0.2.0*.
+        * ``strings_as_bytes`` -- turns off string column encoding/decoding.
+        * ``strings_encoding`` -- specifies string encoding. UTF-8 by default.
+        * ``use_numpy`` -- Use numpy for columns reading. New in version
+                           *0.2.0*.
 
     """
 
