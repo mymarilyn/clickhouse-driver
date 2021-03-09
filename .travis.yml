@@ -144,12 +144,12 @@ jobs:
           tags: true
 
     - stage: wheels
-      name: Wheels for aarch64 Linux
+      name: Wheels for Linux aarch64
+      arch: arm64
       os: linux
       language: python
       python:
         - "3.6"
-      arch: arm64
       install:
         - pip install --upgrade pip setuptools
         - pip install cython cibuildwheel~=1.8.0
@@ -161,7 +161,7 @@ jobs:
         - CIBW_BUILD='*p3*'
         - CIBW_BEFORE_BUILD='pip install cython'
       deploy:
-        name: Linux
+        name: Linux aarch64
         provider: releases
         api_key: $GITHUB_TOKEN
         file_glob: true
