@@ -23,8 +23,9 @@ class Cursor(object):
 
     _states = States()
 
-    def __init__(self, client):
+    def __init__(self, client, connection):
         self._client = client
+        self._connection = connection
         self._reset_state()
 
         self.arraysize = 1
@@ -85,6 +86,12 @@ class Cursor(object):
         """
         self._client.disconnect()
         self._state = self._states.CURSOR_CLOSED
+
+        try:
+            # cursor can be already closed
+            self._connection.cursors.remove(self)
+        except ValueError:
+            pass
 
     def execute(self, operation, parameters=None):
         """

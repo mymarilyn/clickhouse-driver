@@ -88,6 +88,6 @@ class Connection(object):
             self._hosts = client.connection.hosts
         else:
             client.connection.hosts = self._hosts
-        cursor = Cursor(client)
+        cursor = Cursor(client, self)
         self.cursors.append(cursor)
         return cursor

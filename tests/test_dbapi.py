@@ -195,6 +195,14 @@ class DBAPITestCase(DBAPITestCaseBase):
         # once with host == 'wrong_host'.
         self.assertEqual(self.n_calls, 1)
 
+    def test_remove_cursor_from_connection_on_closing(self):
+        with self.created_connection() as connection:
+            self.assertEqual(len(connection.cursors), 0)
+            cur = connection.cursor()
+            self.assertEqual(len(connection.cursors), 1)
+            cur.close()
+            self.assertEqual(len(connection.cursors), 0)
+
 
 class StreamingTestCase(DBAPITestCaseBase):
     def test_fetchone(self):
