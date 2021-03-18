@@ -1,4 +1,5 @@
 from ..client import Client
+from .. import defines
 from .cursor import Cursor
 from .errors import InterfaceError
 
@@ -13,8 +14,10 @@ class Connection(object):
     See parameters description in
     :data:`~clickhouse_driver.connection.Connection`.
     """
-    def __init__(self, dsn=None, user=None, password=None, host=None,
-                 port=None, database=None, **kwargs):
+    def __init__(self, dsn=None, host=None,
+                 user=defines.DEFAULT_USER, password=defines.DEFAULT_PASSWORD,
+                 port=defines.DEFAULT_PORT, database=defines.DEFAULT_DATABASE,
+                 **kwargs):
         self.cursors = []
 
         self.dsn = dsn

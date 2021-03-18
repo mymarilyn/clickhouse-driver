@@ -3,6 +3,7 @@ from .errors import (
     Warning, Error, DataError, DatabaseError, ProgrammingError, IntegrityError,
     InterfaceError, InternalError, NotSupportedError, OperationalError
 )
+from .. import defines
 
 apilevel = '2.0'
 
@@ -11,8 +12,10 @@ threadsafety = 2
 paramstyle = 'pyformat'
 
 
-def connect(dsn=None, user=None, password=None, host=None, port=None,
-            database=None, **kwargs):
+def connect(dsn=None, host=None,
+            user=defines.DEFAULT_USER, password=defines.DEFAULT_PASSWORD,
+            port=defines.DEFAULT_PORT, database=defines.DEFAULT_DATABASE,
+            **kwargs):
     """
     Create a new database connection.
 

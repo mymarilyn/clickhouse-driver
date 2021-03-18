@@ -119,7 +119,8 @@ class Connection(object):
 
     def __init__(
             self, host, port=None,
-            database='default', user='default', password='',
+            database=defines.DEFAULT_DATABASE,
+            user=defines.DEFAULT_USER, password=defines.DEFAULT_PASSWORD,
             client_name=defines.CLIENT_NAME,
             connect_timeout=defines.DBMS_DEFAULT_CONNECT_TIMEOUT_SEC,
             send_receive_timeout=defines.DBMS_DEFAULT_TIMEOUT_SEC,

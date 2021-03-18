@@ -65,6 +65,15 @@ class DBAPITestCase(DBAPITestCaseBase):
         self.assertEqual(cursor.fetchall(), [(1, )])
         connection.close()
 
+    def test_connect_default_params(self):
+        connection = connect(host=self.host)
+        cursor = connection.cursor()
+
+        rv = cursor.execute('SELECT 1')
+        self.assertIsNone(rv)
+        self.assertEqual(cursor.fetchall(), [(1, )])
+        connection.close()
+
     def test_execute_fetchone(self):
         with self.created_cursor() as cursor:
             cursor.execute('SELECT number FROM system.numbers LIMIT 4')
