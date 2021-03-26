@@ -7,8 +7,8 @@ When serializing INSERT queries, clickhouse-driver accepts a broader range of Py
 The following ClickHouse types are supported by clickhouse-driver:
 
 
-[U]Int8/16/32/64
-----------------
+[U]Int8/16/32/64/128/256
+------------------------
 
 INSERT types: :class:`int`, :class:`long`.
 

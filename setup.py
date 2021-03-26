@@ -47,6 +47,10 @@ extensions = [
         ['clickhouse_driver/bufferedwriter' + ext]
     ),
     Extension(
+        'clickhouse_driver.columns.largeint',
+        ['clickhouse_driver/columns/largeint' + ext]
+    ),
+    Extension(
         'clickhouse_driver.varint',
         ['clickhouse_driver/varint' + ext]
     )

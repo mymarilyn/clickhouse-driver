@@ -1,6 +1,10 @@
 
 from .exceptions import ColumnTypeMismatchException
 from .base import FormatColumn
+from .largeint import (
+    int128_from_quads, int128_to_quads, uint128_from_quads, uint128_to_quads,
+    int256_from_quads, int256_to_quads, uint256_from_quads, uint256_to_quads
+)
 
 
 class IntColumn(FormatColumn):
@@ -93,3 +97,61 @@ class UInt64Column(UIntColumn):
     ch_type = 'UInt64'
     format = 'Q'
     int_size = 8
+
+
+class LargeIntColumn(IntColumn):
+    format = 'Q'  # We manually deal with sign in read/write.
+    factor = None
+
+    to_quads = None
+    from_quads = None
+
+    def write_items(self, items, buf):
+        n_items = len(items)
+
+        s = self.make_struct(self.factor * n_items)
+        uint_64_pairs = self.to_quads(items, n_items)
+
+        buf.write(s.pack(*uint_64_pairs))
+
+    def read_items(self, n_items, buf):
+        s = self.make_struct(self.factor * n_items)
+        items = s.unpack(buf.read(s.size))
+
+        return self.from_quads(items, n_items)
+
+
+class Int128Column(LargeIntColumn):
+    ch_type = 'Int128'
+    int_size = 16
+    factor = 2
+
+    to_quads = int128_to_quads
+    from_quads = int128_from_quads
+
+
+class UInt128Column(LargeIntColumn):
+    ch_type = 'UInt128'
+    int_size = 16
+    factor = 2
+
+    to_quads = uint128_to_quads
+    from_quads = uint128_from_quads
+
+
+class Int256Column(LargeIntColumn):
+    ch_type = 'Int256'
+    int_size = 32
+    factor = 4
+
+    to_quads = int256_to_quads
+    from_quads = int256_from_quads
+
+
+class UInt256Column(LargeIntColumn):
+    ch_type = 'UInt256'
+    int_size = 32
+    factor = 4
+
+    to_quads = uint256_to_quads
+    from_quads = uint256_from_quads

@@ -126,3 +126,104 @@ class IntTestCase(BaseTestCase):
 
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
+
+
+class BigIntTestCase(BaseTestCase):
+    required_server_version = (20, 8, 2)
+
+    def cli_client_kwargs(self):
+        return {'allow_experimental_bigint_types': 1}
+
+    def test_int128(self):
+        with self.create_table('a Int128'):
+            data = [
+                (-170141183460469231731687303715884105728, ),
+                (-111111111111111111111111111111111111111, ),
+                (123, ),
+                (111111111111111111111111111111111111111, ),
+                (170141183460469231731687303715884105727, )
+            ]
+            self.client.execute('INSERT INTO test (a) VALUES', data)
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted,
+                '-170141183460469231731687303715884105728\n'
+                '-111111111111111111111111111111111111111\n'
+                '123\n'
+                '111111111111111111111111111111111111111\n'
+                '170141183460469231731687303715884105727\n'
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
+
+    # def test_uint128(self):
+    #     with self.create_table('a UInt128'):
+    #         data = [
+    #             (0, ),
+    #             (123, ),
+    #             (340282366920938463463374607431768211455, )
+    #         ]
+    #         self.client.execute('INSERT INTO test (a) VALUES', data)
+    #
+    #         query = 'SELECT * FROM test'
+    #         inserted = self.emit_cli(query)
+    #         self.assertEqual(
+    #             inserted,
+    #             '0\n'
+    #             '123\n'
+    #             '340282366920938463463374607431768211455\n'
+    #         )
+    #
+    #         inserted = self.client.execute(query)
+    #         self.assertEqual(inserted, data)
+
+    def test_int256(self):
+        with self.create_table('a Int256'):
+            data = [
+                (-57896044618658097711785492504343953926634992332820282019728792003956564819968, ),  # noqa: E501
+                (-11111111111111111111111111111111111111111111111111111111111111111111111111111, ),  # noqa: E501
+                (123, ),
+                (11111111111111111111111111111111111111111111111111111111111111111111111111111, ),  # noqa: E501
+                (57896044618658097711785492504343953926634992332820282019728792003956564819967, )  # noqa: E501
+            ]
+            self.client.execute('INSERT INTO test (a) VALUES', data)
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted,
+                '-57896044618658097711785492504343953926634992332820282019728792003956564819968\n'  # noqa: E501
+                '-11111111111111111111111111111111111111111111111111111111111111111111111111111\n'  # noqa: E501
+                '123\n'
+                '11111111111111111111111111111111111111111111111111111111111111111111111111111\n'  # noqa: E501
+                '57896044618658097711785492504343953926634992332820282019728792003956564819967\n'  # noqa: E501
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
+
+    def test_uint256(self):
+        with self.create_table('a UInt256'):
+            data = [
+                (0, ),
+                (123, ),
+                (111111111111111111111111111111111111111111111111111111111111111111111111111111, ),  # noqa: E501
+                (115792089237316195423570985008687907853269984665640564039457584007913129639935, )  # noqa: E501
+            ]
+            self.client.execute('INSERT INTO test (a) VALUES', data)
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted,
+                '0\n'
+                '123\n'
+                '111111111111111111111111111111111111111111111111111111111111111111111111111111\n'  # noqa: E501
+                '115792089237316195423570985008687907853269984665640564039457584007913129639935\n'  # noqa: E501
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
