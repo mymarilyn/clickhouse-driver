@@ -56,6 +56,16 @@ Of course queries can and should be parameterized to avoid SQL injections:
         ... )
         [('2018-10-21', 3)]
 
+Percent symbols in inlined constants should be doubled if you mix constants
+with ``%`` symbol and ``%(x)s`` parameters.
+
+    .. code-block:: python
+
+        >>> client.execute(
+        ...     "SELECT 'test' like '%%es%%', %(x)s",
+        ...     {'x': 1}
+        ... )
+
 Customisation ``SELECT`` output with ``FORMAT`` clause is not supported.
 
 .. _execute-with-progress:
