@@ -191,3 +191,39 @@ class DecimalTestCase(BaseTestCase):
                 (Decimal('1.66'), ),
                 (Decimal('1.15'), )
             ])
+
+
+class Decimal256TestCase(BaseTestCase):
+    required_server_version = (18, 12, 13)
+
+    def cli_client_kwargs(self):
+        return {'allow_experimental_bigint_types': 1}
+
+    @require_server_version(20, 9, 2)
+    def test_decimal256(self):
+        data = [
+            (1.66, ),
+            (1.15, ),
+            # 300.42 + (1 << 200)
+            (Decimal('1606938044258990275541962092341162602522202993782792835301676.42'), ),  # noqa: E501
+            (Decimal('-1606938044258990275541962092341162602522202993782792835301676.42'), )  # noqa: E501
+        ]
+
+        with self.create_table('a Decimal256(2)'):
+            self.client.execute('INSERT INTO test (a) VALUES', data)
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted,
+                '1.66\n'
+                '1.15\n'
+                '1606938044258990275541962092341162602522202993782792835301676.42\n'  # noqa: E501
+                '-1606938044258990275541962092341162602522202993782792835301676.42\n'  # noqa: E501
+            )
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, [
+                (Decimal('1.66'), ),
+                (Decimal('1.15'), ),
+                (Decimal('1606938044258990275541962092341162602522202993782792835301676.42'), ),  # noqa: E501
+                (Decimal('-1606938044258990275541962092341162602522202993782792835301676.42'), )  # noqa: E501
+            ])

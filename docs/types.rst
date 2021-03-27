@@ -187,6 +187,13 @@ INSERT types: :class:`~decimal.Decimal`, :class:`float`, :class:`int`, :class:`l
 
 SELECT type: :class:`~decimal.Decimal`.
 
+Supported subtypes:
+
+* Decimal(P, S).
+* Decimal32(S).
+* Decimal64(S).
+* Decimal128(S).
+* Decimal256(S). *New in version 0.2.1.*
 
 IPv4/IPv6
 ---------
