@@ -22,6 +22,7 @@ from .queryprocessingstage import QueryProcessingStage
 from .reader import read_binary_str
 from .readhelpers import read_exception
 from .settings.writer import write_settings
+from .streams.native import BlockInputStream, BlockOutputStream
 from .varint import write_varint, read_varint
 from .writer import write_binary_str
 
@@ -192,6 +193,7 @@ class Connection(object):
         # Block writer/reader
         self.block_in = None
         self.block_out = None
+        self.block_in_raw = None  # log blocks are always not compressed
 
         super(Connection, self).__init__()
 
@@ -281,6 +283,7 @@ class Connection(object):
         self.receive_hello()
 
         self.block_in = self.get_block_in_stream()
+        self.block_in_raw = BlockInputStream(self.fin, self.context)
         self.block_out = self.get_block_out_stream()
 
     def _format_connection_error(self, e, host, port):
@@ -336,6 +339,7 @@ class Connection(object):
         self.server_info = None
 
         self.block_in = None
+        self.block_in_raw = None
         self.block_out = None
 
     def disconnect(self):
@@ -475,7 +479,7 @@ class Connection(object):
             packet.block = self.receive_data()
 
         elif packet_type == ServerPacketTypes.LOG:
-            block = self.receive_data()
+            block = self.receive_data(raw=True)
             log_block(block)
 
         elif packet_type == ServerPacketTypes.END_OF_STREAM:
@@ -502,8 +506,6 @@ class Connection(object):
 
             return CompressedBlockInputStream(self.fin, self.context)
         else:
-            from .streams.native import BlockInputStream
-
             return BlockInputStream(self.fin, self.context)
 
     def get_block_out_stream(self):
@@ -515,17 +517,15 @@ class Connection(object):
                 self.fout, self.context
             )
         else:
-            from .streams.native import BlockOutputStream
-
             return BlockOutputStream(self.fout, self.context)
 
-    def receive_data(self):
+    def receive_data(self, raw=False):
         revision = self.server_info.revision
 
         if revision >= defines.DBMS_MIN_REVISION_WITH_TEMPORARY_TABLES:
             read_binary_str(self.fin)
 
-        return self.block_in.read()
+        return (self.block_in_raw if raw else self.block_in).read()
 
     def receive_exception(self):
         return read_exception(self.fin)

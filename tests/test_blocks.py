@@ -2,7 +2,7 @@ import types
 from unittest.mock import patch
 
 from clickhouse_driver.errors import ServerException
-from tests.testcase import BaseTestCase
+from tests.testcase import BaseTestCase, file_config
 from tests.util import capture_logging
 
 
@@ -212,3 +212,21 @@ class LogTestCase(BaseTestCase):
                 # Test all packets of INSERT query are consumed.
                 rv = self.client.execute('SELECT 1', settings=settings)
                 self.assertEqual(rv, [(1, )])
+
+    def test_logs_with_compression(self):
+        compression = 'lz4'
+        supported_compressions = (
+            file_config.get('db', 'compression').split(',')
+        )
+
+        if compression not in supported_compressions:
+            self.skipTest(
+                'Compression {} is not supported'.format(compression)
+            )
+
+        with self.created_client(compression='lz4') as client:
+            with capture_logging('clickhouse_driver.log', 'INFO') as buffer:
+                settings = {'send_logs_level': 'debug'}
+                query = 'SELECT 1'
+                client.execute(query, settings=settings)
+                self.assertIn(query, buffer.getvalue())
