@@ -107,8 +107,6 @@ class ArrayTestCase(BaseTestCase):
             self.assertEqual(inserted, data)
 
     def test_multidimensional(self):
-        # N.B.: still broken for LowCardinality version for 18.* DB:
-        # columns = "a Array(Array(Array(LowCardinality(Nullable(String)))))"
         columns = "a Array(Array(Array(Nullable(String))))"
         data = [([[['str1_1', 'str1_2', None], [None]],
                   [['str1_3', 'str1_4', None], [None]]], ),
