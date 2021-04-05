@@ -1,4 +1,3 @@
-from collections import deque
 from itertools import chain
 from struct import Struct
 
@@ -47,7 +46,7 @@ class ArrayColumn(Column):
         self.nested_column = ArrayColumn(self.nested_column)
         self.nested_column.nullable = self.nullable
         self.nullable = False
-        return self._read(rows, buf)
+        return self._read(rows, buf)[0];
 
     def _write_sizes(self, value, buf):
         nulls_map = []
@@ -112,12 +111,7 @@ class ArrayColumn(Column):
 
     def _read(self, size, buf):
         slices_series = [[0, size]]
-
-        cur_depth = 0
-
-        nulls_map = None
         nested_column = self.nested_column
-        n_items = 0
 
         cur_level_slice_size = size
         cur_level_slice = None
@@ -129,7 +123,7 @@ class ArrayColumn(Column):
             cur_level_slice.extend(nested_sizes)
             slices_series.append(cur_level_slice)
             cur_level_slice = None
-            cur_level_slice_size = nested_sizes[-1]
+            cur_level_slice_size = nested_sizes[-1] if len(nested_sizes) > 0 else 0
             nested_column = nested_column.nested_column
 
         n_items = cur_level_slice_size if size > 0 else 0

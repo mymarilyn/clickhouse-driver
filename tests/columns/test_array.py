@@ -106,6 +106,28 @@ class ArrayTestCase(BaseTestCase):
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
 
+    def test_multidimensional(self):
+        columns = "a Array(Array(Array(LowCardinality(Nullable(String)))))"
+        data = [([[['str1_1', 'str1_2', None], [None]], [['str1_3', 'str1_4', None], [None]]], ),
+                ([[['str2_1', 'str2_2', None], [None]]], ),
+                ([[['str3_1', 'str3_2', None], [None]]],)]
+        with self.create_table(columns):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted,
+                '[[[\'str1_1\',\'str1_2\',NULL],[NULL]],[[\'str1_3\',\'str1_4\',NULL],[NULL]]]\n'
+                '[[[\'str2_1\',\'str2_2\',NULL],[NULL]]]\n'
+                '[[[\'str3_1\',\'str3_2\',NULL],[NULL]]]\n'
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
+
     def test_empty_nested(self):
         columns = "a Array(Array(Array(Int32))), b Array(Array(Array(Int32)))"
         data = [
