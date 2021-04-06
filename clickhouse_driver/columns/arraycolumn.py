@@ -1,4 +1,3 @@
-from collections import deque
 from itertools import chain
 from struct import Struct
 
@@ -47,7 +46,7 @@ class ArrayColumn(Column):
         self.nested_column = ArrayColumn(self.nested_column)
         self.nested_column.nullable = self.nullable
         self.nullable = False
-        return self._read(rows, buf)
+        return self._read(rows, buf)[0]
 
     def _write_sizes(self, value, buf):
         nulls_map = []
@@ -111,48 +110,27 @@ class ArrayColumn(Column):
         self.nested_column.write_state_prefix(buf)
 
     def _read(self, size, buf):
-        q = deque()
-        q.appendleft((self, [size], 0))
-
-        slices_series = []
-        slices = []
-
-        cur_depth = 0
-
-        nulls_map = None
+        slices_series = [[0, size]]
         nested_column = self.nested_column
-        n_items = 0
 
-        # Read and store info about slices.
-        while q:
-            column, sizes, depth = q.pop()
+        cur_level_slice_size = size
+        cur_level_slice = None
+        while (isinstance(nested_column, ArrayColumn)):
+            if cur_level_slice is None:
+                cur_level_slice = [0]
+            ns = Struct('<{}Q'.format(cur_level_slice_size))
+            nested_sizes = ns.unpack(buf.read(ns.size))
+            cur_level_slice.extend(nested_sizes)
+            slices_series.append(cur_level_slice)
+            cur_level_slice = None
+            cur_level_slice_size = nested_sizes[-1] if len(nested_sizes) > 0 \
+                else 0
+            nested_column = nested_column.nested_column
 
-            nested_column = column.nested_column
-
-            if cur_depth != depth:
-                cur_depth = depth
-
-                slices_series.append(slices)
-
-                # The last element in slice is index(number) of the last
-                # element in current level. On the last iteration this
-                # represents number of elements in fully flatten array.
-                n_items = slices[-1]
-                if nested_column.nullable:
-                    nulls_map = self._read_nulls_map(n_items, buf)
-
-                slices = []
-
-            if isinstance(nested_column, ArrayColumn):
-                slices.append(0)
-                prev = 0
-                for size in sizes:
-                    ns = Struct('<{}Q'.format(size - prev))
-                    nested_sizes = ns.unpack(buf.read(ns.size))
-                    slices.extend(nested_sizes)
-                    prev = size
-
-                    q.appendleft((nested_column, nested_sizes, cur_depth + 1))
+        n_items = cur_level_slice_size if size > 0 else 0
+        nulls_map = None
+        if nested_column.nullable:
+            nulls_map = self._read_nulls_map(n_items, buf)
 
         data = []
         if n_items:
