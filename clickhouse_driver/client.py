@@ -1,5 +1,6 @@
 import re
 import ssl
+from contextlib import contextmanager
 from time import time
 import types
 from urllib.parse import urlparse, parse_qs, unquote
@@ -187,6 +188,21 @@ class Client(object):
         query_settings.update(settings)
         self.connection.context.settings = query_settings
 
+    def track_current_database(self, query):
+        query = query.strip('; ')
+        if query.lower().startswith('use '):
+            self.connection.database = query[4:].strip()
+
+    @contextmanager
+    def disconnect_on_error(self, query):
+        try:
+            yield
+            self.track_current_database(query)
+
+        except (Exception, KeyboardInterrupt):
+            self.disconnect()
+            raise
+
     def execute(self, query, params=None, with_column_types=False,
                 external_tables=None, query_id=None, settings=None,
                 types_check=False, columnar=False):
@@ -236,7 +252,7 @@ class Client(object):
         self.connection.force_connect()
         self.last_query = QueryInfo()
 
-        try:
+        with self.disconnect_on_error(query):
             # INSERT queries can use list/tuple/generator of list/tuples/dicts.
             # For SELECT parameters can be passed in only in dict right now.
             is_insert = isinstance(params, (list, tuple, types.GeneratorType))
@@ -256,10 +272,6 @@ class Client(object):
                 )
             self.last_query.store_elapsed(time() - start_time)
             return rv
-
-        except (Exception, KeyboardInterrupt):
-            self.disconnect()
-            raise
 
     def execute_with_progress(
             self, query, params=None, with_column_types=False,
@@ -295,16 +307,12 @@ class Client(object):
         self.connection.force_connect()
         self.last_query = QueryInfo()
 
-        try:
+        with self.disconnect_on_error(query):
             return self.process_ordinary_query_with_progress(
                 query, params=params, with_column_types=with_column_types,
                 external_tables=external_tables, query_id=query_id,
                 types_check=types_check, columnar=columnar
             )
-
-        except (Exception, KeyboardInterrupt):
-            self.disconnect()
-            raise
 
     def execute_iter(
             self, query, params=None, with_column_types=False,
@@ -338,16 +346,12 @@ class Client(object):
         self.connection.force_connect()
         self.last_query = QueryInfo()
 
-        try:
+        with self.disconnect_on_error(query):
             return self.iter_process_ordinary_query(
                 query, params=params, with_column_types=with_column_types,
                 external_tables=external_tables,
                 query_id=query_id, types_check=types_check
             )
-
-        except (Exception, KeyboardInterrupt):
-            self.disconnect()
-            raise
 
     def query_dataframe(
             self, query, params=None, external_tables=None, query_id=None,

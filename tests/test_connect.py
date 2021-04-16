@@ -166,6 +166,14 @@ class ConnectTestCase(BaseTestCase):
 
         client.disconnect()
 
+    def test_remember_current_database(self):
+        with self.created_client() as client:
+            client.execute('   USE     system   ; ')
+            client.disconnect()
+
+            rv = client.execute('SELECT currentDatabase()')
+            self.assertEqual(rv, [('system', )])
+
 
 class FakeBufferedReader(BufferedReader):
     def __init__(self, inputs, bufsize=128):
