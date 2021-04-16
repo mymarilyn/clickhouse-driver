@@ -73,7 +73,7 @@ class ProgressQueryResult(QueryResult):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         while True:
             packet = next(self.packet_generator)
             progress_packet = getattr(packet, 'progress', None)
@@ -84,9 +84,6 @@ class ProgressQueryResult(QueryResult):
                 )
             else:
                 self.store(packet)
-
-    # For Python 3.
-    __next__ = next
 
     def get_result(self):
         # Read all progress packets.
@@ -113,7 +110,7 @@ class IterQueryResult(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         packet = next(self.packet_generator)
         block = getattr(packet, 'block', None)
         if block is None:
@@ -126,9 +123,6 @@ class IterQueryResult(object):
             return rv
         else:
             return block.get_rows()
-
-    # For Python 3.
-    __next__ = next
 
 
 class QueryInfo(object):
