@@ -199,7 +199,6 @@ class DecimalTestCase(BaseTestCase):
             self.client.execute('INSERT INTO test (a) VALUES', data)
             query = 'SELECT * FROM test'
             inserted = self.emit_cli(query)
-            print("inserted:", inserted)
             self.assertEqual(inserted, '1.6\n1.0\n12312.0\n999999.6\n')
             inserted = self.client.execute(query)
             self.assertEqual(inserted, [
@@ -208,6 +207,7 @@ class DecimalTestCase(BaseTestCase):
                 (Decimal('12312.0'),),
                 (Decimal('999999.6'),)
             ])
+
 
 class Decimal256TestCase(BaseTestCase):
     required_server_version = (18, 12, 13)
