@@ -25,7 +25,7 @@ class DecimalColumn(FormatColumn):
             self.check_item = check_item
 
     def after_read_items(self, items, nulls_map=None):
-        if self.scale > 1:
+        if self.scale >= 1:
             scale = 10 ** self.scale
 
             if nulls_map is None:
@@ -47,7 +47,7 @@ class DecimalColumn(FormatColumn):
     def before_write_items(self, items, nulls_map=None):
         null_value = self.null_value
 
-        if self.scale > 1:
+        if self.scale >= 1:
             scale = 10 ** self.scale
 
             for i, item in enumerate(items):
