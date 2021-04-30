@@ -52,6 +52,10 @@ cache: pip
 services:
   - docker
 install:
+  - pip install --upgrade pip setuptools
+  # Check flake8 first
+  - pip install flake8 flake8-print
+  - flake8
   - if [ ! -z $DOCKER_PASSWORD ] ; then echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ; fi
   - docker run -e "TZ=Europe/Moscow" -d -p 127.0.0.1:9000:9000 --name test-clickhouse-server --ulimit nofile=262144:262144 yandex/clickhouse-server:$VERSION
   - docker run -d --entrypoint "/bin/sh" --name test-clickhouse-client --link test-clickhouse-server:clickhouse-server yandex/clickhouse-client:$VERSION -c 'while :; do sleep 1; done'
@@ -63,7 +67,6 @@ install:
   - sed -i 's/^host=localhost$/host=clickhouse-server/' setup.cfg
   # Make host think that clickhouse-server is localhost
   - echo '127.0.0.1 clickhouse-server' | sudo tee /etc/hosts > /dev/null
-  - pip install --upgrade pip setuptools
   - pip install coveralls cython 'cryptography<3.3'
   - if [ -z ${USE_NUMPY+x} ]; then pip uninstall -y numpy pandas; fi
 script:
@@ -84,11 +87,6 @@ jobs:
       env: VERSION=20.3.20.6 USE_NUMPY=1
 
   include:
-    - stage: test
-      before_install:
-        - pip install flake8 flake8-print
-        - flake8
-
     - stage: valgrind
       name: Valgrind check
       os: linux
