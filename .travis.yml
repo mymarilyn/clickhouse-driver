@@ -65,8 +65,8 @@ install:
   - echo '127.0.0.1 clickhouse-server' | sudo tee /etc/hosts > /dev/null
   - pip install --upgrade pip setuptools
   - pip install coveralls cython 'cryptography<3.3'
-script:
   - if [ -z ${USE_NUMPY+x} ]; then pip uninstall -y numpy pandas; fi
+script:
   # Enable cython tracing only for cpython
   - if [ "$TRAVIS_PYTHON_VERSION" != "pypy3.5" ]; then CYTHON_TRACE=1 python setup.py build_ext --define CYTHON_TRACE ; fi
   - coverage run setup.py test
