@@ -327,3 +327,12 @@ Inserting data into nested column with ``clickhouse-driver``:
       client.execute('INSERT INTO test_nested VALUES', [
           (['a', 'b', 'c'], [100, 200, 300]),
       ])
+
+Map(key, value)
+------------------
+
+*New in version 0.2.1.*
+
+INSERT types: :class:`dict`.
+
+SELECT type: :class:`dict`.

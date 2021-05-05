@@ -50,6 +50,7 @@ Features
   * SimpleAggregateFunction(F, T)
   * Tuple(T1, T2, ...)
   * Nested
+  * Map(key, value)
 
 - Query progress information.
 

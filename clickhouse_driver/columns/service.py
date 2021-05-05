@@ -12,6 +12,7 @@ from .intcolumn import (
     UInt8Column, UInt16Column, UInt32Column, UInt64Column
 )
 from .lowcardinalitycolumn import create_low_cardinality_column
+from .mapcolumn import create_map_column
 from .nothingcolumn import NothingColumn
 from .nullcolumn import NullColumn
 from .nullablecolumn import create_nullable_column
@@ -79,6 +80,9 @@ def get_column_by_spec(spec, column_options):
     elif spec.startswith('SimpleAggregateFunction'):
         return create_simple_aggregate_function_column(
             spec, create_column_with_options)
+
+    elif spec.startswith('Map'):
+        return create_map_column(spec, create_column_with_options)
 
     else:
         try:
