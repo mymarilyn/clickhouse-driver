@@ -19,7 +19,7 @@ class NumpyStringColumn(NumpyColumn):
         )
 
     def write_items(self, items, buf):
-        return buf.write_strings(items.tolist(), encoding=self.encoding)
+        return buf.write_strings(items if isinstance(items, list) else items.tolist(), encoding=self.encoding)
 
 
 class NumpyByteStringColumn(NumpyColumn):
@@ -27,7 +27,7 @@ class NumpyByteStringColumn(NumpyColumn):
         return np.array(buf.read_strings(n_items), dtype=self.dtype)
 
     def write_items(self, items, buf):
-        return buf.write_strings(items.tolist())
+        return buf.write_strings(items if isinstance(items, list) else items.tolist())
 
 
 class NumpyFixedString(NumpyStringColumn):
@@ -42,7 +42,7 @@ class NumpyFixedString(NumpyStringColumn):
 
     def write_items(self, items, buf):
         return buf.write_fixed_strings(
-            items.tolist(), self.length, encoding=self.encoding
+            items if isinstance(items, list) else items.tolist(), self.length, encoding=self.encoding
         )
 
 
@@ -57,7 +57,7 @@ class NumpyByteFixedString(NumpyByteStringColumn):
         )
 
     def write_items(self, items, buf):
-        return buf.write_fixed_strings(items.tolist(), self.length)
+        return buf.write_fixed_strings(items if isinstance(items, list) else items.tolist(), self.length)
 
 
 def create_string_column(spec, column_options):
