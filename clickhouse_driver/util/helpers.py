@@ -1,3 +1,4 @@
+from collections import Iterable
 from itertools import islice, tee
 
 
@@ -27,9 +28,9 @@ def pairwise(iterable):
 
 def column_chunks(columns, n):
     for column in columns:
-        if not isinstance(column, (list, tuple)):
+        if not isinstance(column, Iterable):
             raise TypeError(
-                'Unsupported column type: {}. list or tuple is expected.'
+                'Unsupported column type: {}. Iterable is expected.'
                 .format(type(column))
             )
 
