@@ -163,6 +163,42 @@ class ClientFromUrlTestCase(TestCase):
             'ciphers': 'HIGH:-aNULL:-eNULL:-PSK:RC4-SHA:RC4-MD5'
         })
 
+    def test_ssl_key_cert(self):
+        base_url = (
+            'clickhouses://host?'
+            'verify=true&'
+            'ssl_version=PROTOCOL_SSLv23&'
+            'ca_certs=/tmp/certs&'
+            'ciphers=HIGH:-aNULL:-eNULL:-PSK:RC4-SHA:RC4-MD5&'
+        )
+        base_expected = {
+            'ssl_version': ssl.PROTOCOL_SSLv23,
+            'ca_certs': '/tmp/certs',
+            'ciphers': 'HIGH:-aNULL:-eNULL:-PSK:RC4-SHA:RC4-MD5'
+        }
+
+        c = Client.from_url(
+            base_url +
+            'keyfile=/tmp/client.key&'
+            'certfile=/tmp/client.cert'
+        )
+        expected = base_expected.copy()
+        expected.update({
+            'keyfile': '/tmp/client.key',
+            'certfile': '/tmp/client.cert'
+        })
+        self.assertEqual(c.connection.ssl_options, expected)
+
+        c = Client.from_url(
+            base_url +
+            'certfile=/tmp/client.cert'
+        )
+        expected = base_expected.copy()
+        expected.update({
+            'certfile': '/tmp/client.cert'
+        })
+        self.assertEqual(c.connection.ssl_options, expected)
+
     def test_alt_hosts(self):
         c = Client.from_url('clickhouse://host?alt_hosts=host2:1234')
         self.assertHostsEqual(c, [('host', 9000), ('host2', 1234)])
