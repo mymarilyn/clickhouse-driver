@@ -110,6 +110,8 @@ class Connection(object):
     :param ssl_version: see :func:`ssl.wrap_socket` docs.
     :param ca_certs: see :func:`ssl.wrap_socket` docs.
     :param ciphers: see :func:`ssl.wrap_socket` docs.
+    :param keyfile: see :func:`ssl.wrap_socket` docs.
+    :param certfile: see :func:`ssl.wrap_socket` docs.
     :param alt_hosts: list of alternative hosts for connection.
                       Example: alt_hosts=host1:port1,host2:port2.
     :param settings_is_important: ``False`` means unknown settings will be
@@ -131,6 +133,7 @@ class Connection(object):
             secure=False,
             # Secure socket parameters.
             verify=True, ssl_version=None, ca_certs=None, ciphers=None,
+            keyfile=None, certfile=None,
             alt_hosts=None,
             settings_is_important=False,
     ):
@@ -165,6 +168,10 @@ class Connection(object):
             ssl_options['ca_certs'] = ca_certs
         if ciphers is not None:
             ssl_options['ciphers'] = ciphers
+        if keyfile is not None:
+            ssl_options['keyfile'] = keyfile
+        if certfile is not None:
+            ssl_options['certfile'] = certfile
 
         self.ssl_options = ssl_options
 
@@ -264,6 +271,10 @@ class Connection(object):
 
         if 'cert_reqs' in ssl_options:
             context.options = ssl_options['cert_reqs']
+
+        if 'certfile' in ssl_options:
+            keyfile = ssl_options.get('keyfile')
+            context.load_cert_chain(ssl_options['certfile'], keyfile=keyfile)
 
         return context
 
