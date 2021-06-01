@@ -132,7 +132,7 @@ jobs:
 
       install:
         - pip install --upgrade pip setuptools
-        - pip install cython cibuildwheel==1.6.4
+        - pip install cython cibuildwheel==1.11.0
 
       script:
         - cibuildwheel --output-dir wheelhouse
@@ -162,7 +162,7 @@ jobs:
         - "3.6"
       install:
         - pip install --upgrade pip setuptools
-        - pip install cython cibuildwheel~=1.8.0
+        - pip install cython cibuildwheel==1.11.0
 
       script:
         - cibuildwheel --output-dir wheelhouse
@@ -190,7 +190,7 @@ jobs:
 
       install:
         - pip3 install --upgrade pip setuptools
-        - pip3 install cython cibuildwheel==1.6.4
+        - pip3 install cython cibuildwheel==1.11.0
 
       script:
         - cibuildwheel --output-dir wheelhouse
@@ -280,7 +280,7 @@ jobs:
       install:
         - choco install python3 --version 3.9.0 --params "/InstallDir:C:\Python39"
       script:
-        - C:/Python39/python -m pip install cibuildwheel==1.6.4
+        - C:/Python39/python -m pip install cibuildwheel==1.11.0
         - C:/Python39/python -m cibuildwheel --platform windows --output-dir wheelhouse
 
       env:
@@ -307,7 +307,7 @@ jobs:
       install:
         - choco install python3 --version 3.9.0 --params "/InstallDir:C:\Python39"
       script:
-        - C:/Python39/python -m pip install cibuildwheel==1.6.4
+        - C:/Python39/python -m pip install cibuildwheel==1.11.0
         - C:/Python39/python -m cibuildwheel --platform windows --output-dir wheelhouse
 
       env:
