@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.2.1] - 2021-06-02
+### Added
+- Linux wheels for AArch64. Pull request [#197](https://github.com/mymarilyn/clickhouse-driver/pull/197) by [odidev](https://github.com/odidev).
+- [U]Int28/256 types.
+- Decimal256 type.
+- Code coverage for cython code.
+- Map type.
+- Support for private key/certificate file. Pull request [#219](https://github.com/mymarilyn/clickhouse-driver/pull/219) by [alexole](https://github.com/alexole).
+
+### Fixed
+- Empty Array(Tuple(T)) writing. Solves issue [#177](https://github.com/mymarilyn/clickhouse-driver/issues/177).
+- Preserve Decimal precision on INSERT. Solves issue [#192](https://github.com/mymarilyn/clickhouse-driver/issues/192).
+- Remove closed cursors from connection. Solves issue [#194](https://github.com/mymarilyn/clickhouse-driver/issues/194).
+- DB API connect with default params.
+- Fix log blocks handling. Solves issue [#203](https://github.com/mymarilyn/clickhouse-driver/issues/203).
+- Multidimensional Array decoding. Solves issue [#204](https://github.com/mymarilyn/clickhouse-driver/issues/204). Pull request [#206](https://github.com/mymarilyn/clickhouse-driver/pull/206) by [smagellan](https://github.com/smagellan).
+- Use last database after reconnect. Solves issue [#205](https://github.com/mymarilyn/clickhouse-driver/issues/205).
+- Decimal(N, 1) handling. Pull request [#210](https://github.com/mymarilyn/clickhouse-driver/pull/210) by [raw0w](https://github.com/raw0w).
+
+### Changed
+- Decimal128 performance increased (up to 25% compared to 0.2.0 release).
+
+### Removed
+- Python 2.7 support.
+
 ## [0.2.0] - 2020-12-14
 ### Added
 - NumPy reading/writing for columns: Float32/64, [U]Int8/16/32/64, Date/DateTime(‘timezone’)/DateTime64(‘timezone’), String/FixedString(N), LowCardinality(T). Merge [Arturus's](https://github.com/Arturus/clickhouse-driver) fork.
