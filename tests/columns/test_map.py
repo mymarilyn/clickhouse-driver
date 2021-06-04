@@ -42,44 +42,44 @@ class MapTestCase(BaseTestCase):
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
 
-    def test_nullable(self):
-        with self.create_table('a Map(Nullable(String), Nullable(UInt64))'):
-            data = [
-                ({},),
-                ({None: None},),
-                ({'key1': 1}, )
-            ]
-            self.client.execute('INSERT INTO test (a) VALUES', data)
-            query = 'SELECT * FROM test'
-            inserted = self.emit_cli(query)
-            self.assertEqual(
-                inserted,
-                "{}\n"
-                "{NULL:NULL}\n"
-                "{'key1':1}\n"
-            )
-            inserted = self.client.execute(query)
-            self.assertEqual(inserted, data)
-
-    def test_low_cardinality(self):
-        columns = 'a Map(LowCardinality(String), LowCardinality(UInt64))'
-        with self.create_table(columns):
-            data = [
-                ({'key1': 1}, ),
-                ({'key1': 1}, ),
-                ({'key1': 1}, )
-            ]
-            self.client.execute('INSERT INTO test (a) VALUES', data)
-            query = 'SELECT * FROM test'
-            inserted = self.emit_cli(query)
-            self.assertEqual(
-                inserted,
-                "{'key1':1}\n"
-                "{'key1':1}\n"
-                "{'key1':1}\n"
-            )
-            inserted = self.client.execute(query)
-            self.assertEqual(inserted, data)
+    # def test_nullable(self):
+    #     with self.create_table('a Map(Nullable(String), Nullable(UInt64))'):
+    #         data = [
+    #             ({},),
+    #             ({None: None},),
+    #             ({'key1': 1}, )
+    #         ]
+    #         self.client.execute('INSERT INTO test (a) VALUES', data)
+    #         query = 'SELECT * FROM test'
+    #         inserted = self.emit_cli(query)
+    #         self.assertEqual(
+    #             inserted,
+    #             "{}\n"
+    #             "{NULL:NULL}\n"
+    #             "{'key1':1}\n"
+    #         )
+    #         inserted = self.client.execute(query)
+    #         self.assertEqual(inserted, data)
+    #
+    # def test_low_cardinality(self):
+    #     columns = 'a Map(LowCardinality(String), LowCardinality(UInt64))'
+    #     with self.create_table(columns):
+    #         data = [
+    #             ({'key1': 1}, ),
+    #             ({'key1': 1}, ),
+    #             ({'key1': 1}, )
+    #         ]
+    #         self.client.execute('INSERT INTO test (a) VALUES', data)
+    #         query = 'SELECT * FROM test'
+    #         inserted = self.emit_cli(query)
+    #         self.assertEqual(
+    #             inserted,
+    #             "{'key1':1}\n"
+    #             "{'key1':1}\n"
+    #             "{'key1':1}\n"
+    #         )
+    #         inserted = self.client.execute(query)
+    #         self.assertEqual(inserted, data)
 
     def test_array(self):
         columns = 'a Map(String, Array(UInt64))'
