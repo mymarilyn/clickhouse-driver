@@ -137,7 +137,39 @@ class DateTimeTestCase(BaseDateTimeTestCase):
 
     @require_server_version(21, 4)
     def test_insert_datetime64_extended_range(self):
-        with self.create_table("a DateTime64(0, 'UTC')"):
+        with self.create_table('a DateTime64(0)'):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES',
+                [(-1420077600, ), (-1420077599, ),
+                 (0, ), (1, ),
+                 (9877248000, )]
+            )
+
+            query = 'SELECT toInt64(a), a FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted,
+                '-1420077600\t1925-01-01 00:00:00\n'
+                '-1420077599\t1925-01-01 00:00:01\n'
+                '0\t1970-01-01 03:00:00\n'
+                '1\t1970-01-01 03:00:01\n'
+                '9877248000\t2282-12-31 03:00:00\n'
+            )
+            query = 'SELECT a FROM test ORDER BY a'
+            inserted = self.client.execute(query)
+            self.assertEqual(
+                inserted, [
+                    (datetime(1925, 1, 1, 0, 0, 0), ),
+                    (datetime(1925, 1, 1, 0, 0, 1), ),
+                    (datetime(1970, 1, 1, 3, 0, 0), ),
+                    (datetime(1970, 1, 1, 3, 0, 1), ),
+                    (datetime(2282, 12, 31, 3, 0, 0), )
+                ]
+            )
+
+    @require_server_version(21, 4)
+    def test_insert_datetime64_extended_range_pure_ints_out_of_range(self):
+        with self.create_table('a DateTime64(0)'):
             self.client.execute(
                 'INSERT INTO test (a) VALUES',
                 [(0, ), (1, ), (-2**63, ), (2**63-1, )]
