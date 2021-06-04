@@ -87,7 +87,7 @@ class DateTimeColumn(FormatColumn):
 
 class DateTime64Column(DateTimeColumn):
     ch_type = 'DateTime64'
-    format = 'Q'
+    format = 'q'
 
     max_scale = 6
 

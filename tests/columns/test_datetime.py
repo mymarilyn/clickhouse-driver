@@ -135,6 +135,21 @@ class DateTimeTestCase(BaseDateTimeTestCase):
             inserted = self.emit_cli(query)
             self.assertEqual(inserted, '0\n1\n1500000000\n4294967295\n')
 
+    @require_server_version(21, 4)
+    def test_insert_datetime64_extended_range(self):
+        with self.create_table("a DateTime64(0, 'UTC')"):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES',
+                [(0, ), (1, ), (-2**63, ), (2**63-1, )]
+            )
+
+            query = 'SELECT toInt64(a) FROM test ORDER BY a'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted,
+                '-9223372036854775808\n0\n1\n9223372036854775807\n'
+            )
+
 
 class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
     dt_type = 'DateTime'
