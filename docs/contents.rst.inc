@@ -5,7 +5,10 @@ This part of the documentation focuses on step-by-step instructions for developm
 
 Clickhouse-driver is designed to communicate with ClickHouse server from Python over native protocol.
 
-ClickHouse server provider two protocols for communication: HTTP protocol and Native (TCP) protocol.
+ClickHouse server provides two protocols for communication:
+
+* HTTP protocol (port 8123 by default);
+* Native (TCP) protocol (port 9000 by default).
 
 Each protocol has own advantages and disadvantages. Here we focus on advantages of native protocol:
 
@@ -16,6 +19,7 @@ Each protocol has own advantages and disadvantages. Here we focus on advantages 
   Gzip compression is used in HTTP protocol.
 * Query profile info is available over native protocol. We can read rows before limit metric for example.
 
+Once again: clickhouse-driver uses native protocol (port 9000).
 
 There is an asynchronous wrapper for clickhouse-driver: aioch. It's available `here <https://github.com/mymarilyn/aioch>`_.
 
