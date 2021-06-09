@@ -19,7 +19,14 @@ class NumpyStringColumn(NumpyColumn):
         )
 
     def write_items(self, items, buf):
-        return buf.write_strings(items.tolist(), encoding=self.encoding)
+        items = self._cast_items_to_string(items)
+        return buf.write_strings(items, encoding=self.encoding)
+
+    @staticmethod
+    def _cast_items_to_string(items):
+        if isinstance(items, list):
+            return (str(item) for item in items)
+        return (str(item) for item in items)
 
 
 class NumpyByteStringColumn(NumpyColumn):
