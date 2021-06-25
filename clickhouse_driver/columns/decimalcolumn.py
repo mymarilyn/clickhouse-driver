@@ -8,15 +8,15 @@ from .intcolumn import Int128Column, Int256Column
 class DecimalColumn(FormatColumn):
     py_types = (Decimal, float, int)
     max_precision = None
-    int_size = None
+    int_size = None # <-
 
     def __init__(self, precision, scale, types_check=False, **kwargs):
         self.precision = precision
         self.scale = scale
         super(DecimalColumn, self).__init__(**kwargs)
 
-        if types_check:
-            max_signed_int = (1 << (8 * self.int_size - 1)) - 1
+        if types_check: # <-
+            max_signed_int = (1 << (8 * self.int_size - 1)) - 1 # <- 
 
             def check_item(value):
                 if value < -max_signed_int or value > max_signed_int:
@@ -86,11 +86,11 @@ class Decimal32Column(DecimalColumn):
 class Decimal64Column(DecimalColumn):
     format = 'q'
     max_precision = 18
-    int_size = 8
+    int_size = 8 ## <-
 
 
 class Decimal128Column(DecimalColumn, Int128Column):
-    max_precision = 38
+    max_precision = 38 ## <-
 
 
 class Decimal256Column(DecimalColumn, Int256Column):
