@@ -1,5 +1,5 @@
 from ... import errors
-from ..arraycolumn import create_array_column
+from .arraycolumn import create_numpy_array_column
 from .datecolumn import NumpyDateColumn
 from .datetimecolumn import create_numpy_datetime_column
 from ..decimalcolumn import create_decimal_column
@@ -55,7 +55,7 @@ def get_numpy_column_by_spec(spec, column_options):
         return create_decimal_column(spec, column_options)
 
     elif spec.startswith('Array'):
-        return create_array_column(spec, create_column_with_options)
+        return create_numpy_array_column(spec, create_column_with_options)
 
     elif spec.startswith('Tuple'):
         return create_tuple_column(spec, create_column_with_options)
