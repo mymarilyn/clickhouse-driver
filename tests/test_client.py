@@ -1,5 +1,4 @@
 import ssl
-from unittest import TestCase
 
 from clickhouse_driver import Client
 from clickhouse_driver.compression.lz4 import Compressor as LZ4Compressor
@@ -7,9 +6,10 @@ from clickhouse_driver.compression.lz4hc import Compressor as LZHC4Compressor
 from clickhouse_driver.compression.zstd import Compressor as ZSTDCompressor
 from clickhouse_driver.protocol import Compression
 from tests.numpy.util import check_numpy
+from tests.testcase import BaseTestCase
 
 
-class ClientFromUrlTestCase(TestCase):
+class ClientFromUrlTestCase(BaseTestCase):
     def assertHostsEqual(self, client, another, msg=None):
         self.assertEqual(list(client.connection.hosts), another, msg=msg)
 
@@ -227,3 +227,9 @@ class ClientFromUrlTestCase(TestCase):
     def test_use_numpy(self):
         c = Client.from_url('clickhouse://host?use_numpy=true')
         self.assertTrue(c.connection.context.client_settings['use_numpy'])
+
+    def test_context_manager(self):
+        with self.client as c:
+            c.execute('SELECT 1')
+            self.assertTrue(c.connection.connected)
+        self.assertFalse(c.connection.connected)

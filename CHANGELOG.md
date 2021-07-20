@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+### Added
+- Support for using `Client` as context manager closing connection on exit. Solves issue [#237](https://github.com/mymarilyn/clickhouse-driver/issues/237).
+
 ## [0.2.1] - 2021-06-02
 ### Added
 - Linux wheels for AArch64. Pull request [#197](https://github.com/mymarilyn/clickhouse-driver/pull/197) by [odidev](https://github.com/odidev).
