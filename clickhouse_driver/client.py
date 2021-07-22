@@ -90,6 +90,12 @@ class Client(object):
         self.reset_last_query()
         super(Client, self).__init__()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.disconnect()
+
     def disconnect(self):
         """
         Disconnects from the server.

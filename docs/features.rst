@@ -423,3 +423,19 @@ Writing pandas DataFrame is also supported with `insert_dataframe`:
         ... )
         >>> client.insert_dataframe('INSERT INTO test VALUES', df)
         >>> 10000
+
+
+Automatic disposal
+------------------
+
+*New in version 0.2.2.*
+
+Each Client instance can be used as a context manager:
+
+    .. code-block:: python
+
+        >>> with Client('localhost') as client:
+        >>>     client.execute('SELECT 1')
+
+
+Upon exit, any established connection to the ClickHouse server will be closed automatically.
