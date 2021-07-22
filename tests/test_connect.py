@@ -174,6 +174,12 @@ class ConnectTestCase(BaseTestCase):
             rv = client.execute('SELECT currentDatabase()')
             self.assertEqual(rv, [('system', )])
 
+    def test_context_manager(self):
+        with self.created_client() as c:
+            c.execute('SELECT 1')
+            self.assertTrue(c.connection.connected)
+        self.assertFalse(c.connection.connected)
+
 
 class FakeBufferedReader(BufferedReader):
     def __init__(self, inputs, bufsize=128):

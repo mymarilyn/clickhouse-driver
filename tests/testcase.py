@@ -68,14 +68,8 @@ class BaseTestCase(TestCase):
         client_kwargs.update(kwargs)
         return Client(self.host, **client_kwargs)
 
-    @contextmanager
     def created_client(self, **kwargs):
-        client = self._create_client(**kwargs)
-
-        try:
-            yield client
-        finally:
-            client.disconnect()
+        return self._create_client(**kwargs)
 
     @classmethod
     def setUpClass(cls):
