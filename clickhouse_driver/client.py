@@ -395,8 +395,8 @@ class Client(object):
         )
 
     def insert_dataframe(
-            self, query, dataframe, transpose=True, external_tables=None,
-            query_id=None, settings=None):
+            self, query, dataframe, external_tables=None, query_id=None,
+            settings=None):
         """
         *New in version 0.2.0.*
 
@@ -404,11 +404,6 @@ class Client(object):
 
         :param query: query that will be send to server.
         :param dataframe: pandas DataFrame.
-        :param transpose: whether or not transpose DataFrame before sending.
-                          This is necessary action as DataFrame can be sent in
-                          columnar form. If DataFrame is already in columnar
-                          form set this parameter to ``False``.
-                          Defaults to ``True``.
         :param external_tables: external tables to send.
                                 Defaults to ``None`` (no external tables).
         :param query_id: the query identifier. If no query id specified
@@ -423,8 +418,7 @@ class Client(object):
         except ImportError:
             raise RuntimeError('Extras for NumPy must be installed')
 
-        frame = dataframe.transpose() if transpose else dataframe
-        columns = columns = [frame[col].values for col in frame]
+        columns = [dataframe[col].values for col in dataframe]
 
         return self.execute(
             query, columns, columnar=True, external_tables=external_tables,

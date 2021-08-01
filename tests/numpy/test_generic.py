@@ -120,21 +120,6 @@ class DataFrameTestCase(NumpyBaseTestCase):
             df2 = self.client.query_dataframe('SELECT * FROM test ORDER BY a')
             self.assertTrue(df.equals(df2))
 
-    def test_insert_transposed(self):
-        n = 10
-        df = pd.DataFrame({
-            'a': range(n),
-            'b': [float(x) for x in range(n)]
-        })
-
-        with self.create_table('a Int64, b Float64'):
-            rv = self.client.insert_dataframe(
-                'INSERT INTO test VALUES', df.transpose(), transpose=False
-            )
-            self.assertEqual(rv, n)
-            df2 = self.client.query_dataframe('SELECT * FROM test ORDER BY a')
-            self.assertTrue(df.equals(df2))
-
 
 class NoNumPyTestCase(BaseTestCase):
     def setUp(self):
