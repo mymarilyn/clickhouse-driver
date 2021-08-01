@@ -32,7 +32,7 @@ Features
 
 - Compression support.
 
-- TLS support (since server version 1.1.54304).
+- TLS support.
 
 - Types support:
 

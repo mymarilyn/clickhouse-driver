@@ -424,7 +424,7 @@ class Client(object):
             raise RuntimeError('Extras for NumPy must be installed')
 
         frame = dataframe.transpose() if transpose else dataframe
-        columns = list(frame.values)
+        columns = columns = [frame[col].values for col in frame]
 
         return self.execute(
             query, columns, columnar=True, external_tables=external_tables,
