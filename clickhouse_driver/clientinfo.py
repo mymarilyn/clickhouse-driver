@@ -3,8 +3,10 @@ import getpass
 
 from . import defines
 from . import errors
+from .opentelemetry import OpenTelemetryTraceContext
 from .varint import write_varint
-from .writer import write_binary_str, write_binary_uint8
+from .writer import write_binary_str, write_binary_uint8, \
+    write_binary_uint64, write_binary_uint128
 
 
 class ClientInfo(object):
@@ -34,7 +36,7 @@ class ClientInfo(object):
 
     quota_key = ''
 
-    def __init__(self, client_name):
+    def __init__(self, client_name, context):
         self.query_kind = ClientInfo.QueryKind.NO_QUERY
 
         try:
@@ -43,6 +45,11 @@ class ClientInfo(object):
             self.os_user = ''
         self.client_hostname = socket.gethostname()
         self.client_name = client_name
+
+        self.client_trace_context = OpenTelemetryTraceContext(
+            context.client_settings['opentelemetry_traceparent'],
+            context.client_settings['opentelemetry_tracestate']
+        )
 
         super(ClientInfo, self).__init__()
 
@@ -78,3 +85,15 @@ class ClientInfo(object):
 
         if revision >= defines.DBMS_MIN_REVISION_WITH_VERSION_PATCH:
             write_varint(self.client_version_patch, fout)
+
+        if revision >= defines.DBMS_MIN_REVISION_WITH_OPENTELEMETRY:
+            if self.client_trace_context.trace_id is not None:
+                # Have OpenTelemetry header.
+                write_binary_uint8(1, fout)
+                write_binary_uint128(self.client_trace_context.trace_id, fout)
+                write_binary_uint64(self.client_trace_context.span_id, fout)
+                write_binary_str(self.client_trace_context.tracestate, fout)
+                write_binary_uint8(self.client_trace_context.trace_flags, fout)
+            else:
+                # Don't have OpenTelemetry header.
+                write_binary_uint8(0, fout)

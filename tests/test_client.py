@@ -227,3 +227,31 @@ class ClientFromUrlTestCase(TestCase):
     def test_use_numpy(self):
         c = Client.from_url('clickhouse://host?use_numpy=true')
         self.assertTrue(c.connection.context.client_settings['use_numpy'])
+
+    def test_opentelemetry(self):
+        c = Client.from_url(
+            'clickhouse://host?opentelemetry_traceparent='
+            '00-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-bbbbbbbbbbbbbbbb-00'
+        )
+        self.assertEqual(
+            c.connection.context.client_settings['opentelemetry_traceparent'],
+            '00-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-bbbbbbbbbbbbbbbb-00'
+        )
+        self.assertEqual(
+            c.connection.context.client_settings['opentelemetry_tracestate'],
+            ''
+        )
+
+        c = Client.from_url(
+            'clickhouse://host?opentelemetry_traceparent='
+            '00-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-bbbbbbbbbbbbbbbb-00&'
+            'opentelemetry_tracestate=state'
+        )
+        self.assertEqual(
+            c.connection.context.client_settings['opentelemetry_traceparent'],
+            '00-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-bbbbbbbbbbbbbbbb-00'
+        )
+        self.assertEqual(
+            c.connection.context.client_settings['opentelemetry_tracestate'],
+            'state'
+        )

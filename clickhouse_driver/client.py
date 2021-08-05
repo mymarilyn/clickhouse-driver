@@ -40,14 +40,21 @@ class Client(object):
         * ``strings_encoding`` -- specifies string encoding. UTF-8 by default.
         * ``use_numpy`` -- Use numpy for columns reading. New in version
                            *0.2.0*.
-
+        * ``opentelemetry_traceparent`` -- OpenTelemetry traceparent header as
+                           described by W3C Trace Context recommendation.
+                           New in version *0.2.2*.
+        * ``opentelemetry_tracestate`` -- OpenTelemetry tracestate header as
+                           described by W3C Trace Context recommendation.
+                           New in version *0.2.2*.
     """
 
     available_client_settings = (
         'insert_block_size',  # TODO: rename to max_insert_block_size
         'strings_as_bytes',
         'strings_encoding',
-        'use_numpy'
+        'use_numpy',
+        'opentelemetry_traceparent',
+        'opentelemetry_tracestate'
     )
 
     def __init__(self, *args, **kwargs):
@@ -65,6 +72,12 @@ class Client(object):
             ),
             'use_numpy': self.settings.pop(
                 'use_numpy', False
+            ),
+            'opentelemetry_traceparent': self.settings.pop(
+                'opentelemetry_traceparent', None
+            ),
+            'opentelemetry_tracestate': self.settings.pop(
+                'opentelemetry_tracestate', ''
             )
         }
 

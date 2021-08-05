@@ -194,6 +194,7 @@ class Connection(object):
 
         self.connected = False
 
+        self.client_trace_context = None
         self.server_info = None
         self.context = Context()
 
@@ -347,6 +348,7 @@ class Connection(object):
 
         self.connected = False
 
+        self.client_trace_context = None
         self.server_info = None
 
         self.block_in = None
@@ -576,7 +578,7 @@ class Connection(object):
 
         revision = self.server_info.revision
         if revision >= defines.DBMS_MIN_REVISION_WITH_CLIENT_INFO:
-            client_info = ClientInfo(self.client_name)
+            client_info = ClientInfo(self.client_name, self.context)
             client_info.query_kind = ClientInfo.QueryKind.INITIAL_QUERY
 
             client_info.write(revision, self.fout)
