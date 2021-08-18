@@ -47,7 +47,8 @@ Settings can be specified during Client initialization:
         >>> settings = {'max_threads': 2}
         >>> client = Client('localhost', settings=settings)
 
-Each setting can be overridden in an `execute` statement:
+Each setting can be overridden in an ``execute``, ``execute_with_progress`` and
+``execute_iter`` statement:
 
     .. code-block:: python
 
@@ -64,7 +65,7 @@ Compression
 Native protocol supports two types of compression: `LZ4 <http://www.lz4.org/>`_ and
 `ZSTD <https://facebook.github.io/zstd/>`_. When compression is enabled compressed data
 should be hashed using `CityHash algorithm <https://github.com/google/cityhash>`_.
-Additional packages should be install in order by enable compression suport, see :ref:`installation-pypi`.
+Additional packages should be installed in order by enable compression support, see :ref:`installation-pypi`.
 Enabled client-side compression can save network traffic.
 
 Client with compression support can be constructed as follows:
