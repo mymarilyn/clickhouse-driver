@@ -125,6 +125,8 @@ def create_numpy_datetime_column(spec, column_options):
     # As Numpy do not use local timezone for converting timestamp to
     # datetime we need always detect local timezone for manual converting.
     try:
+        local_timezone = get_localzone().key
+    except AttributeError:
         local_timezone = get_localzone().zone
     except Exception:
         pass

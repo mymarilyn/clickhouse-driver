@@ -133,7 +133,7 @@ setup(
     python_requires='>=3.4.*, <4',
     install_requires=[
         'pytz',
-        'tzlocal<3.0'
+        'tzlocal'
     ],
     ext_modules=extensions,
     extras_require={
