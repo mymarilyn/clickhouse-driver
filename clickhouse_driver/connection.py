@@ -609,6 +609,11 @@ class Connection(object):
 
     def send_external_tables(self, tables, types_check=False):
         for table in tables or []:
+            if not table['structure']:
+                raise ValueError(
+                    'Empty table "{}" structure'.format(table['name'])
+                )
+
             block = RowOrientedBlock(table['structure'], table['data'],
                                      types_check=types_check)
             self.send_data(block, table_name=table['name'])

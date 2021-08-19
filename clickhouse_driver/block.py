@@ -132,6 +132,9 @@ class RowOrientedBlock(BaseBlock):
 
     @property
     def num_columns(self):
+        if self.columns_with_types is not None:
+            return len(self.columns_with_types)
+
         return len(self.data[0]) if self.num_rows else 0
 
     @property
