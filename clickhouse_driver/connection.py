@@ -433,9 +433,9 @@ class Connection(object):
             raise self.receive_exception()
 
         else:
-            self.disconnect()
             message = self.unexpected_packet_message('Hello or Exception',
                                                      packet_type)
+            self.disconnect()
             raise errors.UnexpectedPacketFromServerError(message)
 
     def ping(self):
