@@ -24,6 +24,12 @@ class PacketsTestCase(BaseTestCase):
 
 
 class ConnectTestCase(BaseTestCase):
+    def unexpected_packet_message(self, expected, got):
+        return (
+            'Code: 102. Unexpected packet from server {}:{} '
+            '(expected {}, got {})'
+        ).format(self.host, self.port, expected, got)
+
     def test_exception_on_hello_packet(self):
         with self.created_client(user='wrong_user') as client:
             with self.assertRaises(errors.ServerException) as e:
@@ -102,8 +108,14 @@ class ConnectTestCase(BaseTestCase):
             # Emulate Exception packet on ping.
             mocked_fin.read_one.return_value = 2
 
-            with self.assertRaises(errors.UnexpectedPacketFromServerError):
+            error = errors.UnexpectedPacketFromServerError
+            with self.assertRaises(error) as e:
                 self.client.execute('SELECT 1')
+
+            self.assertEqual(
+                str(e.exception),
+                self.unexpected_packet_message('Pong', 'Exception')
+            )
 
     def test_eof_on_receive_packet(self):
         self.client.execute('SELECT 1')
@@ -179,6 +191,36 @@ class ConnectTestCase(BaseTestCase):
             c.execute('SELECT 1')
             self.assertTrue(c.connection.connected)
         self.assertFalse(c.connection.connected)
+
+    def test_unknown_packet(self):
+        self.client.execute('SELECT 1')
+
+        with patch('clickhouse_driver.connection.read_varint') as read_mock, \
+                patch.object(self.client.connection, 'force_connect'):
+            read_mock.return_value = 42
+
+            with self.assertRaises(errors.UnknownPacketFromServerError) as e:
+                self.client.execute('SELECT 1')
+
+            self.assertEqual(
+                str(e.exception),
+                'Code: 100. Unknown packet 42 from server {}:{}'.format(
+                    self.host, self.port
+                )
+            )
+
+    def test_unknown_packet_on_connect(self):
+        with patch('clickhouse_driver.connection.read_varint') as read_mock:
+            read_mock.return_value = 42
+
+            error = errors.UnexpectedPacketFromServerError
+            with self.assertRaises(error) as e:
+                self.client.execute('SELECT 1')
+
+            msg = self.unexpected_packet_message(
+                'Hello or Exception', 'Unknown packet'
+            )
+            self.assertEqual(str(e.exception), msg)
 
 
 class FakeBufferedReader(BufferedReader):

@@ -479,10 +479,10 @@ class Connection(object):
         elif packet_type == ServerPacketTypes.EXCEPTION:
             packet.exception = self.receive_exception()
 
-        elif packet.type == ServerPacketTypes.PROGRESS:
+        elif packet_type == ServerPacketTypes.PROGRESS:
             packet.progress = self.receive_progress()
 
-        elif packet.type == ServerPacketTypes.PROFILE_INFO:
+        elif packet_type == ServerPacketTypes.PROFILE_INFO:
             packet.profile_info = self.receive_profile_info()
 
         elif packet_type == ServerPacketTypes.TOTALS:
@@ -504,12 +504,11 @@ class Connection(object):
             )
 
         else:
-            self.disconnect()
-            raise errors.UnknownPacketFromServerError(
-                'Unknown packet {} from server {}'.format(
-                    packet_type, self.get_description()
-                )
+            message = 'Unknown packet {} from server {}'.format(
+                packet_type, self.get_description()
             )
+            self.disconnect()
+            raise errors.UnknownPacketFromServerError(message)
 
         return packet
 
