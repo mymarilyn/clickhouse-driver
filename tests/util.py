@@ -2,6 +2,8 @@ from functools import wraps
 import logging
 from io import StringIO
 
+from clickhouse_driver import VERSION, __version__
+
 
 def skip_by_server_version(testcase, version_required):
     testcase.skipTest(
@@ -27,6 +29,21 @@ def require_server_version(*version_required):
 
         return wrapper
     return check
+
+
+def will_fail_in(*version):
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            self = args[0]
+
+            if VERSION >= version:
+                self.fail(
+                    'This test should not work in {}'.format(__version__)
+                )
+
+        return wrapper
+    return decorator
 
 
 class LoggingCapturer(object):

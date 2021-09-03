@@ -8,6 +8,7 @@ from clickhouse_driver.dbapi import (
     ProgrammingError, InterfaceError, OperationalError
 )
 from tests.testcase import BaseTestCase
+from tests.util import will_fail_in
 
 
 class DBAPITestCaseBase(BaseTestCase):
@@ -149,7 +150,15 @@ class DBAPITestCase(DBAPITestCaseBase):
                 'INSERT INTO test '
                 'SELECT number FROM system.numbers LIMIT 4'
             )
-            self.assertEqual(cursor.rowcount, -1)
+            self.assertEqual(cursor.rowcount, 4)
+            self.assertEqual(cursor.fetchall(), [])
+
+            cursor.execute(
+                'INSERT INTO test '
+                'SELECT number FROM system.numbers LIMIT 0'
+            )
+            self.assertEqual(cursor.rowcount, 0)
+            self.assertEqual(cursor.fetchall(), [])
 
     def test_description(self):
         with self.created_cursor() as cursor:
@@ -165,6 +174,7 @@ class DBAPITestCase(DBAPITestCaseBase):
             cursor.setinputsizes(0)
             cursor.setoutputsize(0)
 
+    @will_fail_in(0, 3)
     def test_ddl(self):
         with self.created_cursor() as cursor:
             cursor.execute('DROP TABLE IF EXISTS test')

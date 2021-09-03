@@ -193,7 +193,21 @@ Of course for ``INSERT ... SELECT`` queries data is not needed:
         ...     'SELECT * FROM system.numbers LIMIT %(limit)s',
         ...     {'limit': 5}
         ... )
-        []
+        5
+
+There is one limitation ``INSERT ... SELECT`` queries: the number of read rows
+is returned:
+
+    .. code-block:: python
+
+        >>> client.execute(
+        ...     'INSERT INTO test (x) '
+        ...     'SELECT * FROM ('
+        ...     'SELECT * FROM system.numbers LIMIT %(limit_1)s'
+        ...     ') AS t LIMIT %(limit_1)s',
+        ...     {'limit_1': 5, 'limit_2': 2}
+        ... )
+        5
 
 ClickHouse will execute this query like a usual ``SELECT`` query.
 

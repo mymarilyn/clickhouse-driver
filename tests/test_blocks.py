@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from clickhouse_driver.errors import ServerException
 from tests.testcase import BaseTestCase, file_config
-from tests.util import capture_logging
+from tests.util import capture_logging, will_fail_in
 
 
 class BlocksTestCase(BaseTestCase):
@@ -79,6 +79,11 @@ class BlocksTestCase(BaseTestCase):
                 self.client.execute('SELECT 1')
 
         self.assertFalse(self.client.connection.connected)
+
+    @will_fail_in(0, 3)
+    def test_ddl_return_value(self):
+        rv = self.client.execute('DROP TABLE test IF EXISTS')
+        self.assertEqual(rv, [])
 
 
 class ProgressTestCase(BaseTestCase):

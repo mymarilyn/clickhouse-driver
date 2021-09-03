@@ -332,6 +332,10 @@ class Cursor(object):
                 self._rowcount = len(rows)
         else:
             self._columns = self._types = []
+            # TODO: return 0 for DDL in 0.3.0
+            if not isinstance(rows, list):  # number of inserted rows
+                self._rowcount = rows
+                rows = []
 
         self._rows = rows
 

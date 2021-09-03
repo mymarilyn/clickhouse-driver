@@ -324,7 +324,7 @@ Parameters are expected in Python extended format codes, e.g.
         ...     {'limit': 3}
         ... )
         >>> cursor.rowcount
-        0
+        5
         >>> cursor.execute('SELECT sum(x) FROM test')
         >>> cursor.fetchall()
         [(303,)]

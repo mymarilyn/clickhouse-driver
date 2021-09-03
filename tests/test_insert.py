@@ -3,6 +3,7 @@ from datetime import date
 from tests.testcase import BaseTestCase
 from clickhouse_driver import errors
 from clickhouse_driver.errors import ServerException
+from tests.util import require_server_version
 
 
 class InsertTestCase(BaseTestCase):
@@ -134,7 +135,29 @@ class InsertTestCase(BaseTestCase):
                 'INSERT INTO test (a) '
                 'SELECT number FROM system.numbers LIMIT 5'
             )
-            self.assertEqual(inserted, [])
+            self.assertEqual(inserted, 5)
+
+            inserted = self.client.execute(
+                'INSERT INTO test (a) '
+                'SELECT number FROM system.numbers LIMIT 0'
+            )
+            self.assertEqual(inserted, 0)
+
+            inserted = self.client.execute(
+                'INSERT INTO test (a) '
+                'SELECT number FROM ('
+                'SELECT number FROM system.numbers LIMIT 5'
+                ') AS t LIMIT 2'
+            )
+            self.assertEqual(inserted, 5)
+
+    @require_server_version(19, 3, 3)
+    def test_insert_inline(self):
+        with self.create_table('a UInt64'):
+            inserted = self.client.execute(
+                'INSERT INTO test (a) VALUES (1), (2), (3)'
+            )
+            self.assertEqual(inserted, 3)
 
     def test_insert_return(self):
         with self.create_table('a Int8'):

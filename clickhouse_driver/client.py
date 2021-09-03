@@ -255,8 +255,8 @@ class Client(object):
                          Defaults to ``False`` (row-like form).
 
         :return: * number of inserted rows for INSERT queries with data.
-                   Returning rows count from INSERT FROM SELECT is not
-                   supported.
+                   For INSERT ... SELECT number of read rows by SELECT is
+                   returned.
                  * if `with_column_types=False`: `list` of `tuples` with
                    rows/columns.
                  * if `with_column_types=True`: `tuple` of 2 elements:
@@ -284,11 +284,23 @@ class Client(object):
                 )
             else:
                 rv = self.process_ordinary_query(
-                    query, params=params, with_column_types=with_column_types,
+                    query, params=params, with_column_types=True,
                     external_tables=external_tables,
                     query_id=query_id, types_check=types_check,
                     columnar=columnar
                 )
+                rows, columns_with_types = rv
+                # No columns in case of DDL or INSERT ... SELECT
+                if not columns_with_types:
+                    # Dump check for INSERT.
+                    # Backwards compatibility for .execute(DDL) return [].
+                    # TODO: remove in 0.3.0. Return integer (zero) for DDL too.
+                    if query.lower().strip().startswith('insert'):
+                        rows = self.last_query.progress.rows
+                rv = (rows, columns_with_types)
+                if not with_column_types:
+                    rv = rv[0]
+
             self.last_query.store_elapsed(time() - start_time)
             return rv
 
