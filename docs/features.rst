@@ -390,7 +390,7 @@ Direct loading into pandas DataFrame is also supported by using
     .. code-block:: python
 
         >>> client = Client('localhost', settings={'use_numpy': True})
-        >>> client.query_dataframe('
+        >>> client.query_dataframe(
         ...     'SELECT number AS x, (number + 100) AS y '
         ...     'FROM system.numbers LIMIT 10000'
         ... )
