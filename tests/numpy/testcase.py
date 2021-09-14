@@ -1,3 +1,8 @@
+try:
+    import numpy as np
+except ImportError:
+    np = None
+
 from tests.numpy.util import check_numpy
 from tests.testcase import BaseTestCase
 

@@ -11,7 +11,7 @@ class IntTestCase(NumpyBaseTestCase):
 
     def check_result(self, rv, col_type):
         self.assertArraysEqual(rv[0], np.array(range(self.n)))
-        self.assertIsInstance(rv[0][0], (col_type, ))
+        self.assertEqual(rv[0].dtype, col_type)
 
     def get_query(self, ch_type):
         with self.create_table('a {}'.format(ch_type)):
@@ -58,3 +58,38 @@ class IntTestCase(NumpyBaseTestCase):
     def test_uint64(self):
         rv = self.get_query('UInt64')
         self.check_result(rv, np.uint64)
+
+    def test_insert_nan_into_non_nullable(self):
+        with self.create_table('a Int32'):
+            data = [
+                np.array([123, np.nan], dtype=object)
+            ]
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data, columnar=True
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted,
+                '123\n0\n'
+            )
+
+            inserted = self.client.execute(query, columnar=True)
+            self.assertArraysEqual(inserted[0], np.array([123, 0]))
+            self.assertEqual(inserted[0].dtype, np.int32)
+
+    def test_nullable(self):
+        with self.create_table('a Nullable(Int32)'):
+            data = [np.array([2, None, 4, None, 8])]
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data, columnar=True
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, '2\n\\N\n4\n\\N\n8\n')
+
+            inserted = self.client.execute(query, columnar=True)
+            self.assertArraysEqual(inserted[0], data[0])
+            self.assertEqual(inserted[0].dtype, object)

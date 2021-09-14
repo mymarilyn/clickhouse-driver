@@ -66,6 +66,7 @@ if USE_CYTHON:
 
 tests_require = [
     'nose',
+    'parameterized',
     'freezegun',
     'lz4<=3.0.1',
     'zstd',

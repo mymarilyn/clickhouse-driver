@@ -352,7 +352,7 @@ managers:
         >>>        print(cursor.fetchall())
 
 
-NumPy arrays support
+NumPy/Pandas support
 --------------------
 
 *New in version 0.1.6.*
@@ -377,9 +377,7 @@ Supported types:
   * Date/DateTime('timezone')/DateTime64('timezone')
   * String/FixedString(N)
   * LowCardinality(T)
-
-NumPy arrays are not used when reading nullable columns and columns of
-unsupported types.
+  * Nullable(T)
 
 Direct loading into NumPy arrays increases performance and lowers memory
 requirements on large amounts of rows.
@@ -425,6 +423,63 @@ Writing pandas DataFrame is also supported with `insert_dataframe`:
         >>> client.insert_dataframe('INSERT INTO test VALUES', df)
         >>> 10000
 
+Starting from version 0.2.2 nullable columns are also supported. Keep in mind
+that nullable columns have ``object`` dtype. For convenience ``np.nan`` and
+``None`` is supported as ``NULL`` values for inserting. But only ``None`` is
+returned after selecting for ``NULL`` values.
+
+    .. code-block:: python
+
+        >>> client = Client('localhost', settings={'use_numpy': True})
+        >>> client.execute(
+        ...    'CREATE TABLE test ('
+        ...    'a Nullable(Int64),
+        ...    'b Nullable(Float64),
+        ...    'c Nullable(String)'
+        ...    ') Engine = Memory'
+        ... )
+        >>> []
+        >>> df = pd.DataFrame({
+        ...     'a': [1, None, None],
+        ...     'b': [1.0, None, np.nan],
+        ...     'c': ['a', None, np.nan],
+        ... }, dtype=object)
+        >>> client.insert_dataframe('INSERT INTO test VALUES', df)
+        3
+        >>> client.query_dataframe('SELECT * FROM test')
+              a     b     c
+        0     1     1     a
+        1  None  None  None
+        2  None   NaN  None
+
+It's important to specify `dtype` during dataframe creation:
+
+    .. code-block:: python
+
+        >>> bad_df = pd.DataFrame({
+        ...     'a': [1, None, None],
+        ...     'b': [1.0, None, np.nan],
+        ...     'c': ['a', None, np.nan],
+        ... })
+        >>> bad_df
+             a    b     c
+        0  1.0  1.0     a
+        1  NaN  NaN  None
+        2  NaN  NaN   NaN
+        >>> good_df = pd.DataFrame({
+        ...     'a': [1, None, None],
+        ...     'b': [1.0, None, np.nan],
+        ...     'c': ['a', None, np.nan],
+        ... }, dtype=object)
+        >>> good_df
+              a     b     c
+        0     1     1     a
+        1  None  None  None
+        2  None   NaN   NaN
+
+As you can see float column ``b`` in ``bad_df`` has two ``NaN`` values.
+But ``NaN`` and ``None`` is not the same for float point numbers.
+``NaN`` is ``float('nan')`` where ``None`` is representing ``NULL``.
 
 Automatic disposal
 ------------------
@@ -439,4 +494,5 @@ Each Client instance can be used as a context manager:
         >>>     client.execute('SELECT 1')
 
 
-Upon exit, any established connection to the ClickHouse server will be closed automatically.
+Upon exit, any established connection to the ClickHouse server will be closed
+automatically.

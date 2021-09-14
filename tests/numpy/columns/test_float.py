@@ -1,3 +1,5 @@
+from parameterized import parameterized
+
 try:
     import numpy as np
 except ImportError:
@@ -11,7 +13,7 @@ class FloatTestCase(NumpyBaseTestCase):
 
     def check_result(self, rv, col_type):
         self.assertArraysEqual(rv[0], np.array(range(self.n)))
-        self.assertIsInstance(rv[0][0], (col_type, ))
+        self.assertEqual(rv[0].dtype, col_type)
 
     def get_query(self, ch_type):
         with self.create_table('a {}'.format(ch_type)):
@@ -48,3 +50,38 @@ class FloatTestCase(NumpyBaseTestCase):
 
             inserted = self.client.execute(query, columnar=True)
             self.assertArraysEqual(inserted[0], data[0])
+
+    @parameterized.expand(['Float32', 'Float64'])
+    def test_nullable(self, float_type):
+        with self.create_table('a Nullable({})'.format(float_type)):
+            data = [np.array([np.nan, 0.5, None, 1.5], dtype=object)]
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data, columnar=True
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, 'nan\n0.5\n\\N\n1.5\n')
+
+            inserted = self.client.execute(query, columnar=True)
+            self.assertArraysEqual(
+                inserted[0].astype(str), data[0].astype(str)
+            )
+            self.assertEqual(inserted[0].dtype, object)
+
+    def test_nan(self):
+        with self.create_table('a Float32'):
+            data = [np.array([float('nan'), 0.5], dtype=np.float32)]
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data, columnar=True
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, 'nan\n0.5\n')
+
+            inserted = self.client.execute(query, columnar=True)
+            self.assertArraysEqual(
+                inserted[0].astype(str), data[0].astype(str)
+            )
+            self.assertEqual(inserted[0].dtype, np.float32)

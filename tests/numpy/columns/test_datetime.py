@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, date
 import os
 from time import tzset
 from unittest.mock import patch
@@ -75,6 +75,50 @@ class DateTimeTestCase(BaseDateTimeTestCase):
             self.assertArraysEqual(
                 inserted[1], self.make_numpy_d64ns(['2012-10-25T14:07:19'])
             )
+
+    def test_nullable_date(self):
+        with self.create_table('a Nullable(Date)'):
+            data = [
+                np.array([None, date(2012, 10, 25), None, date(2017, 6, 23)],
+                         dtype=object)
+            ]
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data, columnar=True
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted, '\\N\n2012-10-25\n\\N\n2017-06-23\n'
+            )
+
+            inserted = self.client.execute(query, columnar=True)
+            self.assertArraysEqual(inserted[0], data[0])
+            self.assertEqual(inserted[0].dtype, object)
+
+    def test_nullable_datetime(self):
+        with self.create_table('a Nullable(DateTime)'):
+            data = [
+                np.array([
+                    None, datetime(2012, 10, 25, 14, 7, 19),
+                    None, datetime(2017, 6, 23, 19, 10, 15)
+                ], dtype=object)
+            ]
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data, columnar=True
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted,
+                '\\N\n2012-10-25 14:07:19\n\\N\n2017-06-23 19:10:15\n'
+            )
+
+            inserted = self.client.execute(query, columnar=True)
+
+            self.assertArraysEqual(inserted[0], data[0])
+            self.assertEqual(inserted[0].dtype, object)
 
     def test_handle_errors_from_tzlocal(self):
         with patch('tzlocal.get_localzone') as mocked_get_localzone:

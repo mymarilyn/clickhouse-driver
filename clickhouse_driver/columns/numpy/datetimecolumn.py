@@ -9,6 +9,8 @@ from .base import NumpyColumn
 class NumpyDateTimeColumnBase(NumpyColumn):
     datetime_dtype = None
 
+    null_value = np.datetime64(0, 'Y')
+
     def __init__(self, timezone=None, offset_naive=True, local_timezone=None,
                  **kwargs):
         self.timezone = timezone

@@ -1,5 +1,6 @@
 from math import log
 
+import numpy as np
 import pandas as pd
 
 from ..lowcardinalitycolumn import LowCardinalityColumn
@@ -23,12 +24,15 @@ class NumpyLowCardinalityColumn(LowCardinalityColumn):
                                                         **kwargs)
 
     def _write_data(self, items, buf):
-        # TODO: nullable support
-
         # Do not write anything for empty column.
         # May happen while writing empty arrays.
         if not len(items):
             return
+
+        # Replace nans with defaults if not nullabe.
+        if isinstance(items, np.ndarray) and not self.nested_column.nullable:
+            nulls = pd.isnull(items)
+            items = np.where(nulls, self.nested_column.null_value, items)
 
         c = pd.Categorical(items)
 
@@ -40,12 +44,19 @@ class NumpyLowCardinalityColumn(LowCardinalityColumn):
         index = c.categories
         keys = c.codes
 
+        if self.nested_column.nullable:
+            # First element represents NULL if column is nullable.
+            index = index.insert(0, self.nested_column.null_value)
+            keys = keys + 1
+            # Prevent null map writing. Reset nested column nullable flag.
+            self.nested_column.nullable = False
+
         write_binary_int64(serialization_type, buf)
         write_binary_int64(len(index), buf)
 
         self.nested_column.write_data(index.to_numpy(items.dtype), buf)
         write_binary_int64(len(items), buf)
-        int_column.write_data(keys, buf)
+        int_column.write_items(keys, buf)
 
     def _read_data(self, n_items, buf, nulls_map=None):
         if not n_items:
@@ -72,6 +83,7 @@ class NumpyLowCardinalityColumn(LowCardinalityColumn):
             # categorical) and drop corresponding first index
             # this is analog of original operation:
             # index = (None, ) + index[1:]
+            keys = np.array(keys, dtype='int64')  # deal with possible overflow
             keys = keys - 1
             index = index[1:]
         return pd.Categorical.from_codes(keys, index)

@@ -5,7 +5,7 @@ from .base import NumpyColumn
 
 
 class NumpyStringColumn(NumpyColumn):
-    dtype = np.dtype('object')
+    null_value = ''
 
     default_encoding = defines.STRINGS_ENCODING
 
@@ -23,6 +23,8 @@ class NumpyStringColumn(NumpyColumn):
 
 
 class NumpyByteStringColumn(NumpyColumn):
+    null_value = b''
+
     def read_items(self, n_items, buf):
         return np.array(buf.read_strings(n_items), dtype=self.dtype)
 

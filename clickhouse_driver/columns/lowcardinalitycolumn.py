@@ -96,7 +96,7 @@ class LowCardinalityColumn(Column):
 
         self.nested_column.write_data(index, buf)
         write_binary_int64(len(items), buf)
-        int_column.write_data(keys, buf)
+        int_column.write_items(keys, buf)
 
     def _read_data(self, n_items, buf, nulls_map=None):
         if not n_items:
