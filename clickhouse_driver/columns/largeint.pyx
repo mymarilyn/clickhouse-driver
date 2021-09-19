@@ -85,7 +85,7 @@ def uint128_from_quads(quad_items, unsigned long long n_items):
 
 
 def uint128_to_quads(items, unsigned long long n_items):
-    cdef unsigned int factor = 4
+    cdef unsigned int factor = 2
     quad_items = PyTuple_New(n_items * factor)
 
     cdef unsigned long long i, ix

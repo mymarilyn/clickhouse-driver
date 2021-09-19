@@ -2154,7 +2154,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_8largeint_4uint128_from_q
  * 
  * 
  * def uint128_to_quads(items, unsigned long long n_items):             # <<<<<<<<<<<<<<
- *     cdef unsigned int factor = 4
+ *     cdef unsigned int factor = 2
  *     quad_items = PyTuple_New(n_items * factor)
  */
 
@@ -2245,15 +2245,15 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_8largeint_6uint128_to_qua
   /* "clickhouse_driver/columns/largeint.pyx":88
  * 
  * def uint128_to_quads(items, unsigned long long n_items):
- *     cdef unsigned int factor = 4             # <<<<<<<<<<<<<<
+ *     cdef unsigned int factor = 2             # <<<<<<<<<<<<<<
  *     quad_items = PyTuple_New(n_items * factor)
  * 
  */
-  __pyx_v_factor = 4;
+  __pyx_v_factor = 2;
 
   /* "clickhouse_driver/columns/largeint.pyx":89
  * def uint128_to_quads(items, unsigned long long n_items):
- *     cdef unsigned int factor = 4
+ *     cdef unsigned int factor = 2
  *     quad_items = PyTuple_New(n_items * factor)             # <<<<<<<<<<<<<<
  * 
  *     cdef unsigned long long i, ix
@@ -2376,7 +2376,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_7columns_8largeint_6uint128_to_qua
  * 
  * 
  * def uint128_to_quads(items, unsigned long long n_items):             # <<<<<<<<<<<<<<
- *     cdef unsigned int factor = 4
+ *     cdef unsigned int factor = 2
  *     quad_items = PyTuple_New(n_items * factor)
  */
 
@@ -4012,7 +4012,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * 
  * 
  * def uint128_to_quads(items, unsigned long long n_items):             # <<<<<<<<<<<<<<
- *     cdef unsigned int factor = 4
+ *     cdef unsigned int factor = 2
  *     quad_items = PyTuple_New(n_items * factor)
  */
   __pyx_tuple__8 = PyTuple_Pack(8, __pyx_n_s_items, __pyx_n_s_n_items, __pyx_n_s_factor, __pyx_n_s_quad_items, __pyx_n_s_i, __pyx_n_s_ix, __pyx_n_s_x, __pyx_n_s_item); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(0, 87, __pyx_L1_error)
@@ -4479,7 +4479,7 @@ if (!__Pyx_RefNanny) {
  * 
  * 
  * def uint128_to_quads(items, unsigned long long n_items):             # <<<<<<<<<<<<<<
- *     cdef unsigned int factor = 4
+ *     cdef unsigned int factor = 2
  *     quad_items = PyTuple_New(n_items * factor)
  */
   __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_17clickhouse_driver_7columns_8largeint_7uint128_to_quads, NULL, __pyx_n_s_clickhouse_driver_columns_largei_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 87, __pyx_L1_error)

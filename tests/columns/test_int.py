@@ -1,5 +1,6 @@
 from tests.testcase import BaseTestCase
 from clickhouse_driver import errors
+from tests.util import require_server_version
 
 
 class IntTestCase(BaseTestCase):
@@ -159,26 +160,27 @@ class BigIntTestCase(BaseTestCase):
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
 
-    # def test_uint128(self):
-    #     with self.create_table('a UInt128'):
-    #         data = [
-    #             (0, ),
-    #             (123, ),
-    #             (340282366920938463463374607431768211455, )
-    #         ]
-    #         self.client.execute('INSERT INTO test (a) VALUES', data)
-    #
-    #         query = 'SELECT * FROM test'
-    #         inserted = self.emit_cli(query)
-    #         self.assertEqual(
-    #             inserted,
-    #             '0\n'
-    #             '123\n'
-    #             '340282366920938463463374607431768211455\n'
-    #         )
-    #
-    #         inserted = self.client.execute(query)
-    #         self.assertEqual(inserted, data)
+    @require_server_version(21, 6)
+    def test_uint128(self):
+        with self.create_table('a UInt128'):
+            data = [
+                (0, ),
+                (123, ),
+                (340282366920938463463374607431768211455, )
+            ]
+            self.client.execute('INSERT INTO test (a) VALUES', data)
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted,
+                '0\n'
+                '123\n'
+                '340282366920938463463374607431768211455\n'
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
 
     def test_int256(self):
         with self.create_table('a Int256'):
