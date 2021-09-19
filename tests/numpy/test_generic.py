@@ -128,6 +128,19 @@ class DataFrameTestCase(NumpyBaseTestCase):
             )
             self.assertEqual(rv, 3)
 
+    def test_insert_not_ordered_columns(self):
+        n = 10
+        df = pd.DataFrame({
+            'b': range(n),
+            'a': [str(x) for x in range(n)]
+        })[['b', 'a']]
+
+        with self.create_table('a String, b Float64'):
+            rv = self.client.insert_dataframe(
+                'INSERT INTO test (a, b) VALUES', df
+            )
+            self.assertEqual(rv, n)
+
 
 class NoNumPyTestCase(BaseTestCase):
     def setUp(self):

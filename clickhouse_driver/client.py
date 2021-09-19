@@ -431,12 +431,25 @@ class Client(object):
         except ImportError:
             raise RuntimeError('Extras for NumPy must be installed')
 
-        columns = [dataframe[col].values for col in dataframe]
+        start_time = time()
+        self.make_query_settings(settings)
+        self.connection.force_connect()
+        self.last_query = QueryInfo()
 
-        return self.execute(
-            query, columns, columnar=True, external_tables=external_tables,
-            query_id=query_id, settings=settings
-        )
+        with self.disconnect_on_error(query):
+            self.connection.send_query(query, query_id=query_id)
+            self.connection.send_external_tables(external_tables)
+
+            sample_block = self.receive_sample_block()
+            rv = None
+            if sample_block:
+                columns = [x[0] for x in sample_block.columns_with_types]
+                data = [dataframe[column].values for column in columns]
+                rv = self.send_data(sample_block, data, columnar=True)
+                self.receive_end_of_query()
+
+            self.last_query.store_elapsed(time() - start_time)
+            return rv
 
     def process_ordinary_query_with_progress(
             self, query, params=None, with_column_types=False,
