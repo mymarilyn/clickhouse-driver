@@ -120,6 +120,14 @@ class DataFrameTestCase(NumpyBaseTestCase):
             df2 = self.client.query_dataframe('SELECT * FROM test ORDER BY a')
             self.assertTrue(df.equals(df2))
 
+    def test_insert_chunking(self):
+        with self.create_table('a Int64'):
+            rv = self.client.execute(
+                'INSERT INTO test VALUES', [np.array(range(3))], columnar=True,
+                settings={'insert_block_size': 1}
+            )
+            self.assertEqual(rv, 3)
+
 
 class NoNumPyTestCase(BaseTestCase):
     def setUp(self):

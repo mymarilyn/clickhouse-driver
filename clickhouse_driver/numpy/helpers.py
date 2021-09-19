@@ -13,7 +13,7 @@ def column_chunks(columns, n):
 
     # create chunk generator for every column
     chunked = [
-        iter(np.array_split(c, range(0, len(c), n)) if len(c) > n else [c])
+        iter(np.array_split(c, len(c) // n) if len(c) > n else [c])
         for c in columns
     ]
 
