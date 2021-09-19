@@ -1,7 +1,6 @@
 import socket
-from unittest import TestCase
+from unittest import TestCase, mock
 
-import mock
 from clickhouse_driver.bufferedreader import BufferedSocketReader
 
 
