@@ -68,7 +68,8 @@ tests_require = [
     'nose',
     'parameterized',
     'freezegun',
-    'lz4<=3.0.1',
+    'lz4<=3.0.1; implementation_name=="pypy"',
+    'lz4; implementation_name!="pypy"',
     'zstd',
     'clickhouse-cityhash>=1.0.2.1'
 ]
@@ -138,7 +139,11 @@ setup(
     ],
     ext_modules=extensions,
     extras_require={
-        'lz4': ['lz4<=3.0.1', 'clickhouse-cityhash>=1.0.2.1'],
+        'lz4': [
+            'lz4<=3.0.1; implementation_name=="pypy"',
+            'lz4; implementation_name!="pypy"',
+            'clickhouse-cityhash>=1.0.2.1'
+        ],
         'zstd': ['zstd', 'clickhouse-cityhash>=1.0.2.1'],
         'numpy': ['numpy>=1.12.0', 'pandas>=0.24.0']
     },
