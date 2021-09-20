@@ -8,6 +8,7 @@ from tests.util import require_server_version
 class DecimalTestCase(BaseTestCase):
     required_server_version = (18, 12, 13)
     stable_support_version = (18, 14, 9)
+    trailing_zeros_version = (21, 9)
 
     def client_kwargs(self, version):
         if version < self.stable_support_version:
@@ -25,7 +26,11 @@ class DecimalTestCase(BaseTestCase):
             )
             query = 'SELECT * FROM test'
             inserted = self.emit_cli(query)
-            self.assertEqual(inserted, '300.42000\n300.42000\n-300.00000\n')
+            if self.server_version < self.trailing_zeros_version:
+                expected = '300.42000\n300.42000\n-300.00000\n'
+            else:
+                expected = '300.42\n300.42\n-300\n'
+            self.assertEqual(inserted, expected)
             inserted = self.client.execute(query)
             self.assertEqual(inserted, [
                 (Decimal('300.42'), ),
@@ -142,7 +147,11 @@ class DecimalTestCase(BaseTestCase):
 
             query = 'SELECT * FROM test'
             inserted = self.emit_cli(query)
-            self.assertEqual(inserted, '300.420\n\\N\n')
+            if self.server_version < self.trailing_zeros_version:
+                expected = '300.420\n\\N\n'
+            else:
+                expected = '300.42\n\\N\n'
+            self.assertEqual(inserted, expected)
 
             inserted = self.client.execute(query)
             self.assertEqual(inserted, [(Decimal('300.42'), ), (None, ), ])
@@ -199,7 +208,11 @@ class DecimalTestCase(BaseTestCase):
             self.client.execute('INSERT INTO test (a) VALUES', data)
             query = 'SELECT * FROM test'
             inserted = self.emit_cli(query)
-            self.assertEqual(inserted, '1.6\n1.0\n12312.0\n999999.6\n')
+            if self.server_version < self.trailing_zeros_version:
+                expected = '1.6\n1.0\n12312.0\n999999.6\n'
+            else:
+                expected = '1.6\n1\n12312\n999999.6\n'
+            self.assertEqual(inserted, expected)
             inserted = self.client.execute(query)
             self.assertEqual(inserted, [
                 (Decimal('1.6'),),
