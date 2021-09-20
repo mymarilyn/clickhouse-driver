@@ -19,4 +19,5 @@ A clear and concise description of what you expected to happen.
 **Versions**
 
 - Version of package with the problem.
+- ClickHouse server version. Version can be obtained by running `SELECT version()` query.
 - Python version.
