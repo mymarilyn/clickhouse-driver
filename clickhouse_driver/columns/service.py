@@ -1,6 +1,6 @@
 from .. import errors
 from .arraycolumn import create_array_column
-from .datecolumn import DateColumn
+from .datecolumn import DateColumn, Date32Column
 from .datetimecolumn import create_datetime_column
 from .decimalcolumn import create_decimal_column
 from . import exceptions as column_exceptions
@@ -31,7 +31,7 @@ from .ipcolumn import IPv4Column, IPv6Column
 
 
 column_by_type = {c.ch_type: c for c in [
-    DateColumn, Float32Column, Float64Column,
+    DateColumn, Date32Column, Float32Column, Float64Column,
     Int8Column, Int16Column, Int32Column, Int64Column,
     Int128Column, UInt128Column, Int256Column, UInt256Column,
     UInt8Column, UInt16Column, UInt32Column, UInt64Column,

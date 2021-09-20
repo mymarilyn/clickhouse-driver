@@ -38,7 +38,7 @@ Features
 
   * Float32/64
   * [U]Int8/16/32/64/128/256
-  * Date/DateTime('timezone')/DateTime64('timezone')
+  * Date/Date32/DateTime('timezone')/DateTime64('timezone')
   * String/FixedString(N)
   * Enum8/16
   * Array(T)
