@@ -54,6 +54,7 @@ Legal information, changelog and contributing are here for the interested.
 .. toctree::
    :maxdepth: 2
 
+   development
    changelog
    license
    contributing
