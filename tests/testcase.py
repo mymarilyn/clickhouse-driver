@@ -19,6 +19,7 @@ class BaseTestCase(TestCase):
     required_server_version = None
     server_version = None
 
+    clickhouse_client_binary = file_config.get('db', 'client')
     host = file_config.get('db', 'host')
     port = file_config.getint('db', 'port')
     database = file_config.get('db', 'database')
@@ -35,7 +36,7 @@ class BaseTestCase(TestCase):
             database = cls.database
 
         args = [
-            'clickhouse-client',
+            cls.clickhouse_client_binary,
             '--database', database,
             '--host', cls.host,
             '--port', str(cls.port),
