@@ -1,8 +1,31 @@
 # Changelog
 
 ## Unreleased
+
+## [0.2.2] - 2021-10-24
 ### Added
-- Support for using `Client` as context manager closing connection on exit. Solves issue [#237](https://github.com/mymarilyn/clickhouse-driver/issues/237).
+- DateTime64 extended range. Pull request [#222](https://github.com/mymarilyn/clickhouse-driver/pull/222) by [0x4ec7](https://github.com/0x4ec7).
+- Support for using `Client` as context manager closing connection on exit. Solves issue [#237](https://github.com/mymarilyn/clickhouse-driver/issues/237). Pull request [#206](https://github.com/mymarilyn/clickhouse-driver/pull/238) by [wlhjason](https://github.com/wlhjason).
+- OpenTelemetry support. Solves issue [#230](https://github.com/mymarilyn/clickhouse-driver/issues/230).
+- `tzlocal`>=3.0 support.
+- Date32 type.
+- NumPy Nullable(T) support.
+
+### Fixed
+- Boxing on DataFrames INSERT.
+- Empty external tables sending. Solves issue [#240](https://github.com/mymarilyn/clickhouse-driver/issues/240).
+- Create error message before disconnect. Pull request [#247](https://github.com/mymarilyn/clickhouse-driver/pull/247) by [NikiforovG](https://github.com/NikiforovG).
+- Writing explicit NumPy `NaN` values. Solves issue [#249](https://github.com/mymarilyn/clickhouse-driver/issues/249).
+- UInt128 INSERTing. Solves issue [#251](https://github.com/mymarilyn/clickhouse-driver/issues/251).
+- Large DataFrames chunking. Solves issue [#243](https://github.com/mymarilyn/clickhouse-driver/issues/243).
+- Allow arbitrary DataFrame columns order on INSERT. Solves issue [#245](https://github.com/mymarilyn/clickhouse-driver/issues/245).
+
+### Changed
+- Protocol version bumped to 54442.
+- Unpin `lz4` for CPython. Pin `lz4`<=3.0.1 only for PyPy.
+
+### Removed
+- `transpose` parameter from `insert_dataframe`.
 
 ## [0.2.1] - 2021-06-02
 ### Added
@@ -336,7 +359,9 @@
 - Date/DateTime types.
 - String types.
 
-[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.0...HEAD
+[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.2...HEAD
+[0.2.2]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.1...0.2.2
+[0.2.1]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.0...0.2.1
 [0.2.0]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.5...0.2.0
 [0.1.5]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.4...0.1.5
 [0.1.4]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.3...0.1.4
