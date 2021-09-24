@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## [0.2.2] - 2021-10-24
+## [0.2.2] - 2021-09-24
 ### Added
 - DateTime64 extended range. Pull request [#222](https://github.com/mymarilyn/clickhouse-driver/pull/222) by [0x4ec7](https://github.com/0x4ec7).
 - Support for using `Client` as context manager closing connection on exit. Solves issue [#237](https://github.com/mymarilyn/clickhouse-driver/issues/237). Pull request [#206](https://github.com/mymarilyn/clickhouse-driver/pull/238) by [wlhjason](https://github.com/wlhjason).
