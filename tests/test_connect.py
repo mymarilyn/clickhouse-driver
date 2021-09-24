@@ -222,6 +222,24 @@ class ConnectTestCase(BaseTestCase):
             )
             self.assertEqual(str(e.exception), msg)
 
+    def test_partially_consumed_query(self):
+        self.client.execute_iter('SELECT 1')
+
+        error = errors.PartiallyConsumedQueryError
+        with self.assertRaises(error) as e:
+            self.client.execute_iter('SELECT 1')
+
+        self.assertEqual(
+            str(e.exception),
+            'Simultaneous queries on single connection detected'
+        )
+        rv = self.client.execute('SELECT 1')
+        self.assertEqual(rv, [(1, )])
+
+    def test_read_all_packets_on_execute_iter(self):
+        list(self.client.execute_iter('SELECT 1'))
+        list(self.client.execute_iter('SELECT 1'))
+
 
 class FakeBufferedReader(BufferedReader):
     def __init__(self, inputs, bufsize=128):

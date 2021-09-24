@@ -23,6 +23,7 @@ from .reader import read_binary_str
 from .readhelpers import read_exception
 from .settings.writer import write_settings
 from .streams.native import BlockInputStream, BlockOutputStream
+from .util.compat import threading
 from .varint import write_varint, read_varint
 from .writer import write_binary_str
 
@@ -203,12 +204,17 @@ class Connection(object):
         self.block_out = None
         self.block_in_raw = None  # log blocks are always not compressed
 
+        self._lock = threading.Lock()
+        self.is_query_executing = False
+
         super(Connection, self).__init__()
 
     def get_description(self):
         return '{}:{}'.format(self.host, self.port)
 
     def force_connect(self):
+        self.check_query_execution()
+
         if not self.connected:
             self.connect()
 
@@ -355,6 +361,8 @@ class Connection(object):
         self.block_in_raw = None
         self.block_out = None
 
+        self.is_query_executing = False
+
     def disconnect(self):
         """
         Closes connection between server and client.
@@ -496,6 +504,7 @@ class Connection(object):
             log_block(block)
 
         elif packet_type == ServerPacketTypes.END_OF_STREAM:
+            self.is_query_executing = False
             pass
 
         elif packet_type == ServerPacketTypes.TABLE_COLUMNS:
@@ -636,3 +645,12 @@ class Connection(object):
             'Unexpected packet from server {} (expected {}, got {})'
             .format(self.get_description(), expected, packet_type)
         )
+
+    def check_query_execution(self):
+        self._lock.acquire(blocking=False)
+
+        if self.is_query_executing:
+            raise errors.PartiallyConsumedQueryError()
+
+        self.is_query_executing = True
+        self._lock.release()

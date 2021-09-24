@@ -444,3 +444,10 @@ class CannotParseUuidError(Error):
 
 class CannotParseDomainError(Error):
     code = ErrorCodes.CANNOT_PARSE_DOMAIN_VALUE_FROM_STRING
+
+
+class PartiallyConsumedQueryError(Error):
+    code = -1
+
+    def __str__(self):
+        return 'Simultaneous queries on single connection detected'

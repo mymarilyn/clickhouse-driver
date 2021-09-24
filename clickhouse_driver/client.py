@@ -213,9 +213,15 @@ class Client(object):
             self.connection.database = query[4:].strip()
 
     @contextmanager
-    def disconnect_on_error(self, query):
+    def disconnect_on_error(self, query, settings):
+        self.make_query_settings(settings)
+
         try:
+            self.connection.force_connect()
+            self.last_query = QueryInfo()
+
             yield
+
             self.track_current_database(query)
 
         except (Exception, KeyboardInterrupt):
@@ -267,11 +273,8 @@ class Client(object):
         """
 
         start_time = time()
-        self.make_query_settings(settings)
-        self.connection.force_connect()
-        self.last_query = QueryInfo()
 
-        with self.disconnect_on_error(query):
+        with self.disconnect_on_error(query, settings):
             # INSERT queries can use list/tuple/generator of list/tuples/dicts.
             # For SELECT parameters can be passed in only in dict right now.
             is_insert = isinstance(params, (list, tuple, types.GeneratorType))
@@ -322,11 +325,7 @@ class Client(object):
         :return: :ref:`progress-query-result` proxy.
         """
 
-        self.make_query_settings(settings)
-        self.connection.force_connect()
-        self.last_query = QueryInfo()
-
-        with self.disconnect_on_error(query):
+        with self.disconnect_on_error(query, settings):
             return self.process_ordinary_query_with_progress(
                 query, params=params, with_column_types=with_column_types,
                 external_tables=external_tables, query_id=query_id,
@@ -361,11 +360,7 @@ class Client(object):
         :return: :ref:`iter-query-result` proxy.
         """
 
-        self.make_query_settings(settings)
-        self.connection.force_connect()
-        self.last_query = QueryInfo()
-
-        with self.disconnect_on_error(query):
+        with self.disconnect_on_error(query, settings):
             return self.iter_process_ordinary_query(
                 query, params=params, with_column_types=with_column_types,
                 external_tables=external_tables,
@@ -432,11 +427,8 @@ class Client(object):
             raise RuntimeError('Extras for NumPy must be installed')
 
         start_time = time()
-        self.make_query_settings(settings)
-        self.connection.force_connect()
-        self.last_query = QueryInfo()
 
-        with self.disconnect_on_error(query):
+        with self.disconnect_on_error(query, settings):
             self.connection.send_query(query, query_id=query_id)
             self.connection.send_external_tables(external_tables)
 
