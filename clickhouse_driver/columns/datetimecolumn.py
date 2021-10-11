@@ -6,6 +6,7 @@ from tzlocal import get_localzone
 from .base import FormatColumn
 
 EPOCH = datetime(1970, 1, 1, tzinfo=utc)
+MAX_EPOCH_DATETIME = datetime(2106, 2, 7, 6, 28, 15, tzinfo=utc)
 
 
 class DateTimeColumn(FormatColumn):
