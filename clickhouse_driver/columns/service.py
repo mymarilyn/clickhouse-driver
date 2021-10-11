@@ -1,7 +1,7 @@
 from pytz import utc
 from .. import errors
 from .arraycolumn import create_array_column
-from .datecolumn import DateColumn, Date32Column
+from .datecolumn import DateColumn, Date32Column, epoch_start, epoch_end, epoch_start_date32, epoch_end_date32
 from .datetimecolumn import create_datetime_column, EPOCH, MAX_EPOCH_DATETIME
 from .decimalcolumn import create_decimal_column
 from . import exceptions as column_exceptions
@@ -110,9 +110,14 @@ def write_column(context, column_name, column_spec, items, buf,
     column = get_column_by_spec(column_spec, column_options)
 
     try:
-        if column_spec.startswith('DateTime'):
-            items = [EPOCH if item is None else item.astimezone(utc) for item in items]
+        if column_spec == 'Date':
+            items = [epoch_start if item is None else min(item, epoch_end) for item in items]
 
+        elif column_spec == 'Date32':
+            items = [epoch_start_date32 if item is None else min(item, epoch_end_date32) for item in items]
+
+        elif column_spec.startswith('DateTime'):
+            items = [EPOCH if item is None else item.astimezone(utc) for item in items]
             if column_spec == 'DateTime':
                 items = [min(item, MAX_EPOCH_DATETIME) for item in items]
 
