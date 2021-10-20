@@ -48,7 +48,12 @@ def get_column_by_spec(spec, column_options):
 
     if use_numpy:
         from .numpy.service import get_numpy_column_by_spec
-        return get_numpy_column_by_spec(spec, column_options)
+
+        try:
+            return get_numpy_column_by_spec(spec, column_options)
+        except errors.UnknownTypeError:
+            # falling back to generic columns
+            pass
 
     def create_column_with_options(x):
         return get_column_by_spec(x, column_options)
@@ -89,8 +94,8 @@ def get_column_by_spec(spec, column_options):
             cls = column_by_type[spec]
             return cls(**column_options)
 
-        except KeyError as e:
-            raise errors.UnknownTypeError('Unknown type {}'.format(e.args[0]))
+        except KeyError:
+            raise errors.UnknownTypeError('Unknown type {}'.format(spec))
 
 
 def read_column(context, column_spec, n_items, buf):
