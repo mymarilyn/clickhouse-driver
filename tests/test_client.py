@@ -255,3 +255,14 @@ class ClientFromUrlTestCase(TestCase):
             c.connection.context.client_settings['opentelemetry_tracestate'],
             'state'
         )
+
+    def test_quota_key(self):
+        c = Client.from_url('clickhouse://host?quota_key=myquota')
+        self.assertEqual(
+            c.connection.context.client_settings['quota_key'], 'myquota'
+        )
+
+        c = Client.from_url('clickhouse://host')
+        self.assertEqual(
+            c.connection.context.client_settings['quota_key'], ''
+        )

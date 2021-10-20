@@ -78,6 +78,9 @@ class Client(object):
             ),
             'opentelemetry_tracestate': self.settings.pop(
                 'opentelemetry_tracestate', ''
+            ),
+            'quota_key': self.settings.pop(
+                'quota_key', ''
             )
         }
 

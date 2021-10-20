@@ -34,8 +34,6 @@ class ClientInfo(object):
     initial_query_id = ''
     initial_address = '0.0.0.0:0'
 
-    quota_key = ''
-
     def __init__(self, client_name, context):
         self.query_kind = ClientInfo.QueryKind.NO_QUERY
 
@@ -50,6 +48,8 @@ class ClientInfo(object):
             context.client_settings['opentelemetry_traceparent'],
             context.client_settings['opentelemetry_tracestate']
         )
+
+        self.quota_key = context.client_settings['quota_key']
 
         super(ClientInfo, self).__init__()
 
