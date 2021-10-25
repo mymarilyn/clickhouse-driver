@@ -1,8 +1,7 @@
 from datetime import datetime
 
 from pytz import timezone as get_timezone, utc
-from tzlocal import get_localzone
-
+from ..util.compat import get_localzone_name_compat
 from .base import FormatColumn
 
 EPOCH = datetime(1970, 1, 1, tzinfo=utc)
@@ -193,13 +192,7 @@ def create_datetime_column(spec, column_options):
         offset_naive = False
     else:
         if not context.settings.get('use_client_time_zone', False):
-            try:
-                local_timezone = get_localzone().key
-            except AttributeError:
-                local_timezone = get_localzone().zone
-            except Exception:
-                local_timezone = None
-
+            local_timezone = get_localzone_name_compat()
             if local_timezone != context.server_info.timezone:
                 tz_name = context.server_info.timezone
 
