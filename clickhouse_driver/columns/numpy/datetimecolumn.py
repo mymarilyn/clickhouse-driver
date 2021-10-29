@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
 from pytz import timezone as get_timezone
-from tzlocal import get_localzone
 
 from .base import NumpyColumn
+from ...util.compat import get_localzone_name_compat
 
 
 class NumpyDateTimeColumnBase(NumpyColumn):
@@ -122,16 +122,10 @@ def create_numpy_datetime_column(spec, column_options):
 
     tz_name = timezone = None
     offset_naive = True
-    local_timezone = None
 
     # As Numpy do not use local timezone for converting timestamp to
     # datetime we need always detect local timezone for manual converting.
-    try:
-        local_timezone = get_localzone().key
-    except AttributeError:
-        local_timezone = get_localzone().zone
-    except Exception:
-        pass
+    local_timezone = get_localzone_name_compat()
 
     # Use column's timezone if it's specified.
     if spec and spec[-1] == ')':

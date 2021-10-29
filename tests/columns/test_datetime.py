@@ -82,9 +82,14 @@ class DateTimeTestCase(BaseDateTimeTestCase):
             self.assertEqual(inserted, data)
 
     def test_handle_errors_from_tzlocal(self):
-        with patch('tzlocal.get_localzone') as mocked_get_localzone:
-            mocked_get_localzone.side_effect = UnknownTimeZoneError()
+        with patch('tzlocal.get_localzone') as mocked:
+            mocked.side_effect = UnknownTimeZoneError()
             self.client.execute('SELECT now()')
+
+        if hasattr(tzlocal, 'get_localzone_name'):
+            with patch('tzlocal.get_localzone_name') as mocked:
+                mocked.side_effect = None
+                self.client.execute('SELECT now()')
 
     @require_server_version(20, 1, 2)
     def test_datetime64_frac_trunc(self):

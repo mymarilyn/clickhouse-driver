@@ -4,3 +4,24 @@ try:
     import threading
 except ImportError:
     import dummy_threading as threading  # noqa: F401
+
+try:
+    # since tzlocal 4.0+
+    # this will avoid warning for get_localzone().key
+    from tzlocal import get_localzone_name
+
+    def get_localzone_name_compat():
+        try:
+            return get_localzone_name()
+        except Exception:
+            return None
+except ImportError:
+    from tzlocal import get_localzone
+
+    def get_localzone_name_compat():
+        try:
+            return get_localzone().key
+        except AttributeError:
+            return get_localzone().zone
+        except Exception:
+            return None
