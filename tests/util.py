@@ -1,6 +1,12 @@
+import os
+from contextlib import contextmanager
 from functools import wraps
 import logging
 from io import StringIO
+from time import tzset
+from unittest.mock import patch
+
+import tzlocal
 
 
 def skip_by_server_version(testcase, version_required):
@@ -52,3 +58,30 @@ class LoggingCapturer(object):
 
 
 capture_logging = LoggingCapturer
+
+
+def bust_tzlocal_cache():
+    try:
+        tzlocal.unix._cache_tz = None
+        tzlocal.unix._cache_tz_name = None
+    except AttributeError:
+        pass
+
+    try:
+        tzlocal.win32._cache_tz = None
+        tzlocal.unix._cache_tz_name = None
+    except AttributeError:
+        pass
+
+
+@contextmanager
+def patch_env_tz(tz_name):
+    # Although in many cases, changing the TZ environment variable may
+    # affect the output of functions like localtime() without calling
+    # tzset(), this behavior should not be relied on.
+    # https://docs.python.org/3/library/time.html#time.tzset
+    with patch.dict(os.environ, {'TZ': tz_name}):
+        tzset()
+        yield
+
+    tzset()

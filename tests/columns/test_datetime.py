@@ -1,30 +1,17 @@
-from contextlib import contextmanager
 from datetime import date, datetime
-import os
-from time import tzset
 from unittest.mock import patch
 
 from pytz import timezone, utc, UnknownTimeZoneError
 import tzlocal
 
 from tests.testcase import BaseTestCase
-from tests.util import require_server_version
+from tests.util import require_server_version, bust_tzlocal_cache, patch_env_tz
 
 
 class BaseDateTimeTestCase(BaseTestCase):
     def setUp(self):
         super(BaseDateTimeTestCase, self).setUp()
-
-        # Bust tzlocal cache.
-        try:
-            tzlocal.unix._cache_tz = None
-        except AttributeError:
-            pass
-
-        try:
-            tzlocal.win32._cache_tz = None
-        except AttributeError:
-            pass
+        bust_tzlocal_cache()
 
 
 class DateTimeTestCase(BaseDateTimeTestCase):
@@ -191,18 +178,6 @@ class DateTimeTestCase(BaseDateTimeTestCase):
 class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
     dt_type = 'DateTime'
 
-    @contextmanager
-    def patch_env_tz(self, tz_name):
-        # Although in many cases, changing the TZ environment variable may
-        # affect the output of functions like localtime() without calling
-        # tzset(), this behavior should not be relied on.
-        # https://docs.python.org/3/library/time.html#time.tzset
-        with patch.dict(os.environ, {'TZ': tz_name}):
-            tzset()
-            yield
-
-        tzset()
-
     # Asia/Kamchatka = UTC+12
     # Asia/Novosibirsk = UTC+7
     # Europe/Moscow = UTC+3
@@ -234,7 +209,7 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
         offset = timezone(server_tz_name).utcoffset(self.dt).total_seconds()
         timestamp = 1500010800 - int(offset)
 
-        with self.patch_env_tz('Asia/Novosibirsk'):
+        with patch_env_tz('Asia/Novosibirsk'):
             with self.create_table(self.table_columns()):
                 self.client.execute(
                     'INSERT INTO test (a) VALUES', [(self.dt, )]
@@ -265,7 +240,7 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
 
         settings = {'use_client_time_zone': True}
 
-        with self.patch_env_tz('Asia/Novosibirsk'):
+        with patch_env_tz('Asia/Novosibirsk'):
             with self.create_table(self.table_columns()):
                 self.client.execute(
                     'INSERT INTO test (a) VALUES', [(self.dt, )],
@@ -301,7 +276,7 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
         server_tz_name = self.client.execute('SELECT timezone()')[0][0]
         offset = timezone(server_tz_name).utcoffset(self.dt)
 
-        with self.patch_env_tz('Asia/Novosibirsk'):
+        with patch_env_tz('Asia/Novosibirsk'):
             with self.create_table(self.table_columns()):
                 self.client.execute(
                     'INSERT INTO test (a) VALUES', [(self.dt_tz, )]
@@ -334,7 +309,7 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
 
         settings = {'use_client_time_zone': True}
 
-        with self.patch_env_tz('Asia/Novosibirsk'):
+        with patch_env_tz('Asia/Novosibirsk'):
             with self.create_table(self.table_columns()):
                 self.client.execute(
                     'INSERT INTO test (a) VALUES', [(self.dt_tz, )],
@@ -371,7 +346,7 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
         # into column with timezone Asia/Novosibirsk
         # using server's timezone (Europe/Moscow)
 
-        with self.patch_env_tz('Europe/Moscow'):
+        with patch_env_tz('Europe/Moscow'):
             with self.create_table(self.table_columns(with_tz=True)):
                 self.client.execute(
                     'INSERT INTO test (a) VALUES', [(self.dt, )]
@@ -407,7 +382,7 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
 
         settings = {'use_client_time_zone': True}
 
-        with self.patch_env_tz('Europe/Moscow'):
+        with patch_env_tz('Europe/Moscow'):
             with self.create_table(self.table_columns(with_tz=True)):
                 self.client.execute(
                     'INSERT INTO test (a) VALUES', [(self.dt, )],
@@ -442,7 +417,7 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
         # into column with timezone Asia/Novosibirsk
         # using server's timezone (Europe/Moscow)
 
-        with self.patch_env_tz('Europe/Moscow'):
+        with patch_env_tz('Europe/Moscow'):
             with self.create_table(self.table_columns(with_tz=True)):
                 self.client.execute(
                     'INSERT INTO test (a) VALUES', [(self.dt_tz, )]
@@ -482,7 +457,7 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
 
         settings = {'use_client_time_zone': True}
 
-        with self.patch_env_tz('Europe/Moscow'):
+        with patch_env_tz('Europe/Moscow'):
             with self.create_table(self.table_columns(with_tz=True)):
                 self.client.execute(
                     'INSERT INTO test (a) VALUES', [(self.dt_tz, )],

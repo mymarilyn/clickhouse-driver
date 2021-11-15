@@ -12,9 +12,7 @@ except ImportError:
 else:
     USE_CYTHON = True
 
-USE_NUMPY = bool(os.getenv('USE_NUMPY', False))
 CYTHON_TRACE = bool(os.getenv('CYTHON_TRACE', False))
-
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -63,19 +61,6 @@ if USE_CYTHON:
         compiler_directives['linetrace'] = True
 
     extensions = cythonize(extensions, compiler_directives=compiler_directives)
-
-tests_require = [
-    'nose',
-    'parameterized',
-    'freezegun',
-    'lz4<=3.0.1; implementation_name=="pypy"',
-    'lz4; implementation_name!="pypy"',
-    'zstd',
-    'clickhouse-cityhash>=1.0.2.1'
-]
-
-if USE_NUMPY:
-    tests_require.extend(['numpy', 'pandas'])
 
 setup(
     name='clickhouse-driver',
@@ -148,6 +133,5 @@ setup(
         'zstd': ['zstd', 'clickhouse-cityhash>=1.0.2.1'],
         'numpy': ['numpy>=1.12.0', 'pandas>=0.24.0']
     },
-    test_suite='nose.collector',
-    tests_require=tests_require
+    test_suite='pytest'
 )

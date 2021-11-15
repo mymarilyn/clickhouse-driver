@@ -14,6 +14,18 @@ Running tests locally
 
 Install desired Python version with system package manager/pyenv/another manager.
 
+Install test requirements and build package:
+
+    .. code-block:: bash
+
+        python testsrequire.py && python setup.py develop
+
+You should install cython if you want to change ``*.pyx`` files:
+
+    .. code-block:: bash
+
+        pip install cython
+
 ClickHouse on host machine
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -24,7 +36,7 @@ Run tests:
 
     .. code-block:: bash
 
-       python setup.py test
+        py.test -v
 
 ClickHouse in docker
 ^^^^^^^^^^^^^^^^^^^^
@@ -33,13 +45,13 @@ Create container desired version of ``clickhouse-server``:
 
     .. code-block:: bash
 
-       docker run --rm -e "TZ=Europe/Moscow" -p 127.0.0.1:9000:9000 --name test-clickhouse-server yandex/clickhouse-server:$VERSION
+        docker run --rm -e "TZ=Europe/Moscow" -p 127.0.0.1:9000:9000 --name test-clickhouse-server yandex/clickhouse-server:$VERSION
 
 Create container with the same version of ``clickhouse-client``:
 
     .. code-block:: bash
 
-       docker run --rm --entrypoint "/bin/sh" --name test-clickhouse-client --link test-clickhouse-server:clickhouse-server yandex/clickhouse-client:$VERSION -c 'while :; do sleep 1; done'
+        docker run --rm --entrypoint "/bin/sh" --name test-clickhouse-client --link test-clickhouse-server:clickhouse-server yandex/clickhouse-client:$VERSION -c 'while :; do sleep 1; done'
 
 Create ``clickhouse-client`` script on your host machine:
 
@@ -64,4 +76,4 @@ Set ``TZ=UTC`` and run tests:
     .. code-block:: bash
 
         export TZ=UTC
-        python setup.py test
+        py.test -v
