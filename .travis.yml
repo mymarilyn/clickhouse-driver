@@ -267,3 +267,118 @@ jobs:
         overwrite: true
         on:
           tags: true
+
+    - stage: wheels
+      name: Wheels for Linux old python
+      os: linux
+      language: python
+      python:
+        - "3.6"
+
+      install:
+        - pip install --upgrade pip setuptools
+        - pip install cython cibuildwheel==1.11.0
+
+      script:
+        - cibuildwheel --output-dir wheelhouse
+
+      env:
+        - CIBW_BUILD='*p35*'
+        - CIBW_BEFORE_BUILD='pip install cython'
+      deploy:
+        name: Linux
+        provider: releases
+        api_key: $GITHUB_TOKEN
+        file_glob: true
+        file: wheelhouse/*
+        skip_cleanup: true
+        draft: true
+        prerelease: true
+        overwrite: true
+        on:
+          tags: true
+
+    - stage: wheels
+      name: Wheels for Linux aarch64 old python
+      arch: arm64
+      os: linux
+      language: python
+      python:
+        - "3.6"
+      install:
+        - pip install --upgrade pip setuptools
+        - pip install cython cibuildwheel==1.11.0
+
+      script:
+        - cibuildwheel --output-dir wheelhouse
+
+      env:
+        - CIBW_BUILD='*p35*'
+        - CIBW_BEFORE_BUILD='pip install cython'
+      deploy:
+        name: Linux aarch64
+        provider: releases
+        api_key: $GITHUB_TOKEN
+        file_glob: true
+        file: wheelhouse/*
+        skip_cleanup: true
+        draft: true
+        prerelease: true
+        overwrite: true
+        on:
+          tags: true
+
+    - stage: wheels
+      name: Wheels for OS X old python
+      os: osx
+      language: generic
+
+      install:
+        - pip3 install --upgrade pip setuptools
+        - pip install cython cibuildwheel==1.11.0
+
+      script:
+        - cibuildwheel --output-dir wheelhouse
+
+      env:
+        - CIBW_BUILD='*p35*'
+        - CIBW_BEFORE_BUILD='pip install cython'
+      deploy:
+        name: Mac OS X
+        provider: releases
+        api_key: $GITHUB_TOKEN
+        file_glob: true
+        file: wheelhouse/*
+        skip_cleanup: true
+        draft: true
+        prerelease: true
+        overwrite: true
+        on:
+          tags: true
+
+    - stage: wheels
+      name: Wheels for Windows old python
+      os: windows
+      language: shell
+
+      install:
+        - choco install python3 --version 3.9.0 --params "/InstallDir:C:\Python39"
+      script:
+        - C:/Python39/python -m pip install cibuildwheel==1.11.0
+        - C:/Python39/python -m cibuildwheel --platform windows --output-dir wheelhouse
+
+      env:
+        - CIBW_BUILD='cp35*'
+        - CIBW_BEFORE_BUILD='python -m pip install cython'
+      deploy:
+        name: Windows Python
+        provider: releases
+        api_key: $GITHUB_TOKEN
+        file_glob: true
+        file: wheelhouse/*
+        skip_cleanup: true
+        draft: true
+        prerelease: true
+        overwrite: true
+        on:
+          tags: true
