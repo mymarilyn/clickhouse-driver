@@ -121,7 +121,9 @@ setup(
     python_requires='>=3.4.*, <4',
     install_requires=[
         'pytz',
-        'tzlocal'
+        'tzlocal',
+        'tzlocal<1.5; python_version=="3.4"',
+        'tzlocal<2.1; python_version=="3.5"'
     ],
     ext_modules=extensions,
     extras_require={
