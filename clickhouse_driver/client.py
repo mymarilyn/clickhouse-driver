@@ -58,7 +58,7 @@ class Client(object):
     )
 
     def __init__(self, *args, **kwargs):
-        self.settings = kwargs.pop('settings', {}).copy()
+        self.settings = (kwargs.pop('settings', None) or {}).copy()
 
         self.client_settings = {
             'insert_block_size': int(self.settings.pop(

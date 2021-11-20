@@ -13,9 +13,18 @@ class BaseCompressionTestCase(BaseTestCase):
     supported_compressions = file_config.get('db', 'compression').split(',')
 
     def _create_client(self):
+        settings = None
+        if self.compression:
+            # Set server compression method explicitly
+            # By default server sends blocks compressed by LZ4.
+            method = self.compression
+            if self.server_version > (19, ):
+                method = method.upper()
+            settings = {'network_compression_method': method}
+
         return Client(
             self.host, self.port, self.database, self.user, self.password,
-            compression=self.compression
+            compression=self.compression, settings=settings
         )
 
     def setUp(self):
