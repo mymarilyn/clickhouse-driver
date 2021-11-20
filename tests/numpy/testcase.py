@@ -16,3 +16,8 @@ class NumpyBaseTestCase(BaseTestCase):
 
     def assertArraysEqual(self, first, second):
         return self.assertTrue((first == second).all())
+
+    def assertArraysListEqual(self, first, second):
+        self.assertEqual(len(first), len(second))
+        for x, y in zip(first, second):
+            self.assertTrue((x == y).all())

@@ -622,8 +622,19 @@ class Connection(object):
                     'Empty table "{}" structure'.format(table['name'])
                 )
 
-            block = RowOrientedBlock(table['structure'], table['data'],
-                                     types_check=types_check)
+            data = table['data']
+            block_cls = RowOrientedBlock
+
+            if self.context.client_settings['use_numpy']:
+                from .numpy.block import NumpyColumnOrientedBlock
+
+                columns = [x[0] for x in table['structure']]
+                data = [data[column].values for column in columns]
+
+                block_cls = NumpyColumnOrientedBlock
+
+            block = block_cls(table['structure'], data,
+                              types_check=types_check)
             self.send_data(block, table_name=table['name'])
 
         # Empty block, end of data transfer.
