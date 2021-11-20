@@ -452,7 +452,9 @@ class Client(object):
             types_check=False, columnar=False):
 
         if params is not None:
-            query = self.substitute_params(query, params)
+            query = self.substitute_params(
+                query, params, self.connection.context
+            )
 
         self.connection.send_query(query, query_id=query_id)
         self.connection.send_external_tables(external_tables,
@@ -466,7 +468,9 @@ class Client(object):
             types_check=False, columnar=False):
 
         if params is not None:
-            query = self.substitute_params(query, params)
+            query = self.substitute_params(
+                query, params, self.connection.context
+            )
 
         self.connection.send_query(query, query_id=query_id)
         self.connection.send_external_tables(external_tables,
@@ -480,7 +484,9 @@ class Client(object):
             types_check=False):
 
         if params is not None:
-            query = self.substitute_params(query, params)
+            query = self.substitute_params(
+                query, params, self.connection.context
+            )
 
         self.connection.send_query(query, query_id=query_id)
         self.connection.send_external_tables(external_tables,
@@ -584,11 +590,11 @@ class Client(object):
         # Client must still read until END_OF_STREAM packet.
         return self.receive_result(with_column_types=with_column_types)
 
-    def substitute_params(self, query, params):
+    def substitute_params(self, query, params, context):
         if not isinstance(params, dict):
             raise ValueError('Parameters are expected in dict form')
 
-        escaped = escape_params(params)
+        escaped = escape_params(params, context)
         return query % escaped
 
     @classmethod

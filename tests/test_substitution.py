@@ -3,11 +3,14 @@ from __future__ import unicode_literals
 
 from datetime import date, datetime
 from decimal import Decimal
+from unittest.mock import Mock
 from uuid import UUID
 
 from enum import IntEnum, Enum
+from pytz import timezone
 
 from tests.testcase import BaseTestCase
+from tests.util import patch_env_tz
 
 
 class ParametersSubstitutionTestCase(BaseTestCase):
@@ -15,7 +18,9 @@ class ParametersSubstitutionTestCase(BaseTestCase):
     double_tpl = 'SELECT %(x)s, %(y)s'
 
     def assert_subst(self, tpl, params, sql):
-        self.assertEqual(self.client.substitute_params(tpl, params), sql)
+        ctx = Mock()
+        ctx.server_info.timezone = 'Europe/Moscow'
+        self.assertEqual(self.client.substitute_params(tpl, params, ctx), sql)
 
     def test_int(self):
         params = {'x': 123}
@@ -64,6 +69,56 @@ class ParametersSubstitutionTestCase(BaseTestCase):
 
         rv = self.client.execute(tpl, params)
         self.assertEqual(rv, [(dt, )])
+
+    def test_datetime_with_timezone(self):
+        dt = datetime(2017, 7, 14, 5, 40, 0)
+        params = {'x': timezone('Asia/Kamchatka').localize(dt)}
+
+        self.assert_subst(self.single_tpl, params,
+                          "SELECT '2017-07-13 20:40:00'")
+
+        tpl = (
+            'SELECT toDateTime(toInt32(toDateTime(%(x)s))), '
+            'toInt32(toDateTime(%(x)s))'
+        )
+
+        with patch_env_tz('Asia/Novosibirsk'):
+            # use server timezone
+            rv = self.client.execute(
+                tpl, params, settings={'use_client_time_zone': False}
+            )
+
+            self.assertEqual(
+                rv, [(datetime(2017, 7, 13, 20, 40, 0), 1499967600)]
+            )
+
+            query = (
+                "SELECT "
+                "toDateTime(toInt32(toDateTime('{0}', 'Asia/Kamchatka'))), "
+                "toInt32(toDateTime('{0}', 'Asia/Kamchatka'))"
+            ).format('2017-07-14 05:40:00')
+
+            rv = self.emit_cli(query, use_client_time_zone=0)
+
+            self.assertEqual(rv, '2017-07-13 20:40:00\t1499967600\n')
+
+            # use client timezone
+            rv = self.client.execute(
+                tpl, params, settings={'use_client_time_zone': True}
+            )
+
+            self.assertEqual(
+                rv, [(datetime(2017, 7, 14, 0, 40, 0), 1499967600)]
+            )
+
+            query = (
+                "SELECT "
+                "toDateTime(toInt32(toDateTime('{0}', 'Asia/Kamchatka'))), "
+                "toInt32(toDateTime('{0}', 'Asia/Kamchatka'))"
+            ).format('2017-07-14 05:40:00')
+
+            rv = self.emit_cli(query, use_client_time_zone=1)
+            self.assertEqual(rv, '2017-07-14 00:40:00\t1499967600\n')
 
     def test_string(self):
         params = {'x': 'test\t\n\x16', 'y': 'тест\t\n\x16'}
@@ -172,7 +227,7 @@ class ParametersSubstitutionTestCase(BaseTestCase):
         params = object()
 
         with self.assertRaises(ValueError) as e:
-            self.client.substitute_params(self.single_tpl, params)
+            self.client.substitute_params(self.single_tpl, params, Mock())
 
         self.assertEqual(e.exception.args[0],
                          'Parameters are expected in dict form')

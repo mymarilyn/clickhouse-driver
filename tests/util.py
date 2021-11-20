@@ -76,6 +76,8 @@ def bust_tzlocal_cache():
 
 @contextmanager
 def patch_env_tz(tz_name):
+    bust_tzlocal_cache()
+
     # Although in many cases, changing the TZ environment variable may
     # affect the output of functions like localtime() without calling
     # tzset(), this behavior should not be relied on.

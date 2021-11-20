@@ -15,14 +15,10 @@ from pytz import timezone, utc, UnknownTimeZoneError
 import tzlocal
 
 from tests.numpy.testcase import NumpyBaseTestCase
-from tests.util import require_server_version, bust_tzlocal_cache, patch_env_tz
+from tests.util import require_server_version, patch_env_tz
 
 
 class BaseDateTimeTestCase(NumpyBaseTestCase):
-    def setUp(self):
-        super(BaseDateTimeTestCase, self).setUp()
-        bust_tzlocal_cache()
-
     def make_numpy_d64ns(self, items):
         return np.array(items, dtype='datetime64[ns]')
 

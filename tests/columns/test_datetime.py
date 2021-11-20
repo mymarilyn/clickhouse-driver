@@ -5,16 +5,10 @@ from pytz import timezone, utc, UnknownTimeZoneError
 import tzlocal
 
 from tests.testcase import BaseTestCase
-from tests.util import require_server_version, bust_tzlocal_cache, patch_env_tz
+from tests.util import require_server_version, patch_env_tz
 
 
-class BaseDateTimeTestCase(BaseTestCase):
-    def setUp(self):
-        super(BaseDateTimeTestCase, self).setUp()
-        bust_tzlocal_cache()
-
-
-class DateTimeTestCase(BaseDateTimeTestCase):
+class DateTimeTestCase(BaseTestCase):
     def test_simple(self):
         with self.create_table('a Date, b DateTime'):
             data = [(date(2012, 10, 25), datetime(2012, 10, 25, 14, 7, 19))]
@@ -175,7 +169,7 @@ class DateTimeTestCase(BaseDateTimeTestCase):
             )
 
 
-class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
+class DateTimeTimezonesTestCase(BaseTestCase):
     dt_type = 'DateTime'
 
     # Asia/Kamchatka = UTC+12
