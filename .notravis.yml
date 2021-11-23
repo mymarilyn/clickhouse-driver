@@ -73,7 +73,6 @@ install:
   - sed -i 's/^host=localhost$/host=clickhouse-server/' setup.cfg
   # Make host think that clickhouse-server is localhost
   - echo '127.0.0.1 clickhouse-server' | sudo tee /etc/hosts > /dev/null
-  - pip install coveralls cython 'cryptography<3.3'
   - if [ -z ${USE_NUMPY+x} ]; then pip uninstall -y numpy pandas; fi
 script:
   # Enable cython tracing only for cpython
