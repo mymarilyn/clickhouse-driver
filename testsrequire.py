@@ -1,7 +1,7 @@
 import os
 import sys
 
-USE_NUMPY = bool(os.getenv('USE_NUMPY', False))
+USE_NUMPY = bool(int(os.getenv('USE_NUMPY', '0')))
 
 tests_require = [
     'pytest',

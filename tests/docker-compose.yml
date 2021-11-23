@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  clickhouse-server:
+    image: "yandex/clickhouse-server:$VERSION"
+    container_name: test-clickhouse-server
+    environment:
+      - TZ=Europe/Moscow
+    ports:
+      - "127.0.0.1:9000:9000"
+
+  clickhouse-client:
+    image: "yandex/clickhouse-client:$VERSION"
+    container_name: test-clickhouse-client
+    entrypoint: /bin/sh
+    command: [-c, 'while :; do sleep 1; done']
