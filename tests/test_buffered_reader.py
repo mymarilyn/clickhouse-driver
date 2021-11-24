@@ -6,7 +6,7 @@ from clickhouse_driver.bufferedreader import BufferedSocketReader
 
 class BufferedReaderTestCase(TestCase):
     def test_overflow_signed_int_string_size(self):
-        data = b'\xFF\xFE\xFC\xFE\x29\x80\x40\x00\x00\x01'
+        data = b'\xFF\xFE\xFC\xFE\xFE\xFE\xFE\xFE\x29\x80\x40\x00\x00\x01'
 
         def recv_into(buf):
             size = len(data)
