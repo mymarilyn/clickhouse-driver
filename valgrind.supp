@@ -1,0 +1,6 @@
+{
+   <PyUnicode_Decode>
+   # See https://bugs.python.org/issue42176
+   Memcheck:Cond
+   fun:PyUnicode_Decode
+}
