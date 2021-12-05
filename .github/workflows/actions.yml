@@ -1,120 +1,122 @@
 on: [push]
+name: Test
 jobs:
-#  tests:
-#    runs-on: ubuntu-20.04
-#    strategy:
-#      matrix:
-#        use-numpy:
-#          - 0
-#        python-version:
-##          - 3.4
-##          - 3.5
-#          - 3.6
-##          - 3.7
-#          - 3.8
-##          - 3.9
-##          - 3.10
-##          - pypy-3.6
-##          - pypy-3.7
-#        clickhouse-version:
+  tests:
+    # Use 18.04 only due 3.4.
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        use-numpy:
+          - 0
+        python-version:
+          - "3.4"
+#          - "3.5"
+#          - "3.6"
+#          - "3.7"
+#          - "3.8"
+#          - "3.9"
+#          - "3.10"
+#          - "pypy-3.6"
+#          - "pypy-3.7"
+        clickhouse-version:
+          - 21.9.3.30
 #          - 21.9.3.30
-##          - 21.9.3.30
-##          - 21.4.6.55
-##          - 21.3.10.1
-##          - 21.2.10.48
-##          - 21.1.9.41
-##          - 20.11.2.1
-##          - 20.10.2.20
-##          - 20.9.3.45
-##          - 20.8.4.11
-##          - 20.7.4.11
-##          - 20.6.8.5
-##          - 20.5.5.74
-##          - 20.4.9.110
-##          - 20.3.20.6
-##          - 19.16.17.80
-##          - 19.15.3.6
-##          - 19.9.2.4   # allow_suspicious_low_cardinality_types
-##          - 19.8.3.8   # SimpleAggregateFunction
-##          - 19.3.3
-##          - 18.12.17
-##        include:
-##          - clickhouse-version: 20.3.20.6
-##            use-numpy: 1
-##            python-version: 3.6
-#
-#    name: ${{ matrix.python-version }} CH=${{ matrix.clickhouse-version }} NUMPY=${{ matrix.use-numpy }}
-#    steps:
-#      - uses: actions/checkout@v2
-#      - name: Set up Python
-#        uses: actions/setup-python@v2
+#          - 21.4.6.55
+#          - 21.3.10.1
+#          - 21.2.10.48
+#          - 21.1.9.41
+#          - 20.11.2.1
+#          - 20.10.2.20
+#          - 20.9.3.45
+#          - 20.8.4.11
+#          - 20.7.4.11
+#          - 20.6.8.5
+#          - 20.5.5.74
+#          - 20.4.9.110
+#          - 20.3.20.6
+#          - 19.16.17.80
+#          - 19.15.3.6
+#          - 19.9.2.4   # allow_suspicious_low_cardinality_types
+#          - 19.8.3.8   # SimpleAggregateFunction
+#          - 19.3.3
+#          - 18.12.17
+        include:
+          - clickhouse-version: 20.3.20.6
+            use-numpy: 1
+            python-version: 3.6
+
+    name: ${{ matrix.python-version }} CH=${{ matrix.clickhouse-version }} NUMPY=${{ matrix.use-numpy }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x64
+#      - name: Login to Docker Hub
+#        uses: docker/login-action@v1
 #        with:
-#          python-version: ${{ matrix.python-version }}
-#          architecture: x64
-##      - name: Login to Docker Hub
-##        uses: docker/login-action@v1
-##        with:
-##          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-##          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-#      - name: Install dependencies
-#        run: |
-#          pip install --upgrade pip setuptools wheel
-#          pip install flake8 flake8-print
-#      - run: flake8
-#      - name: Start ClickHouse server and client containers
-#        run: |
-#          echo "VERSION=${{ matrix.clickhouse-version }}" > tests/.env
-#          docker-compose -f tests/docker-compose.yml up -d
-#      - name: Setup clickhouse-client proxy for docker
-#        run: |
-#          # Faking clickhouse-client real communication with container via docker exec.
-#          echo -e '#!/bin/bash\n\ndocker exec -e "`env | grep ^TZ=`" test-clickhouse-client clickhouse-client "$@"' | sudo tee /usr/local/bin/clickhouse-client > /dev/null
-#          sudo chmod +x /usr/local/bin/clickhouse-client
-#          # Overriding setup.cfg. Set host=clickhouse-server
-#          sed -i 's/^host=localhost$/host=clickhouse-server/' setup.cfg
-#          # Make host think that clickhouse-server is localhost
-#          echo '127.0.0.1 clickhouse-server' | sudo tee /etc/hosts > /dev/null
-#      - name: Build cython extensions with tracing
-#        run: CYTHON_TRACE=1 python setup.py build_ext --define CYTHON_TRACE
-#        if: ${{ !contains(matrix.python-version, 'pypy') }}
-#      - name: Install requirements
-#        run: |
-#          # Newer coveralls do not work with github actions.
-#          pip install 'coveralls<3.0.0'
-#          pip install cython
-#          # Limit each test time execution.
-#          pip install pytest-timeout
-#          python testsrequire.py
-#          python setup.py develop
-#        env:
-#          USE_NUMPY: ${{ matrix.use-numpy }}
-#      - name: Run tests
-#        run: coverage run -m py.test --timeout=5 -v
-#        timeout-minutes: 5
-#        env:
-#          # Set initial TZ for docker exec -e "`env | grep ^TZ`"
-#          TZ: UTC
-#      - name: Upload coverage
-#        run: coveralls
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#          COVERALLS_PARALLEL: true
-#          COVERALLS_FLAG_NAME: ${{ matrix.python-version }} CH=${{ matrix.clickhouse-version }} NUMPY=${{ matrix.use-numpy }}
-#
-#  coveralls-finished:
-#    name: Indicate completion to coveralls.io
-#    needs: tests
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Finished
-#        uses: coverallsapp/github-action@1.1.3
-#        with:
-#          github-token: ${{ secrets.GITHUB_TOKEN }}
-#          parallel-finished: true
-#
+#          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+#          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip setuptools wheel
+          pip install flake8 flake8-print
+      - run: flake8
+      - name: Start ClickHouse server and client containers
+        run: |
+          echo "VERSION=${{ matrix.clickhouse-version }}" > tests/.env
+          docker-compose -f tests/docker-compose.yml up -d
+      - name: Setup clickhouse-client proxy for docker
+        run: |
+          # Faking clickhouse-client real communication with container via docker exec.
+          echo -e '#!/bin/bash\n\ndocker exec -e "`env | grep ^TZ=`" test-clickhouse-client clickhouse-client "$@"' | sudo tee /usr/local/bin/clickhouse-client > /dev/null
+          sudo chmod +x /usr/local/bin/clickhouse-client
+          # Overriding setup.cfg. Set host=clickhouse-server
+          sed -i 's/^host=localhost$/host=clickhouse-server/' setup.cfg
+          # Make host think that clickhouse-server is localhost
+          echo '127.0.0.1 clickhouse-server' | sudo tee /etc/hosts > /dev/null
+      - name: Build cython extensions with tracing
+        run: CYTHON_TRACE=1 python setup.py build_ext --define CYTHON_TRACE
+        if: ${{ !contains(matrix.python-version, 'pypy') }}
+      - name: Install requirements
+        run: |
+          # Newer coveralls do not work with github actions.
+          pip install 'coveralls<3.0.0'
+          pip install cython
+          python testsrequire.py
+          python setup.py develop
+          # Limit each test time execution.
+          pip install pytest-timeout
+        env:
+          USE_NUMPY: ${{ matrix.use-numpy }}
+      - name: Run tests
+        run: coverage run -m py.test --timeout=5 -v
+        timeout-minutes: 5
+        env:
+          # Set initial TZ for docker exec -e "`env | grep ^TZ`"
+          TZ: UTC
+      - name: Upload coverage
+        run: coveralls
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_PARALLEL: true
+          COVERALLS_FLAG_NAME: ${{ matrix.python-version }} CH=${{ matrix.clickhouse-version }} NUMPY=${{ matrix.use-numpy }}
+
+  coveralls-finished:
+    name: Indicate completion to coveralls.io
+    needs: tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Finished
+        uses: coverallsapp/github-action@1.1.3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel-finished: true
+
   valgrind:
     name: Valgrind check
-#    needs: tests
+    needs: tests
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -159,163 +161,163 @@ jobs:
           USE_NUMPY: 1
           PYTHONMALLOC: malloc
 
-#  wheels-linux:
-#    name: Wheels for Linux
-##    needs: tests
-#    runs-on: ubuntu-20.04
-#    steps:
-#      - uses: actions/checkout@v2
-#      - name: Set up Python
-#        uses: actions/setup-python@v2
+  wheels-linux:
+    name: Wheels for Linux
+    needs: valgrind
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+          architecture: x64
+#      - name: Login to Docker Hub
+#        uses: docker/login-action@v1
 #        with:
-#          python-version: 3.6
-#          architecture: x64
-##      - name: Login to Docker Hub
-##        uses: docker/login-action@v1
-##        with:
-##          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-##          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-#      - name: Install cibuildwheel
-#        run: |
-#          pip install --upgrade pip setuptools
-#          pip install cython cibuildwheel==$VERSION
-#        env:
-#          VERSION: 2.2.2
-#      - name: Build wheels
-#        run: cibuildwheel --output-dir wheelhouse
-#        env:
-#          CIBW_BUILD: '*p3*'
-#          CIBW_BEFORE_BUILD: pip install cython
-#      - uses: ncipollo/release-action@v1
-#        name: Upload wheels
-#        if: ${{ github.ref_type == 'branch' }}
+#          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+#          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      - name: Install cibuildwheel
+        run: |
+          pip install --upgrade pip setuptools
+          pip install cython cibuildwheel==$VERSION
+        env:
+          VERSION: 2.2.2
+      - name: Build wheels
+        run: cibuildwheel --output-dir wheelhouse
+        env:
+          CIBW_BUILD: 'cp36*'
+          CIBW_BEFORE_BUILD: pip install cython
+      - uses: ncipollo/release-action@v1
+        name: Upload wheels
+        if: ${{ github.ref_type == 'branch' }}
+        with:
+          artifacts: "wheelhouse/*"
+          allowUpdates: true
+          draft: true
+          tag: Linux
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  wheels-macos:
+    name: Wheels for OS X
+    needs: valgrind
+    runs-on: macos-10.15
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+          architecture: x64
+#      - name: Login to Docker Hub
+#        uses: docker/login-action@v1
 #        with:
-#          artifacts: "wheelhouse/*"
-#          allowUpdates: true
-#          draft: true
-#          tag: Linux
-#          token: ${{ secrets.GITHUB_TOKEN }}
-#
-#  wheels-macos:
-#    name: Wheels for OS X
-##    needs: tests
-#    runs-on: macos-10.15
-#    steps:
-#      - uses: actions/checkout@v2
-#      - name: Set up Python
-#        uses: actions/setup-python@v2
+#          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+#          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      - name: Install cibuildwheel
+        run: |
+          pip install --upgrade pip setuptools
+          pip install cython cibuildwheel==$VERSION
+        env:
+          VERSION: 2.2.2
+      - name: Build wheels
+        run: cibuildwheel --output-dir wheelhouse
+        env:
+          CIBW_BUILD: 'cp36*'
+          CIBW_BEFORE_BUILD: pip install cython
+      - uses: ncipollo/release-action@v1
+        name: Upload wheels
+        if: ${{ github.ref_type == 'tag' }}
+        with:
+          artifacts: "wheelhouse/*"
+          allowUpdates: true
+          draft: true
+          tag: OS X
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  wheels-windows:
+    name: Wheels for Windows
+    needs: valgrind
+    runs-on: windows-2019
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+          architecture: x64
+#      - name: Login to Docker Hub
+#        uses: docker/login-action@v1
 #        with:
-#          python-version: 3.6
-#          architecture: x64
-##      - name: Login to Docker Hub
-##        uses: docker/login-action@v1
-##        with:
-##          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-##          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-#      - name: Install cibuildwheel
-#        run: |
-#          pip install --upgrade pip setuptools
-#          pip install cython cibuildwheel==$VERSION
-#        env:
-#          VERSION: 2.2.2
-#      - name: Build wheels
-#        run: cibuildwheel --output-dir wheelhouse
-#        env:
-#          CIBW_BUILD: '*p3*'
-#          CIBW_BEFORE_BUILD: pip install cython
-#      - uses: ncipollo/release-action@v1
-#        name: Upload wheels
-#        if: ${{ github.ref_type == 'tag' }}
+#          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+#          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      - name: Install cibuildwheel
+        run: |
+          pip install cibuildwheel==$env:VERSION
+        env:
+          VERSION: 2.2.2
+      - name: Build wheels
+        run: cibuildwheel --output-dir wheelhouse
+        env:
+          CIBW_BUILD: 'cp36*'
+          CIBW_BEFORE_BUILD: pip install cython
+      - uses: ncipollo/release-action@v1
+        name: Upload wheels
+        if: ${{ github.ref_type == 'tag' }}
+        with:
+          artifacts: "wheelhouse/*"
+          allowUpdates: true
+          draft: true
+          tag: Windows
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  wheels-linux-non-x86:
+    name: Wheels for Linux non-x86
+    needs: valgrind
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        arch:
+          - aarch64
+          - ppc64le
+          - s390x
+    steps:
+      - uses: actions/checkout@v2.1.0
+#      - name: Login to Docker Hub
+#        uses: docker/login-action@v1
 #        with:
-#          artifacts: "wheelhouse/*"
-#          allowUpdates: true
-#          draft: true
-#          tag: OS X
-#          token: ${{ secrets.GITHUB_TOKEN }}
-#
-#  wheels-windows:
-#    name: Wheels for Windows
-##    needs: tests
-#    runs-on: windows-2019
-#    steps:
-#      - uses: actions/checkout@v2
-#      - name: Set up Python
-#        uses: actions/setup-python@v2
-#        with:
-#          python-version: 3.6
-#          architecture: x64
-##      - name: Login to Docker Hub
-##        uses: docker/login-action@v1
-##        with:
-##          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-##          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-#      - name: Install cibuildwheel
-#        run: |
-#          pip install cibuildwheel==$env:VERSION
-#        env:
-#          VERSION: 2.2.2
-#      - name: Build wheels
-#        run: cibuildwheel --output-dir wheelhouse
-#        env:
-#          CIBW_BUILD: '*p3*'
-#          CIBW_BEFORE_BUILD: pip install cython
-#      - uses: ncipollo/release-action@v1
-#        name: Upload wheels
-#        if: ${{ github.ref_type == 'tag' }}
-#        with:
-#          artifacts: "wheelhouse/*"
-#          allowUpdates: true
-#          draft: true
-#          tag: Windows
-#          token: ${{ secrets.GITHUB_TOKEN }}
-#
-#  wheels-linux-non-x86:
-#    name: Wheels for Linux non-x86
-##    needs: tests
-#    runs-on: ubuntu-20.04
-#    strategy:
-#      matrix:
-#        arch:
-#          - aarch64
-#          - ppc64le
-#          - s390x
-#    steps:
-#      - uses: actions/checkout@v2.1.0
-##      - name: Login to Docker Hub
-##        uses: docker/login-action@v1
-##        with:
-##          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-##          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-#      - uses: uraimo/run-on-arch-action@v2.0.5
-#        name: Build wheels
-#        with:
-#          arch: ${{ matrix.arch }}
-#          distro: ubuntu20.04
-#          githubToken: ${{ github.token }}
-#          setup: mkdir -p "${PWD}/wheelhouse"
-#          dockerRunArgs: --volume "${PWD}/wheelhouse:/wheelhouse"
-#          env: |
-#            VERSION: 2.2.2
-#            CIBW_BUILD: '*p3*'
-#            CIBW_BEFORE_BUILD: pip install cython
-#            CIBW_ARCHS: ${{ matrix.arch }}
-#          install: |
-#            apt-get update -q -y
-#            apt-get install --no-install-recommends -q -y python3 python3-pip apt-transport-https ca-certificates curl software-properties-common gnupg2
-#            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
-#            add-apt-repository "deb [arch=$(dpkg --print-architecture)] https://download.docker.com/linux/ubuntu $(lsb_release -c -s) stable"
-#            apt-get update -q -y
-#            apt-get install --no-install-recommends -q -y docker-ce
-#            python3 -m pip install --progress-bar off --no-cache-dir --upgrade pip setuptools
-#          run: |
-#            python3 -m pip install --progress-bar off cibuildwheel==$VERSION
-#            cibuildwheel --output-dir /wheelhouse
-#      - uses: ncipollo/release-action@v1
-#        name: Upload wheels
-#        if: ${{ github.ref_type == 'tag' }}
-#        with:
-#          artifacts: "wheelhouse/*"
-#          allowUpdates: true
-#          draft: true
-#          tag: Linux non-x86
-#          token: ${{ secrets.GITHUB_TOKEN }}
+#          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+#          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      - uses: uraimo/run-on-arch-action@v2.0.5
+        name: Build wheels
+        with:
+          arch: ${{ matrix.arch }}
+          distro: ubuntu20.04
+          githubToken: ${{ github.token }}
+          setup: mkdir -p "${PWD}/wheelhouse"
+          dockerRunArgs: --volume "${PWD}/wheelhouse:/wheelhouse"
+          env: |
+            VERSION: 2.2.2
+            CIBW_BUILD: 'cp36*'
+            CIBW_BEFORE_BUILD: pip install cython
+            CIBW_ARCHS: ${{ matrix.arch }}
+          install: |
+            apt-get update -q -y
+            apt-get install --no-install-recommends -q -y python3 python3-pip apt-transport-https ca-certificates curl software-properties-common gnupg2
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+            add-apt-repository "deb [arch=$(dpkg --print-architecture)] https://download.docker.com/linux/ubuntu $(lsb_release -c -s) stable"
+            apt-get update -q -y
+            apt-get install --no-install-recommends -q -y docker-ce
+            python3 -m pip install --progress-bar off --no-cache-dir --upgrade pip setuptools
+          run: |
+            python3 -m pip install --progress-bar off cibuildwheel==$VERSION
+            cibuildwheel --output-dir /wheelhouse
+      - uses: ncipollo/release-action@v1
+        name: Upload wheels
+        if: ${{ github.ref_type == 'tag' }}
+        with:
+          artifacts: "wheelhouse/*"
+          allowUpdates: true
+          draft: true
+          tag: Linux non-x86
+          token: ${{ secrets.GITHUB_TOKEN }}

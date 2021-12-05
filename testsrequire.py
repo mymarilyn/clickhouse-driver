@@ -4,12 +4,16 @@ import sys
 USE_NUMPY = bool(os.getenv('USE_NUMPY', False))
 
 tests_require = [
-    'pytest',
     'parameterized',
     'freezegun',
     'zstd',
     'clickhouse-cityhash>=1.0.2.1'
 ]
+
+if sys.version_info[0:2] == (3, 4):
+    tests_require.append('pytest<5')
+else:
+    tests_require.append('pytest')
 
 if sys.implementation.name == 'pypy':
     tests_require.append('lz4<=3.0.1')
