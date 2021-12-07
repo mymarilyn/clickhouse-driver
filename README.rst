@@ -16,8 +16,8 @@ ClickHouse Python Driver
 .. image:: https://img.shields.io/pypi/dm/clickhouse-driver.svg
     :target: https://pypi.org/project/clickhouse-driver
 
-.. image:: https://travis-ci.org/mymarilyn/clickhouse-driver.svg?branch=master
-   :target: https://travis-ci.org/mymarilyn/clickhouse-driver
+.. image:: https://github.com/mymarilyn/clickhouse-driver/actions/workflows/actions.yml/badge.svg
+   :target: https://github.com/mymarilyn/clickhouse-driver/actions/workflows/actions.yml
 
 ClickHouse Python Driver with native (TCP) interface support.
 
