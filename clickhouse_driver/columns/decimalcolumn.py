@@ -8,7 +8,6 @@ from .intcolumn import Int128Column, Int256Column
 class DecimalColumn(FormatColumn):
     py_types = (Decimal, float, int)
     max_precision = None
-    int_size = None
 
     def __init__(self, precision, scale, types_check=False, **kwargs):
         self.precision = precision
@@ -16,10 +15,15 @@ class DecimalColumn(FormatColumn):
         super(DecimalColumn, self).__init__(**kwargs)
 
         if types_check:
-            max_signed_int = (1 << (8 * self.int_size - 1)) - 1
-
             def check_item(value):
-                if value < -max_signed_int or value > max_signed_int:
+                parts = str(value).split('.')
+                int_part = parts[0]
+                frac_part = parts[1] if len(parts) > 1 else ''
+
+                if len(int_part) > precision:
+                    raise ColumnTypeMismatchException(value)
+
+                if len(frac_part) > scale:
                     raise ColumnTypeMismatchException(value)
 
             self.check_item = check_item
@@ -80,13 +84,11 @@ class DecimalColumn(FormatColumn):
 class Decimal32Column(DecimalColumn):
     format = 'i'
     max_precision = 9
-    int_size = 4
 
 
 class Decimal64Column(DecimalColumn):
     format = 'q'
     max_precision = 18
-    int_size = 8
 
 
 class Decimal128Column(DecimalColumn, Int128Column):
