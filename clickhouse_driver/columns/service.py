@@ -1,3 +1,5 @@
+import logging
+
 from .. import errors
 from .arraycolumn import create_array_column
 from .datecolumn import DateColumn, Date32Column
@@ -41,10 +43,14 @@ column_by_type = {c.ch_type: c for c in [
     IntervalSecondColumn, IPv4Column, IPv6Column
 ]}
 
+logger = logging.getLogger(__name__)
 
-def get_column_by_spec(spec, column_options):
+
+def get_column_by_spec(spec, column_options, use_numpy=None):
     context = column_options['context']
-    use_numpy = context.client_settings['use_numpy'] if context else False
+
+    if use_numpy is None:
+        use_numpy = context.client_settings['use_numpy'] if context else False
 
     if use_numpy:
         from .numpy.service import get_numpy_column_by_spec
@@ -52,11 +58,12 @@ def get_column_by_spec(spec, column_options):
         try:
             return get_numpy_column_by_spec(spec, column_options)
         except errors.UnknownTypeError:
-            # falling back to generic columns
-            pass
+            use_numpy = False
+            logger.warning('NumPy support is not implemented for %s. '
+                           'Using generic column', spec)
 
     def create_column_with_options(x):
-        return get_column_by_spec(x, column_options)
+        return get_column_by_spec(x, column_options, use_numpy=use_numpy)
 
     if spec == 'String' or spec.startswith('FixedString'):
         return create_string_column(spec, column_options)
