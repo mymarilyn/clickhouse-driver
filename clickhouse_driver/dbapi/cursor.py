@@ -310,7 +310,7 @@ class Cursor(object):
             self._rowcount = response
             response = None
 
-        if not response:
+        if not response or isinstance(response, int):
             self._columns = self._types = self._rows = []
             return
 
