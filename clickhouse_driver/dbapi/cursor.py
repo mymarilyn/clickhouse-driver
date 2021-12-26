@@ -312,6 +312,8 @@ class Cursor(object):
 
         if not response or isinstance(response, int):
             self._columns = self._types = self._rows = []
+            if isinstance(response, int):
+                self._rowcount = response
             return
 
         if self._stream_results:
