@@ -82,7 +82,6 @@ setup(
 
         'Environment :: Console',
 
-
         'Intended Audience :: Developers',
         'Intended Audience :: Information Technology',
 
