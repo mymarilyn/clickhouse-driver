@@ -151,6 +151,13 @@ class DBAPITestCase(DBAPITestCaseBase):
             )
             self.assertEqual(cursor.rowcount, -1)
 
+    def test_execute_insert(self):
+        with self.created_cursor() as cursor, self.create_table('a UInt8'):
+            cursor.execute(
+                'INSERT INTO test VALUES',
+                parameters=[[1]]
+            )
+
     def test_description(self):
         with self.created_cursor() as cursor:
             self.assertIsNone(cursor.description)
