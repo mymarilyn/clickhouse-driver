@@ -85,7 +85,6 @@ setup(
         'Intended Audience :: Developers',
         'Intended Audience :: Information Technology',
 
-
         'License :: OSI Approved :: MIT License',
 
 
