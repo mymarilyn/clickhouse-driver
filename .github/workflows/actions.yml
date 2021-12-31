@@ -189,7 +189,7 @@ jobs:
           CIBW_BEFORE_BUILD: pip install cython
       - uses: ncipollo/release-action@v1
         name: Upload wheels
-        if: ${{ github.ref_type == 'branch' }}
+        if: ${{ github.ref_type == 'tag' }}
         with:
           artifacts: "wheelhouse/*"
           allowUpdates: true
