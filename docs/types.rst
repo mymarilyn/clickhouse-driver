@@ -169,6 +169,14 @@ INSERT types: :data:`~types.NoneType`, ``T``.
 SELECT type: :data:`~types.NoneType`, ``T``.
 
 
+Bool
+----
+
+INSERT types: :class:`bool`,
+
+SELECT type: :class:`bool`.
+
+
 UUID
 ----
 
