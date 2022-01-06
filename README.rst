@@ -43,6 +43,7 @@ Features
   * Enum8/16
   * Array(T)
   * Nullable(T)
+  * Bool
   * UUID
   * Decimal
   * IPv4/IPv6

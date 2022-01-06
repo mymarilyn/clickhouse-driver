@@ -2,6 +2,7 @@ import logging
 
 from .. import errors
 from .arraycolumn import create_array_column
+from .boolcolumn import BoolColumn
 from .datecolumn import DateColumn, Date32Column
 from .datetimecolumn import create_datetime_column
 from .decimalcolumn import create_decimal_column
@@ -40,7 +41,7 @@ column_by_type = {c.ch_type: c for c in [
     NothingColumn, NullColumn, UUIDColumn,
     IntervalYearColumn, IntervalMonthColumn, IntervalWeekColumn,
     IntervalDayColumn, IntervalHourColumn, IntervalMinuteColumn,
-    IntervalSecondColumn, IPv4Column, IPv6Column
+    IntervalSecondColumn, IPv4Column, IPv6Column, BoolColumn
 ]}
 
 logger = logging.getLogger(__name__)
