@@ -3,8 +3,8 @@ from cpython.tuple cimport PyTuple_New, PyTuple_SET_ITEM
 
 from .. import writer
 
-cpdef object MAX_UINT64 = writer.MAX_UINT64
-cpdef object MAX_INT64 = writer.MAX_INT64
+cdef object MAX_UINT64 = writer.MAX_UINT64
+cdef object MAX_INT64 = writer.MAX_INT64
 
 
 def int128_from_quads(quad_items, unsigned long long n_items):
