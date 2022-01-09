@@ -26,7 +26,8 @@ class NumpyDateTimeColumnBase(NumpyColumn):
         if self.offset_naive:
             ts = ts.tz_localize(None)
 
-        return ts.to_numpy(self.datetime_dtype)
+        # return ts.to_numpy(self.datetime_dtype)
+        return ts.to_numpy()
 
     def apply_timezones_before_write(self, items):
         if isinstance(items, pd.DatetimeIndex):
