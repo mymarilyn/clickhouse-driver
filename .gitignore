@@ -90,3 +90,9 @@ ENV/
 
 # PyCharm project settings
 .idea/
+
+
+# cython generated .c fils
+clickhouse_driver/bufferedreader.c
+clickhouse_driver/bufferedwriter.c
+clickhouse_driver/columns/largeint.c
