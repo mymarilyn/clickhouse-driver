@@ -26,7 +26,6 @@ class NumpyByteStringColumn(NumpyColumn):
     null_value = b''
 
     def read_items(self, n_items, buf):
-        # return np.array(buf.read_strings(n_items), dtype=self.dtype)
         return np.array(buf.read_strings(n_items), dtype="object")
 
     def write_items(self, items, buf):
