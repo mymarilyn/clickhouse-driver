@@ -77,3 +77,11 @@ Set ``TZ=UTC`` and run tests:
 
         export TZ=UTC
         py.test -v
+
+GitHub Actions in forked repository
+-----------------------------------
+
+Workflows in forked repositories can be used for running tests.
+
+Workflows don't run in forked repositories by default.
+You must enable GitHub Actions in the **Actions** tab of the forked repository.

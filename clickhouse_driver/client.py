@@ -46,6 +46,9 @@ class Client(object):
         * ``opentelemetry_tracestate`` -- OpenTelemetry tracestate header as
                            described by W3C Trace Context recommendation.
                            New in version *0.2.2*.
+        * ``quota_key`` -- A string to differentiate quotas when the user have
+                           keyed quotas configured on server.
+                           New in version *0.2.3*.
     """
 
     available_client_settings = (
@@ -54,7 +57,8 @@ class Client(object):
         'strings_encoding',
         'use_numpy',
         'opentelemetry_traceparent',
-        'opentelemetry_tracestate'
+        'opentelemetry_tracestate',
+        'quota_key'
     )
 
     def __init__(self, *args, **kwargs):

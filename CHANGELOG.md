@@ -1,6 +1,27 @@
 # Changelog
 
 ## Unreleased
+### Added
+- `tzlocal`>=4.0 support. Pull request [#263](https://github.com/mymarilyn/clickhouse-driver/pull/263) by [azat](https://github.com/azat).
+- `quota_key` support.
+- Wheels for Python 3.10.
+- Bool type. Pull request [#279](https://github.com/mymarilyn/clickhouse-driver/pull/279) by [adrian17](https://github.com/adrian17).
+- Nested type with `flatten_nested=0`. Pull request [#285](https://github.com/mymarilyn/clickhouse-driver/pull/285) by [spff](https://github.com/spff).
+
+### Fixed
+- Handle partially consumed query. Solves issue [#117](https://github.com/mymarilyn/clickhouse-driver/issues/117).
+- Fallback to generic columns when NumPy support is not implemented for column type. Solves issue [#254](https://github.com/mymarilyn/clickhouse-driver/issues/254).
+- Broken ZSTD decompression. Solves issue [#269](https://github.com/mymarilyn/clickhouse-driver/issues/269).
+- External tables passing with NumPy. Solves issue [#267](https://github.com/mymarilyn/clickhouse-driver/issues/267).
+- Consider tzinfo for datetime parameters substitution. Solves issue [#268](https://github.com/mymarilyn/clickhouse-driver/issues/268).
+- Do not use NumPy columns inside generic columns. Solves issue [#272](https://github.com/mymarilyn/clickhouse-driver/issues/272).
+- Decimal128 and Decimal256 types_check. Solves issue [#274](https://github.com/mymarilyn/clickhouse-driver/issues/274).
+- Insertion using `execute` in DB API. Solves issue [#179](https://github.com/mymarilyn/clickhouse-driver/issues/179). Pull request [#276](https://github.com/mymarilyn/clickhouse-driver/pull/276) by [nnseva](https://github.com/nnseva).
+- Variables cannot be declared with `cpdef` in Cython 3. Pull request [#281](https://github.com/mymarilyn/clickhouse-driver/pull/281) by [ym](https://github.com/ym).
+
+### Changed
+- Switch from nose test runner to pytest.
+- Migrate from Travis CI to GitHub Actions.
 
 ## [0.2.2] - 2021-09-24
 ### Added
@@ -359,7 +380,8 @@
 - Date/DateTime types.
 - String types.
 
-[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.2...HEAD
+[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.3...HEAD
+[0.2.3]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.2...0.2.3
 [0.2.2]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.1...0.2.2
 [0.2.1]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.0...0.2.1
 [0.2.0]: https://github.com/mymarilyn/clickhouse-driver/compare/0.1.5...0.2.0
