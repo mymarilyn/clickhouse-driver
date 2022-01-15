@@ -1,4 +1,5 @@
 from tests.testcase import BaseTestCase
+from tests.util import require_server_version
 
 
 class NestedTestCase(BaseTestCase):
@@ -11,6 +12,7 @@ class NestedTestCase(BaseTestCase):
             self.entuple(x) if isinstance(x, list) else x for x in lst
         )
 
+    @require_server_version(21, 3, 13)
     def test_simple(self):
         columns = 'n Nested(i Int32, s String)'
 
@@ -41,6 +43,7 @@ class NestedTestCase(BaseTestCase):
                 [(['a', 'b'],)]
             )
 
+    @require_server_version(21, 3, 13)
     def test_multiple_rows(self):
         columns = 'n Nested(i Int32, s String)'
 
@@ -61,6 +64,7 @@ class NestedTestCase(BaseTestCase):
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
 
+    @require_server_version(21, 3, 13)
     def test_dict(self):
         columns = 'n Nested(i Int32, s String)'
 
