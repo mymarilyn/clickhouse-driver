@@ -283,10 +283,10 @@ INSERT types: :class:`list`, :class:`tuple`.
 SELECT type: :class:`tuple`.
 
 
-Nested
+Nested(flatten_nested=1, default)
 ------
 
-Nested type is represented by sequence of arrays. In example below actual
+Nested type is represented by sequence of arrays when flatten_nested=1. In example below actual
 columns for are ``col.name`` and ``col.version``.
 
     .. code-block:: sql
@@ -334,6 +334,68 @@ Inserting data into nested column with ``clickhouse-driver``:
       client.execute('INSERT INTO test_nested VALUES', [
           (['a', 'b', 'c'], [100, 200, 300]),
       ])
+
+Nested(flatten_nested=0)
+------
+
+Nested type is represented by array of named tuples when flatten_nested=0.
+
+    .. code-block:: sql
+
+      :) SET flatten_nested = 0;
+
+      SET flatten_nested = 0
+
+      Ok.
+
+      0 rows in set. Elapsed: 0.006 sec. 
+
+      :) CREATE TABLE test_nested (col Nested(name String, version UInt16)) Engine = Memory;
+
+      CREATE TABLE test_nested
+      (
+          `col` Nested(name String, version UInt16)
+      )
+      ENGINE = Memory
+
+      Ok.
+
+      0 rows in set. Elapsed: 0.005 sec.
+
+      :) DESCRIBE TABLE test_nested FORMAT TSV;
+
+      DESCRIBE TABLE test_nested
+      FORMAT TSV
+
+      col	Nested(name String, version UInt16)					
+
+      1 rows in set. Elapsed: 0.004 sec.
+
+Inserting data into nested column in ``clickhouse-client``:
+
+    .. code-block:: sql
+
+      :) INSERT INTO test_nested VALUES ([('a', 100), ('b', 200), ('c', 300)]);
+
+      INSERT INTO test_nested VALUES
+
+      Ok.
+
+      1 rows in set. Elapsed: 0.003 sec.
+
+Inserting data into nested column with ``clickhouse-driver``:
+
+    .. code-block:: python
+
+      client.execute(
+          'INSERT INTO test_nested VALUES',
+          [([('a', 100), ('b', 200), ('c', 300)]),]
+      )
+      # or
+      client.execute(
+          'INSERT INTO test_nested VALUES',
+          [{'col': [{'name': 'a', 'version': 100}, {'name': 'b', 'version': 200}, {'name': 'c', 'version': 300}]}]
+      )
 
 Map(key, value)
 ------------------
