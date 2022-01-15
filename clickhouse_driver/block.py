@@ -168,24 +168,30 @@ class RowOrientedBlock(BaseBlock):
         columns_with_types,
         check_row_type,
     ):
-        columns_with_cwt = [
-            (
-                x[0],
-                nestedcolumn.get_columns_with_types(x[1]) if x[1].startswith('Nested') else None
-            )
-            for x in columns_with_types
-        ]
+        columns_with_cwt = []
+        for x in columns_with_types:
+            cwt = None
+            if x[1].startswith('Nested'):
+                cwt = nestedcolumn.get_columns_with_types(x[1])
+            columns_with_cwt.append((x[0], cwt))
+
         for i, row in enumerate(data):
             if check_row_type:
                 check_row_type(row)
 
-            data[i] = [
-                row[name] if cwt is None else self._pure_mutate_dicts_to_rows(row[name], cwt, check_row_type)
-                for name, cwt in columns_with_cwt
-            ]
-        # return for recursion        
+            new_data = []
+            for name, cwt in columns_with_cwt:
+                if cwt is None:
+                    new_data.append(row[name])
+                else:
+                    new_data.append(self._pure_mutate_dicts_to_rows(
+                        row[name],
+                        cwt,
+                        check_row_type
+                    ))
+            data[i] = new_data
+        # return for recursion
         return data
-
 
     def _check_rows(self, data):
         expected_row_len = len(self.columns_with_types)

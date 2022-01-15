@@ -53,7 +53,10 @@ class NestedTestCase(BaseTestCase):
 
             query = 'SELECT * FROM test'
             inserted = self.emit_cli(query)
-            self.assertEqual(inserted, "[(0,'a'),(1,'b')]\n[(3,'d'),(4,'e')]\n")
+            self.assertEqual(
+                inserted,
+                "[(0,'a'),(1,'b')]\n[(3,'d'),(4,'e')]\n"
+            )
 
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
@@ -73,7 +76,13 @@ class NestedTestCase(BaseTestCase):
 
             query = 'SELECT * FROM test'
             inserted = self.emit_cli(query)
-            self.assertEqual(inserted, "[(0,'a'),(1,'b')]\n[(3,'d'),(4,'e')]\n")
+            self.assertEqual(
+                inserted,
+                "[(0,'a'),(1,'b')]\n[(3,'d'),(4,'e')]\n"
+            )
 
             inserted = self.client.execute(query)
-            self.assertEqual(inserted, [([(0, 'a'), (1, 'b')],), ([(3, 'd'), (4, 'e')],)])
+            self.assertEqual(
+                inserted,
+                [([(0, 'a'), (1, 'b')],), ([(3, 'd'), (4, 'e')],)]
+            )

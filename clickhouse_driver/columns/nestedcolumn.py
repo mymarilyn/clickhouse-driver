@@ -40,7 +40,7 @@ def get_columns_with_types(spec):
 
     for i, x in enumerate(inner_spec + ','):
         if x == ',':
-            if brackets == 0:                
+            if brackets == 0:
                 columns_with_types.append((
                     inner_spec[prev_comma:prev_space].strip(),
                     inner_spec[prev_space:i]
