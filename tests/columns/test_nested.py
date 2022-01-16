@@ -1,5 +1,6 @@
 from tests.testcase import BaseTestCase
 from tests.util import require_server_version
+from clickhouse_driver.columns import nestedcolumn
 
 
 class NestedTestCase(BaseTestCase):
@@ -90,3 +91,26 @@ class NestedTestCase(BaseTestCase):
                 inserted,
                 [([(0, 'a'), (1, 'b')],), ([(3, 'd'), (4, 'e')],)]
             )
+
+    def test_get_nested_columns(self):
+        self.assertEqual(
+            nestedcolumn.get_nested_columns(
+                'Nested(a Tuple(Array(Int8)),\n b Nullable(String))',
+            ),
+            ['Tuple(Array(Int8))', 'Nullable(String)']
+        )
+
+    def test_get_columns_with_types(self):
+        self.assertEqual(
+            nestedcolumn.get_columns_with_types(
+                'Nested(a Tuple(Array(Int8)),\n b Nullable(String))',
+            ),
+            [('a', 'Tuple(Array(Int8))'), ('b', 'Nullable(String)')]
+        )
+
+    def test_get_inner_spec(self):
+        inner = 'a Tuple(Array(Int8), Array(Int64)), b Nullable(String)'
+        self.assertEqual(
+            nestedcolumn.get_inner_spec('Nested({}) dummy '.format(inner)),
+            inner
+        )
