@@ -169,11 +169,11 @@ class RowOrientedBlock(BaseBlock):
         check_row_type,
     ):
         columns_with_cwt = []
-        for x in columns_with_types:
+        for name, type_ in columns_with_types:
             cwt = None
-            if x[1].startswith('Nested'):
-                cwt = nestedcolumn.get_columns_with_types(x[1])
-            columns_with_cwt.append((x[0], cwt))
+            if type_.startswith('Nested'):
+                cwt = nestedcolumn.get_columns_with_types(type_)
+            columns_with_cwt.append((name, cwt))
 
         for i, row in enumerate(data):
             if check_row_type:
@@ -185,9 +185,7 @@ class RowOrientedBlock(BaseBlock):
                     new_data.append(row[name])
                 else:
                     new_data.append(self._pure_mutate_dicts_to_rows(
-                        row[name],
-                        cwt,
-                        check_row_type
+                        row[name], cwt, check_row_type
                     ))
             data[i] = new_data
         # return for recursion

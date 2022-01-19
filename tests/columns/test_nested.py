@@ -4,10 +4,6 @@ from clickhouse_driver.columns import nestedcolumn
 
 
 class NestedTestCase(BaseTestCase):
-    def setUp(self):
-        ret = super(NestedTestCase, self).setUp()
-        return ret
-
     def entuple(self, lst):
         return tuple(
             self.entuple(x) if isinstance(x, list) else x for x in lst

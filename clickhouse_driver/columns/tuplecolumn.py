@@ -49,17 +49,17 @@ def create_tuple_column(spec, column_by_spec_getter):
 
 
 def get_inner_spec(spec):
-    brackets = 1
-    offset = len('Tuple(')
+    brackets = 0
+    offset = len('Tuple')
     i = offset
     for i, ch in enumerate(spec[offset:], offset):
-        if brackets == 0:
-            break
-
         if ch == '(':
             brackets += 1
 
         elif ch == ')':
             brackets -= 1
 
-    return spec[offset:i]
+        if brackets == 0:
+            break
+
+    return spec[offset + 1:i]

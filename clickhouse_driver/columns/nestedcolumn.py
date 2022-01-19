@@ -57,17 +57,17 @@ def get_columns_with_types(spec):
 
 
 def get_inner_spec(spec):
-    brackets = 1
-    offset = len('Nested(')
+    brackets = 0
+    offset = len('Nested')
     i = offset
     for i, ch in enumerate(spec[offset:], offset):
-        if brackets == 0:
-            break
-
         if ch == '(':
             brackets += 1
 
         elif ch == ')':
             brackets -= 1
 
-    return spec[offset:i]
+        if brackets == 0:
+            break
+
+    return spec[offset + 1:i]
