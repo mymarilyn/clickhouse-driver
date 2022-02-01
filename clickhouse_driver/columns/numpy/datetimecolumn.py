@@ -23,7 +23,7 @@ class NumpyDateTimeColumnBase(NumpyColumn):
 
         ts = pd.to_datetime(dt, utc=True).tz_convert(timezone)
 
-        if self.offset_naive:
+        if self.offset_naive or self.datetime_dtype != ts.dtype:
             ts = ts.tz_localize(None)
 
         return ts.to_numpy(self.datetime_dtype)
