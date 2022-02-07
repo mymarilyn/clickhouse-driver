@@ -4389,7 +4389,7 @@ if (!__Pyx_RefNanny) {
  * 
  * from .. import writer             # <<<<<<<<<<<<<<
  * 
- * cpdef object MAX_UINT64 = writer.MAX_UINT64
+ * cdef object MAX_UINT64 = writer.MAX_UINT64
  */
   __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -4408,8 +4408,8 @@ if (!__Pyx_RefNanny) {
   /* "clickhouse_driver/columns/largeint.pyx":6
  * from .. import writer
  * 
- * cpdef object MAX_UINT64 = writer.MAX_UINT64             # <<<<<<<<<<<<<<
- * cpdef object MAX_INT64 = writer.MAX_INT64
+ * cdef object MAX_UINT64 = writer.MAX_UINT64             # <<<<<<<<<<<<<<
+ * cdef object MAX_INT64 = writer.MAX_INT64
  * 
  */
   __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_writer); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 6, __pyx_L1_error)
@@ -4424,8 +4424,8 @@ if (!__Pyx_RefNanny) {
 
   /* "clickhouse_driver/columns/largeint.pyx":7
  * 
- * cpdef object MAX_UINT64 = writer.MAX_UINT64
- * cpdef object MAX_INT64 = writer.MAX_INT64             # <<<<<<<<<<<<<<
+ * cdef object MAX_UINT64 = writer.MAX_UINT64
+ * cdef object MAX_INT64 = writer.MAX_INT64             # <<<<<<<<<<<<<<
  * 
  * 
  */
