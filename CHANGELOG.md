@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+
+## [0.2.3] - 2022-02-07
 ### Added
 - `tzlocal`>=4.0 support. Pull request [#263](https://github.com/mymarilyn/clickhouse-driver/pull/263) by [azat](https://github.com/azat).
 - `quota_key` support.
