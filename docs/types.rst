@@ -284,7 +284,7 @@ SELECT type: :class:`tuple`.
 
 
 Nested(flatten_nested=1, default)
-------
+---------------------------------
 
 Nested type is represented by sequence of arrays when flatten_nested=1. In example below actual
 columns for are ``col.name`` and ``col.version``.
@@ -336,7 +336,7 @@ Inserting data into nested column with ``clickhouse-driver``:
       ])
 
 Nested(flatten_nested=0)
-------
+------------------------
 
 Nested type is represented by array of named tuples when flatten_nested=0.
 
