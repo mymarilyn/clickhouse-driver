@@ -352,6 +352,26 @@ managers:
         >>>        print(cursor.fetchall())
 
 
+You can use ``cursor_factory`` argument to get results as dicts or named tuples
+(since version 0.2.4):
+
+    .. code-block:: python
+
+        >>> from clickhouse_driver.dbapi.extras import DictCursor
+        >>> with connect('clickhouse://localhost') as conn:
+        >>>     with conn.cursor(cursor_factory=DictCursor) as cursor:
+        >>>        cursor.execute('SELECT * FROM system.tables')
+        >>>        print(cursor.fetchall())
+
+    .. code-block:: python
+
+        >>> from clickhouse_driver.dbapi.extras import NamedTupleCursor
+        >>> with connect('clickhouse://localhost') as conn:
+        >>>     with conn.cursor(cursor_factory=NamedTupleCursor) as cursor:
+        >>>        cursor.execute('SELECT * FROM system.tables')
+        >>>        print(cursor.fetchall())
+
+
 NumPy/Pandas support
 --------------------
 

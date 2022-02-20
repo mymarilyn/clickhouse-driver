@@ -79,9 +79,11 @@ class Connection(object):
         """
         pass
 
-    def cursor(self):
+    def cursor(self, cursor_factory=None):
         """
-        :return: a new Cursor Object using the connection.
+        :param cursor_factory: Argument can be used to create non-standard
+                               cursors.
+        :return: a new cursor object using the connection.
         """
         if self.is_closed:
             raise InterfaceError('connection already closed')
@@ -91,6 +93,7 @@ class Connection(object):
             self._hosts = client.connection.hosts
         else:
             client.connection.hosts = self._hosts
-        cursor = Cursor(client, self)
+        cursor_factory = cursor_factory or Cursor
+        cursor = cursor_factory(client, self)
         self.cursors.append(cursor)
         return cursor
