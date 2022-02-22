@@ -117,7 +117,7 @@ setup(
         'Documentation': 'https://clickhouse-driver.readthedocs.io',
     },
     packages=find_packages('.', exclude=['tests*']),
-    python_requires='>=3.4.*, <4',
+    python_requires='>=3.4, <4',
     install_requires=[
         'pytz',
         'tzlocal',
