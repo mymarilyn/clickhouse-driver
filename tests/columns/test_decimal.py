@@ -239,6 +239,21 @@ class DecimalTestCase(BaseTestCase):
                 (Decimal('999999.6'),)
             ])
 
+    def test_truncates_precision(self):
+        with self.create_table('a Decimal(9, 4)'):
+            data = [(3.14159265358,), (2.7182,)]
+            expected = [(Decimal('3.1415'),), (Decimal('2.7182'),)]
+            self.client.execute(
+                'INSERT INTO test (a) VALUES',
+                data,
+                types_check=True,
+            )
+
+            query = 'SELECT * FROM test'
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, expected)
+
 
 class Decimal256TestCase(BaseTestCase):
     required_server_version = (18, 12, 13)
