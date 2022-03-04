@@ -18,12 +18,8 @@ class DecimalColumn(FormatColumn):
             def check_item(value):
                 parts = str(value).split('.')
                 int_part = parts[0]
-                frac_part = parts[1] if len(parts) > 1 else ''
 
                 if len(int_part) > precision:
-                    raise ColumnTypeMismatchException(value)
-
-                if len(frac_part) > scale:
                     raise ColumnTypeMismatchException(value)
 
             self.check_item = check_item
