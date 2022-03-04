@@ -187,24 +187,6 @@ class DecimalTestCase(BaseTestCase):
 
             self.assertIn('Column a', str(e.exception))
 
-    def test_type_mismatch_scale(self):
-        data = [(1.234,)]
-        with self.create_table('a Decimal32(2)'):
-            with self.assertRaises(errors.TypeMismatchError) as e:
-                self.client.execute(
-                    'INSERT INTO test (a) VALUES', data, types_check=True
-                )
-
-            self.assertIn('1.234 for column "a"', str(e.exception))
-
-            # Without types_check decimal will be cropped.
-            self.client.execute('INSERT INTO test (a) VALUES', data)
-            query = 'SELECT * FROM test'
-            inserted = self.emit_cli(query)
-            self.assertEqual(inserted, '1.23\n')
-            inserted = self.client.execute(query)
-            self.assertEqual(inserted, [(Decimal('1.23'), )])
-
     def test_preserve_precision(self):
         data = [(1.66, ), (1.15, )]
 
@@ -239,7 +221,7 @@ class DecimalTestCase(BaseTestCase):
                 (Decimal('999999.6'),)
             ])
 
-    def test_truncates_precision(self):
+    def test_truncates_scale(self):
         with self.create_table('a Decimal(9, 4)'):
             data = [(3.14159265358,), (2.7182,)]
             expected = [(Decimal('3.1415'),), (Decimal('2.7182'),)]
@@ -248,9 +230,7 @@ class DecimalTestCase(BaseTestCase):
                 data,
                 types_check=True,
             )
-
             query = 'SELECT * FROM test'
-
             inserted = self.client.execute(query)
             self.assertEqual(inserted, expected)
 
