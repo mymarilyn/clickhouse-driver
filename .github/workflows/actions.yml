@@ -17,6 +17,7 @@ jobs:
           - "pypy-3.6"
           - "pypy-3.7"
         clickhouse-version:
+          - 22.2.3.5
           - 21.12.3.32
           - 21.9.3.30
           - 21.9.3.30
@@ -38,7 +39,6 @@ jobs:
           - 19.9.2.4   # allow_suspicious_low_cardinality_types
           - 19.8.3.8   # SimpleAggregateFunction
           - 19.3.3
-          - 18.12.17
         include:
           - clickhouse-version: 20.3.20.6
             use-numpy: 1
@@ -66,11 +66,12 @@ jobs:
       - name: Start ClickHouse server and client containers
         run: |
           echo "VERSION=${{ matrix.clickhouse-version }}" > tests/.env
+          if [[ "${{ matrix.clickhouse-version }}" > "21.7" ]]; then echo "ORG=clickhouse"; else echo "ORG=yandex" ; fi  >> tests/.env
           docker-compose -f tests/docker-compose.yml up -d
       - name: Setup clickhouse-client proxy for docker
         run: |
           # Faking clickhouse-client real communication with container via docker exec.
-          echo -e '#!/bin/bash\n\ndocker exec -e "`env | grep ^TZ=`" test-clickhouse-client clickhouse-client "$@"' | sudo tee /usr/local/bin/clickhouse-client > /dev/null
+          echo -e '#!/bin/bash\n\ndocker exec -e "`env | grep ^TZ=`" test-clickhouse-client clickhouse client "$@"' | sudo tee /usr/local/bin/clickhouse-client > /dev/null
           sudo chmod +x /usr/local/bin/clickhouse-client
           # Overriding setup.cfg. Set host=clickhouse-server
           sed -i 's/^host=localhost$/host=clickhouse-server/' setup.cfg
@@ -135,6 +136,7 @@ jobs:
       - name: Start ClickHouse server and client containers
         run: |
           echo "VERSION=$VERSION" > tests/.env
+          if [[ "$VERSION" > "21.7" ]]; then echo "ORG=clickhouse"; else echo "ORG=yandex" ; fi  >> tests/.env
           docker-compose -f tests/docker-compose.yml up -d
         env:
           VERSION: 20.3.7.46
