@@ -50,6 +50,7 @@ class ClientInfo(object):
         )
 
         self.quota_key = context.client_settings['quota_key']
+        self.distributed_depth = 0
 
         super(ClientInfo, self).__init__()
 
@@ -82,6 +83,10 @@ class ClientInfo(object):
 
         if revision >= defines.DBMS_MIN_REVISION_WITH_QUOTA_KEY_IN_CLIENT_INFO:
             write_binary_str(self.quota_key, fout)
+
+        if revision >= \
+                defines.DBMS_MIN_PROTOCOL_VERSION_WITH_DISTRIBUTED_DEPTH:
+            write_varint(self.distributed_depth, fout)
 
         if revision >= defines.DBMS_MIN_REVISION_WITH_VERSION_PATCH:
             write_varint(self.client_version_patch, fout)
