@@ -1,5 +1,6 @@
 import socket
 import getpass
+from time import time
 
 from . import defines
 from . import errors
@@ -51,6 +52,7 @@ class ClientInfo(object):
 
         self.quota_key = context.client_settings['quota_key']
         self.distributed_depth = 0
+        self.initial_query_start_time_microseconds = int(time() * 1000000)
 
         super(ClientInfo, self).__init__()
 
@@ -71,6 +73,14 @@ class ClientInfo(object):
         write_binary_str(self.initial_user, fout)
         write_binary_str(self.initial_query_id, fout)
         write_binary_str(self.initial_address, fout)
+
+        if (
+            revision >=
+            defines.DBMS_MIN_PROTOCOL_VERSION_WITH_INITIAL_QUERY_START_TIME
+        ):
+            write_binary_uint64(
+                self.initial_query_start_time_microseconds, fout
+            )
 
         write_binary_uint8(self.interface, fout)
 
