@@ -112,3 +112,8 @@ class ClientInfo(object):
             else:
                 # Don't have OpenTelemetry header.
                 write_binary_uint8(0, fout)
+
+        if revision >= defines.DBMS_MIN_REVISION_WITH_PARALLEL_REPLICAS:
+            write_varint(0, fout)  # collaborate_with_initiator
+            write_varint(0, fout)  # count_participating_replicas
+            write_varint(0, fout)  # number_of_current_replica
