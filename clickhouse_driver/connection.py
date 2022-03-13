@@ -500,8 +500,8 @@ class Connection(object):
             packet.block = self.receive_data()
 
         elif packet_type == ServerPacketTypes.LOG:
-            block = self.receive_data(raw=True)
-            log_block(block)
+            packet.block = self.receive_data(raw=True)
+            log_block(packet.block)
 
         elif packet_type == ServerPacketTypes.END_OF_STREAM:
             self.is_query_executing = False
@@ -511,6 +511,15 @@ class Connection(object):
             packet.multistring_message = self.receive_multistring_message(
                 packet_type
             )
+
+        elif packet_type == ServerPacketTypes.PART_UUIDS:
+            packet.block = self.receive_data()
+
+        elif packet_type == ServerPacketTypes.READ_TASK_REQUEST:
+            packet.block = self.receive_data()
+
+        elif packet_type == ServerPacketTypes.PROFILE_EVENTS:
+            packet.block = self.receive_data(raw=True)
 
         else:
             message = 'Unknown packet {} from server {}'.format(
