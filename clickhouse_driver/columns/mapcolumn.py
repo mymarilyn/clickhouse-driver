@@ -1,3 +1,4 @@
+import re
 from .base import Column
 from .intcolumn import UInt64Column
 from ..util.helpers import pairwise
@@ -51,7 +52,8 @@ class MapColumn(Column):
 
 
 def create_map_column(spec, column_by_spec_getter):
-    key, value = spec[4:-1].split(',')
+    # Match commas outside of parentheses so we don't match the comma in Decimal types.
+    key, value = re.split(r',(?![^()]*\))', spec[4:-1])
     key_column = column_by_spec_getter(key.strip())
     value_column = column_by_spec_getter(value.strip())
 
