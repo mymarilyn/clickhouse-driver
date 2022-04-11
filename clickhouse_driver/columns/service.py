@@ -48,6 +48,16 @@ column_by_type = {c.ch_type: c for c in [
 logger = logging.getLogger(__name__)
 
 
+aliases = [
+    # Begin Geo types
+    ('Point', 'Tuple(Float64, Float64)'),
+    ('Ring', 'Array(Point)'),
+    ('Polygon', 'Array(Ring)'),
+    ('MultiPolygon', 'Array(Polygon)')
+    # End Geo types
+]
+
+
 def get_column_by_spec(spec, column_options, use_numpy=None):
     context = column_options['context']
 
@@ -102,6 +112,12 @@ def get_column_by_spec(spec, column_options, use_numpy=None):
         return create_map_column(spec, create_column_with_options)
 
     else:
+        for alias, primitive in aliases:
+            if spec.startswith(alias):
+                return create_column_with_options(
+                    primitive + spec[len(alias):]
+                )
+
         try:
             cls = column_by_type[spec]
             return cls(**column_options)
