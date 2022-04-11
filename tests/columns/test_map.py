@@ -3,8 +3,7 @@ from tests.testcase import BaseTestCase
 
 class MapTestCase(BaseTestCase):
     required_server_version = (21, 1, 2)
-    # TODO: detect stable version
-    stable_support_version = (22, 14, 9)
+    stable_support_version = (21, 8, 1)
 
     def client_kwargs(self, version):
         if version < self.stable_support_version:
