@@ -1,5 +1,6 @@
 
 from .base import Column
+from .util import get_inner_spec, get_inner_columns
 
 
 class TupleColumn(Column):
@@ -27,39 +28,7 @@ class TupleColumn(Column):
 
 
 def create_tuple_column(spec, column_by_spec_getter):
-    brackets = 0
-    column_begin = 0
+    inner_spec = get_inner_spec('Tuple', spec)
+    columns = get_inner_columns(inner_spec)
 
-    inner_spec = get_inner_spec(spec)
-    nested_columns = []
-    for i, x in enumerate(inner_spec + ','):
-        if x == ',':
-            if brackets == 0:
-                nested_columns.append(inner_spec[column_begin:i])
-                column_begin = i + 1
-        elif x == '(':
-            brackets += 1
-        elif x == ')':
-            brackets -= 1
-        elif x == ' ':
-            if brackets == 0:
-                column_begin = i + 1
-
-    return TupleColumn([column_by_spec_getter(x) for x in nested_columns])
-
-
-def get_inner_spec(spec):
-    brackets = 0
-    offset = len('Tuple')
-    i = offset
-    for i, ch in enumerate(spec[offset:], offset):
-        if ch == '(':
-            brackets += 1
-
-        elif ch == ')':
-            brackets -= 1
-
-        if brackets == 0:
-            break
-
-    return spec[offset + 1:i]
+    return TupleColumn([column_by_spec_getter(x) for x in columns])

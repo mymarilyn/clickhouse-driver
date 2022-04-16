@@ -103,10 +103,3 @@ class NestedTestCase(BaseTestCase):
             ),
             [('a', 'Tuple(Array(Int8))'), ('b', 'Nullable(String)')]
         )
-
-    def test_get_inner_spec(self):
-        inner = 'a Tuple(Array(Int8), Array(Int64)), b Nullable(String)'
-        self.assertEqual(
-            nestedcolumn.get_inner_spec('Nested({}) dummy '.format(inner)),
-            inner
-        )
