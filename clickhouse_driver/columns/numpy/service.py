@@ -8,6 +8,7 @@ from .intcolumn import (
 )
 from .lowcardinalitycolumn import create_numpy_low_cardinality_column
 from .stringcolumn import create_string_column
+from .tuplecolumn import create_tuple_column
 from ..nullablecolumn import create_nullable_column
 
 column_by_type = {c.ch_type: c for c in [
@@ -27,6 +28,9 @@ def get_numpy_column_by_spec(spec, column_options):
 
     elif spec.startswith('DateTime'):
         return create_numpy_datetime_column(spec, column_options)
+
+    elif spec.startswith('Tuple'):
+        return create_tuple_column(spec, create_column_with_options)
 
     elif spec.startswith('Nullable'):
         return create_nullable_column(spec, create_column_with_options)

@@ -44,12 +44,13 @@ class TupleTestCase(BaseTestCase):
             self.assertEqual(inserted, data)
 
     def test_nullable(self):
+        data = [
+            ((1, 'a'),),
+            ((2, None),), ((None, None),), ((None, 'd'),),
+            ((5, 'e'),)
+        ]
+
         with self.create_table('a Tuple(Nullable(Int32), Nullable(String))'):
-            data = [
-                ((1, 'a'), ),
-                ((2, None), ), ((None, None), ), ((None, 'd'), ),
-                ((5, 'e'), )
-            ]
             self.client.execute(
                 'INSERT INTO test (a) VALUES', data
             )
@@ -68,12 +69,12 @@ class TupleTestCase(BaseTestCase):
 
     def test_nested_tuple_with_common_types(self):
         columns = 'a Tuple(String, Tuple(Int32, String), String)'
+        data = [
+            (('one', (1, 'a'), 'two'),),
+            (('three', (2, 'b'), 'four'),)
+        ]
 
         with self.create_table(columns):
-            data = [
-                (('one', (1, 'a'), 'two'), ),
-                (('three', (2, 'b'), 'four'), )
-            ]
             self.client.execute(
                 'INSERT INTO test (a) VALUES', data
             )
@@ -96,12 +97,12 @@ class TupleTestCase(BaseTestCase):
             "Tuple(Enum8('hello' = 1, 'world' = 2), Date)"
             ")"
         )
+        data = [
+            (((1, 'a'), (1, date(2020, 3, 11))),),
+            (((2, 'b'), (2, date(2020, 3, 12))),)
+        ]
 
         with self.create_table(columns):
-            data = [
-                (((1, 'a'), (1, date(2020, 3, 11))), ),
-                (((2, 'b'), (2, date(2020, 3, 12))), )
-            ]
             self.client.execute(
                 'INSERT INTO test (a) VALUES', data
             )
@@ -123,8 +124,9 @@ class TupleTestCase(BaseTestCase):
             )
 
     def test_tuple_of_arrays(self):
+        data = [(([1, 2, 3],),), (([4, 5, 6],),)]
+
         with self.create_table('a Tuple(Array(Int32))'):
-            data = [(([1, 2, 3], ), ), (([4, 5, 6], ), )]
             self.client.execute(
                 'INSERT INTO test (a) VALUES', data
             )
@@ -148,11 +150,12 @@ class TupleTestCase(BaseTestCase):
     # https://github.com/ClickHouse/ClickHouse/pull/8866
     @require_server_version(19, 16, 13)
     def test_array_of_tuples(self):
+        data = [
+            ([(1, 2, 3), (4, 5, 6)],),
+            ([(7, 8, 9)],),
+        ]
+
         with self.create_table('a Array(Tuple(UInt8, UInt8, UInt8))'):
-            data = [
-                ([(1, 2, 3), (4, 5, 6)], ),
-                ([(7, 8, 9)],),
-            ]
             self.client.execute(
                 'INSERT INTO test (a) VALUES', data
             )
