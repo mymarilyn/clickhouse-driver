@@ -1,3 +1,4 @@
+from ..service import aliases
 from ... import errors
 from .datecolumn import NumpyDateColumn
 from .datetimecolumn import create_numpy_datetime_column
@@ -39,6 +40,12 @@ def get_numpy_column_by_spec(spec, column_options):
         return create_numpy_low_cardinality_column(spec,
                                                    create_column_with_options)
     else:
+        for alias, primitive in aliases:
+            if spec.startswith(alias):
+                return create_column_with_options(
+                    primitive + spec[len(alias):]
+                )
+
         if spec in column_by_type:
             cls = column_by_type[spec]
             return cls(**column_options)
