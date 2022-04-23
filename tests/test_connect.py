@@ -3,13 +3,19 @@ import socket
 from io import BytesIO
 from unittest.mock import patch
 
+import pytest
+from parameterized import parameterized
+
 from clickhouse_driver import errors
 from clickhouse_driver.client import Client
+from clickhouse_driver.errors import ServerException
 from clickhouse_driver.protocol import ClientPacketTypes, ServerPacketTypes
 from clickhouse_driver.bufferedreader import BufferedReader
 from clickhouse_driver.writer import write_binary_str
 from tests.testcase import BaseTestCase
 from unittest import TestCase
+
+from tests.util import capture_logging
 
 
 class PacketsTestCase(BaseTestCase):
@@ -191,6 +197,22 @@ class ConnectTestCase(BaseTestCase):
             c.execute('SELECT 1')
             self.assertTrue(c.connection.connected)
         self.assertFalse(c.connection.connected)
+
+    @parameterized.expand(['execute', 'execute_with_progress', 'execute_iter'])
+    def test_invalid_query_logged_as_failed(self, execute_fn_name):
+        invalid_query = 'SELECT 1)'
+        execute_fn = getattr(self.client, execute_fn_name)
+        with capture_logging('clickhouse_driver.client', 'ERROR') as buffer:
+            with pytest.raises(ServerException):
+                result = execute_fn(invalid_query)
+                next(iter(result))
+            self.assertIn(invalid_query, buffer.getvalue())
+
+    def test_valid_query_not_logged_as_failed(self):
+        valid_query = 'SELECT 1'
+        with capture_logging('clickhouse_driver.client', 'ERROR') as buffer:
+            self.client.execute(valid_query)
+            self.assertNotIn(valid_query, buffer.getvalue())
 
     def test_unknown_packet(self):
         self.client.execute('SELECT 1')

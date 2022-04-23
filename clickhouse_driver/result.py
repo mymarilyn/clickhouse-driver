@@ -126,7 +126,8 @@ class IterQueryResult(object):
 
 
 class QueryInfo(object):
-    def __init__(self):
+    def __init__(self, query):
+        self.query = query
         self.profile_info = BlockStreamProfileInfo()
         self.progress = Progress()
         self.elapsed = 0

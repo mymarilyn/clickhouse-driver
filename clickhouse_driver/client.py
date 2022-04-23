@@ -1,5 +1,7 @@
+import logging
 import re
 import ssl
+import textwrap
 from contextlib import contextmanager
 from time import time
 import types
@@ -8,6 +10,7 @@ from urllib.parse import urlparse, parse_qs, unquote
 from . import errors, defines
 from .block import ColumnOrientedBlock, RowOrientedBlock
 from .connection import Connection
+from .errors import Error
 from .log import log_block
 from .protocol import ServerPacketTypes
 from .result import (
@@ -15,6 +18,8 @@ from .result import (
 )
 from .util.escape import escape_params
 from .util.helpers import column_chunks, chunks, asbool
+
+logger = logging.getLogger(__name__)
 
 
 class Client(object):
@@ -165,7 +170,12 @@ class Client(object):
 
                 yield packet
 
-            except (Exception, KeyboardInterrupt):
+            except (Exception, KeyboardInterrupt) as e:
+                if isinstance(e, Error) and self.last_query is not None:
+                    logger.error(
+                        'Error encountered during ClickHouse query:\n%s',
+                        textwrap.indent(self.last_query.query, '  ')
+                    )
                 self.disconnect()
                 raise
 
@@ -225,7 +235,7 @@ class Client(object):
 
         try:
             self.connection.force_connect()
-            self.last_query = QueryInfo()
+            self.last_query = QueryInfo(query)
 
             yield
 
