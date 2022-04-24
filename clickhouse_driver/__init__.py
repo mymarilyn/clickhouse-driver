@@ -1,6 +1,7 @@
 
 from .client import Client
 from .dbapi import connect
+from .util.escape import escape_params
 
 
 VERSION = (0, 2, 4)
