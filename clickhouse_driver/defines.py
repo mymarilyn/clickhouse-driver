@@ -1,5 +1,5 @@
 
-DEFAULT_DATABASE = 'default'
+DEFAULT_DATABASE = ''
 DEFAULT_USER = 'default'
 DEFAULT_PASSWORD = ''
 

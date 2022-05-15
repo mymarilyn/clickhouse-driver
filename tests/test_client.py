@@ -17,7 +17,7 @@ class ClientFromUrlTestCase(TestCase):
         c = Client.from_url('clickhouse://host')
 
         self.assertHostsEqual(c, [('host', 9000)])
-        self.assertEqual(c.connection.database, 'default')
+        self.assertEqual(c.connection.database, '')
 
         c = Client.from_url('clickhouse://host/db')
 
