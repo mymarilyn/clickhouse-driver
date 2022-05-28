@@ -64,6 +64,7 @@ class ArrayColumn(Column):
             offset = 0
             new_value = []
             for x in value:
+                x = x or []
                 offset += len(x)
                 sizes.append(offset)
                 new_value.extend(x)
@@ -81,6 +82,7 @@ class ArrayColumn(Column):
         if self.nullable:
             value = value or []
 
+        value = [v or [] for v in value]
         if isinstance(self.nested_column, ArrayColumn):
             value = list(chain.from_iterable(value))
 
@@ -91,6 +93,7 @@ class ArrayColumn(Column):
         if self.nullable:
             value = value or []
 
+        value = [v or [] for v in value]
         if isinstance(self.nested_column, ArrayColumn):
             value = list(chain.from_iterable(value))
             self.nested_column._write_nulls_data(value, buf)
