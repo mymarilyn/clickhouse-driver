@@ -82,10 +82,8 @@ class ArrayColumn(Column):
         if self.nullable:
             value = value or []
 
-        value = [v or [] for v in value]
         if isinstance(self.nested_column, ArrayColumn):
-            value = list(chain.from_iterable(value))
-
+            value = list(chain.from_iterable(filter(lambda x: [] if x is None else x, value)))
         if value:
             self.nested_column._write_data(value, buf)
 
@@ -93,13 +91,13 @@ class ArrayColumn(Column):
         if self.nullable:
             value = value or []
 
-        value = [v or [] for v in value]
         if isinstance(self.nested_column, ArrayColumn):
-            value = list(chain.from_iterable(value))
+            value = list(chain.from_iterable(filter(lambda x: [] if x is None else x, value)))
             self.nested_column._write_nulls_data(value, buf)
         else:
             if self.nested_column.nullable:
                 self.nested_column._write_nulls_map(value, buf)
+
 
     def _write(self, value, buf):
         self._write_sizes(value, buf)

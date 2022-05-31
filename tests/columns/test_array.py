@@ -24,6 +24,25 @@ class ArrayTestCase(BaseTestCase):
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
 
+    def test_none(self):
+        columns = 'a Array(Int32)'
+
+        data = [(None, )]
+        expected_data = [([],)]
+        with self.create_table(columns):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', params= data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted, '[]\n'
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, expected_data)
+
     def test_simple(self):
         columns = 'a Array(Int32)'
         data = [([100, 500], )]
@@ -264,3 +283,4 @@ class ArrayTestCase(BaseTestCase):
 
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
+
