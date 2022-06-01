@@ -6,6 +6,8 @@ from ..util.helpers import pairwise
 class MapColumn(Column):
     py_types = (dict, )
 
+    null_value = {}
+
     def __init__(self, key_column, value_column, **kwargs):
         self.offset_column = UInt64Column()
         self.key_column = key_column
@@ -50,9 +52,9 @@ class MapColumn(Column):
         self.value_column.write_data(values, buf)
 
 
-def create_map_column(spec, column_by_spec_getter):
+def create_map_column(spec, column_by_spec_getter, column_options):
     key, value = spec[4:-1].split(',')
     key_column = column_by_spec_getter(key.strip())
     value_column = column_by_spec_getter(value.strip())
 
-    return MapColumn(key_column, value_column)
+    return MapColumn(key_column, value_column, **column_options)

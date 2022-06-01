@@ -6,10 +6,10 @@ from .base import Column
 from .intcolumn import UInt8Column, UInt16Column, UInt32Column, UInt64Column
 
 
-def create_low_cardinality_column(spec, column_by_spec_getter):
+def create_low_cardinality_column(spec, column_by_spec_getter, column_options):
     inner = spec[15:-1]
     nested = column_by_spec_getter(inner)
-    return LowCardinalityColumn(nested)
+    return LowCardinalityColumn(nested, **column_options)
 
 
 class LowCardinalityColumn(Column):

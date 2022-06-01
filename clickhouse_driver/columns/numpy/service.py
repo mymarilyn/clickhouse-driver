@@ -31,14 +31,17 @@ def get_numpy_column_by_spec(spec, column_options):
         return create_numpy_datetime_column(spec, column_options)
 
     elif spec.startswith('Tuple'):
-        return create_tuple_column(spec, create_column_with_options)
+        return create_tuple_column(
+            spec, create_column_with_options, column_options
+        )
 
     elif spec.startswith('Nullable'):
         return create_nullable_column(spec, create_column_with_options)
 
     elif spec.startswith('LowCardinality'):
-        return create_numpy_low_cardinality_column(spec,
-                                                   create_column_with_options)
+        return create_numpy_low_cardinality_column(
+            spec, create_column_with_options, column_options
+        )
     else:
         for alias, primitive in aliases:
             if spec.startswith(alias):

@@ -1,3 +1,5 @@
+from parameterized import parameterized
+
 from clickhouse_driver.errors import ServerException, ErrorCodes
 from tests.testcase import BaseTestCase
 from tests.util import require_server_version
@@ -114,6 +116,32 @@ class SettingTestCase(BaseTestCase):
             )
 
         self.assertEqual(rv, [('max_query_size', '242', 1)])
+
+
+class InputFormatNullTestCase(BaseTestCase):
+    # Min stable map version
+    required_server_version = (21, 8, 1)
+
+    @parameterized.expand([
+        ('a Int8, b String', [(None, None)], [(0, '')], '0\t\n'),
+        ('a LowCardinality(String)', [(None, )], [('', )], '\n'),
+        ('a Tuple(Int32, Int32)', [(None,)], [((0, 0), )], '(0,0)\n'),
+        ('a Array(Array(Int32))', [(None,)], [([[0]],)], '[[0]]\n'),
+        ('a Map(String, UInt64)', [(None,)], [({},)], '{}\n'),
+        ('a Nested(i Int32)', [(None, )], [([0], )], '[0]\n')
+    ])
+    def test_input_format_null_as_default(self, spec, data, res, cli_res):
+        client_settings = {'input_format_null_as_default': True}
+
+        with self.created_client(settings=client_settings) as client:
+            with self.create_table(spec):
+                client.execute('INSERT INTO test VALUES', data)
+
+                query = 'SELECT * FROM test'
+                inserted = self.emit_cli(query)
+                self.assertEqual(inserted, cli_res)
+                inserted = client.execute(query)
+                self.assertEqual(inserted, res)
 
 
 class LimitsTestCase(BaseTestCase):

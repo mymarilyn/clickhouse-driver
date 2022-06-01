@@ -38,7 +38,7 @@ class Client(object):
           Defaults to ``1048576``.
         * ``strings_as_bytes`` -- turns off string column encoding/decoding.
         * ``strings_encoding`` -- specifies string encoding. UTF-8 by default.
-        * ``use_numpy`` -- Use numpy for columns reading. New in version
+        * ``use_numpy`` -- Use NumPy for columns reading. New in version
                            *0.2.0*.
         * ``opentelemetry_traceparent`` -- OpenTelemetry traceparent header as
                            described by W3C Trace Context recommendation.
@@ -49,6 +49,10 @@ class Client(object):
         * ``quota_key`` -- A string to differentiate quotas when the user have
                            keyed quotas configured on server.
                            New in version *0.2.3*.
+        * ``input_format_null_as_default`` -- Initialize null fields with
+                           default values if data type of this field is not
+                           nullable. Does not work for NumPy. Default: False.
+                           New in version *0.2.4*.
     """
 
     available_client_settings = (
@@ -58,7 +62,8 @@ class Client(object):
         'use_numpy',
         'opentelemetry_traceparent',
         'opentelemetry_tracestate',
-        'quota_key'
+        'quota_key',
+        'input_format_null_as_default'
     )
 
     def __init__(self, *args, **kwargs):
@@ -85,6 +90,9 @@ class Client(object):
             ),
             'quota_key': self.settings.pop(
                 'quota_key', ''
+            ),
+            'input_format_null_as_default': self.settings.pop(
+                'input_format_null_as_default', False
             )
         }
 

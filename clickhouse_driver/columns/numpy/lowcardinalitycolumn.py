@@ -89,7 +89,8 @@ class NumpyLowCardinalityColumn(LowCardinalityColumn):
         return pd.Categorical.from_codes(keys, index)
 
 
-def create_numpy_low_cardinality_column(spec, column_by_spec_getter):
+def create_numpy_low_cardinality_column(spec, column_by_spec_getter,
+                                        column_options):
     inner = spec[15:-1]
     nested = column_by_spec_getter(inner)
-    return NumpyLowCardinalityColumn(nested)
+    return NumpyLowCardinalityColumn(nested, **column_options)

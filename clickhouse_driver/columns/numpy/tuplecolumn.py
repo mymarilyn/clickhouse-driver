@@ -29,8 +29,9 @@ class TupleColumn(NumpyColumn):
         return self.read_data(n_items, buf)
 
 
-def create_tuple_column(spec, column_by_spec_getter):
+def create_tuple_column(spec, column_by_spec_getter, column_options):
     inner_spec = get_inner_spec('Tuple', spec)
     columns = get_inner_columns(inner_spec)
 
-    return TupleColumn([column_by_spec_getter(x) for x in columns])
+    return TupleColumn([column_by_spec_getter(x) for x in columns],
+                       **column_options)

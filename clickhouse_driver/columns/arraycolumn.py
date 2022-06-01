@@ -32,6 +32,7 @@ class ArrayColumn(Column):
         self.nested_column = nested_column
         self._write_depth_0_size = True
         super(ArrayColumn, self).__init__(**kwargs)
+        self.null_value = [nested_column.null_value]
 
     def write_data(self, data, buf):
         # Column of Array(T) is stored in "compact" format and passed to server
@@ -99,6 +100,7 @@ class ArrayColumn(Column):
                 self.nested_column._write_nulls_map(value, buf)
 
     def _write(self, value, buf):
+        value = self.prepare_items(value)
         self._write_sizes(value, buf)
         self._write_nulls_data(value, buf)
         self._write_data(value, buf)
@@ -145,6 +147,6 @@ class ArrayColumn(Column):
         return tuple(data)
 
 
-def create_array_column(spec, column_by_spec_getter):
+def create_array_column(spec, column_by_spec_getter, column_options):
     inner = spec[6:-1]
-    return ArrayColumn(column_by_spec_getter(inner))
+    return ArrayColumn(column_by_spec_getter(inner), **column_options)
