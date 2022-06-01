@@ -9,7 +9,7 @@ class ArrayTestCase(BaseTestCase):
     def test_empty(self):
         columns = 'a Array(Int32)'
 
-        data = [([], )]
+        data = [([],)]
         with self.create_table(columns):
             self.client.execute(
                 'INSERT INTO test (a) VALUES', data
@@ -27,11 +27,11 @@ class ArrayTestCase(BaseTestCase):
     def test_none(self):
         columns = 'a Array(Int32)'
 
-        data = [(None, )]
+        data = [(None,)]
         expected_data = [([],)]
         with self.create_table(columns):
             self.client.execute(
-                'INSERT INTO test (a) VALUES', params= data
+                'INSERT INTO test (a) VALUES', params=data
             )
 
             query = 'SELECT * FROM test'
@@ -45,7 +45,7 @@ class ArrayTestCase(BaseTestCase):
 
     def test_simple(self):
         columns = 'a Array(Int32)'
-        data = [([100, 500], )]
+        data = [([100, 500],)]
 
         with self.create_table(columns):
             self.client.execute(
@@ -63,7 +63,7 @@ class ArrayTestCase(BaseTestCase):
 
     def test_write_column_as_nested_array(self):
         columns = 'a Array(Int32)'
-        data = [([100, 500], ), ([100, 500], )]
+        data = [([100, 500],), ([100, 500],)]
 
         with self.create_table(columns):
             self.client.execute(
@@ -82,7 +82,7 @@ class ArrayTestCase(BaseTestCase):
     def test_nested_with_enum(self):
         columns = "a Array(Array(Enum8('hello' = -1, 'world' = 2)))"
 
-        data = [([['hello', 'world'], ['hello']], )]
+        data = [([['hello', 'world'], ['hello']],)]
         with self.create_table(columns):
             self.client.execute(
                 'INSERT INTO test (a) VALUES', data
@@ -100,12 +100,14 @@ class ArrayTestCase(BaseTestCase):
     def test_nested_of_nested(self):
         columns = 'a Array(Array(Array(Int32))), b Array(Array(Array(Int32)))'
         data = [([
-            [[255, 170], [127, 127, 127, 127, 127], [170, 170, 170], [170]],
-            [[255, 255, 255], [255]], [[255], [255], [255]]
-        ], [
-            [[255, 170], [127, 127, 127, 127, 127], [170, 170, 170], [170]],
-            [[255, 255, 255], [255]], [[255], [255], [255]]
-        ])]
+                     [[255, 170], [127, 127, 127, 127, 127],
+                      [170, 170, 170], [170]],
+                     [[255, 255, 255], [255]], [[255], [255], [255]]
+                 ], [
+                     [[255, 170], [127, 127, 127, 127, 127],
+                      [170, 170, 170], [170]],
+                     [[255, 255, 255], [255]], [[255], [255], [255]]
+                 ])]
 
         with self.create_table(columns):
             self.client.execute(
@@ -128,8 +130,8 @@ class ArrayTestCase(BaseTestCase):
     def test_multidimensional(self):
         columns = "a Array(Array(Array(Nullable(String))))"
         data = [([[['str1_1', 'str1_2', None], [None]],
-                  [['str1_3', 'str1_4', None], [None]]], ),
-                ([[['str2_1', 'str2_2', None], [None]]], ),
+                  [['str1_3', 'str1_4', None], [None]]],),
+                ([[['str2_1', 'str2_2', None], [None]]],),
                 ([[['str3_1', 'str3_2', None], [None]]],)]
         with self.create_table(columns):
             self.client.execute(
@@ -169,13 +171,13 @@ class ArrayTestCase(BaseTestCase):
 
     def test_type_mismatch_error(self):
         columns = 'a Array(Int32)'
-        data = [('test', )]
+        data = [('test',)]
 
         with self.create_table(columns):
             with self.assertRaises(errors.TypeMismatchError):
                 self.client.execute('INSERT INTO test (a) VALUES', data)
 
-        data = [(['test'], )]
+        data = [(['test'],)]
 
         with self.create_table(columns):
             with self.assertRaises(errors.TypeMismatchError):
@@ -183,7 +185,7 @@ class ArrayTestCase(BaseTestCase):
 
     def test_string_array(self):
         columns = 'a Array(String)'
-        data = [(['aaa', 'bbb'], )]
+        data = [(['aaa', 'bbb'],)]
 
         with self.create_table(columns):
             self.client.execute(
@@ -201,7 +203,7 @@ class ArrayTestCase(BaseTestCase):
 
     def test_string_nullable_array(self):
         columns = 'a Array(Nullable(String))'
-        data = [(['aaa', None, 'bbb'], )]
+        data = [(['aaa', None, 'bbb'],)]
 
         with self.create_table(columns):
             self.client.execute(
@@ -220,9 +222,9 @@ class ArrayTestCase(BaseTestCase):
     def test_uuid_array(self):
         columns = 'a Array(UUID)'
         data = [([
-            UUID('c0fcbba9-0752-44ed-a5d6-4dfb4342b89d'),
-            UUID('2efcead4-ff55-4db5-bdb4-6b36a308d8e0')
-        ], )]
+                     UUID('c0fcbba9-0752-44ed-a5d6-4dfb4342b89d'),
+                     UUID('2efcead4-ff55-4db5-bdb4-6b36a308d8e0')
+                 ],)]
 
         with self.create_table(columns):
             self.client.execute(
@@ -243,10 +245,10 @@ class ArrayTestCase(BaseTestCase):
     def test_uuid_nullable_array(self):
         columns = 'a Array(Nullable(UUID))'
         data = [([
-            UUID('c0fcbba9-0752-44ed-a5d6-4dfb4342b89d'),
-            None,
-            UUID('2efcead4-ff55-4db5-bdb4-6b36a308d8e0')
-        ], )]
+                     UUID('c0fcbba9-0752-44ed-a5d6-4dfb4342b89d'),
+                     None,
+                     UUID('2efcead4-ff55-4db5-bdb4-6b36a308d8e0')
+                 ],)]
 
         with self.create_table(columns):
             self.client.execute(
@@ -268,7 +270,7 @@ class ArrayTestCase(BaseTestCase):
     @require_server_version(19, 16, 13)
     def test_tuple_array(self):
         columns = 'a Array(Tuple(Int32))'
-        data = [([], )]
+        data = [([],)]
 
         with self.create_table(columns):
             self.client.execute(
@@ -283,4 +285,3 @@ class ArrayTestCase(BaseTestCase):
 
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
-
