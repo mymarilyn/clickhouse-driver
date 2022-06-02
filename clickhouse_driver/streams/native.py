@@ -51,7 +51,7 @@ class BlockInputStream(object):
 
         super(BlockInputStream, self).__init__()
 
-    def read(self):
+    def read(self, use_numpy=None):
         info = BlockInfo()
 
         revision = self.context.server_info.revision
@@ -72,7 +72,7 @@ class BlockInputStream(object):
 
             if n_rows:
                 column = read_column(self.context, column_type, n_rows,
-                                     self.fin)
+                                     self.fin, use_numpy=use_numpy)
                 data.append(column)
 
         if self.context.client_settings['use_numpy']:
