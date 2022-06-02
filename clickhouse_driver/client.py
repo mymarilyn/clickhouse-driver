@@ -348,7 +348,7 @@ class Client(object):
             )
 
     def execute_iter(
-            self, query, params=None, with_column_types=False,
+            self, query, chunk_size=1, params=None, with_column_types=False,
             external_tables=None, query_id=None, settings=None,
             types_check=False):
         """
@@ -357,6 +357,7 @@ class Client(object):
         Executes SELECT query with results streaming. See, :ref:`execute-iter`.
 
         :param query: query that will be send to server.
+        :param chunk_size: chunk query results.
         :param params: substitution parameters for SELECT queries and data for
                        INSERT queries. Data for INSERT can be `list`, `tuple`
                        or :data:`~types.GeneratorType`.
@@ -376,11 +377,11 @@ class Client(object):
         """
 
         with self.disconnect_on_error(query, settings):
-            return self.iter_process_ordinary_query(
+            return chunks(self.iter_process_ordinary_query(
                 query, params=params, with_column_types=with_column_types,
                 external_tables=external_tables,
                 query_id=query_id, types_check=types_check
-            )
+            ), chunk_size)
 
     def query_dataframe(
             self, query, params=None, external_tables=None, query_id=None,
