@@ -62,6 +62,8 @@ if USE_CYTHON:
 
     extensions = cythonize(extensions, compiler_directives=compiler_directives)
 
+github_url = 'https://github.com/mymarilyn/clickhouse-driver'
+
 setup(
     name='clickhouse-driver',
     version=read_version(),
@@ -69,7 +71,7 @@ setup(
     description='Python driver with native interface for ClickHouse',
     long_description=long_description,
 
-    url='https://github.com/mymarilyn/clickhouse-driver',
+    url=github_url,
 
     author='Konstantin Lebedev',
     author_email='kostyan.lebedev@gmail.com',
@@ -115,6 +117,7 @@ setup(
 
     project_urls={
         'Documentation': 'https://clickhouse-driver.readthedocs.io',
+        'Changes': github_url + '/blob/master/CHANGELOG.md'
     },
     packages=find_packages('.', exclude=['tests*']),
     python_requires='>=3.4, <4',

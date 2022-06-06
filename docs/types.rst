@@ -407,3 +407,18 @@ Map(key, value)
 INSERT types: :class:`dict`.
 
 SELECT type: :class:`dict`.
+
+
+Geo
+---
+
+*New in version 0.2.4.*
+
+Point, Ring, Polygon, MultiPolygon.
+
+These types are just aliases:
+
+* Point: Tuple(Float64, Float64)
+* Ring: Array(Point)
+* Polygon: Array(Ring)
+* MultiPolygon: Array(Polygon)
