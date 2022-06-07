@@ -49,8 +49,8 @@ class BlocksTestCase(BaseTestCase):
 
     def test_columnar_block_extend(self):
         with self.create_table('a Int32'):
-            self.client.execute('INSERT INTO test (a) VALUES', [(1,)])
-            self.client.execute('INSERT INTO test (a) VALUES', [(2,)])
+            self.client.execute('INSERT INTO test (a) VALUES', [(1, )])
+            self.client.execute('INSERT INTO test (a) VALUES', [(2, )])
 
             query = 'SELECT * FROM test ORDER BY a'
 
@@ -220,16 +220,16 @@ class LogTestCase(BaseTestCase):
                 settings = {'send_logs_level': 'debug'}
 
                 query = 'INSERT INTO test (a) VALUES'
-                self.client.execute(query, [(1,)], settings=settings)
+                self.client.execute(query, [(1, )], settings=settings)
                 logs = buffer.getvalue()
                 self.assertIn(query, logs)
 
-                if self.server_version > (19,):
+                if self.server_version > (19, ):
                     self.assertIn('MemoryTracker', logs)
 
                 # Test all packets of INSERT query are consumed.
                 rv = self.client.execute('SELECT 1', settings=settings)
-                self.assertEqual(rv, [(1,)])
+                self.assertEqual(rv, [(1, )])
 
     def test_logs_with_compression(self):
         compression = 'lz4'
