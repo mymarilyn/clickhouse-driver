@@ -48,8 +48,8 @@ class BlocksTestCase(BaseTestCase):
 
     def test_columnar_block_extend(self):
         with self.create_table('a Int32'):
-            self.client.execute('INSERT INTO test (a) VALUES', [(1, )])
-            self.client.execute('INSERT INTO test (a) VALUES', [(2, )])
+            self.client.execute('INSERT INTO test (a) VALUES', [(1,)])
+            self.client.execute('INSERT INTO test (a) VALUES', [(2,)])
 
             query = 'SELECT * FROM test ORDER BY a'
 
@@ -153,6 +153,26 @@ class IteratorTestCase(BaseTestCase):
         self.assertEqual(list(result), list(zip(range(10))))
         self.assertEqual(list(result), [])
 
+    def test_select_with_chunk_one_iter(self):
+        result = self.client.execute_iter(
+            'SELECT number FROM system.numbers LIMIT 10',
+            chunk_size=1
+        )
+        self.assertIsInstance(result, types.GeneratorType)
+
+        self.assertEqual(list(result), list(zip(range(10))))
+        self.assertEqual(list(result), [])
+
+    def test_select_with_chunk_more_iter(self):
+        result = self.client.execute_iter(
+            'SELECT number FROM system.numbers LIMIT 10',
+            chunk_size=2
+        )
+        self.assertIsInstance(result, types.GeneratorType)
+        self.assertEqual(list(result), list(zip(range(10))))
+        self.assertEqual(list(result), [])
+
+
     def test_select_with_iter_with_column_types(self):
         result = self.client.execute_iter(
             'SELECT CAST(number AS UInt32) as number '
@@ -202,16 +222,16 @@ class LogTestCase(BaseTestCase):
                 settings = {'send_logs_level': 'debug'}
 
                 query = 'INSERT INTO test (a) VALUES'
-                self.client.execute(query, [(1, )], settings=settings)
+                self.client.execute(query, [(1,)], settings=settings)
                 logs = buffer.getvalue()
                 self.assertIn(query, logs)
 
-                if self.server_version > (19, ):
+                if self.server_version > (19,):
                     self.assertIn('MemoryTracker', logs)
 
                 # Test all packets of INSERT query are consumed.
                 rv = self.client.execute('SELECT 1', settings=settings)
-                self.assertEqual(rv, [(1, )])
+                self.assertEqual(rv, [(1,)])
 
     def test_logs_with_compression(self):
         compression = 'lz4'
