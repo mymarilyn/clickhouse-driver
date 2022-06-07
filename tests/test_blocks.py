@@ -4,6 +4,7 @@ from unittest.mock import patch
 from clickhouse_driver.errors import ServerException
 from tests.testcase import BaseTestCase, file_config
 from tests.util import capture_logging
+from clickhouse_driver.util.helpers import chunks
 
 
 class BlocksTestCase(BaseTestCase):
@@ -163,11 +164,11 @@ class IteratorTestCase(BaseTestCase):
 
     def test_select_with_chunk_some_iter(self):
         result = self.client.execute_iter(
-            'SELECT number FROM system.numbers LIMIT 12',
-            chunk_size=5
+            'SELECT number FROM system.numbers LIMIT 10',
+            chunk_size=3
         )
         self.assertIsInstance(result, types.GeneratorType)
-        self.assertEqual(list(result), [[1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [1, 2]])
+        self.assertEqual(list(result), list(zip(chunks(range(10), 3))))
         self.assertEqual(list(result), [])
 
     def test_select_with_iter_with_column_types(self):
