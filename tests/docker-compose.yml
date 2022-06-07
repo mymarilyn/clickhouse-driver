@@ -2,7 +2,7 @@ version: '3'
 
 services:
   clickhouse-server:
-    image: "$ORG/clickhouse-server:$VERSION"
+    image: "yandex/clickhouse-server:21.12.3.32"
     container_name: test-clickhouse-server
     environment:
       - TZ=Europe/Moscow
@@ -10,7 +10,7 @@ services:
       - "127.0.0.1:9000:9000"
 
   clickhouse-client:
-    image: "$ORG/clickhouse-server:$VERSION"
+    image: "yandex/clickhouse-server:21.12.3.32"
     container_name: test-clickhouse-client
     entrypoint: /bin/sh
-    command: [-c, 'while :; do sleep 1; done']
+    command: [ -c, 'while :; do sleep 1; done' ]

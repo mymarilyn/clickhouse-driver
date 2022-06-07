@@ -161,15 +161,6 @@ class IteratorTestCase(BaseTestCase):
         self.assertEqual(list(result), list(zip(range(10))))
         self.assertEqual(list(result), [])
 
-    def test_select_with_chunk_more_iter(self):
-        result = self.client.execute_iter(
-            'SELECT number FROM system.numbers LIMIT 10',
-            chunk_size=2
-        )
-        self.assertIsInstance(result, types.GeneratorType)
-        self.assertEqual(list(result), list(zip(range(10))))
-        self.assertEqual(list(result), [])
-
     def test_select_with_iter_with_column_types(self):
         result = self.client.execute_iter(
             'SELECT CAST(number AS UInt32) as number '
