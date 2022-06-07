@@ -149,7 +149,6 @@ class IteratorTestCase(BaseTestCase):
             'SELECT number FROM system.numbers LIMIT 10'
         )
         self.assertIsInstance(result, types.GeneratorType)
-
         self.assertEqual(list(result), list(zip(range(10))))
         self.assertEqual(list(result), [])
 
@@ -159,7 +158,6 @@ class IteratorTestCase(BaseTestCase):
             chunk_size=1
         )
         self.assertIsInstance(result, types.GeneratorType)
-
         self.assertEqual(list(result), list(zip(range(10))))
         self.assertEqual(list(result), [])
 
@@ -171,7 +169,6 @@ class IteratorTestCase(BaseTestCase):
         self.assertIsInstance(result, types.GeneratorType)
         self.assertEqual(list(result), list(zip(range(10))))
         self.assertEqual(list(result), [])
-
 
     def test_select_with_iter_with_column_types(self):
         result = self.client.execute_iter(
