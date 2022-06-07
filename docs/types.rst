@@ -291,13 +291,11 @@ columns for are ``col.name`` and ``col.version``.
 
     .. code-block:: sql
 
-      :) CREATE TABLE test_nested (col Nested(name String, version UInt16)) Engine = Memory;
+      :) CREATE TABLE test_nested (col Nested(name String, version UInt32)) Engine = Memory;
 
       CREATE TABLE test_nested
       (
-          `col` Nested(
-          name String,
-          version UInt16)
+          `col` Nested(name String, version UInt32)
       )
       ENGINE = Memory
 
@@ -311,7 +309,7 @@ columns for are ``col.name`` and ``col.version``.
       FORMAT TSV
 
       col.name	Array(String)
-      col.version	Array(UInt16)
+      col.version	Array(UInt32)
 
       2 rows in set. Elapsed: 0.004 sec.
 
@@ -350,11 +348,11 @@ Nested type is represented by array of named tuples when flatten_nested=0.
 
       0 rows in set. Elapsed: 0.006 sec. 
 
-      :) CREATE TABLE test_nested (col Nested(name String, version UInt16)) Engine = Memory;
+      :) CREATE TABLE test_nested (col Nested(name String, version UInt32)) Engine = Memory;
 
       CREATE TABLE test_nested
       (
-          `col` Nested(name String, version UInt16)
+          `col` Nested(name String, version UInt32)
       )
       ENGINE = Memory
 
@@ -367,7 +365,7 @@ Nested type is represented by array of named tuples when flatten_nested=0.
       DESCRIBE TABLE test_nested
       FORMAT TSV
 
-      col	Nested(name String, version UInt16)					
+      col	Nested(name String, version UInt32)
 
       1 rows in set. Elapsed: 0.004 sec.
 
@@ -388,14 +386,18 @@ Inserting data into nested column with ``clickhouse-driver``:
     .. code-block:: python
 
       client.execute(
-          'INSERT INTO test_nested VALUES',
-          [([('a', 100), ('b', 200), ('c', 300)]),]
-      )
+          'INSERT INTO test_nested VALUES', [
+          ([('a', 100), ('b', 200), ('c', 300)], )
+      ])
       # or
       client.execute(
-          'INSERT INTO test_nested VALUES',
-          [{'col': [{'name': 'a', 'version': 100}, {'name': 'b', 'version': 200}, {'name': 'c', 'version': 300}]}]
-      )
+          'INSERT INTO test_nested VALUES', [
+          {'col': [
+              {'name': 'a', 'version': 100},
+              {'name': 'b', 'version': 200},
+              {'name': 'c', 'version': 300}
+          ]}
+      ])
 
 Map(key, value)
 ------------------
