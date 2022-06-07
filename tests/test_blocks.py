@@ -168,7 +168,7 @@ class IteratorTestCase(BaseTestCase):
             chunk_size=3
         )
         self.assertIsInstance(result, types.GeneratorType)
-        self.assertEqual(list(result), list(zip(chunks(range(10), 3))))
+        self.assertEqual(list(result), list(chunks(zip(range(10), 3))))
         self.assertEqual(list(result), [])
 
     def test_select_with_iter_with_column_types(self):
