@@ -414,8 +414,9 @@ class Client(object):
             settings=settings
         )
 
+        columns = [re.sub(r'\W', '_', name) for name, type_ in columns]
         return pd.DataFrame(
-            {re.sub(r'\W', '_', col[0]): d for d, col in zip(data, columns)}
+            {col: d for d, col in zip(data, columns)}, columns=columns
         )
 
     def insert_dataframe(

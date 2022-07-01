@@ -141,6 +141,13 @@ class DataFrameTestCase(NumpyBaseTestCase):
             )
             self.assertEqual(rv, n)
 
+    def test_empty_frame_shape(self):
+        df = self.client.query_dataframe(
+            'SELECT number AS a, number AS a FROM system.numbers LIMIT 0'
+        )
+
+        self.assertEqual(df.shape, (0, 2))
+
 
 class NoNumPyTestCase(BaseTestCase):
     def setUp(self):
