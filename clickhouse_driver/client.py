@@ -453,6 +453,12 @@ class Client(object):
             rv = None
             if sample_block:
                 columns = [x[0] for x in sample_block.columns_with_types]
+                if len(columns) != dataframe.shape[1]:
+                    msg = 'Expected {} columns, got {}'.format(
+                        len(columns), dataframe.shape[1]
+                    )
+                    raise ValueError(msg)
+
                 data = [dataframe[column].values for column in columns]
                 rv = self.send_data(sample_block, data, columnar=True)
                 self.receive_end_of_query()
