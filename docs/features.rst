@@ -16,7 +16,7 @@ Features
 External data for query processing
 ----------------------------------
 
-You can pass `external data <https://clickhouse.yandex/docs/en/single/index.html#external-data-for-query-processing>`_
+You can pass `external data <https://clickhouse.com/docs/en/engines/table-engines/special/external-data/>`_
 alongside with query:
 
     .. code-block:: python
@@ -38,7 +38,7 @@ alongside with query:
 Settings
 --------
 
-There are a lot of ClickHouse server `settings <https://clickhouse.yandex/docs/en/single/index.html#server-settings>`_.
+There are a lot of ClickHouse server `settings <https://clickhouse.com/docs/en/operations/settings/settings/>`_.
 Settings can be specified during Client initialization:
 
     .. code-block:: python
@@ -133,7 +133,7 @@ You can manually set query identificator for each query. UUID for example:
 
 You can cancel query with specific id by sending another query with the same
 query id if option `replace_running_query
-<https://clickhouse.yandex/docs/en/single/#replace-running-query>`_ is set to 1.
+<https://clickhouse.com/docs/en/operations/settings/settings/#replace-running-query>`_ is set to 1.
 
 Query results are fetched by the same instance of Client that emitted query.
 

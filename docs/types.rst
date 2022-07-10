@@ -46,7 +46,7 @@ insertion of datetime column is a bottleneck.
 
 SELECT type: :class:`~datetime.datetime`.
 
-Setting `use_client_time_zone <https://clickhouse.yandex/docs/en/single/#datetime>`_ is taken into consideration.
+Setting `use_client_time_zone <https://clickhouse.com/docs/en/sql-reference/data-types/datetime/#usage-remarks>`_ is taken into consideration.
 
 You can cast DateTime column to integers if you are facing performance issues when selecting large amount of rows.
 

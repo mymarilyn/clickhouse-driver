@@ -26,7 +26,7 @@ class Client(object):
                      for the client settings, see below). Defaults to ``None``
                      (no additional settings). See all available settings in
                      `ClickHouse docs
-                     <https://clickhouse.tech/docs/en/operations/settings/settings/>`_.
+                     <https://clickhouse.com/docs/en/operations/settings/settings/>`_.
     :param \\**kwargs: All other args are passed to the
                        :py:class:`~clickhouse_driver.connection.Connection`
                        constructor.

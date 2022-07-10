@@ -130,7 +130,7 @@ When you are dealing with large datasets block by block results streaming may be
 Inserting data
 --------------
 
-Insert queries in `Native protocol <https://clickhouse.yandex/docs/en/single/index.html#native-interface-tcp>`_
+Insert queries in `Native protocol <https://clickhouse.com/docs/en/interfaces/tcp/>`_
 are a little bit tricky because of ClickHouse's columnar nature. And because we're using Python.
 
 INSERT query consists of two parts: query statement and query values. Query values are split into chunks called blocks.

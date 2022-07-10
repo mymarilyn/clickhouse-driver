@@ -14,7 +14,7 @@ When you read data over HTTP you may need to cast strings into Python types.
 Test data
 ---------
 
-Sample data for testing is taken from `ClickHouse docs <https://clickhouse.tech/docs>`_.
+Sample data for testing is taken from `ClickHouse docs <https://clickhouse.com/docs/en/getting-started/example-datasets/ontime>`_.
 
 Create database and table:
 
