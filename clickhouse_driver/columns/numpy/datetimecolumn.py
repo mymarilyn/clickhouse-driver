@@ -68,7 +68,7 @@ class NumpyDateTime64Column(NumpyDateTimeColumnBase):
     dtype = np.dtype(np.uint64)
     datetime_dtype = 'datetime64[ns]'
 
-    max_scale = 6
+    max_scale = 9
 
     def __init__(self, scale=0, **kwargs):
         self.scale = scale
@@ -81,7 +81,7 @@ class NumpyDateTime64Column(NumpyDateTimeColumnBase):
         items = super(NumpyDateTime64Column, self).read_items(n_items, buf)
 
         seconds = (items // scale).astype('datetime64[s]')
-        microseconds = ((items % scale) * frac_scale).astype('timedelta64[us]')
+        microseconds = ((items % scale) * frac_scale).astype('timedelta64[ns]')
 
         dt = seconds + microseconds
         return self.apply_timezones_after_read(dt)
@@ -98,7 +98,7 @@ class NumpyDateTime64Column(NumpyDateTimeColumnBase):
         items = self.apply_timezones_before_write(items)
 
         seconds = items.astype('datetime64[s]')
-        microseconds = (items - seconds).astype(dtype='timedelta64[us]') \
+        microseconds = (items - seconds).astype(dtype='timedelta64[ns]') \
             .astype(np.uint32) // frac_scale
 
         items = seconds.astype(self.dtype) * scale + microseconds

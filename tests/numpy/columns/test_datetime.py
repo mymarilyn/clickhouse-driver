@@ -147,6 +147,50 @@ class DateTimeTestCase(BaseDateTimeTestCase):
                 inserted[0], self.make_numpy_d64ns(['2012-10-25T14:07:19.1'])
             )
 
+    @require_server_version(20, 1, 2)
+    def test_datetime64_nanosecond_precision(self):
+        with self.create_table('a DateTime64(8)'):
+            data = [self.make_numpy_d64ns([
+                '2012-10-25T14:07:19.12345678',
+                '2012-10-25T14:07:19.99999999',
+            ])]
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data, columnar=True
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted,
+                '2012-10-25 14:07:19.12345678\n'
+                '2012-10-25 14:07:19.99999999\n'
+            )
+
+            inserted = self.client.execute(query, columnar=True)
+            self.assertArraysEqual(inserted[0], data[0])
+
+    @require_server_version(20, 1, 2)
+    def test_datetime64_max_precision(self):
+        with self.create_table('a DateTime64(9)'):
+            data = [self.make_numpy_d64ns([
+                '2012-10-25T14:07:19.123456789',
+                '2012-10-25T14:07:19.999999999',
+            ])]
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data, columnar=True
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted,
+                '2012-10-25 14:07:19.123456789\n'
+                '2012-10-25 14:07:19.999999999\n'
+            )
+
+            inserted = self.client.execute(query, columnar=True)
+            self.assertArraysEqual(inserted[0], data[0])
+
     def test_insert_integers_datetime(self):
         with self.create_table('a DateTime'):
             self.client.execute(
