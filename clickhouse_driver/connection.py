@@ -82,11 +82,6 @@ class Connection(object):
     :param port: port ClickHouse server is bound to.
                  Defaults to ``9000`` if connection is not secured and
                  to ``9440`` if connection is secured.
-    :param server_hostname: Hostname to use in SSL Wrapper construction.
-                            Defaults to `None` which will send the passed
-                            host param during SSL initialization. This param
-                            may be used when connecting over an SSH tunnel
-                            to correctly identify the desired server via SNI.
     :param database: database connect to. Defaults to ``'default'``.
     :param user: database user. Defaults to ``'default'``.
     :param password: user's password. Defaults to ``''`` (no password).
@@ -118,6 +113,11 @@ class Connection(object):
     :param ciphers: see :func:`ssl.wrap_socket` docs.
     :param keyfile: see :func:`ssl.wrap_socket` docs.
     :param certfile: see :func:`ssl.wrap_socket` docs.
+    :param server_hostname: Hostname to use in SSL Wrapper construction.
+                            Defaults to `None` which will send the passed
+                            host param during SSL initialization. This param
+                            may be used when connecting over an SSH tunnel
+                            to correctly identify the desired server via SNI.
     :param alt_hosts: list of alternative hosts for connection.
                       Example: alt_hosts=host1:port1,host2:port2.
     :param settings_is_important: ``False`` means unknown settings will be
@@ -127,7 +127,7 @@ class Connection(object):
     """
 
     def __init__(
-            self, host, port=None, server_hostname=None,
+            self, host, port=None,
             database=defines.DEFAULT_DATABASE,
             user=defines.DEFAULT_USER, password=defines.DEFAULT_PASSWORD,
             client_name=defines.CLIENT_NAME,
@@ -140,6 +140,7 @@ class Connection(object):
             # Secure socket parameters.
             verify=True, ssl_version=None, ca_certs=None, ciphers=None,
             keyfile=None, certfile=None,
+            server_hostname=None,
             alt_hosts=None,
             settings_is_important=False,
     ):
@@ -155,7 +156,6 @@ class Connection(object):
                 url = urlparse('clickhouse://' + host)
                 self.hosts.append((url.hostname, url.port or default_port))
 
-        self.server_hostname = server_hostname
         self.database = database
         self.user = user
         self.password = password
@@ -181,6 +181,8 @@ class Connection(object):
             ssl_options['certfile'] = certfile
 
         self.ssl_options = ssl_options
+
+        self.server_hostname = server_hostname
 
         # Use LZ4 compression by default.
         if compression is True:
@@ -253,7 +255,8 @@ class Connection(object):
 
                 if self.secure_socket:
                     ssl_context = self._create_ssl_context(ssl_options)
-                    sock = ssl_context.wrap_socket(sock, server_hostname=self.server_hostname or host)
+                    sock = ssl_context.wrap_socket(
+                        sock, server_hostname=self.server_hostname or host)
 
                 sock.connect(sa)
                 return sock
