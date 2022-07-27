@@ -700,7 +700,8 @@ class Client(object):
                 kwargs[name] = asbool(value)
             elif name == 'ssl_version':
                 kwargs[name] = getattr(ssl, value)
-            elif name in ['ca_certs', 'ciphers', 'keyfile', 'certfile', 'server_hostname']:
+            elif name in ['ca_certs', 'ciphers', 'keyfile', 'certfile',
+                          'server_hostname']:
                 kwargs[name] = value
             elif name == 'alt_hosts':
                 kwargs['alt_hosts'] = value
