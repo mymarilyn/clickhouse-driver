@@ -589,6 +589,9 @@ class Client(object):
             if packet.type == ServerPacketTypes.END_OF_STREAM:
                 break
 
+            elif packet.type == ServerPacketTypes.PROGRESS:
+                continue
+
             elif packet.type == ServerPacketTypes.EXCEPTION:
                 raise packet.exception
 
