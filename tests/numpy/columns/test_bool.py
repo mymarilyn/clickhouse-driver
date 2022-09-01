@@ -10,12 +10,13 @@ class BoolTestCase(NumpyBaseTestCase):
     n = 10
 
     def check_result(self, rv, col_type):
-        self.assertArraysEqual(rv[0], np.array(range(self.n)))
+        data = (np.array(range(self.n)) % 2).astype(bool)
+        self.assertArraysEqual(rv[0], data)
         self.assertEqual(rv[0].dtype, col_type)
 
     def get_query(self, ch_type):
         with self.create_table('a {}'.format(ch_type)):
-            data = [np.array(range(self.n))]
+            data = [(np.array(range(self.n)) % 2).astype(bool)]
             self.client.execute(
                 'INSERT INTO test (a) VALUES', data, columnar=True
             )
@@ -23,7 +24,7 @@ class BoolTestCase(NumpyBaseTestCase):
             query = 'SELECT * FROM test'
             inserted = self.emit_cli(query)
             self.assertEqual(
-                inserted, '\n'.join(str(x) for x in data[0]) + '\n'
+                inserted, '\n'.join(str(x).lower() for x in data[0]) + '\n'
             )
             return self.client.execute(query, columnar=True)
 
@@ -49,7 +50,7 @@ class BoolTestCase(NumpyBaseTestCase):
 
             inserted = self.client.execute(query, columnar=True)
             self.assertArraysEqual(inserted[0], np.array([True, 0]))
-            self.assertEqual(inserted[0].dtype, np.int32)
+            self.assertEqual(inserted[0].dtype, np.bool_)
 
     def test_nullable(self):
         with self.create_table('a Nullable(Bool)'):
