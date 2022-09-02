@@ -7,6 +7,7 @@ from .intcolumn import (
     NumpyInt8Column, NumpyInt16Column, NumpyInt32Column, NumpyInt64Column,
     NumpyUInt8Column, NumpyUInt16Column, NumpyUInt32Column, NumpyUInt64Column
 )
+from .boolcolumn import NumpyBoolColumn
 from .lowcardinalitycolumn import create_numpy_low_cardinality_column
 from .stringcolumn import create_string_column
 from .tuplecolumn import create_tuple_column
@@ -16,7 +17,8 @@ column_by_type = {c.ch_type: c for c in [
     NumpyDateColumn,
     NumpyFloat32Column, NumpyFloat64Column,
     NumpyInt8Column, NumpyInt16Column, NumpyInt32Column, NumpyInt64Column,
-    NumpyUInt8Column, NumpyUInt16Column, NumpyUInt32Column, NumpyUInt64Column
+    NumpyUInt8Column, NumpyUInt16Column, NumpyUInt32Column, NumpyUInt64Column,
+    NumpyBoolColumn
 ]}
 
 
