@@ -217,6 +217,14 @@ class Connection(object):
 
         super(Connection, self).__init__()
 
+    def __repr__(self):
+        dsn = '%s://%s:***@%s:%s/%s' % (
+            'clickhouses' if self.secure_socket else 'clickhouse',
+            self.user, self.host, self.port, self.database
+        ) if self.connected else '(not connected)'
+
+        return '<Connection(dsn=%s, compression=%s)>' % (dsn, self.compression)
+
     def get_description(self):
         return '{}:{}'.format(self.host, self.port)
 
