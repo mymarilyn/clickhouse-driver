@@ -266,3 +266,14 @@ class ClientFromUrlTestCase(TestCase):
         self.assertEqual(
             c.connection.context.client_settings['quota_key'], ''
         )
+
+    def test_round_robin(self):
+        c = Client.from_url('clickhouse://host')
+        self.assertFalse(
+            c.connection.context.client_settings['round_robin']
+        )
+
+        c = Client.from_url('clickhouse://host?round_robin=true')
+        self.assertTrue(
+            c.connection.context.client_settings['round_robin']
+        )

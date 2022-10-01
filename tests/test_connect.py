@@ -240,6 +240,30 @@ class ConnectTestCase(BaseTestCase):
         list(self.client.execute_iter('SELECT 1'))
         list(self.client.execute_iter('SELECT 1'))
 
+    def test_round_robin(self):
+        settings = {
+            'round_robin': True,
+            'alt_hosts': '{}:{}'.format(self.host, self.port)
+        }
+        with self.created_client(settings=settings) as client:
+            self.assertFalse(client.connection.connected)
+            self.assertFalse(list(client.connections)[0].connected)
+
+            client.execute('SELECT 1')
+
+            self.assertTrue(client.connection.connected)
+            self.assertFalse(list(client.connections)[0].connected)
+
+            client.execute('SELECT 1')
+
+            self.assertTrue(client.connection.connected)
+            self.assertTrue(list(client.connections)[0].connected)
+
+            client.disconnect()
+
+            self.assertFalse(client.connection.connected)
+            self.assertFalse(list(client.connections)[0].connected)
+
 
 class FakeBufferedReader(BufferedReader):
     def __init__(self, inputs, bufsize=128):

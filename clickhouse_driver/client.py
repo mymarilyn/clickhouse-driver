@@ -1,5 +1,6 @@
 import re
 import ssl
+from collections import deque
 from contextlib import contextmanager
 from time import time
 import types
@@ -63,7 +64,8 @@ class Client(object):
         'opentelemetry_traceparent',
         'opentelemetry_tracestate',
         'quota_key',
-        'input_format_null_as_default'
+        'input_format_null_as_default',
+        'round_robin'
     )
 
     def __init__(self, *args, **kwargs):
@@ -93,7 +95,10 @@ class Client(object):
             ),
             'input_format_null_as_default': self.settings.pop(
                 'input_format_null_as_default', False
-            )
+            ),
+            'round_robin': self.settings.pop(
+                'round_robin', False
+            ),
         }
 
         if self.client_settings['use_numpy']:
@@ -112,9 +117,27 @@ class Client(object):
             self.iter_query_result_cls = IterQueryResult
             self.progress_query_result_cls = ProgressQueryResult
 
-        self.connection = Connection(*args, **kwargs)
-        self.connection.context.settings = self.settings
-        self.connection.context.client_settings = self.client_settings
+        self.round_robin = self.client_settings['round_robin']
+        self.connections = deque([Connection(*args, **kwargs)])
+
+        if self.round_robin and self.settings.get('alt_hosts'):
+            alt_hosts = self.settings.pop('alt_hosts')
+            for host in alt_hosts.split(','):
+                url = urlparse('clickhouse://' + host)
+
+                connection_kwargs = kwargs.copy()
+                if len(args) > 2:
+                    # port as positional argument
+                    connection_args = (url.hostname, url.port) + args[2:]
+                else:
+                    # port as keyword argument
+                    connection_args = (url.hostname, ) + args[1:]
+                    connection_kwargs['port'] = url.port
+
+                connection = Connection(*connection_args, **connection_kwargs)
+                self.connections.append(connection)
+
+        self.connection = self.get_connection()
         self.reset_last_query()
         super(Client, self).__init__()
 
@@ -124,7 +147,22 @@ class Client(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.disconnect()
 
+    def get_connection(self):
+        if hasattr(self, 'connection'):
+            self.connections.append(self.connection)
+
+        connection = self.connections.popleft()
+
+        connection.context.settings = self.settings
+        connection.context.client_settings = self.client_settings
+        return connection
+
     def disconnect(self):
+        self.disconnect_connection()
+        for connection in self.connections:
+            connection.disconnect()
+
+    def disconnect_connection(self):
         """
         Disconnects from the server.
         """
@@ -227,13 +265,29 @@ class Client(object):
         if query.lower().startswith('use '):
             self.connection.database = query[4:].strip()
 
+    def establish_connection(self, settings):
+        num_connections = len(self.connections)
+        if hasattr(self, 'connection'):
+            num_connections += 1
+
+        for i in range(num_connections):
+            try:
+                self.connection = self.get_connection()
+                self.make_query_settings(settings)
+                self.connection.force_connect()
+                self.last_query = QueryInfo()
+
+            except (errors.SocketTimeoutError, errors.NetworkError):
+                if i < num_connections - 1:
+                    continue
+                raise
+
+            return
+
     @contextmanager
     def disconnect_on_error(self, query, settings):
-        self.make_query_settings(settings)
-
         try:
-            self.connection.force_connect()
-            self.last_query = QueryInfo()
+            self.establish_connection(settings)
 
             yield
 
@@ -684,6 +738,9 @@ class Client(object):
                 kwargs[name] = asbool(value)
 
             elif name == 'use_numpy':
+                settings[name] = asbool(value)
+
+            elif name == 'round_robin':
                 settings[name] = asbool(value)
 
             elif name == 'client_name':
