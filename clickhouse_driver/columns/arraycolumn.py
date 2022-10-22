@@ -32,7 +32,7 @@ class ArrayColumn(Column):
         self.nested_column = nested_column
         self._write_depth_0_size = True
         super(ArrayColumn, self).__init__(**kwargs)
-        self.null_value = [nested_column.null_value]
+        self.null_value = []
 
     def write_data(self, data, buf):
         # Column of Array(T) is stored in "compact" format and passed to server
