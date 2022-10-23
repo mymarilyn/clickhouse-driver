@@ -156,13 +156,12 @@ class DataFrameTestCase(NumpyBaseTestCase):
             expected = "DataFrame missing required columns: ['b']"
             self.assertEqual(str(e.exception), expected)
 
-
     def test_data_different_columns_than_expected(self):
         with self.create_table('a Int8, b Int8'):
             with self.assertRaises(ValueError) as e:
                 df = pd.DataFrame([[1, 2], [3, 4]], columns=['a', 'c'])
                 self.client.insert_dataframe('INSERT INTO test VALUES', df)
-            expected = "DataFrame missing required columns: ['b']"    
+            expected = "DataFrame missing required columns: ['b']"
             self.assertEqual(str(e.exception), expected)
 
 
