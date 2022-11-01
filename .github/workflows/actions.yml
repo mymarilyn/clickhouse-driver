@@ -92,7 +92,7 @@ jobs:
         env:
           USE_NUMPY: ${{ matrix.use-numpy }}
       - name: Run tests
-        run: coverage run -m py.test --timeout=10 -v
+        run: coverage run -m pytest --timeout=10 -v
         timeout-minutes: 5
         env:
           # Set initial TZ for docker exec -e "`env | grep ^TZ`"
