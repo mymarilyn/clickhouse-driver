@@ -164,7 +164,7 @@ cdef class BufferedReader(object):
 
             if c_encoding:
                 try:
-                    rv = c_string[:size].decode(c_encoding)
+                    rv = c_string[:size].decode(c_encoding, "ignore")
                 except UnicodeDecodeError:
                     rv = PyBytes_FromStringAndSize(c_string, size)
 
@@ -215,7 +215,7 @@ cdef class BufferedReader(object):
                 j -= 1
 
             try:
-                item = c_string[:j + 1].decode(c_encoding)
+                item = c_string[:j + 1].decode(c_encoding, "ignore")
             except UnicodeDecodeError:
                 item = PyBytes_FromStringAndSize(c_string, length)
             Py_INCREF(item)
