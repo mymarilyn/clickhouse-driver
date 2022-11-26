@@ -668,6 +668,21 @@ class Client(object):
         return self.receive_result(with_column_types=with_column_types)
 
     def substitute_params(self, query, params, context):
+        """
+        Substitutes parameters into a provided query.
+        
+        For example::
+            client = Client(...)
+            
+            substituted_query = client.substitute_params(
+                query='SELECT 1234, %(foo)s', 
+                params={'foo': 'bar'}, 
+                context=client.connection.context
+            )
+            
+            # prints: SELECT 1234, 'bar'
+            print(substituted_query)
+        """
         if not isinstance(params, dict):
             raise ValueError('Parameters are expected in dict form')
 
