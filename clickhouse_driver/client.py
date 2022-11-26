@@ -54,6 +54,9 @@ class Client(object):
                            default values if data type of this field is not
                            nullable. Does not work for NumPy. Default: False.
                            New in version *0.2.4*.
+        * ``round_robin`` -- If ``alt_hosts`` are provided the query will be
+                           executed on host picked with round-robin algorithm.
+                           New in version *0.2.5*.
     """
 
     available_client_settings = (
