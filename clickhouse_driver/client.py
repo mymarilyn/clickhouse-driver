@@ -670,16 +670,17 @@ class Client(object):
     def substitute_params(self, query, params, context):
         """
         Substitutes parameters into a provided query.
-        
+
         For example::
+
             client = Client(...)
-            
+
             substituted_query = client.substitute_params(
-                query='SELECT 1234, %(foo)s', 
-                params={'foo': 'bar'}, 
+                query='SELECT 1234, %(foo)s',
+                params={'foo': 'bar'},
                 context=client.connection.context
             )
-            
+
             # prints: SELECT 1234, 'bar'
             print(substituted_query)
         """
