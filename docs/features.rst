@@ -279,6 +279,34 @@ of hosts if previous host is unavailable:
 
 All queries within established connection will be sent to the same host.
 
+You can specify `round_robin` parameter alongside with `alt_hosts`. The host
+for query execution will be picked with round-robin algorithm.
+
+    .. code-block:: python
+
+        >>> from clickhouse_driver import Client
+        >>> client = Client(
+        ...     'host1', alt_hosts='host2:1234,host3', round_robin=True
+        ... )
+        >>> client.execute('SELECT 1')
+        [(1,)]
+        >>> client.execute('SELECT 2')
+        [(2,)]
+        >>> client.execute('SELECT 3')
+        [(3,)]
+        >>> client.execute('SELECT 4')
+        [(4,)]
+
+
+In this example queries will be executed on following hosts:
+
+* `SELECT 1` will be executed on host1;
+* `SELECT 2` will be executed on host2;
+* `SELECT 3` will be executed on host3;
+* `SELECT 4` will be executed on host1.
+
+Connection to each host will be established on the first query to the host. All
+established connections will be kept until client disconnection or disposal.
 
 Python DB API 2.0
 -----------------

@@ -241,11 +241,11 @@ class ConnectTestCase(BaseTestCase):
         list(self.client.execute_iter('SELECT 1'))
 
     def test_round_robin(self):
-        settings = {
+        kwargs = {
             'round_robin': True,
             'alt_hosts': '{}:{}'.format(self.host, self.port)
         }
-        with self.created_client(settings=settings) as client:
+        with self.created_client(**kwargs) as client:
             self.assertFalse(client.connection.connected)
             self.assertFalse(list(client.connections)[0].connected)
 

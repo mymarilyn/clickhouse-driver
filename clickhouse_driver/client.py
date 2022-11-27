@@ -64,8 +64,7 @@ class Client(object):
         'opentelemetry_traceparent',
         'opentelemetry_tracestate',
         'quota_key',
-        'input_format_null_as_default',
-        'round_robin'
+        'input_format_null_as_default'
     )
 
     def __init__(self, *args, **kwargs):
@@ -95,10 +94,7 @@ class Client(object):
             ),
             'input_format_null_as_default': self.settings.pop(
                 'input_format_null_as_default', False
-            ),
-            'round_robin': self.settings.pop(
-                'round_robin', False
-            ),
+            )
         }
 
         if self.client_settings['use_numpy']:
@@ -117,11 +113,11 @@ class Client(object):
             self.iter_query_result_cls = IterQueryResult
             self.progress_query_result_cls = ProgressQueryResult
 
-        self.round_robin = self.client_settings['round_robin']
+        round_robin = kwargs.pop('round_robin', False)
         self.connections = deque([Connection(*args, **kwargs)])
 
-        if self.round_robin and self.settings.get('alt_hosts'):
-            alt_hosts = self.settings.pop('alt_hosts')
+        if round_robin and 'alt_hosts' in kwargs:
+            alt_hosts = kwargs.pop('alt_hosts')
             for host in alt_hosts.split(','):
                 url = urlparse('clickhouse://' + host)
 
@@ -760,7 +756,7 @@ class Client(object):
                 settings[name] = asbool(value)
 
             elif name == 'round_robin':
-                settings[name] = asbool(value)
+                kwargs[name] = asbool(value)
 
             elif name == 'client_name':
                 kwargs[name] = value
