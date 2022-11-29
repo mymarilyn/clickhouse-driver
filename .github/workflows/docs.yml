@@ -1,0 +1,21 @@
+on: [push, pull_request]
+name: build-docs
+jobs:
+  tests:
+    runs-on: ubuntu-20.04
+    name: Build docs
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11
+          architecture: x64
+      - name: Update tools
+        run: pip install --upgrade pip setuptools wheel
+      - name: Install sphinx
+        run: pip install sphinx
+      - name: Install package
+        run: pip install -e .
+      - name: Build docs
+        run: cd docs && make html
