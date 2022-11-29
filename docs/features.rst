@@ -279,6 +279,8 @@ of hosts if previous host is unavailable:
 
 All queries within established connection will be sent to the same host.
 
+*New in version 0.2.5.*
+
 You can specify `round_robin` parameter alongside with `alt_hosts`. The host
 for query execution will be picked with round-robin algorithm.
 
