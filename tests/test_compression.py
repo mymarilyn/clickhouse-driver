@@ -82,7 +82,7 @@ class MiscCompressionTestCase(TestCase):
             get_compressor_cls('hello')
 
         self.assertEqual(
-            e.exception.code, errors.ErrorCodes.UNKNOWN_COMPRESSION_METHOD
+            e.exception.code, errors.ErrorCodes.UNKNOWN_COMPRESSION_METHOD.value
         )
 
 
