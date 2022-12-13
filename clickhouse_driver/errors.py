@@ -1,6 +1,8 @@
+import enum
 
 
-class ErrorCodes(object):
+@enum.unique
+class ErrorCodes(enum.Enum):
     UNSUPPORTED_METHOD = 1
     UNSUPPORTED_PARAMETER = 2
     UNEXPECTED_END_OF_FILE = 3
@@ -399,51 +401,51 @@ class ServerException(Error):
 
 
 class LogicalError(Error):
-    code = ErrorCodes.LOGICAL_ERROR
+    code = ErrorCodes.LOGICAL_ERROR.value
 
 
 class UnknownTypeError(Error):
-    code = ErrorCodes.UNKNOWN_TYPE
+    code = ErrorCodes.UNKNOWN_TYPE.value
 
 
 class ChecksumDoesntMatchError(Error):
-    code = ErrorCodes.CHECKSUM_DOESNT_MATCH
+    code = ErrorCodes.CHECKSUM_DOESNT_MATCH.value
 
 
 class TypeMismatchError(Error):
-    code = ErrorCodes.TYPE_MISMATCH
+    code = ErrorCodes.TYPE_MISMATCH.value
 
 
 class UnknownCompressionMethod(Error):
-    code = ErrorCodes.UNKNOWN_COMPRESSION_METHOD
+    code = ErrorCodes.UNKNOWN_COMPRESSION_METHOD.value
 
 
 class TooLargeStringSize(Error):
-    code = ErrorCodes.TOO_LARGE_STRING_SIZE
+    code = ErrorCodes.TOO_LARGE_STRING_SIZE.value
 
 
 class NetworkError(Error):
-    code = ErrorCodes.NETWORK_ERROR
+    code = ErrorCodes.NETWORK_ERROR.value
 
 
 class SocketTimeoutError(Error):
-    code = ErrorCodes.SOCKET_TIMEOUT
+    code = ErrorCodes.SOCKET_TIMEOUT.value
 
 
 class UnexpectedPacketFromServerError(Error):
-    code = ErrorCodes.UNEXPECTED_PACKET_FROM_SERVER
+    code = ErrorCodes.UNEXPECTED_PACKET_FROM_SERVER.value
 
 
 class UnknownPacketFromServerError(Error):
-    code = ErrorCodes.UNKNOWN_PACKET_FROM_SERVER
+    code = ErrorCodes.UNKNOWN_PACKET_FROM_SERVER.value
 
 
 class CannotParseUuidError(Error):
-    code = ErrorCodes.CANNOT_PARSE_UUID
+    code = ErrorCodes.CANNOT_PARSE_UUID.value
 
 
 class CannotParseDomainError(Error):
-    code = ErrorCodes.CANNOT_PARSE_DOMAIN_VALUE_FROM_STRING
+    code = ErrorCodes.CANNOT_PARSE_DOMAIN_VALUE_FROM_STRING.value
 
 
 class PartiallyConsumedQueryError(Error):
