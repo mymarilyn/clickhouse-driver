@@ -31,7 +31,7 @@ class NullableTestCase(BaseTestCase):
                 'CREATE TABLE test ({}) ''ENGINE = Memory'.format(columns)
             )
 
-        self.assertEqual(e.exception.code, ErrorCodes.ILLEGAL_TYPE_OF_ARGUMENT)
+        self.assertEqual(e.exception.code, ErrorCodes.ILLEGAL_TYPE_OF_ARGUMENT.value)
 
     def test_nullable_array(self):
         columns = 'a Nullable(Array(Nullable(Array(Nullable(Int32)))))'
@@ -41,4 +41,4 @@ class NullableTestCase(BaseTestCase):
                 'CREATE TABLE test ({}) ''ENGINE = Memory'.format(columns)
             )
 
-        self.assertEqual(e.exception.code, ErrorCodes.ILLEGAL_TYPE_OF_ARGUMENT)
+        self.assertEqual(e.exception.code, ErrorCodes.ILLEGAL_TYPE_OF_ARGUMENT.value)
