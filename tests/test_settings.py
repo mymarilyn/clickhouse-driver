@@ -91,7 +91,7 @@ class SettingTestCase(BaseTestCase):
         with self.created_client(settings_is_important=True) as client:
             with self.assertRaises(ServerException) as e:
                 client.execute('SELECT 1', settings=settings)
-            self.assertEqual(e.exception.code, ErrorCodes.UNKNOWN_SETTING)
+            self.assertEqual(e.exception.code, ErrorCodes.UNKNOWN_SETTING.value)
 
     def test_client_settings(self):
         settings = {'max_query_size': 142}
@@ -154,8 +154,8 @@ class LimitsTestCase(BaseTestCase):
         # New servers return TOO_MANY_ROWS_OR_BYTES.
         # Old servers return TOO_MANY_ROWS.
         error_codes = {
-            ErrorCodes.TOO_MANY_ROWS_OR_BYTES,
-            ErrorCodes.TOO_MANY_ROWS
+            ErrorCodes.TOO_MANY_ROWS_OR_BYTES.value,
+            ErrorCodes.TOO_MANY_ROWS.value
         }
         self.assertIn(e.exception.code, error_codes)
 
