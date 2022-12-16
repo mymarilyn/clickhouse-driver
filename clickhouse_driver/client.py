@@ -596,6 +596,9 @@ class Client(object):
             elif packet.type == ServerPacketTypes.TABLE_COLUMNS:
                 pass
 
+            elif packet.type == ServerPacketTypes.PROFILE_EVENTS:
+                pass
+
             else:
                 message = self.connection.unexpected_packet_message(
                     'Data, Exception, Log or TableColumns', packet.type
