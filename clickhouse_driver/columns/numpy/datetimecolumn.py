@@ -21,12 +21,12 @@ class NumpyDateTimeColumnBase(NumpyColumn):
     def apply_timezones_after_read(self, dt):
         timezone = self.timezone if self.timezone else self.local_timezone
 
-        ts = pd.to_datetime(dt, utc=True).tz_convert(timezone)
-
-        if self.offset_naive:
+        if self.offset_naive and timezone.zone != 'UTC':
+            ts = pd.to_datetime(dt, utc=True).tz_convert(timezone)
             ts = ts.tz_localize(None)
+            return ts.to_numpy(self.datetime_dtype)
 
-        return ts.to_numpy(self.datetime_dtype)
+        return dt
 
     def apply_timezones_before_write(self, items):
         if isinstance(items, pd.DatetimeIndex):
@@ -120,12 +120,12 @@ def create_numpy_datetime_column(spec, column_options):
 
     context = column_options['context']
 
-    tz_name = timezone = None
+    tz_name = None
     offset_naive = True
 
     # As Numpy do not use local timezone for converting timestamp to
     # datetime we need always detect local timezone for manual converting.
-    local_timezone = get_localzone_name_compat()
+    local_tz_name = get_localzone_name_compat()
 
     # Use column's timezone if it's specified.
     if spec and spec[-1] == ')':
@@ -133,11 +133,11 @@ def create_numpy_datetime_column(spec, column_options):
         offset_naive = False
     else:
         if not context.settings.get('use_client_time_zone', False):
-            if local_timezone != context.server_info.timezone:
+            if local_tz_name != context.server_info.timezone:
                 tz_name = context.server_info.timezone
 
-    if tz_name:
-        timezone = get_timezone(tz_name)
+    timezone = get_timezone(tz_name) if tz_name else None
+    local_timezone = get_timezone(local_tz_name) if local_tz_name else None
 
     return cls(timezone=timezone, offset_naive=offset_naive,
                local_timezone=local_timezone, **column_options)
