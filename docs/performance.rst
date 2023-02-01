@@ -164,7 +164,7 @@ Required packages
 
 .. code-block:: bash
 
-    pip install clickhouse-driver requests
+    pip install clickhouse-driver requests clickhouse-connect
 
 For fast json parsing we'll use ``ujson`` package:
 
@@ -175,22 +175,33 @@ For fast json parsing we'll use ``ujson`` package:
 Installed packages: ::
 
     $ pip freeze
-    certifi==2020.4.5.1
-    chardet==3.0.4
-    clickhouse-driver==0.1.3
-    idna==2.9
-    pytz==2019.3
-    requests==2.23.0
-    tzlocal==2.0.0
-    ujson==2.0.3
-    urllib3==1.25.9
+    backports.zoneinfo==0.2.1
+    certifi==2022.12.7
+    charset-normalizer==3.0.1
+    clickhouse-connect==0.5.0
+    clickhouse-driver==0.2.5
+    idna==3.4
+    lz4==4.3.2
+    pytz==2022.7.1
+    pytz-deprecation-shim==0.1.0.post0
+    requests==2.28.2
+    tzdata==2022.7
+    tzlocal==4.2
+    ujson==5.7.0
+    urllib3==1.26.14
+    zstandard==0.19.0
+
+For ``clickhouse-connect`` we need to turn off compression with
+``compress=False`` for elimination decompression overhead. This package also
+adds ``LIMIT`` clause to the query by default.
+Let's disable it off with ``query_limit=None``.
 
 Versions
 --------
 
-Machine: Linux ThinkPad-T460 4.4.0-177-generic #207-Ubuntu SMP Mon Mar 16 01:16:10 UTC 2020 x86_64 x86_64 x86_64 GNU/Linux
+Machine: Linux klebedev-ThinkPad-T460 5.15.0-57-generic #63-Ubuntu SMP Thu Nov 24 13:43:17 UTC 2022 x86_64 x86_64 x86_64 GNU/Linux
 
-Python: CPython 3.6.5 (default, May 30 2019, 14:48:31) [GCC 5.4.0 20160609]
+Python: Python 3.8.12 (default, Apr 13 2022, 21:16:23) [GCC 11.2.0]
 
 
 Benchmarking
@@ -247,13 +258,8 @@ Let's take get plain text response from ClickHouse server as baseline.
 
 Fetching not parsed data with pure requests (1)
 
-.. code-block:: python
-
-    import sys
-    import requests
-
-    query = "SELECT * FROM perftest.ontime WHERE FlightDate < '{}' FORMAT {}".format(sys.argv[1], sys.argv[2])
-    data = requests.get('http://localhost:8123/', params={'query': query})
+.. literalinclude:: ../perf/script_01.py
+    :language: python
 
 
 Parsed rows
@@ -261,77 +267,28 @@ Parsed rows
 
 Line split into elements will be consider as "parsed" for TSV format (2)
 
-.. code-block:: python
-
-    import sys
-    import requests
-
-    query = "SELECT * FROM perftest.ontime WHERE FlightDate < '{}' FORMAT TSV".format(sys.argv[1])
-    resp = requests.get('http://localhost:8123/', stream=True, params={'query': query})
-
-    data = [line.decode('utf-8').split('\t') for line in resp.iter_lines(chunk_size=10000)]
-
+.. literalinclude:: ../perf/script_02.py
+    :language: python
 
 Now we cast each element to it's data type (2.5)
 
-.. code-block:: python
-
-    from datetime import date
-    import sys
-    import requests
-
-
-    def get_python_type(ch_type):
-      if ch_type.startswith('Int') or ch_type.startswith('UInt'):
-        return int
-
-      elif ch_type == 'String' or ch_type.startswith('FixedString'):
-        return None
-
-      elif ch_type == 'Date':
-        return lambda value: date(*[int(x) for x  in value.split('-')])
-
-      raise ValueError(f'Unsupported type: "{ch_type}"')
-
-
-    resp = requests.get('http://localhost:8123', params={'query': 'describe table perftest.ontime FORMAT TSV'})
-    ch_types = [x.split('\t')[1] for x in resp.text.split('\n') if x]
-    python_types = [get_python_type(x) for x in ch_types]
-
-    query = "SELECT * FROM perftest.ontime WHERE FlightDate < '{}' FORMAT TSV".format(sys.argv[1])
-    resp = requests.get('http://localhost:8123/', stream=True, params={'query': query})
-
-    data = []
-
-    for line in resp.iter_lines(chunk_size=10000):
-       data.append([cls(x) if cls else x for x, cls in zip(line.decode('utf-8').split('\t'), python_types)])
-
+.. literalinclude:: ../perf/script_02_5.py
+    :language: python
 
 JSONEachRow format can be loaded with json loads (3)
 
-.. code-block:: python
-
-    import sys
-    import requests
-    from ujson import loads
-
-    query = "SELECT * FROM perftest.ontime WHERE FlightDate < '{}' FORMAT JSONEachRow".format(sys.argv[1])
-    resp = requests.get('http://localhost:8123/', stream=True, params={'query': query})
-
-    data = [list(loads(line).values()) for line in resp.iter_lines(chunk_size=10000)]
-
+.. literalinclude:: ../perf/script_03.py
+    :language: python
 
 Get fully parsed rows with ``clickhouse-driver`` in Native format (4)
 
-.. code-block:: python
+.. literalinclude:: ../perf/script_04.py
+    :language: python
 
-    import sys
-    from clickhouse_driver import Client
+Get fully parsed rows with ``clickhouse-connect`` (14)
 
-    query = "SELECT * FROM perftest.ontime WHERE FlightDate < '{}'".format(sys.argv[1])
-    client = Client.from_url('clickhouse://localhost')
-
-    data = client.execute(query)
+.. literalinclude:: ../perf/script_14.py
+    :language: python
 
 
 Iteration over rows
@@ -339,78 +296,28 @@ Iteration over rows
 
 Iteration over TSV (5)
 
-.. code-block:: python
-
-    import sys
-    import requests
-
-    query = "SELECT * FROM perftest.ontime WHERE FlightDate < '{}' FORMAT TSV".format(sys.argv[1])
-    resp = requests.get('http://localhost:8123/', stream=True, params={'query': query})
-
-    for line in resp.iter_lines(chunk_size=10000):
-      line = line.decode('utf-8').split('\t')
-
+.. literalinclude:: ../perf/script_05.py
+    :language: python
 
 Now we cast each element to it's data type (5.5)
 
-.. code-block:: python
-
-    from datetime import date
-    import sys
-    import requests
-
-
-    def get_python_type(ch_type):
-      if ch_type.startswith('Int') or ch_type.startswith('UInt'):
-        return int
-
-      elif ch_type == 'String' or ch_type.startswith('FixedString'):
-        return None
-
-      elif ch_type == 'Date':
-        return lambda value: date(*[int(x) for x  in value.split('-')])
-
-      raise ValueError(f'Unsupported type: "{ch_type}"')
-
-
-    resp = requests.get('http://localhost:8123', params={'query': 'describe table perftest.ontime FORMAT TSV'})
-    ch_types = [x.split('\t')[1] for x in resp.text.split('\n') if x]
-    python_types = [get_python_type(x) for x in ch_types]
-
-    query = "SELECT * FROM perftest.ontime WHERE FlightDate < '{}' FORMAT TSV".format(sys.argv[1])
-    resp = requests.get('http://localhost:8123/', stream=True, params={'query': query})
-
-    for line in resp.iter_lines(chunk_size=10000):
-       line = [cls(x) if cls else x for x, cls in zip(line.decode('utf-8').split('\t'), python_types)]
-
+.. literalinclude:: ../perf/script_05_5.py
+    :language: python
 
 Iteration over JSONEachRow (6)
 
-.. code-block:: python
-
-    import sys
-    import requests
-    from ujson import loads
-
-    query = "SELECT * FROM perftest.ontime WHERE FlightDate < '{}' FORMAT JSONEachRow".format(sys.argv[1])
-    resp = requests.get('http://localhost:8123/', stream=True, params={'query': query})
-
-    for line in resp.iter_lines(chunk_size=10000):
-      line = list(loads(line).values())
-
+.. literalinclude:: ../perf/script_06.py
+    :language: python
 
 Iteration over rows with ``clickhouse-driver`` in Native format (7)
 
-.. code-block:: python
+.. literalinclude:: ../perf/script_07.py
+    :language: python
 
-    import sys
-    from clickhouse_driver import Client
+Iteration over rows with ``clickhouse-connect`` (17)
 
-    query = "SELECT * FROM perftest.ontime WHERE FlightDate < '{}'".format(sys.argv[1])
-    client = Client.from_url('clickhouse://localhost')
-
-    for row in client.execute_iter(query):
-      pass
+.. literalinclude:: ../perf/script_17.py
+    :language: python
 
 
 Iteration over string rows
@@ -420,84 +327,23 @@ OK, but what if we need only string columns?
 
 Iteration over TSV (8)
 
-.. code-block:: python
-
-    import sys
-    import requests
-
-    cols = [
-        'UniqueCarrier', 'Carrier', 'TailNum', 'FlightNum', 'Origin', 'OriginCityName', 'OriginState',
-        'OriginStateFips', 'OriginStateName', 'Dest', 'DestCityName', 'DestState', 'DestStateFips',
-        'DestStateName', 'DepartureDelayGroups', 'DepTimeBlk', 'ArrTimeBlk', 'CancellationCode',
-        'FirstDepTime', 'TotalAddGTime', 'LongestAddGTime', 'DivAirportLandings', 'DivReachedDest',
-        'DivActualElapsedTime', 'DivArrDelay', 'DivDistance', 'Div1Airport', 'Div1WheelsOn', 'Div1TotalGTime',
-        'Div1LongestGTime', 'Div1WheelsOff', 'Div1TailNum', 'Div2Airport', 'Div2WheelsOn', 'Div2TotalGTime',
-        'Div2LongestGTime', 'Div2WheelsOff', 'Div2TailNum', 'Div3Airport', 'Div3WheelsOn', 'Div3TotalGTime',
-        'Div3LongestGTime', 'Div3WheelsOff', 'Div3TailNum', 'Div4Airport', 'Div4WheelsOn', 'Div4TotalGTime',
-        'Div4LongestGTime', 'Div4WheelsOff', 'Div4TailNum', 'Div5Airport', 'Div5WheelsOn', 'Div5TotalGTime',
-        'Div5LongestGTime', 'Div5WheelsOff', 'Div5TailNum'
-    ]
-
-    query = "SELECT {} FROM perftest.ontime WHERE FlightDate < '{}' FORMAT TSV".format(', '.join(cols), sys.argv[1])
-    resp = requests.get('http://localhost:8123/', stream=True, params={'query': query})
-
-    for line in resp.iter_lines(chunk_size=10000):
-      line = line.decode('utf-8').split('\t')
-
+.. literalinclude:: ../perf/script_08.py
+    :language: python
 
 Iteration over JSONEachRow (9)
 
-.. code-block:: python
-
-    import sys
-    import requests
-    from ujson import loads
-
-    cols = [
-        'UniqueCarrier', 'Carrier', 'TailNum', 'FlightNum', 'Origin', 'OriginCityName', 'OriginState',
-        'OriginStateFips', 'OriginStateName', 'Dest', 'DestCityName', 'DestState', 'DestStateFips',
-        'DestStateName', 'DepartureDelayGroups', 'DepTimeBlk', 'ArrTimeBlk', 'CancellationCode',
-        'FirstDepTime', 'TotalAddGTime', 'LongestAddGTime', 'DivAirportLandings', 'DivReachedDest',
-        'DivActualElapsedTime', 'DivArrDelay', 'DivDistance', 'Div1Airport', 'Div1WheelsOn', 'Div1TotalGTime',
-        'Div1LongestGTime', 'Div1WheelsOff', 'Div1TailNum', 'Div2Airport', 'Div2WheelsOn', 'Div2TotalGTime',
-        'Div2LongestGTime', 'Div2WheelsOff', 'Div2TailNum', 'Div3Airport', 'Div3WheelsOn', 'Div3TotalGTime',
-        'Div3LongestGTime', 'Div3WheelsOff', 'Div3TailNum', 'Div4Airport', 'Div4WheelsOn', 'Div4TotalGTime',
-        'Div4LongestGTime', 'Div4WheelsOff', 'Div4TailNum', 'Div5Airport', 'Div5WheelsOn', 'Div5TotalGTime',
-        'Div5LongestGTime', 'Div5WheelsOff', 'Div5TailNum'
-    ]
-
-    query = "SELECT {} FROM perftest.ontime WHERE FlightDate < '{}' FORMAT JSONEachRow".format(', '.join(cols), sys.argv[1])
-    resp = requests.get('http://localhost:8123/', stream=True, params={'query': query})
-
-    for line in resp.iter_lines(chunk_size=10000):
-      line = list(loads(line).values())
-
+.. literalinclude:: ../perf/script_09.py
+    :language: python
 
 Iteration over string rows with ``clickhouse-driver`` in Native format (10)
 
-.. code-block:: python
+.. literalinclude:: ../perf/script_10.py
+    :language: python
 
-    import sys
-    from clickhouse_driver import Client
+Iteration over string rows with ``clickhouse-connect`` (15)
 
-    cols = [
-        'UniqueCarrier', 'Carrier', 'TailNum', 'FlightNum', 'Origin', 'OriginCityName', 'OriginState',
-        'OriginStateFips', 'OriginStateName', 'Dest', 'DestCityName', 'DestState', 'DestStateFips',
-        'DestStateName', 'DepartureDelayGroups', 'DepTimeBlk', 'ArrTimeBlk', 'CancellationCode',
-        'FirstDepTime', 'TotalAddGTime', 'LongestAddGTime', 'DivAirportLandings', 'DivReachedDest',
-        'DivActualElapsedTime', 'DivArrDelay', 'DivDistance', 'Div1Airport', 'Div1WheelsOn', 'Div1TotalGTime',
-        'Div1LongestGTime', 'Div1WheelsOff', 'Div1TailNum', 'Div2Airport', 'Div2WheelsOn', 'Div2TotalGTime',
-        'Div2LongestGTime', 'Div2WheelsOff', 'Div2TailNum', 'Div3Airport', 'Div3WheelsOn', 'Div3TotalGTime',
-        'Div3LongestGTime', 'Div3WheelsOff', 'Div3TailNum', 'Div4Airport', 'Div4WheelsOn', 'Div4TotalGTime',
-        'Div4LongestGTime', 'Div4WheelsOff', 'Div4TailNum', 'Div5Airport', 'Div5WheelsOn', 'Div5TotalGTime',
-        'Div5LongestGTime', 'Div5WheelsOff', 'Div5TailNum'
-    ]
-
-    query = "SELECT {} FROM perftest.ontime WHERE FlightDate < '{}'".format(', '.join(cols), sys.argv[1])
-    client = Client.from_url('clickhouse://localhost')
-
-    for row in client.execute_iter(query):
-      pass
+.. literalinclude:: ../perf/script_15.py
+    :language: python
 
 
 Iteration over int rows
@@ -505,78 +351,23 @@ Iteration over int rows
 
 Iteration over TSV (11)
 
-.. code-block:: python
-
-    import sys
-    import requests
-
-    cols = [
-        'Year', 'Quarter', 'Month', 'DayofMonth', 'DayOfWeek', 'AirlineID', 'OriginAirportID', 'OriginAirportSeqID',
-        'OriginCityMarketID', 'OriginWac', 'DestAirportID', 'DestAirportSeqID', 'DestCityMarketID', 'DestWac',
-        'CRSDepTime', 'DepTime', 'DepDelay', 'DepDelayMinutes', 'DepDel15', 'TaxiOut', 'WheelsOff', 'WheelsOn',
-        'TaxiIn', 'CRSArrTime', 'ArrTime', 'ArrDelay', 'ArrDelayMinutes', 'ArrDel15', 'ArrivalDelayGroups',
-        'Cancelled', 'Diverted', 'CRSElapsedTime', 'ActualElapsedTime', 'AirTime', 'Flights', 'Distance',
-        'DistanceGroup', 'CarrierDelay', 'WeatherDelay', 'NASDelay', 'SecurityDelay', 'LateAircraftDelay',
-        'Div1AirportID', 'Div1AirportSeqID', 'Div2AirportID', 'Div2AirportSeqID', 'Div3AirportID',
-        'Div3AirportSeqID', 'Div4AirportID', 'Div4AirportSeqID', 'Div5AirportID', 'Div5AirportSeqID'
-    ]
-
-    query = "SELECT {} FROM perftest.ontime WHERE FlightDate < '{}' FORMAT TSV".format(', '.join(cols), sys.argv[1])
-    resp = requests.get('http://localhost:8123/', stream=True, params={'query': query})
-
-    for line in resp.iter_lines(chunk_size=10000):
-      line = [int(x) for x in line.split(b'\t')]
-
+.. literalinclude:: ../perf/script_11.py
+    :language: python
 
 Iteration over JSONEachRow (12)
 
-.. code-block:: python
-
-    import sys
-    import requests
-    from ujson import loads
-
-    cols = [
-        'Year', 'Quarter', 'Month', 'DayofMonth', 'DayOfWeek', 'AirlineID', 'OriginAirportID', 'OriginAirportSeqID',
-        'OriginCityMarketID', 'OriginWac', 'DestAirportID', 'DestAirportSeqID', 'DestCityMarketID', 'DestWac',
-        'CRSDepTime', 'DepTime', 'DepDelay', 'DepDelayMinutes', 'DepDel15', 'TaxiOut', 'WheelsOff', 'WheelsOn',
-        'TaxiIn', 'CRSArrTime', 'ArrTime', 'ArrDelay', 'ArrDelayMinutes', 'ArrDel15', 'ArrivalDelayGroups',
-        'Cancelled', 'Diverted', 'CRSElapsedTime', 'ActualElapsedTime', 'AirTime', 'Flights', 'Distance',
-        'DistanceGroup', 'CarrierDelay', 'WeatherDelay', 'NASDelay', 'SecurityDelay', 'LateAircraftDelay',
-        'Div1AirportID', 'Div1AirportSeqID', 'Div2AirportID', 'Div2AirportSeqID', 'Div3AirportID',
-        'Div3AirportSeqID', 'Div4AirportID', 'Div4AirportSeqID', 'Div5AirportID', 'Div5AirportSeqID'
-    ]
-
-    query = "SELECT {} FROM perftest.ontime WHERE FlightDate < '{}' FORMAT JSONEachRow".format(', '.join(cols), sys.argv[1])
-    resp = requests.get('http://localhost:8123/', stream=True, params={'query': query})
-
-    for line in resp.iter_lines(chunk_size=10000):
-      line = list(loads(line).values())
-
+.. literalinclude:: ../perf/script_12.py
+    :language: python
 
 Iteration over int rows with ``clickhouse-driver`` in Native format (13)
 
-.. code-block:: python
+.. literalinclude:: ../perf/script_13.py
+    :language: python
 
-    import sys
-    from clickhouse_driver import Client
+Iteration over int rows with ``clickhouse-connect`` (16)
 
-    cols = [
-        'Year', 'Quarter', 'Month', 'DayofMonth', 'DayOfWeek', 'AirlineID', 'OriginAirportID', 'OriginAirportSeqID',
-        'OriginCityMarketID', 'OriginWac', 'DestAirportID', 'DestAirportSeqID', 'DestCityMarketID', 'DestWac',
-        'CRSDepTime', 'DepTime', 'DepDelay', 'DepDelayMinutes', 'DepDel15', 'TaxiOut', 'WheelsOff', 'WheelsOn',
-        'TaxiIn', 'CRSArrTime', 'ArrTime', 'ArrDelay', 'ArrDelayMinutes', 'ArrDel15', 'ArrivalDelayGroups',
-        'Cancelled', 'Diverted', 'CRSElapsedTime', 'ActualElapsedTime', 'AirTime', 'Flights', 'Distance',
-        'DistanceGroup', 'CarrierDelay', 'WeatherDelay', 'NASDelay', 'SecurityDelay', 'LateAircraftDelay',
-        'Div1AirportID', 'Div1AirportSeqID', 'Div2AirportID', 'Div2AirportSeqID', 'Div3AirportID',
-        'Div3AirportSeqID', 'Div4AirportID', 'Div4AirportSeqID', 'Div5AirportID', 'Div5AirportSeqID'
-    ]
-
-    query = "SELECT {} FROM perftest.ontime WHERE FlightDate < '{}'".format(', '.join(cols), sys.argv[1])
-    client = Client.from_url('clickhouse://localhost')
-
-    for row in client.execute_iter(query):
-      pass
+.. literalinclude:: ../perf/script_16.py
+    :language: python
 
 
 Results
@@ -595,87 +386,103 @@ JSON in table is shorthand for JSONEachRow.
 +==================================+===========+===========+===========+===========+===========+
 |**Plain text without parsing: timing**                                                        |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|Naive requests.get TSV (1)        |    0.40 s |    0.67 s |    0.95 s |    1.67 s |    2.52 s |
+|Naive requests.get TSV (1)        |    0.35 s |    0.56 s |    0.83 s |    1.15 s |    1.72 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|Naive requests.get JSON (1)       |    0.61 s |    1.23 s |    2.09 s |    3.52 s |    5.20 s |
+|Naive requests.get JSON (1)       |    0.99 s |    1.80 s |    2.77 s |    5.15 s |    7.80 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
 |**Plain text without parsing: memory**                                                        |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|Naive requests.get TSV (1)        |     49 MB |    107 MB |    165 MB |    322 MB |    488 MB |
+|Naive requests.get TSV (1)        |     52 MB |    110 MB |    167 MB |    323 MB |    489 MB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|Naive requests.get JSON (1)       |    206 MB |    564 MB |    916 MB |   1.83 GB |   2.83 GB |
+|Naive requests.get JSON (1)       |    263 MB |    726 MB |   1.88 GB |   2.42 GB |   3.75 GB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
 |**Parsed rows: timing**                                                                       |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get TSV (2)              |    0.81 s |    1.81 s |    3.09 s |    7.22 s |   11.87 s |
+|requests.get TSV (2)              |    0.83 s |    1.97 s |    3.32 s |    7.90 s |   13.13 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get TSV with cast (2.5)  |    1.78 s |    4.58 s |    7.42 s |   16.12 s |   25.52 s |
+|requests.get TSV with cast (2.5)  |    1.59 s |    4.31 s |    6.99 s |   15.60 s |   25.89 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get JSON (3)             |    2.14 s |    5.65 s |    9.20 s |   20.43 s |   31.72 s |
+|requests.get JSON (3)             |    2.78 s |    5.55 s |    9.23 s |   21.45 s |   31.50 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|clickhouse-driver Native (4)      |    0.73 s |    1.40 s |    2.08 s |    4.03 s |    6.20 s |
+|clickhouse-driver Native (4)      |    0.87 s |    1.50 s |    2.21 s |    4.20 s |    6.32 s |
++----------------------------------+-----------+-----------+-----------+-----------+-----------+
+|clickhouse-connect (14)           |    0.89 s |    1.72 s |    2.46 s |    4.85 s |    7.19 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
 |**Parsed rows: memory**                                                                       |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get TSV (2)              |    171 MB |    462 MB |    753 MB |   1.51 GB |   2.33 GB |
+|requests.get TSV (2)              |    182 MB |    487 MB |    794 MB |   1.63 GB |   2.51 GB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get TSV with cast (2.5)  |    135 MB |    356 MB |    576 MB |   1.15 GB |   1.78 GB |
+|requests.get TSV with cast (2.5)  |    138 MB |    359 MB |    579 MB |   1.18 GB |   1.82 GB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get JSON (3)             |    139 MB |    366 MB |    591 MB |   1.18 GB |   1.82 GB |
+|requests.get JSON (3)             |    136 MB |    351 MB |    565 MB |   1.15 GB |   1.77 GB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|clickhouse-driver Native (4)      |    135 MB |    337 MB |    535 MB |   1.05 GB |   1.62 GB |
+|clickhouse-driver Native (4)      |    155 MB |    343 MB |    530 MB |   1.04 GB |   1.58 GB |
++----------------------------------+-----------+-----------+-----------+-----------+-----------+
+|clickhouse-connect (14)           |    139 MB |    333 MB |    524 MB |   1.05 GB |   1.61 GB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
 |**Iteration over rows: timing**                                                               |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get TSV (5)              |    0.49 s |    0.99 s |    1.34 s |    2.58 s |    4.00 s |
+|requests.get TSV (5)              |    0.48 s |    0.91 s |    1.28 s |    2.57 s |    3.72 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get TSV with cast (5.5)  |    1.38 s |    3.38 s |    5.40 s |   10.89 s |   16.59 s |
+|requests.get TSV with cast (5.5)  |    1.25 s |    3.05 s |    4.77 s |    9.67 s |   15.04 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get JSON (6)             |    1.89 s |    4.73 s |    7.63 s |   15.63 s |   24.60 s |
+|requests.get JSON (6)             |    1.80 s |    4.48 s |    7.10 s |   14.45 s |   22.17 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|clickhouse-driver Native (7)      |    0.62 s |    1.28 s |    1.93 s |    3.68 s |    5.54 s |
+|clickhouse-driver Native (7)      |    0.72 s |    1.38 s |    2.01 s |    3.65 s |    5.45 s |
++----------------------------------+-----------+-----------+-----------+-----------+-----------+
+|clickhouse-connect (17)           |    0.85 s |    1.62 s |    2.12 s |    4.12 s |    6.05 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
 |**Iteration over rows: memory**                                                               |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get TSV (5)              |     19 MB |     19 MB |     19 MB |     19 MB |     19 MB |
+|requests.get TSV (5)              |     22 MB |     22 MB |     22 MB |     22 MB |     22 MB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get TSV with cast (5.5)  |     19 MB |     19 MB |     19 MB |     19 MB |     19 MB |
+|requests.get TSV with cast (5.5)  |     22 MB |     22 MB |     22 MB |     22 MB |     22 MB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get JSON (6)             |     20 MB |     20 MB |     20 MB |     20 MB |     20 MB |
+|requests.get JSON (6)             |     24 MB |     24 MB |     24 MB |     24 MB |     24 MB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|clickhouse-driver Native (7)      |     56 MB |     70 MB |     71 MB |     71 MB |     71 MB |
+|clickhouse-driver Native (7)      |     91 MB |     93 MB |     93 MB |     94 MB |     94 MB |
++----------------------------------+-----------+-----------+-----------+-----------+-----------+
+|clickhouse-connect (17)           |     68 MB |     68 MB |     68 MB |     68 MB |     68 MB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
 |**Iteration over string rows: timing**                                                        |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get TSV (8)              |    0.40 s |    0.67 s |    0.80 s |    1.55 s |    2.18 s |
+|requests.get TSV (8)              |    0.44 s |    0.57 s |    0.77 s |    1.40 s |    1.94 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get JSON (9)             |    1.14 s |    2.64 s |    4.22 s |    8.48 s |   12.96 s |
+|requests.get JSON (9)             |    1.03 s |    2.46 s |    3.87 s |    7.76 s |   11.96 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|clickhouse-driver Native (10)     |    0.46 s |    0.91 s |    1.35 s |    2.49 s |    3.67 s |
+|clickhouse-driver Native (10)     |    0.63 s |    1.06 s |    1.44 s |    2.45 s |    3.57 s |
++----------------------------------+-----------+-----------+-----------+-----------+-----------+
+|clickhouse-connect (15)           |    0.62 s |    1.13 s |    1.53 s |    2.84 s |    4.00 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
 |**Iteration over string rows: memory**                                                        |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get TSV (8)              |     19 MB |     19 MB |     19 MB |     19 MB |     19 MB |
+|requests.get TSV (8)              |     22 MB |     22 MB |     22 MB |     22 MB |     22 MB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get JSON (9)             |     20 MB |     20 MB |     20 MB |     20 MB |     20 MB |
+|requests.get JSON (9)             |     24 MB |     24 MB |     24 MB |     24 MB |     24 MB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|clickhouse-driver Native (10)     |     46 MB |     56 MB |     57 MB |     57 MB |     57 MB |
+|clickhouse-driver Native (10)     |     77 MB |     79 MB |     79 MB |     79 MB |     79 MB |
++----------------------------------+-----------+-----------+-----------+-----------+-----------+
+|clickhouse-connect (15)           |     60 MB |     60 MB |     60 MB |     60 MB |     60 MB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
 |**Iteration over int rows: timing**                                                           |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get TSV (11)             |    0.84 s |    2.06 s |    3.22 s |    6.27 s |   10.06 s |
+|requests.get TSV (11)             |    0.81 s |    1.66 s |    2.61 s |    5.08 s |    7.91 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get JSON (12)            |    0.95 s |    2.15 s |    3.55 s |    6.93 s |   10.82 s |
+|requests.get JSON (12)            |    0.97 s |    2.02 s |    3.29 s |    6.50 s |   10.00 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|clickhouse-driver Native (13)     |    0.43 s |    0.61 s |    0.86 s |    1.53 s |    2.27 s |
+|clickhouse-driver Native (13)     |    0.55 s |    0.78 s |    1.02 s |    1.73 s |    2.44 s |
++----------------------------------+-----------+-----------+-----------+-----------+-----------+
+|clickhouse-connect (16)           |    0.54 s |    0.79 s |    1.01 s |    1.68 s |    2.20 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
 |**Iteration over int rows: memory**                                                           |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get TSV (11)             |     19 MB |     19 MB |     19 MB |     19 MB |     19 MB |
+|requests.get TSV (11)             |     22 MB |     22 MB |     22 MB |     22 MB |     22 MB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get JSON (12)            |     20 MB |     20 MB |     20 MB |     20 MB |     20 MB |
+|requests.get JSON (12)            |     24 MB |     24 MB |     24 MB |     24 MB |     24 MB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|clickhouse-driver Native (13)     |     41 MB |     48 MB |     48 MB |     48 MB |     49 MB |
+|clickhouse-driver Native (13)     |     71 MB |     72 MB |     72 MB |     73 MB |     73 MB |
++----------------------------------+-----------+-----------+-----------+-----------+-----------+
+|clickhouse-connect (16)           |     41 MB |     41 MB |     41 MB |     41 MB |     41 MB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
 
 
