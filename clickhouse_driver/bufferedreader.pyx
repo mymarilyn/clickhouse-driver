@@ -240,6 +240,23 @@ cdef class BufferedSocketReader(BufferedReader):
             raise EOFError('Unexpected EOF while reading bytes')
 
 
+cdef class HttpBufferedSocketReader(BufferedReader):
+    cdef object chunks_gen
+
+    def __init__(self, response, bufsize):
+        self.chunks_gen = response.raw.read_chunked(bufsize)
+        super(HttpBufferedSocketReader, self).__init__(bufsize)
+
+    def read_into_buffer(self):
+        chunk = next(self.chunks_gen)
+        l = len(chunk)
+        self.buffer[0:l] = chunk
+        self.current_buffer_size = l
+
+        if self.current_buffer_size == 0:
+            raise EOFError('Unexpected EOF while reading bytes')
+
+
 cdef class CompressedBufferedReader(BufferedReader):
     cdef object read_block
 

@@ -70,6 +70,8 @@ class Client(object):
         'input_format_null_as_default'
     )
 
+    connection_cls = Connection
+
     def __init__(self, *args, **kwargs):
         self.settings = (kwargs.pop('settings', None) or {}).copy()
 
@@ -117,7 +119,7 @@ class Client(object):
             self.progress_query_result_cls = ProgressQueryResult
 
         round_robin = kwargs.pop('round_robin', False)
-        self.connections = deque([Connection(*args, **kwargs)])
+        self.connections = deque([self.connection_cls(*args, **kwargs)])
 
         if round_robin and 'alt_hosts' in kwargs:
             alt_hosts = kwargs.pop('alt_hosts')
