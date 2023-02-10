@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, time
 from enum import Enum
 from uuid import UUID
 
@@ -37,6 +37,9 @@ def escape_param(item, context):
 
     elif isinstance(item, date):
         return "'%s'" % item.strftime('%Y-%m-%d')
+
+    elif isinstance(item, time):
+        return "'%s'" % item.strftime('%H:%M:%S')
 
     elif isinstance(item, str):
         return "'%s'" % ''.join(escape_chars_map.get(c, c) for c in item)
