@@ -1,7 +1,7 @@
 # coding=utf-8
 from __future__ import unicode_literals
 
-from datetime import date, datetime
+from datetime import date, datetime, time
 from decimal import Decimal
 from unittest.mock import Mock
 from uuid import UUID
@@ -52,6 +52,15 @@ class ParametersSubstitutionTestCase(BaseTestCase):
 
         rv = self.client.execute(tpl, params)
         self.assertEqual(rv, [(d, )])
+
+    def test_time(self):
+        t = time(8, 20, 15)
+        params = {'x': t}
+
+        self.assert_subst(self.single_tpl, params, "SELECT '08:20:15'")
+
+        rv = self.client.execute(self.single_tpl, params)
+        self.assertEqual(rv, [('08:20:15', )])
 
     def test_datetime(self):
         dt = datetime(2017, 10, 16, 0, 18, 50)
