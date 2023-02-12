@@ -515,7 +515,8 @@ class Client(object):
                     raise ValueError(msg.format(list(diff)))
 
                 data = [dataframe[column].values for column in columns]
-                rv = self.send_data(sample_block, data, columnar=True)
+                blocks_gen = self.iter_blocks(sample_block, data, columnar=True)
+                rv = self.send_data(blocks_gen)
                 self.receive_end_of_query()
 
             self.last_query.store_elapsed(time() - start_time)
@@ -577,8 +578,10 @@ class Client(object):
 
         sample_block = self.receive_sample_block()
         if sample_block:
-            rv = self.send_data(sample_block, data,
-                                types_check=types_check, columnar=columnar)
+            blocks_gen = self.iter_blocks(
+                sample_block, data, types_check=types_check, columnar=columnar
+            )
+            rv = self.send_data(blocks_gen)
             self.receive_end_of_query()
             return rv
 
@@ -604,9 +607,7 @@ class Client(object):
                 )
                 raise errors.UnexpectedPacketFromServerError(message)
 
-    def send_data(self, sample_block, data, types_check=False, columnar=False):
-        inserted_rows = 0
-
+    def iter_blocks(self, sample_block, data, types_check=False, columnar=False):
         client_settings = self.connection.context.client_settings
         block_cls = ColumnOrientedBlock if columnar else RowOrientedBlock
 
@@ -630,11 +631,18 @@ class Client(object):
         for chunk in slicer(data, client_settings['insert_block_size']):
             block = block_cls(sample_block.columns_with_types, chunk,
                               types_check=types_check)
+            yield block
+
+        # Empty block means end of data.
+        yield block_cls()
+
+    def send_data(self, blocks_gen):
+        inserted_rows = 0
+
+        for block in blocks_gen:
             self.connection.send_data(block)
             inserted_rows += block.num_rows
 
-        # Empty block means end of data.
-        self.connection.send_data(block_cls())
         return inserted_rows
 
     def receive_end_of_query(self):

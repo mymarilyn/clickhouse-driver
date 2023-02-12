@@ -24,7 +24,7 @@ END: Cython Metadata */
 #else
 #define CYTHON_ABI "0_29_32"
 #define CYTHON_HEX_VERSION 0x001D20F0
-#define CYTHON_FUTURE_DIVISION 1
+#define CYTHON_FUTURE_DIVISION 0
 #include <stddef.h>
 #ifndef offsetof
   #define offsetof(type, member) ( (size_t) & ((type*)0) -> member )
@@ -976,6 +976,7 @@ static const char *__pyx_f[] = {
 /*--- Type declarations ---*/
 struct __pyx_obj_17clickhouse_driver_14bufferedwriter_BufferedWriter;
 struct __pyx_obj_17clickhouse_driver_14bufferedwriter_BufferedSocketWriter;
+struct __pyx_obj_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter;
 struct __pyx_obj_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter;
 
 /* "clickhouse_driver/bufferedwriter.pyx":10
@@ -1008,6 +1009,19 @@ struct __pyx_obj_17clickhouse_driver_14bufferedwriter_BufferedSocketWriter {
 
 
 /* "clickhouse_driver/bufferedwriter.pyx":133
+ * 
+ * 
+ * cdef class HttpBufferedSocketWriter(BufferedWriter):             # <<<<<<<<<<<<<<
+ *     cdef object chunks_gen
+ * 
+ */
+struct __pyx_obj_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter {
+  struct __pyx_obj_17clickhouse_driver_14bufferedwriter_BufferedWriter __pyx_base;
+  PyObject *chunks_gen;
+};
+
+
+/* "clickhouse_driver/bufferedwriter.pyx":147
  * 
  * 
  * cdef class CompressedBufferedWriter(BufferedWriter):             # <<<<<<<<<<<<<<
@@ -1051,6 +1065,20 @@ static struct __pyx_vtabstruct_17clickhouse_driver_14bufferedwriter_BufferedSock
 
 
 /* "clickhouse_driver/bufferedwriter.pyx":133
+ * 
+ * 
+ * cdef class HttpBufferedSocketWriter(BufferedWriter):             # <<<<<<<<<<<<<<
+ *     cdef object chunks_gen
+ * 
+ */
+
+struct __pyx_vtabstruct_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter {
+  struct __pyx_vtabstruct_17clickhouse_driver_14bufferedwriter_BufferedWriter __pyx_base;
+};
+static struct __pyx_vtabstruct_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter *__pyx_vtabptr_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter;
+
+
+/* "clickhouse_driver/bufferedwriter.pyx":147
  * 
  * 
  * cdef class CompressedBufferedWriter(BufferedWriter):             # <<<<<<<<<<<<<<
@@ -1457,6 +1485,7 @@ static int __Pyx_InitStrings(__Pyx_StringTabEntry *t);
 static PyObject *__pyx_f_17clickhouse_driver_14bufferedwriter_14BufferedWriter_write_into_stream(CYTHON_UNUSED struct __pyx_obj_17clickhouse_driver_14bufferedwriter_BufferedWriter *__pyx_v_self, int __pyx_skip_dispatch); /* proto*/
 static PyObject *__pyx_f_17clickhouse_driver_14bufferedwriter_14BufferedWriter_write(struct __pyx_obj_17clickhouse_driver_14bufferedwriter_BufferedWriter *__pyx_v_self, PyObject *__pyx_v_data, int __pyx_skip_dispatch); /* proto*/
 static PyObject *__pyx_f_17clickhouse_driver_14bufferedwriter_20BufferedSocketWriter_write_into_stream(struct __pyx_obj_17clickhouse_driver_14bufferedwriter_BufferedSocketWriter *__pyx_v_self, int __pyx_skip_dispatch); /* proto*/
+static PyObject *__pyx_f_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter_write_into_stream(struct __pyx_obj_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter *__pyx_v_self, int __pyx_skip_dispatch); /* proto*/
 static PyObject *__pyx_f_17clickhouse_driver_14bufferedwriter_24CompressedBufferedWriter_write_into_stream(struct __pyx_obj_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter *__pyx_v_self, int __pyx_skip_dispatch); /* proto*/
 
 /* Module declarations from 'cpython.version' */
@@ -1545,9 +1574,11 @@ static PyTypeObject *__pyx_ptype_7cpython_7complex_complex = 0;
 /* Module declarations from 'clickhouse_driver.bufferedwriter' */
 static PyTypeObject *__pyx_ptype_17clickhouse_driver_14bufferedwriter_BufferedWriter = 0;
 static PyTypeObject *__pyx_ptype_17clickhouse_driver_14bufferedwriter_BufferedSocketWriter = 0;
+static PyTypeObject *__pyx_ptype_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter = 0;
 static PyTypeObject *__pyx_ptype_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter = 0;
 static PyObject *__pyx_f_17clickhouse_driver_14bufferedwriter___pyx_unpickle_BufferedWriter__set_state(struct __pyx_obj_17clickhouse_driver_14bufferedwriter_BufferedWriter *, PyObject *); /*proto*/
 static PyObject *__pyx_f_17clickhouse_driver_14bufferedwriter___pyx_unpickle_BufferedSocketWriter__set_state(struct __pyx_obj_17clickhouse_driver_14bufferedwriter_BufferedSocketWriter *, PyObject *); /*proto*/
+static PyObject *__pyx_f_17clickhouse_driver_14bufferedwriter___pyx_unpickle_HttpBufferedSocketWriter__set_state(struct __pyx_obj_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter *, PyObject *); /*proto*/
 static PyObject *__pyx_f_17clickhouse_driver_14bufferedwriter___pyx_unpickle_CompressedBufferedWriter__set_state(struct __pyx_obj_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter *, PyObject *); /*proto*/
 #define __Pyx_MODULE_NAME "clickhouse_driver.bufferedwriter"
 extern int __pyx_module_is_main_clickhouse_driver__bufferedwriter;
@@ -1558,7 +1589,7 @@ static PyObject *__pyx_builtin_MemoryError;
 static PyObject *__pyx_builtin_super;
 static PyObject *__pyx_builtin_NotImplementedError;
 static PyObject *__pyx_builtin_ValueError;
-static const char __pyx_k__5[] = "";
+static const char __pyx_k__6[] = "";
 static const char __pyx_k_new[] = "__new__";
 static const char __pyx_k_dict[] = "__dict__";
 static const char __pyx_k_init[] = "__init__";
@@ -1567,6 +1598,7 @@ static const char __pyx_k_name[] = "__name__";
 static const char __pyx_k_sock[] = "sock";
 static const char __pyx_k_test[] = "__test__";
 static const char __pyx_k_items[] = "items";
+static const char __pyx_k_store[] = "store";
 static const char __pyx_k_super[] = "super";
 static const char __pyx_k_write[] = "write";
 static const char __pyx_k_encode[] = "encode";
@@ -1586,6 +1618,7 @@ static const char __pyx_k_setstate[] = "__setstate__";
 static const char __pyx_k_pyx_state[] = "__pyx_state";
 static const char __pyx_k_reduce_ex[] = "__reduce_ex__";
 static const char __pyx_k_ValueError[] = "ValueError";
+static const char __pyx_k_chunks_gen[] = "chunks_gen";
 static const char __pyx_k_compressor[] = "compressor";
 static const char __pyx_k_pyx_result[] = "__pyx_result";
 static const char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
@@ -1605,28 +1638,34 @@ static const char __pyx_k_NotImplementedError[] = "NotImplementedError";
 static const char __pyx_k_BufferedSocketWriter[] = "BufferedSocketWriter";
 static const char __pyx_k_bytes_object_expected[] = "bytes object expected";
 static const char __pyx_k_CompressedBufferedWriter[] = "CompressedBufferedWriter";
+static const char __pyx_k_HttpBufferedSocketWriter[] = "HttpBufferedSocketWriter";
 static const char __pyx_k_pyx_unpickle_BufferedWriter[] = "__pyx_unpickle_BufferedWriter";
 static const char __pyx_k_write_fixed_strings_as_bytes[] = "write_fixed_strings_as_bytes";
 static const char __pyx_k_pyx_unpickle_BufferedSocketWri[] = "__pyx_unpickle_BufferedSocketWriter";
 static const char __pyx_k_pyx_unpickle_CompressedBuffere[] = "__pyx_unpickle_CompressedBufferedWriter";
+static const char __pyx_k_pyx_unpickle_HttpBufferedSocke[] = "__pyx_unpickle_HttpBufferedSocketWriter";
 static const char __pyx_k_Incompatible_checksums_0x_x_vs_0[] = "Incompatible checksums (0x%x vs (0x25d1d0c, 0x1c41cb3, 0x253d0cc) = (buffer, buffer_size, position))";
 static const char __pyx_k_clickhouse_driver_bufferedwriter[] = "clickhouse_driver.bufferedwriter";
 static const char __pyx_k_Incompatible_checksums_0x_x_vs_0_2[] = "Incompatible checksums (0x%x vs (0x3baf4af, 0xca06ecf, 0x4e3cebf) = (buffer, buffer_size, position, sock))";
-static const char __pyx_k_Incompatible_checksums_0x_x_vs_0_3[] = "Incompatible checksums (0x%x vs (0x108d208, 0x835ced9, 0x96f6a9b) = (buffer, buffer_size, compressor, position))";
+static const char __pyx_k_Incompatible_checksums_0x_x_vs_0_3[] = "Incompatible checksums (0x%x vs (0xc9036b2, 0x54e9a1e, 0x93daedf) = (buffer, buffer_size, chunks_gen, position))";
+static const char __pyx_k_Incompatible_checksums_0x_x_vs_0_4[] = "Incompatible checksums (0x%x vs (0x108d208, 0x835ced9, 0x96f6a9b) = (buffer, buffer_size, compressor, position))";
 static PyObject *__pyx_n_s_BufferedSocketWriter;
 static PyObject *__pyx_n_s_BufferedWriter;
 static PyObject *__pyx_n_s_CompressedBufferedWriter;
+static PyObject *__pyx_n_s_HttpBufferedSocketWriter;
 static PyObject *__pyx_kp_s_Incompatible_checksums_0x_x_vs_0;
 static PyObject *__pyx_kp_s_Incompatible_checksums_0x_x_vs_0_2;
 static PyObject *__pyx_kp_s_Incompatible_checksums_0x_x_vs_0_3;
+static PyObject *__pyx_kp_s_Incompatible_checksums_0x_x_vs_0_4;
 static PyObject *__pyx_n_s_MemoryError;
 static PyObject *__pyx_n_s_NotImplementedError;
 static PyObject *__pyx_n_s_PickleError;
 static PyObject *__pyx_n_s_TooLargeStringSize;
 static PyObject *__pyx_n_s_ValueError;
-static PyObject *__pyx_n_s__5;
+static PyObject *__pyx_n_s__6;
 static PyObject *__pyx_n_s_bufsize;
-static PyObject *__pyx_kp_u_bytes_object_expected;
+static PyObject *__pyx_kp_s_bytes_object_expected;
+static PyObject *__pyx_n_s_chunks_gen;
 static PyObject *__pyx_n_s_clickhouse_driver_bufferedwriter;
 static PyObject *__pyx_n_s_cline_in_traceback;
 static PyObject *__pyx_n_s_compressor;
@@ -1652,6 +1691,7 @@ static PyObject *__pyx_n_s_pyx_type;
 static PyObject *__pyx_n_s_pyx_unpickle_BufferedSocketWri;
 static PyObject *__pyx_n_s_pyx_unpickle_BufferedWriter;
 static PyObject *__pyx_n_s_pyx_unpickle_CompressedBuffere;
+static PyObject *__pyx_n_s_pyx_unpickle_HttpBufferedSocke;
 static PyObject *__pyx_n_s_pyx_vtable;
 static PyObject *__pyx_n_s_reduce;
 static PyObject *__pyx_n_s_reduce_cython;
@@ -1660,6 +1700,7 @@ static PyObject *__pyx_n_s_sendall;
 static PyObject *__pyx_n_s_setstate;
 static PyObject *__pyx_n_s_setstate_cython;
 static PyObject *__pyx_n_s_sock;
+static PyObject *__pyx_n_s_store;
 static PyObject *__pyx_kp_s_stringsource;
 static PyObject *__pyx_n_s_super;
 static PyObject *__pyx_n_s_test;
@@ -1682,6 +1723,10 @@ static int __pyx_pf_17clickhouse_driver_14bufferedwriter_20BufferedSocketWriter_
 static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter_20BufferedSocketWriter_2write_into_stream(struct __pyx_obj_17clickhouse_driver_14bufferedwriter_BufferedSocketWriter *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter_20BufferedSocketWriter_4__reduce_cython__(struct __pyx_obj_17clickhouse_driver_14bufferedwriter_BufferedSocketWriter *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter_20BufferedSocketWriter_6__setstate_cython__(struct __pyx_obj_17clickhouse_driver_14bufferedwriter_BufferedSocketWriter *__pyx_v_self, PyObject *__pyx_v___pyx_state); /* proto */
+static int __pyx_pf_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter___init__(struct __pyx_obj_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter *__pyx_v_self, PyObject *__pyx_v_chunks_gen, PyObject *__pyx_v_bufsize); /* proto */
+static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter_2write_into_stream(struct __pyx_obj_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter_4__reduce_cython__(struct __pyx_obj_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter_6__setstate_cython__(struct __pyx_obj_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter *__pyx_v_self, PyObject *__pyx_v___pyx_state); /* proto */
 static int __pyx_pf_17clickhouse_driver_14bufferedwriter_24CompressedBufferedWriter___init__(struct __pyx_obj_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter *__pyx_v_self, PyObject *__pyx_v_compressor, PyObject *__pyx_v_bufsize); /* proto */
 static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter_24CompressedBufferedWriter_2write_into_stream(struct __pyx_obj_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter_24CompressedBufferedWriter_4flush(struct __pyx_obj_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter *__pyx_v_self); /* proto */
@@ -1689,9 +1734,11 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter_24CompressedBuffe
 static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter_24CompressedBufferedWriter_8__setstate_cython__(struct __pyx_obj_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter *__pyx_v_self, PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter___pyx_unpickle_BufferedWriter(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter_2__pyx_unpickle_BufferedSocketWriter(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
-static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter_4__pyx_unpickle_CompressedBufferedWriter(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
+static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter_4__pyx_unpickle_HttpBufferedSocketWriter(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
+static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter_6__pyx_unpickle_CompressedBufferedWriter(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_tp_new_17clickhouse_driver_14bufferedwriter_BufferedWriter(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_17clickhouse_driver_14bufferedwriter_BufferedSocketWriter(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
+static PyObject *__pyx_tp_new_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_int_17355272;
 static PyObject *__pyx_int_29629619;
@@ -1699,19 +1746,25 @@ static PyObject *__pyx_int_39047372;
 static PyObject *__pyx_int_39656716;
 static PyObject *__pyx_int_62583983;
 static PyObject *__pyx_int_82038463;
+static PyObject *__pyx_int_89037342;
 static PyObject *__pyx_int_137744089;
+static PyObject *__pyx_int_155037407;
 static PyObject *__pyx_int_158296731;
+static PyObject *__pyx_int_210777778;
 static PyObject *__pyx_int_211840719;
 static PyObject *__pyx_tuple_;
 static PyObject *__pyx_tuple__2;
 static PyObject *__pyx_tuple__3;
 static PyObject *__pyx_tuple__4;
-static PyObject *__pyx_tuple__6;
-static PyObject *__pyx_tuple__8;
-static PyObject *__pyx_tuple__10;
-static PyObject *__pyx_codeobj__7;
-static PyObject *__pyx_codeobj__9;
-static PyObject *__pyx_codeobj__11;
+static PyObject *__pyx_tuple__5;
+static PyObject *__pyx_tuple__7;
+static PyObject *__pyx_tuple__9;
+static PyObject *__pyx_tuple__11;
+static PyObject *__pyx_tuple__13;
+static PyObject *__pyx_codeobj__8;
+static PyObject *__pyx_codeobj__10;
+static PyObject *__pyx_codeobj__12;
+static PyObject *__pyx_codeobj__14;
 /* Late includes */
 
 /* "clickhouse_driver/bufferedwriter.pyx":14
@@ -4525,6 +4578,648 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter_20BufferedSocketW
 }
 
 /* "clickhouse_driver/bufferedwriter.pyx":136
+ *     cdef object chunks_gen
+ * 
+ *     def __init__(self, chunks_gen, bufsize):             # <<<<<<<<<<<<<<
+ *         self.chunks_gen = chunks_gen
+ *         super(HttpBufferedSocketWriter, self).__init__(bufsize)
+ */
+
+/* Python wrapper */
+static int __pyx_pw_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static int __pyx_pw_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter_1__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  PyObject *__pyx_v_chunks_gen = 0;
+  PyObject *__pyx_v_bufsize = 0;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__init__ (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_chunks_gen,&__pyx_n_s_bufsize,0};
+    PyObject* values[2] = {0,0};
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_chunks_gen)) != 0)) kw_args--;
+        else goto __pyx_L5_argtuple_error;
+        CYTHON_FALLTHROUGH;
+        case  1:
+        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_bufsize)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, 1); __PYX_ERR(0, 136, __pyx_L3_error)
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 136, __pyx_L3_error)
+      }
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+    }
+    __pyx_v_chunks_gen = values[0];
+    __pyx_v_bufsize = values[1];
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 136, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("clickhouse_driver.bufferedwriter.HttpBufferedSocketWriter.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return -1;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter___init__(((struct __pyx_obj_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter *)__pyx_v_self), __pyx_v_chunks_gen, __pyx_v_bufsize);
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static int __pyx_pf_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter___init__(struct __pyx_obj_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter *__pyx_v_self, PyObject *__pyx_v_chunks_gen, PyObject *__pyx_v_bufsize) {
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("__init__", 0);
+
+  /* "clickhouse_driver/bufferedwriter.pyx":137
+ * 
+ *     def __init__(self, chunks_gen, bufsize):
+ *         self.chunks_gen = chunks_gen             # <<<<<<<<<<<<<<
+ *         super(HttpBufferedSocketWriter, self).__init__(bufsize)
+ * 
+ */
+  __Pyx_INCREF(__pyx_v_chunks_gen);
+  __Pyx_GIVEREF(__pyx_v_chunks_gen);
+  __Pyx_GOTREF(__pyx_v_self->chunks_gen);
+  __Pyx_DECREF(__pyx_v_self->chunks_gen);
+  __pyx_v_self->chunks_gen = __pyx_v_chunks_gen;
+
+  /* "clickhouse_driver/bufferedwriter.pyx":138
+ *     def __init__(self, chunks_gen, bufsize):
+ *         self.chunks_gen = chunks_gen
+ *         super(HttpBufferedSocketWriter, self).__init__(bufsize)             # <<<<<<<<<<<<<<
+ * 
+ *     cpdef write_into_stream(self):
+ */
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 138, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_INCREF(((PyObject *)__pyx_ptype_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter));
+  __Pyx_GIVEREF(((PyObject *)__pyx_ptype_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter));
+  PyTuple_SET_ITEM(__pyx_t_2, 0, ((PyObject *)__pyx_ptype_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter));
+  __Pyx_INCREF(((PyObject *)__pyx_v_self));
+  __Pyx_GIVEREF(((PyObject *)__pyx_v_self));
+  PyTuple_SET_ITEM(__pyx_t_2, 1, ((PyObject *)__pyx_v_self));
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_super, __pyx_t_2, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 138, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_init); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 138, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = NULL;
+  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
+    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
+    if (likely(__pyx_t_3)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+      __Pyx_INCREF(__pyx_t_3);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_2, function);
+    }
+  }
+  __pyx_t_1 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_3, __pyx_v_bufsize) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_bufsize);
+  __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 138, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "clickhouse_driver/bufferedwriter.pyx":136
+ *     cdef object chunks_gen
+ * 
+ *     def __init__(self, chunks_gen, bufsize):             # <<<<<<<<<<<<<<
+ *         self.chunks_gen = chunks_gen
+ *         super(HttpBufferedSocketWriter, self).__init__(bufsize)
+ */
+
+  /* function exit code */
+  __pyx_r = 0;
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_AddTraceback("clickhouse_driver.bufferedwriter.HttpBufferedSocketWriter.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = -1;
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "clickhouse_driver/bufferedwriter.pyx":140
+ *         super(HttpBufferedSocketWriter, self).__init__(bufsize)
+ * 
+ *     cpdef write_into_stream(self):             # <<<<<<<<<<<<<<
+ *         self.chunks_gen.store(
+ *             PyBytes_FromStringAndSize(self.buffer, self.position)
+ */
+
+static PyObject *__pyx_pw_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter_3write_into_stream(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_f_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter_write_into_stream(struct __pyx_obj_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter *__pyx_v_self, int __pyx_skip_dispatch) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("write_into_stream", 0);
+  /* Check if called by wrapper */
+  if (unlikely(__pyx_skip_dispatch)) ;
+  /* Check if overridden in Python */
+  else if (unlikely((Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0) || (Py_TYPE(((PyObject *)__pyx_v_self))->tp_flags & (Py_TPFLAGS_IS_ABSTRACT | Py_TPFLAGS_HEAPTYPE)))) {
+    #if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_PYTYPE_LOOKUP && CYTHON_USE_TYPE_SLOTS
+    static PY_UINT64_T __pyx_tp_dict_version = __PYX_DICT_VERSION_INIT, __pyx_obj_dict_version = __PYX_DICT_VERSION_INIT;
+    if (unlikely(!__Pyx_object_dict_version_matches(((PyObject *)__pyx_v_self), __pyx_tp_dict_version, __pyx_obj_dict_version))) {
+      PY_UINT64_T __pyx_type_dict_guard = __Pyx_get_tp_dict_version(((PyObject *)__pyx_v_self));
+      #endif
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_write_into_stream); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 140, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)(void*)__pyx_pw_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter_3write_into_stream)) {
+        __Pyx_XDECREF(__pyx_r);
+        __Pyx_INCREF(__pyx_t_1);
+        __pyx_t_3 = __pyx_t_1; __pyx_t_4 = NULL;
+        if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
+          __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_3);
+          if (likely(__pyx_t_4)) {
+            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+            __Pyx_INCREF(__pyx_t_4);
+            __Pyx_INCREF(function);
+            __Pyx_DECREF_SET(__pyx_t_3, function);
+          }
+        }
+        __pyx_t_2 = (__pyx_t_4) ? __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4) : __Pyx_PyObject_CallNoArg(__pyx_t_3);
+        __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+        if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 140, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_2);
+        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __pyx_r = __pyx_t_2;
+        __pyx_t_2 = 0;
+        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+        goto __pyx_L0;
+      }
+      #if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_PYTYPE_LOOKUP && CYTHON_USE_TYPE_SLOTS
+      __pyx_tp_dict_version = __Pyx_get_tp_dict_version(((PyObject *)__pyx_v_self));
+      __pyx_obj_dict_version = __Pyx_get_object_dict_version(((PyObject *)__pyx_v_self));
+      if (unlikely(__pyx_type_dict_guard != __pyx_tp_dict_version)) {
+        __pyx_tp_dict_version = __pyx_obj_dict_version = __PYX_DICT_VERSION_INIT;
+      }
+      #endif
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      #if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_PYTYPE_LOOKUP && CYTHON_USE_TYPE_SLOTS
+    }
+    #endif
+  }
+
+  /* "clickhouse_driver/bufferedwriter.pyx":141
+ * 
+ *     cpdef write_into_stream(self):
+ *         self.chunks_gen.store(             # <<<<<<<<<<<<<<
+ *             PyBytes_FromStringAndSize(self.buffer, self.position)
+ *         )
+ */
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->chunks_gen, __pyx_n_s_store); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 141, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+
+  /* "clickhouse_driver/bufferedwriter.pyx":142
+ *     cpdef write_into_stream(self):
+ *         self.chunks_gen.store(
+ *             PyBytes_FromStringAndSize(self.buffer, self.position)             # <<<<<<<<<<<<<<
+ *         )
+ *         self.position = 0
+ */
+  __pyx_t_3 = PyBytes_FromStringAndSize(__pyx_v_self->__pyx_base.buffer, __pyx_v_self->__pyx_base.position); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 142, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_4 = NULL;
+  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
+    __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_2);
+    if (likely(__pyx_t_4)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+      __Pyx_INCREF(__pyx_t_4);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_2, function);
+    }
+  }
+  __pyx_t_1 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_4, __pyx_t_3) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 141, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "clickhouse_driver/bufferedwriter.pyx":144
+ *             PyBytes_FromStringAndSize(self.buffer, self.position)
+ *         )
+ *         self.position = 0             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __pyx_v_self->__pyx_base.position = 0;
+
+  /* "clickhouse_driver/bufferedwriter.pyx":140
+ *         super(HttpBufferedSocketWriter, self).__init__(bufsize)
+ * 
+ *     cpdef write_into_stream(self):             # <<<<<<<<<<<<<<
+ *         self.chunks_gen.store(
+ *             PyBytes_FromStringAndSize(self.buffer, self.position)
+ */
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_AddTraceback("clickhouse_driver.bufferedwriter.HttpBufferedSocketWriter.write_into_stream", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* Python wrapper */
+static PyObject *__pyx_pw_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter_3write_into_stream(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter_3write_into_stream(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("write_into_stream (wrapper)", 0);
+  __pyx_r = __pyx_pf_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter_2write_into_stream(((struct __pyx_obj_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter_2write_into_stream(struct __pyx_obj_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter *__pyx_v_self) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("write_into_stream", 0);
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = __pyx_f_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter_write_into_stream(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 140, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("clickhouse_driver.bufferedwriter.HttpBufferedSocketWriter.write_into_stream", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "(tree fragment)":1
+ * def __reduce_cython__(self):             # <<<<<<<<<<<<<<
+ *     cdef tuple state
+ *     cdef object _dict
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter_5__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter_5__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__reduce_cython__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter_4__reduce_cython__(((struct __pyx_obj_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter *)__pyx_v_self));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter_4__reduce_cython__(struct __pyx_obj_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter *__pyx_v_self) {
+  PyObject *__pyx_v_state = 0;
+  PyObject *__pyx_v__dict = 0;
+  int __pyx_v_use_setstate;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
+  int __pyx_t_5;
+  int __pyx_t_6;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("__reduce_cython__", 0);
+
+  /* "(tree fragment)":5
+ *     cdef object _dict
+ *     cdef bint use_setstate
+ *     state = (self.buffer, self.buffer_size, self.chunks_gen, self.position)             # <<<<<<<<<<<<<<
+ *     _dict = getattr(self, '__dict__', None)
+ *     if _dict is not None:
+ */
+  __pyx_t_1 = __Pyx_PyBytes_FromString(__pyx_v_self->__pyx_base.buffer); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 5, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __Pyx_PyInt_From_unsigned_PY_LONG_LONG(__pyx_v_self->__pyx_base.buffer_size); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 5, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = __Pyx_PyInt_From_unsigned_PY_LONG_LONG(__pyx_v_self->__pyx_base.position); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 5, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_4 = PyTuple_New(4); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 5, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_GIVEREF(__pyx_t_1);
+  PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
+  __Pyx_GIVEREF(__pyx_t_2);
+  PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_2);
+  __Pyx_INCREF(__pyx_v_self->chunks_gen);
+  __Pyx_GIVEREF(__pyx_v_self->chunks_gen);
+  PyTuple_SET_ITEM(__pyx_t_4, 2, __pyx_v_self->chunks_gen);
+  __Pyx_GIVEREF(__pyx_t_3);
+  PyTuple_SET_ITEM(__pyx_t_4, 3, __pyx_t_3);
+  __pyx_t_1 = 0;
+  __pyx_t_2 = 0;
+  __pyx_t_3 = 0;
+  __pyx_v_state = ((PyObject*)__pyx_t_4);
+  __pyx_t_4 = 0;
+
+  /* "(tree fragment)":6
+ *     cdef bint use_setstate
+ *     state = (self.buffer, self.buffer_size, self.chunks_gen, self.position)
+ *     _dict = getattr(self, '__dict__', None)             # <<<<<<<<<<<<<<
+ *     if _dict is not None:
+ *         state += (_dict,)
+ */
+  __pyx_t_4 = __Pyx_GetAttr3(((PyObject *)__pyx_v_self), __pyx_n_s_dict, Py_None); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 6, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_v__dict = __pyx_t_4;
+  __pyx_t_4 = 0;
+
+  /* "(tree fragment)":7
+ *     state = (self.buffer, self.buffer_size, self.chunks_gen, self.position)
+ *     _dict = getattr(self, '__dict__', None)
+ *     if _dict is not None:             # <<<<<<<<<<<<<<
+ *         state += (_dict,)
+ *         use_setstate = True
+ */
+  __pyx_t_5 = (__pyx_v__dict != Py_None);
+  __pyx_t_6 = (__pyx_t_5 != 0);
+  if (__pyx_t_6) {
+
+    /* "(tree fragment)":8
+ *     _dict = getattr(self, '__dict__', None)
+ *     if _dict is not None:
+ *         state += (_dict,)             # <<<<<<<<<<<<<<
+ *         use_setstate = True
+ *     else:
+ */
+    __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 8, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_INCREF(__pyx_v__dict);
+    __Pyx_GIVEREF(__pyx_v__dict);
+    PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_v__dict);
+    __pyx_t_3 = PyNumber_InPlaceAdd(__pyx_v_state, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 8, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __Pyx_DECREF_SET(__pyx_v_state, ((PyObject*)__pyx_t_3));
+    __pyx_t_3 = 0;
+
+    /* "(tree fragment)":9
+ *     if _dict is not None:
+ *         state += (_dict,)
+ *         use_setstate = True             # <<<<<<<<<<<<<<
+ *     else:
+ *         use_setstate = self.chunks_gen is not None
+ */
+    __pyx_v_use_setstate = 1;
+
+    /* "(tree fragment)":7
+ *     state = (self.buffer, self.buffer_size, self.chunks_gen, self.position)
+ *     _dict = getattr(self, '__dict__', None)
+ *     if _dict is not None:             # <<<<<<<<<<<<<<
+ *         state += (_dict,)
+ *         use_setstate = True
+ */
+    goto __pyx_L3;
+  }
+
+  /* "(tree fragment)":11
+ *         use_setstate = True
+ *     else:
+ *         use_setstate = self.chunks_gen is not None             # <<<<<<<<<<<<<<
+ *     if use_setstate:
+ *         return __pyx_unpickle_HttpBufferedSocketWriter, (type(self), 0xc9036b2, None), state
+ */
+  /*else*/ {
+    __pyx_t_6 = (__pyx_v_self->chunks_gen != Py_None);
+    __pyx_v_use_setstate = __pyx_t_6;
+  }
+  __pyx_L3:;
+
+  /* "(tree fragment)":12
+ *     else:
+ *         use_setstate = self.chunks_gen is not None
+ *     if use_setstate:             # <<<<<<<<<<<<<<
+ *         return __pyx_unpickle_HttpBufferedSocketWriter, (type(self), 0xc9036b2, None), state
+ *     else:
+ */
+  __pyx_t_6 = (__pyx_v_use_setstate != 0);
+  if (__pyx_t_6) {
+
+    /* "(tree fragment)":13
+ *         use_setstate = self.chunks_gen is not None
+ *     if use_setstate:
+ *         return __pyx_unpickle_HttpBufferedSocketWriter, (type(self), 0xc9036b2, None), state             # <<<<<<<<<<<<<<
+ *     else:
+ *         return __pyx_unpickle_HttpBufferedSocketWriter, (type(self), 0xc9036b2, state)
+ */
+    __Pyx_XDECREF(__pyx_r);
+    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_pyx_unpickle_HttpBufferedSocke); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 13, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_4 = PyTuple_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 13, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_INCREF(((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
+    __Pyx_GIVEREF(((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
+    PyTuple_SET_ITEM(__pyx_t_4, 0, ((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
+    __Pyx_INCREF(__pyx_int_210777778);
+    __Pyx_GIVEREF(__pyx_int_210777778);
+    PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_int_210777778);
+    __Pyx_INCREF(Py_None);
+    __Pyx_GIVEREF(Py_None);
+    PyTuple_SET_ITEM(__pyx_t_4, 2, Py_None);
+    __pyx_t_2 = PyTuple_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 13, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_GIVEREF(__pyx_t_3);
+    PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_3);
+    __Pyx_GIVEREF(__pyx_t_4);
+    PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_4);
+    __Pyx_INCREF(__pyx_v_state);
+    __Pyx_GIVEREF(__pyx_v_state);
+    PyTuple_SET_ITEM(__pyx_t_2, 2, __pyx_v_state);
+    __pyx_t_3 = 0;
+    __pyx_t_4 = 0;
+    __pyx_r = __pyx_t_2;
+    __pyx_t_2 = 0;
+    goto __pyx_L0;
+
+    /* "(tree fragment)":12
+ *     else:
+ *         use_setstate = self.chunks_gen is not None
+ *     if use_setstate:             # <<<<<<<<<<<<<<
+ *         return __pyx_unpickle_HttpBufferedSocketWriter, (type(self), 0xc9036b2, None), state
+ *     else:
+ */
+  }
+
+  /* "(tree fragment)":15
+ *         return __pyx_unpickle_HttpBufferedSocketWriter, (type(self), 0xc9036b2, None), state
+ *     else:
+ *         return __pyx_unpickle_HttpBufferedSocketWriter, (type(self), 0xc9036b2, state)             # <<<<<<<<<<<<<<
+ * def __setstate_cython__(self, __pyx_state):
+ *     __pyx_unpickle_HttpBufferedSocketWriter__set_state(self, __pyx_state)
+ */
+  /*else*/ {
+    __Pyx_XDECREF(__pyx_r);
+    __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_pyx_unpickle_HttpBufferedSocke); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 15, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_4 = PyTuple_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 15, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_INCREF(((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
+    __Pyx_GIVEREF(((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
+    PyTuple_SET_ITEM(__pyx_t_4, 0, ((PyObject *)Py_TYPE(((PyObject *)__pyx_v_self))));
+    __Pyx_INCREF(__pyx_int_210777778);
+    __Pyx_GIVEREF(__pyx_int_210777778);
+    PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_int_210777778);
+    __Pyx_INCREF(__pyx_v_state);
+    __Pyx_GIVEREF(__pyx_v_state);
+    PyTuple_SET_ITEM(__pyx_t_4, 2, __pyx_v_state);
+    __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 15, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_GIVEREF(__pyx_t_2);
+    PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2);
+    __Pyx_GIVEREF(__pyx_t_4);
+    PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_4);
+    __pyx_t_2 = 0;
+    __pyx_t_4 = 0;
+    __pyx_r = __pyx_t_3;
+    __pyx_t_3 = 0;
+    goto __pyx_L0;
+  }
+
+  /* "(tree fragment)":1
+ * def __reduce_cython__(self):             # <<<<<<<<<<<<<<
+ *     cdef tuple state
+ *     cdef object _dict
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_AddTraceback("clickhouse_driver.bufferedwriter.HttpBufferedSocketWriter.__reduce_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_state);
+  __Pyx_XDECREF(__pyx_v__dict);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "(tree fragment)":16
+ *     else:
+ *         return __pyx_unpickle_HttpBufferedSocketWriter, (type(self), 0xc9036b2, state)
+ * def __setstate_cython__(self, __pyx_state):             # <<<<<<<<<<<<<<
+ *     __pyx_unpickle_HttpBufferedSocketWriter__set_state(self, __pyx_state)
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter_7__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state); /*proto*/
+static PyObject *__pyx_pw_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter_7__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__setstate_cython__ (wrapper)", 0);
+  __pyx_r = __pyx_pf_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter_6__setstate_cython__(((struct __pyx_obj_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter *)__pyx_v_self), ((PyObject *)__pyx_v___pyx_state));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter_6__setstate_cython__(struct __pyx_obj_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("__setstate_cython__", 0);
+
+  /* "(tree fragment)":17
+ *         return __pyx_unpickle_HttpBufferedSocketWriter, (type(self), 0xc9036b2, state)
+ * def __setstate_cython__(self, __pyx_state):
+ *     __pyx_unpickle_HttpBufferedSocketWriter__set_state(self, __pyx_state)             # <<<<<<<<<<<<<<
+ */
+  if (!(likely(PyTuple_CheckExact(__pyx_v___pyx_state))||((__pyx_v___pyx_state) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "tuple", Py_TYPE(__pyx_v___pyx_state)->tp_name), 0))) __PYX_ERR(1, 17, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_17clickhouse_driver_14bufferedwriter___pyx_unpickle_HttpBufferedSocketWriter__set_state(__pyx_v_self, ((PyObject*)__pyx_v___pyx_state)); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 17, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "(tree fragment)":16
+ *     else:
+ *         return __pyx_unpickle_HttpBufferedSocketWriter, (type(self), 0xc9036b2, state)
+ * def __setstate_cython__(self, __pyx_state):             # <<<<<<<<<<<<<<
+ *     __pyx_unpickle_HttpBufferedSocketWriter__set_state(self, __pyx_state)
+ */
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("clickhouse_driver.bufferedwriter.HttpBufferedSocketWriter.__setstate_cython__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "clickhouse_driver/bufferedwriter.pyx":150
  *     cdef object compressor
  * 
  *     def __init__(self, compressor, bufsize):             # <<<<<<<<<<<<<<
@@ -4566,11 +5261,11 @@ static int __pyx_pw_17clickhouse_driver_14bufferedwriter_24CompressedBufferedWri
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_bufsize)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, 1); __PYX_ERR(0, 136, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, 1); __PYX_ERR(0, 150, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 136, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 150, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -4583,7 +5278,7 @@ static int __pyx_pw_17clickhouse_driver_14bufferedwriter_24CompressedBufferedWri
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 136, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 150, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("clickhouse_driver.bufferedwriter.CompressedBufferedWriter.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -4607,7 +5302,7 @@ static int __pyx_pf_17clickhouse_driver_14bufferedwriter_24CompressedBufferedWri
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "clickhouse_driver/bufferedwriter.pyx":137
+  /* "clickhouse_driver/bufferedwriter.pyx":151
  * 
  *     def __init__(self, compressor, bufsize):
  *         self.compressor = compressor             # <<<<<<<<<<<<<<
@@ -4620,14 +5315,14 @@ static int __pyx_pf_17clickhouse_driver_14bufferedwriter_24CompressedBufferedWri
   __Pyx_DECREF(__pyx_v_self->compressor);
   __pyx_v_self->compressor = __pyx_v_compressor;
 
-  /* "clickhouse_driver/bufferedwriter.pyx":138
+  /* "clickhouse_driver/bufferedwriter.pyx":152
  *     def __init__(self, compressor, bufsize):
  *         self.compressor = compressor
  *         super(CompressedBufferedWriter, self).__init__(bufsize)             # <<<<<<<<<<<<<<
  * 
  *     cpdef write_into_stream(self):
  */
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 138, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 152, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(((PyObject *)__pyx_ptype_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter));
   __Pyx_GIVEREF(((PyObject *)__pyx_ptype_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter));
@@ -4635,10 +5330,10 @@ static int __pyx_pf_17clickhouse_driver_14bufferedwriter_24CompressedBufferedWri
   __Pyx_INCREF(((PyObject *)__pyx_v_self));
   __Pyx_GIVEREF(((PyObject *)__pyx_v_self));
   PyTuple_SET_ITEM(__pyx_t_2, 1, ((PyObject *)__pyx_v_self));
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_super, __pyx_t_2, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 138, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_super, __pyx_t_2, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 152, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_init); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 138, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_init); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 152, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_3 = NULL;
@@ -4653,12 +5348,12 @@ static int __pyx_pf_17clickhouse_driver_14bufferedwriter_24CompressedBufferedWri
   }
   __pyx_t_1 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_3, __pyx_v_bufsize) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_bufsize);
   __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 138, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 152, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "clickhouse_driver/bufferedwriter.pyx":136
+  /* "clickhouse_driver/bufferedwriter.pyx":150
  *     cdef object compressor
  * 
  *     def __init__(self, compressor, bufsize):             # <<<<<<<<<<<<<<
@@ -4680,7 +5375,7 @@ static int __pyx_pf_17clickhouse_driver_14bufferedwriter_24CompressedBufferedWri
   return __pyx_r;
 }
 
-/* "clickhouse_driver/bufferedwriter.pyx":140
+/* "clickhouse_driver/bufferedwriter.pyx":154
  *         super(CompressedBufferedWriter, self).__init__(bufsize)
  * 
  *     cpdef write_into_stream(self):             # <<<<<<<<<<<<<<
@@ -4709,7 +5404,7 @@ static PyObject *__pyx_f_17clickhouse_driver_14bufferedwriter_24CompressedBuffer
     if (unlikely(!__Pyx_object_dict_version_matches(((PyObject *)__pyx_v_self), __pyx_tp_dict_version, __pyx_obj_dict_version))) {
       PY_UINT64_T __pyx_type_dict_guard = __Pyx_get_tp_dict_version(((PyObject *)__pyx_v_self));
       #endif
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_write_into_stream); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 140, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_write_into_stream); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 154, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)(void*)__pyx_pw_17clickhouse_driver_14bufferedwriter_24CompressedBufferedWriter_3write_into_stream)) {
         __Pyx_XDECREF(__pyx_r);
@@ -4726,7 +5421,7 @@ static PyObject *__pyx_f_17clickhouse_driver_14bufferedwriter_24CompressedBuffer
         }
         __pyx_t_2 = (__pyx_t_4) ? __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4) : __Pyx_PyObject_CallNoArg(__pyx_t_3);
         __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-        if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 140, __pyx_L1_error)
+        if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 154, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
         __pyx_r = __pyx_t_2;
@@ -4747,24 +5442,24 @@ static PyObject *__pyx_f_17clickhouse_driver_14bufferedwriter_24CompressedBuffer
     #endif
   }
 
-  /* "clickhouse_driver/bufferedwriter.pyx":141
+  /* "clickhouse_driver/bufferedwriter.pyx":155
  * 
  *     cpdef write_into_stream(self):
  *         self.compressor.write(             # <<<<<<<<<<<<<<
  *             PyBytes_FromStringAndSize(self.buffer, self.position)
  *         )
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->compressor, __pyx_n_s_write); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 141, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->compressor, __pyx_n_s_write); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 155, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
 
-  /* "clickhouse_driver/bufferedwriter.pyx":142
+  /* "clickhouse_driver/bufferedwriter.pyx":156
  *     cpdef write_into_stream(self):
  *         self.compressor.write(
  *             PyBytes_FromStringAndSize(self.buffer, self.position)             # <<<<<<<<<<<<<<
  *         )
  *         self.position = 0
  */
-  __pyx_t_3 = PyBytes_FromStringAndSize(__pyx_v_self->__pyx_base.buffer, __pyx_v_self->__pyx_base.position); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 142, __pyx_L1_error)
+  __pyx_t_3 = PyBytes_FromStringAndSize(__pyx_v_self->__pyx_base.buffer, __pyx_v_self->__pyx_base.position); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 156, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_4 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -4779,12 +5474,12 @@ static PyObject *__pyx_f_17clickhouse_driver_14bufferedwriter_24CompressedBuffer
   __pyx_t_1 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_4, __pyx_t_3) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 141, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 155, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "clickhouse_driver/bufferedwriter.pyx":144
+  /* "clickhouse_driver/bufferedwriter.pyx":158
  *             PyBytes_FromStringAndSize(self.buffer, self.position)
  *         )
  *         self.position = 0             # <<<<<<<<<<<<<<
@@ -4793,7 +5488,7 @@ static PyObject *__pyx_f_17clickhouse_driver_14bufferedwriter_24CompressedBuffer
  */
   __pyx_v_self->__pyx_base.position = 0;
 
-  /* "clickhouse_driver/bufferedwriter.pyx":140
+  /* "clickhouse_driver/bufferedwriter.pyx":154
  *         super(CompressedBufferedWriter, self).__init__(bufsize)
  * 
  *     cpdef write_into_stream(self):             # <<<<<<<<<<<<<<
@@ -4839,7 +5534,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter_24CompressedBuffe
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("write_into_stream", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_17clickhouse_driver_14bufferedwriter_24CompressedBufferedWriter_write_into_stream(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 140, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_17clickhouse_driver_14bufferedwriter_24CompressedBufferedWriter_write_into_stream(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 154, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -4856,7 +5551,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter_24CompressedBuffe
   return __pyx_r;
 }
 
-/* "clickhouse_driver/bufferedwriter.pyx":146
+/* "clickhouse_driver/bufferedwriter.pyx":160
  *         self.position = 0
  * 
  *     def flush(self):             # <<<<<<<<<<<<<<
@@ -4885,16 +5580,16 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter_24CompressedBuffe
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("flush", 0);
 
-  /* "clickhouse_driver/bufferedwriter.pyx":147
+  /* "clickhouse_driver/bufferedwriter.pyx":161
  * 
  *     def flush(self):
  *         self.write_into_stream()             # <<<<<<<<<<<<<<
  */
-  __pyx_t_1 = ((struct __pyx_vtabstruct_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter *)__pyx_v_self->__pyx_base.__pyx_vtab)->__pyx_base.write_into_stream(((struct __pyx_obj_17clickhouse_driver_14bufferedwriter_BufferedWriter *)__pyx_v_self), 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 147, __pyx_L1_error)
+  __pyx_t_1 = ((struct __pyx_vtabstruct_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter *)__pyx_v_self->__pyx_base.__pyx_vtab)->__pyx_base.write_into_stream(((struct __pyx_obj_17clickhouse_driver_14bufferedwriter_BufferedWriter *)__pyx_v_self), 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 161, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "clickhouse_driver/bufferedwriter.pyx":146
+  /* "clickhouse_driver/bufferedwriter.pyx":160
  *         self.position = 0
  * 
  *     def flush(self):             # <<<<<<<<<<<<<<
@@ -5348,7 +6043,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter___pyx_unpickle_Bu
     __Pyx_INCREF(__pyx_n_s_PickleError);
     __Pyx_GIVEREF(__pyx_n_s_PickleError);
     PyList_SET_ITEM(__pyx_t_1, 0, __pyx_n_s_PickleError);
-    __pyx_t_4 = __Pyx_Import(__pyx_n_s_pickle, __pyx_t_1, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 5, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_Import(__pyx_n_s_pickle, __pyx_t_1, -1); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 5, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_4, __pyx_n_s_PickleError); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 5, __pyx_L1_error)
@@ -5767,7 +6462,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter_2__pyx_unpickle_B
     __Pyx_INCREF(__pyx_n_s_PickleError);
     __Pyx_GIVEREF(__pyx_n_s_PickleError);
     PyList_SET_ITEM(__pyx_t_1, 0, __pyx_n_s_PickleError);
-    __pyx_t_4 = __Pyx_Import(__pyx_n_s_pickle, __pyx_t_1, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 5, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_Import(__pyx_n_s_pickle, __pyx_t_1, -1); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 5, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_4, __pyx_n_s_PickleError); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 5, __pyx_L1_error)
@@ -6074,15 +6769,445 @@ static PyObject *__pyx_f_17clickhouse_driver_14bufferedwriter___pyx_unpickle_Buf
 }
 
 /* "(tree fragment)":1
+ * def __pyx_unpickle_HttpBufferedSocketWriter(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
+ *     cdef object __pyx_PickleError
+ *     cdef object __pyx_result
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_17clickhouse_driver_14bufferedwriter_5__pyx_unpickle_HttpBufferedSocketWriter(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_17clickhouse_driver_14bufferedwriter_5__pyx_unpickle_HttpBufferedSocketWriter = {"__pyx_unpickle_HttpBufferedSocketWriter", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_17clickhouse_driver_14bufferedwriter_5__pyx_unpickle_HttpBufferedSocketWriter, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_17clickhouse_driver_14bufferedwriter_5__pyx_unpickle_HttpBufferedSocketWriter(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  PyObject *__pyx_v___pyx_type = 0;
+  long __pyx_v___pyx_checksum;
+  PyObject *__pyx_v___pyx_state = 0;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__pyx_unpickle_HttpBufferedSocketWriter (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_pyx_type,&__pyx_n_s_pyx_checksum,&__pyx_n_s_pyx_state,0};
+    PyObject* values[3] = {0,0,0};
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        CYTHON_FALLTHROUGH;
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_pyx_type)) != 0)) kw_args--;
+        else goto __pyx_L5_argtuple_error;
+        CYTHON_FALLTHROUGH;
+        case  1:
+        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_pyx_checksum)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("__pyx_unpickle_HttpBufferedSocketWriter", 1, 3, 3, 1); __PYX_ERR(1, 1, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  2:
+        if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_pyx_state)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("__pyx_unpickle_HttpBufferedSocketWriter", 1, 3, 3, 2); __PYX_ERR(1, 1, __pyx_L3_error)
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__pyx_unpickle_HttpBufferedSocketWriter") < 0)) __PYX_ERR(1, 1, __pyx_L3_error)
+      }
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+      values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+    }
+    __pyx_v___pyx_type = values[0];
+    __pyx_v___pyx_checksum = __Pyx_PyInt_As_long(values[1]); if (unlikely((__pyx_v___pyx_checksum == (long)-1) && PyErr_Occurred())) __PYX_ERR(1, 1, __pyx_L3_error)
+    __pyx_v___pyx_state = values[2];
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("__pyx_unpickle_HttpBufferedSocketWriter", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 1, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("clickhouse_driver.bufferedwriter.__pyx_unpickle_HttpBufferedSocketWriter", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_17clickhouse_driver_14bufferedwriter_4__pyx_unpickle_HttpBufferedSocketWriter(__pyx_self, __pyx_v___pyx_type, __pyx_v___pyx_checksum, __pyx_v___pyx_state);
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter_4__pyx_unpickle_HttpBufferedSocketWriter(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state) {
+  PyObject *__pyx_v___pyx_PickleError = 0;
+  PyObject *__pyx_v___pyx_result = 0;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_t_2;
+  int __pyx_t_3;
+  PyObject *__pyx_t_4 = NULL;
+  PyObject *__pyx_t_5 = NULL;
+  PyObject *__pyx_t_6 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("__pyx_unpickle_HttpBufferedSocketWriter", 0);
+
+  /* "(tree fragment)":4
+ *     cdef object __pyx_PickleError
+ *     cdef object __pyx_result
+ *     if __pyx_checksum not in (0xc9036b2, 0x54e9a1e, 0x93daedf):             # <<<<<<<<<<<<<<
+ *         from pickle import PickleError as __pyx_PickleError
+ *         raise __pyx_PickleError("Incompatible checksums (0x%x vs (0xc9036b2, 0x54e9a1e, 0x93daedf) = (buffer, buffer_size, chunks_gen, position))" % __pyx_checksum)
+ */
+  __pyx_t_1 = __Pyx_PyInt_From_long(__pyx_v___pyx_checksum); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = (__Pyx_PySequence_ContainsTF(__pyx_t_1, __pyx_tuple__4, Py_NE)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_3 = (__pyx_t_2 != 0);
+  if (__pyx_t_3) {
+
+    /* "(tree fragment)":5
+ *     cdef object __pyx_result
+ *     if __pyx_checksum not in (0xc9036b2, 0x54e9a1e, 0x93daedf):
+ *         from pickle import PickleError as __pyx_PickleError             # <<<<<<<<<<<<<<
+ *         raise __pyx_PickleError("Incompatible checksums (0x%x vs (0xc9036b2, 0x54e9a1e, 0x93daedf) = (buffer, buffer_size, chunks_gen, position))" % __pyx_checksum)
+ *     __pyx_result = HttpBufferedSocketWriter.__new__(__pyx_type)
+ */
+    __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 5, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_INCREF(__pyx_n_s_PickleError);
+    __Pyx_GIVEREF(__pyx_n_s_PickleError);
+    PyList_SET_ITEM(__pyx_t_1, 0, __pyx_n_s_PickleError);
+    __pyx_t_4 = __Pyx_Import(__pyx_n_s_pickle, __pyx_t_1, -1); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 5, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_4, __pyx_n_s_PickleError); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 5, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_INCREF(__pyx_t_1);
+    __pyx_v___pyx_PickleError = __pyx_t_1;
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+
+    /* "(tree fragment)":6
+ *     if __pyx_checksum not in (0xc9036b2, 0x54e9a1e, 0x93daedf):
+ *         from pickle import PickleError as __pyx_PickleError
+ *         raise __pyx_PickleError("Incompatible checksums (0x%x vs (0xc9036b2, 0x54e9a1e, 0x93daedf) = (buffer, buffer_size, chunks_gen, position))" % __pyx_checksum)             # <<<<<<<<<<<<<<
+ *     __pyx_result = HttpBufferedSocketWriter.__new__(__pyx_type)
+ *     if __pyx_state is not None:
+ */
+    __pyx_t_1 = __Pyx_PyInt_From_long(__pyx_v___pyx_checksum); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 6, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_5 = __Pyx_PyString_Format(__pyx_kp_s_Incompatible_checksums_0x_x_vs_0_3, __pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 6, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_INCREF(__pyx_v___pyx_PickleError);
+    __pyx_t_1 = __pyx_v___pyx_PickleError; __pyx_t_6 = NULL;
+    if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_1))) {
+      __pyx_t_6 = PyMethod_GET_SELF(__pyx_t_1);
+      if (likely(__pyx_t_6)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
+        __Pyx_INCREF(__pyx_t_6);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_1, function);
+      }
+    }
+    __pyx_t_4 = (__pyx_t_6) ? __Pyx_PyObject_Call2Args(__pyx_t_1, __pyx_t_6, __pyx_t_5) : __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_5);
+    __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 6, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_Raise(__pyx_t_4, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __PYX_ERR(1, 6, __pyx_L1_error)
+
+    /* "(tree fragment)":4
+ *     cdef object __pyx_PickleError
+ *     cdef object __pyx_result
+ *     if __pyx_checksum not in (0xc9036b2, 0x54e9a1e, 0x93daedf):             # <<<<<<<<<<<<<<
+ *         from pickle import PickleError as __pyx_PickleError
+ *         raise __pyx_PickleError("Incompatible checksums (0x%x vs (0xc9036b2, 0x54e9a1e, 0x93daedf) = (buffer, buffer_size, chunks_gen, position))" % __pyx_checksum)
+ */
+  }
+
+  /* "(tree fragment)":7
+ *         from pickle import PickleError as __pyx_PickleError
+ *         raise __pyx_PickleError("Incompatible checksums (0x%x vs (0xc9036b2, 0x54e9a1e, 0x93daedf) = (buffer, buffer_size, chunks_gen, position))" % __pyx_checksum)
+ *     __pyx_result = HttpBufferedSocketWriter.__new__(__pyx_type)             # <<<<<<<<<<<<<<
+ *     if __pyx_state is not None:
+ *         __pyx_unpickle_HttpBufferedSocketWriter__set_state(<HttpBufferedSocketWriter> __pyx_result, __pyx_state)
+ */
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_ptype_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter), __pyx_n_s_new); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 7, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_5 = NULL;
+  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_1))) {
+    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_1);
+    if (likely(__pyx_t_5)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
+      __Pyx_INCREF(__pyx_t_5);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_1, function);
+    }
+  }
+  __pyx_t_4 = (__pyx_t_5) ? __Pyx_PyObject_Call2Args(__pyx_t_1, __pyx_t_5, __pyx_v___pyx_type) : __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_v___pyx_type);
+  __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
+  if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 7, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_v___pyx_result = __pyx_t_4;
+  __pyx_t_4 = 0;
+
+  /* "(tree fragment)":8
+ *         raise __pyx_PickleError("Incompatible checksums (0x%x vs (0xc9036b2, 0x54e9a1e, 0x93daedf) = (buffer, buffer_size, chunks_gen, position))" % __pyx_checksum)
+ *     __pyx_result = HttpBufferedSocketWriter.__new__(__pyx_type)
+ *     if __pyx_state is not None:             # <<<<<<<<<<<<<<
+ *         __pyx_unpickle_HttpBufferedSocketWriter__set_state(<HttpBufferedSocketWriter> __pyx_result, __pyx_state)
+ *     return __pyx_result
+ */
+  __pyx_t_3 = (__pyx_v___pyx_state != Py_None);
+  __pyx_t_2 = (__pyx_t_3 != 0);
+  if (__pyx_t_2) {
+
+    /* "(tree fragment)":9
+ *     __pyx_result = HttpBufferedSocketWriter.__new__(__pyx_type)
+ *     if __pyx_state is not None:
+ *         __pyx_unpickle_HttpBufferedSocketWriter__set_state(<HttpBufferedSocketWriter> __pyx_result, __pyx_state)             # <<<<<<<<<<<<<<
+ *     return __pyx_result
+ * cdef __pyx_unpickle_HttpBufferedSocketWriter__set_state(HttpBufferedSocketWriter __pyx_result, tuple __pyx_state):
+ */
+    if (!(likely(PyTuple_CheckExact(__pyx_v___pyx_state))||((__pyx_v___pyx_state) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "tuple", Py_TYPE(__pyx_v___pyx_state)->tp_name), 0))) __PYX_ERR(1, 9, __pyx_L1_error)
+    __pyx_t_4 = __pyx_f_17clickhouse_driver_14bufferedwriter___pyx_unpickle_HttpBufferedSocketWriter__set_state(((struct __pyx_obj_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter *)__pyx_v___pyx_result), ((PyObject*)__pyx_v___pyx_state)); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 9, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+
+    /* "(tree fragment)":8
+ *         raise __pyx_PickleError("Incompatible checksums (0x%x vs (0xc9036b2, 0x54e9a1e, 0x93daedf) = (buffer, buffer_size, chunks_gen, position))" % __pyx_checksum)
+ *     __pyx_result = HttpBufferedSocketWriter.__new__(__pyx_type)
+ *     if __pyx_state is not None:             # <<<<<<<<<<<<<<
+ *         __pyx_unpickle_HttpBufferedSocketWriter__set_state(<HttpBufferedSocketWriter> __pyx_result, __pyx_state)
+ *     return __pyx_result
+ */
+  }
+
+  /* "(tree fragment)":10
+ *     if __pyx_state is not None:
+ *         __pyx_unpickle_HttpBufferedSocketWriter__set_state(<HttpBufferedSocketWriter> __pyx_result, __pyx_state)
+ *     return __pyx_result             # <<<<<<<<<<<<<<
+ * cdef __pyx_unpickle_HttpBufferedSocketWriter__set_state(HttpBufferedSocketWriter __pyx_result, tuple __pyx_state):
+ *     __pyx_result.buffer = __pyx_state[0]; __pyx_result.buffer_size = __pyx_state[1]; __pyx_result.chunks_gen = __pyx_state[2]; __pyx_result.position = __pyx_state[3]
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF(__pyx_v___pyx_result);
+  __pyx_r = __pyx_v___pyx_result;
+  goto __pyx_L0;
+
+  /* "(tree fragment)":1
+ * def __pyx_unpickle_HttpBufferedSocketWriter(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
+ *     cdef object __pyx_PickleError
+ *     cdef object __pyx_result
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_XDECREF(__pyx_t_6);
+  __Pyx_AddTraceback("clickhouse_driver.bufferedwriter.__pyx_unpickle_HttpBufferedSocketWriter", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v___pyx_PickleError);
+  __Pyx_XDECREF(__pyx_v___pyx_result);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "(tree fragment)":11
+ *         __pyx_unpickle_HttpBufferedSocketWriter__set_state(<HttpBufferedSocketWriter> __pyx_result, __pyx_state)
+ *     return __pyx_result
+ * cdef __pyx_unpickle_HttpBufferedSocketWriter__set_state(HttpBufferedSocketWriter __pyx_result, tuple __pyx_state):             # <<<<<<<<<<<<<<
+ *     __pyx_result.buffer = __pyx_state[0]; __pyx_result.buffer_size = __pyx_state[1]; __pyx_result.chunks_gen = __pyx_state[2]; __pyx_result.position = __pyx_state[3]
+ *     if len(__pyx_state) > 4 and hasattr(__pyx_result, '__dict__'):
+ */
+
+static PyObject *__pyx_f_17clickhouse_driver_14bufferedwriter___pyx_unpickle_HttpBufferedSocketWriter__set_state(struct __pyx_obj_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter *__pyx_v___pyx_result, PyObject *__pyx_v___pyx_state) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  char *__pyx_t_2;
+  unsigned PY_LONG_LONG __pyx_t_3;
+  int __pyx_t_4;
+  Py_ssize_t __pyx_t_5;
+  int __pyx_t_6;
+  int __pyx_t_7;
+  PyObject *__pyx_t_8 = NULL;
+  PyObject *__pyx_t_9 = NULL;
+  PyObject *__pyx_t_10 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("__pyx_unpickle_HttpBufferedSocketWriter__set_state", 0);
+
+  /* "(tree fragment)":12
+ *     return __pyx_result
+ * cdef __pyx_unpickle_HttpBufferedSocketWriter__set_state(HttpBufferedSocketWriter __pyx_result, tuple __pyx_state):
+ *     __pyx_result.buffer = __pyx_state[0]; __pyx_result.buffer_size = __pyx_state[1]; __pyx_result.chunks_gen = __pyx_state[2]; __pyx_result.position = __pyx_state[3]             # <<<<<<<<<<<<<<
+ *     if len(__pyx_state) > 4 and hasattr(__pyx_result, '__dict__'):
+ *         __pyx_result.__dict__.update(__pyx_state[4])
+ */
+  if (unlikely(__pyx_v___pyx_state == Py_None)) {
+    PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
+    __PYX_ERR(1, 12, __pyx_L1_error)
+  }
+  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 12, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __Pyx_PyObject_AsWritableString(__pyx_t_1); if (unlikely((!__pyx_t_2) && PyErr_Occurred())) __PYX_ERR(1, 12, __pyx_L1_error)
+  __pyx_v___pyx_result->__pyx_base.buffer = __pyx_t_2;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  if (unlikely(__pyx_v___pyx_state == Py_None)) {
+    PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
+    __PYX_ERR(1, 12, __pyx_L1_error)
+  }
+  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 12, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_3 = __Pyx_PyInt_As_unsigned_PY_LONG_LONG(__pyx_t_1); if (unlikely((__pyx_t_3 == (unsigned PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(1, 12, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_v___pyx_result->__pyx_base.buffer_size = __pyx_t_3;
+  if (unlikely(__pyx_v___pyx_state == Py_None)) {
+    PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
+    __PYX_ERR(1, 12, __pyx_L1_error)
+  }
+  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 2, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 12, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_GIVEREF(__pyx_t_1);
+  __Pyx_GOTREF(__pyx_v___pyx_result->chunks_gen);
+  __Pyx_DECREF(__pyx_v___pyx_result->chunks_gen);
+  __pyx_v___pyx_result->chunks_gen = __pyx_t_1;
+  __pyx_t_1 = 0;
+  if (unlikely(__pyx_v___pyx_state == Py_None)) {
+    PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
+    __PYX_ERR(1, 12, __pyx_L1_error)
+  }
+  __pyx_t_1 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 3, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 12, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_3 = __Pyx_PyInt_As_unsigned_PY_LONG_LONG(__pyx_t_1); if (unlikely((__pyx_t_3 == (unsigned PY_LONG_LONG)-1) && PyErr_Occurred())) __PYX_ERR(1, 12, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_v___pyx_result->__pyx_base.position = __pyx_t_3;
+
+  /* "(tree fragment)":13
+ * cdef __pyx_unpickle_HttpBufferedSocketWriter__set_state(HttpBufferedSocketWriter __pyx_result, tuple __pyx_state):
+ *     __pyx_result.buffer = __pyx_state[0]; __pyx_result.buffer_size = __pyx_state[1]; __pyx_result.chunks_gen = __pyx_state[2]; __pyx_result.position = __pyx_state[3]
+ *     if len(__pyx_state) > 4 and hasattr(__pyx_result, '__dict__'):             # <<<<<<<<<<<<<<
+ *         __pyx_result.__dict__.update(__pyx_state[4])
+ */
+  if (unlikely(__pyx_v___pyx_state == Py_None)) {
+    PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
+    __PYX_ERR(1, 13, __pyx_L1_error)
+  }
+  __pyx_t_5 = PyTuple_GET_SIZE(__pyx_v___pyx_state); if (unlikely(__pyx_t_5 == ((Py_ssize_t)-1))) __PYX_ERR(1, 13, __pyx_L1_error)
+  __pyx_t_6 = ((__pyx_t_5 > 4) != 0);
+  if (__pyx_t_6) {
+  } else {
+    __pyx_t_4 = __pyx_t_6;
+    goto __pyx_L4_bool_binop_done;
+  }
+  __pyx_t_6 = __Pyx_HasAttr(((PyObject *)__pyx_v___pyx_result), __pyx_n_s_dict); if (unlikely(__pyx_t_6 == ((int)-1))) __PYX_ERR(1, 13, __pyx_L1_error)
+  __pyx_t_7 = (__pyx_t_6 != 0);
+  __pyx_t_4 = __pyx_t_7;
+  __pyx_L4_bool_binop_done:;
+  if (__pyx_t_4) {
+
+    /* "(tree fragment)":14
+ *     __pyx_result.buffer = __pyx_state[0]; __pyx_result.buffer_size = __pyx_state[1]; __pyx_result.chunks_gen = __pyx_state[2]; __pyx_result.position = __pyx_state[3]
+ *     if len(__pyx_state) > 4 and hasattr(__pyx_result, '__dict__'):
+ *         __pyx_result.__dict__.update(__pyx_state[4])             # <<<<<<<<<<<<<<
+ */
+    __pyx_t_8 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v___pyx_result), __pyx_n_s_dict); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 14, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_8);
+    __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_8, __pyx_n_s_update); if (unlikely(!__pyx_t_9)) __PYX_ERR(1, 14, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_9);
+    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+    if (unlikely(__pyx_v___pyx_state == Py_None)) {
+      PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
+      __PYX_ERR(1, 14, __pyx_L1_error)
+    }
+    __pyx_t_8 = __Pyx_GetItemInt_Tuple(__pyx_v___pyx_state, 4, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 14, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_8);
+    __pyx_t_10 = NULL;
+    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_9))) {
+      __pyx_t_10 = PyMethod_GET_SELF(__pyx_t_9);
+      if (likely(__pyx_t_10)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_9);
+        __Pyx_INCREF(__pyx_t_10);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_9, function);
+      }
+    }
+    __pyx_t_1 = (__pyx_t_10) ? __Pyx_PyObject_Call2Args(__pyx_t_9, __pyx_t_10, __pyx_t_8) : __Pyx_PyObject_CallOneArg(__pyx_t_9, __pyx_t_8);
+    __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
+    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 14, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+    /* "(tree fragment)":13
+ * cdef __pyx_unpickle_HttpBufferedSocketWriter__set_state(HttpBufferedSocketWriter __pyx_result, tuple __pyx_state):
+ *     __pyx_result.buffer = __pyx_state[0]; __pyx_result.buffer_size = __pyx_state[1]; __pyx_result.chunks_gen = __pyx_state[2]; __pyx_result.position = __pyx_state[3]
+ *     if len(__pyx_state) > 4 and hasattr(__pyx_result, '__dict__'):             # <<<<<<<<<<<<<<
+ *         __pyx_result.__dict__.update(__pyx_state[4])
+ */
+  }
+
+  /* "(tree fragment)":11
+ *         __pyx_unpickle_HttpBufferedSocketWriter__set_state(<HttpBufferedSocketWriter> __pyx_result, __pyx_state)
+ *     return __pyx_result
+ * cdef __pyx_unpickle_HttpBufferedSocketWriter__set_state(HttpBufferedSocketWriter __pyx_result, tuple __pyx_state):             # <<<<<<<<<<<<<<
+ *     __pyx_result.buffer = __pyx_state[0]; __pyx_result.buffer_size = __pyx_state[1]; __pyx_result.chunks_gen = __pyx_state[2]; __pyx_result.position = __pyx_state[3]
+ *     if len(__pyx_state) > 4 and hasattr(__pyx_result, '__dict__'):
+ */
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_8);
+  __Pyx_XDECREF(__pyx_t_9);
+  __Pyx_XDECREF(__pyx_t_10);
+  __Pyx_AddTraceback("clickhouse_driver.bufferedwriter.__pyx_unpickle_HttpBufferedSocketWriter__set_state", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "(tree fragment)":1
  * def __pyx_unpickle_CompressedBufferedWriter(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
  *     cdef object __pyx_PickleError
  *     cdef object __pyx_result
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_17clickhouse_driver_14bufferedwriter_5__pyx_unpickle_CompressedBufferedWriter(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_17clickhouse_driver_14bufferedwriter_5__pyx_unpickle_CompressedBufferedWriter = {"__pyx_unpickle_CompressedBufferedWriter", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_17clickhouse_driver_14bufferedwriter_5__pyx_unpickle_CompressedBufferedWriter, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_17clickhouse_driver_14bufferedwriter_5__pyx_unpickle_CompressedBufferedWriter(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_17clickhouse_driver_14bufferedwriter_7__pyx_unpickle_CompressedBufferedWriter(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_17clickhouse_driver_14bufferedwriter_7__pyx_unpickle_CompressedBufferedWriter = {"__pyx_unpickle_CompressedBufferedWriter", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_17clickhouse_driver_14bufferedwriter_7__pyx_unpickle_CompressedBufferedWriter, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_17clickhouse_driver_14bufferedwriter_7__pyx_unpickle_CompressedBufferedWriter(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v___pyx_type = 0;
   long __pyx_v___pyx_checksum;
   PyObject *__pyx_v___pyx_state = 0;
@@ -6148,14 +7273,14 @@ static PyObject *__pyx_pw_17clickhouse_driver_14bufferedwriter_5__pyx_unpickle_C
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_17clickhouse_driver_14bufferedwriter_4__pyx_unpickle_CompressedBufferedWriter(__pyx_self, __pyx_v___pyx_type, __pyx_v___pyx_checksum, __pyx_v___pyx_state);
+  __pyx_r = __pyx_pf_17clickhouse_driver_14bufferedwriter_6__pyx_unpickle_CompressedBufferedWriter(__pyx_self, __pyx_v___pyx_type, __pyx_v___pyx_checksum, __pyx_v___pyx_state);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter_4__pyx_unpickle_CompressedBufferedWriter(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter_6__pyx_unpickle_CompressedBufferedWriter(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v___pyx_type, long __pyx_v___pyx_checksum, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_v___pyx_PickleError = 0;
   PyObject *__pyx_v___pyx_result = 0;
   PyObject *__pyx_r = NULL;
@@ -6180,7 +7305,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter_4__pyx_unpickle_C
  */
   __pyx_t_1 = __Pyx_PyInt_From_long(__pyx_v___pyx_checksum); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = (__Pyx_PySequence_ContainsTF(__pyx_t_1, __pyx_tuple__4, Py_NE)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __pyx_t_2 = (__Pyx_PySequence_ContainsTF(__pyx_t_1, __pyx_tuple__5, Py_NE)); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(1, 4, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_3 = (__pyx_t_2 != 0);
   if (__pyx_t_3) {
@@ -6197,7 +7322,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter_4__pyx_unpickle_C
     __Pyx_INCREF(__pyx_n_s_PickleError);
     __Pyx_GIVEREF(__pyx_n_s_PickleError);
     PyList_SET_ITEM(__pyx_t_1, 0, __pyx_n_s_PickleError);
-    __pyx_t_4 = __Pyx_Import(__pyx_n_s_pickle, __pyx_t_1, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 5, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_Import(__pyx_n_s_pickle, __pyx_t_1, -1); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 5, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_4, __pyx_n_s_PickleError); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 5, __pyx_L1_error)
@@ -6216,7 +7341,7 @@ static PyObject *__pyx_pf_17clickhouse_driver_14bufferedwriter_4__pyx_unpickle_C
  */
     __pyx_t_1 = __Pyx_PyInt_From_long(__pyx_v___pyx_checksum); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 6, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_5 = __Pyx_PyString_Format(__pyx_kp_s_Incompatible_checksums_0x_x_vs_0_3, __pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 6, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyString_Format(__pyx_kp_s_Incompatible_checksums_0x_x_vs_0_4, __pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 6, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_INCREF(__pyx_v___pyx_PickleError);
@@ -6744,6 +7869,132 @@ static PyTypeObject __pyx_type_17clickhouse_driver_14bufferedwriter_BufferedSock
   0, /*tp_pypy_flags*/
   #endif
 };
+static struct __pyx_vtabstruct_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter __pyx_vtable_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter;
+
+static PyObject *__pyx_tp_new_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter(PyTypeObject *t, PyObject *a, PyObject *k) {
+  struct __pyx_obj_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter *p;
+  PyObject *o = __pyx_tp_new_17clickhouse_driver_14bufferedwriter_BufferedWriter(t, a, k);
+  if (unlikely(!o)) return 0;
+  p = ((struct __pyx_obj_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter *)o);
+  p->__pyx_base.__pyx_vtab = (struct __pyx_vtabstruct_17clickhouse_driver_14bufferedwriter_BufferedWriter*)__pyx_vtabptr_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter;
+  p->chunks_gen = Py_None; Py_INCREF(Py_None);
+  return o;
+}
+
+static void __pyx_tp_dealloc_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter(PyObject *o) {
+  struct __pyx_obj_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter *p = (struct __pyx_obj_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter *)o;
+  #if CYTHON_USE_TP_FINALIZE
+  if (unlikely(PyType_HasFeature(Py_TYPE(o), Py_TPFLAGS_HAVE_FINALIZE) && Py_TYPE(o)->tp_finalize) && !_PyGC_FINALIZED(o)) {
+    if (PyObject_CallFinalizerFromDealloc(o)) return;
+  }
+  #endif
+  PyObject_GC_UnTrack(o);
+  Py_CLEAR(p->chunks_gen);
+  #if CYTHON_USE_TYPE_SLOTS
+  if (PyType_IS_GC(Py_TYPE(o)->tp_base))
+  #endif
+  PyObject_GC_Track(o);
+  __pyx_tp_dealloc_17clickhouse_driver_14bufferedwriter_BufferedWriter(o);
+}
+
+static int __pyx_tp_traverse_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter(PyObject *o, visitproc v, void *a) {
+  int e;
+  struct __pyx_obj_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter *p = (struct __pyx_obj_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter *)o;
+  e = ((likely(__pyx_ptype_17clickhouse_driver_14bufferedwriter_BufferedWriter)) ? ((__pyx_ptype_17clickhouse_driver_14bufferedwriter_BufferedWriter->tp_traverse) ? __pyx_ptype_17clickhouse_driver_14bufferedwriter_BufferedWriter->tp_traverse(o, v, a) : 0) : __Pyx_call_next_tp_traverse(o, v, a, __pyx_tp_traverse_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter)); if (e) return e;
+  if (p->chunks_gen) {
+    e = (*v)(p->chunks_gen, a); if (e) return e;
+  }
+  return 0;
+}
+
+static int __pyx_tp_clear_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter(PyObject *o) {
+  PyObject* tmp;
+  struct __pyx_obj_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter *p = (struct __pyx_obj_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter *)o;
+  if (likely(__pyx_ptype_17clickhouse_driver_14bufferedwriter_BufferedWriter)) { if (__pyx_ptype_17clickhouse_driver_14bufferedwriter_BufferedWriter->tp_clear) __pyx_ptype_17clickhouse_driver_14bufferedwriter_BufferedWriter->tp_clear(o); } else __Pyx_call_next_tp_clear(o, __pyx_tp_clear_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter);
+  tmp = ((PyObject*)p->chunks_gen);
+  p->chunks_gen = Py_None; Py_INCREF(Py_None);
+  Py_XDECREF(tmp);
+  return 0;
+}
+
+static PyMethodDef __pyx_methods_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter[] = {
+  {"write_into_stream", (PyCFunction)__pyx_pw_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter_3write_into_stream, METH_NOARGS, 0},
+  {"__reduce_cython__", (PyCFunction)__pyx_pw_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter_5__reduce_cython__, METH_NOARGS, 0},
+  {"__setstate_cython__", (PyCFunction)__pyx_pw_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter_7__setstate_cython__, METH_O, 0},
+  {0, 0, 0, 0}
+};
+
+static PyTypeObject __pyx_type_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter = {
+  PyVarObject_HEAD_INIT(0, 0)
+  "clickhouse_driver.bufferedwriter.HttpBufferedSocketWriter", /*tp_name*/
+  sizeof(struct __pyx_obj_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter), /*tp_basicsize*/
+  0, /*tp_itemsize*/
+  __pyx_tp_dealloc_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter, /*tp_dealloc*/
+  #if PY_VERSION_HEX < 0x030800b4
+  0, /*tp_print*/
+  #endif
+  #if PY_VERSION_HEX >= 0x030800b4
+  0, /*tp_vectorcall_offset*/
+  #endif
+  0, /*tp_getattr*/
+  0, /*tp_setattr*/
+  #if PY_MAJOR_VERSION < 3
+  0, /*tp_compare*/
+  #endif
+  #if PY_MAJOR_VERSION >= 3
+  0, /*tp_as_async*/
+  #endif
+  0, /*tp_repr*/
+  0, /*tp_as_number*/
+  0, /*tp_as_sequence*/
+  0, /*tp_as_mapping*/
+  0, /*tp_hash*/
+  0, /*tp_call*/
+  0, /*tp_str*/
+  0, /*tp_getattro*/
+  0, /*tp_setattro*/
+  0, /*tp_as_buffer*/
+  Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_VERSION_TAG|Py_TPFLAGS_CHECKTYPES|Py_TPFLAGS_HAVE_NEWBUFFER|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_HAVE_GC, /*tp_flags*/
+  0, /*tp_doc*/
+  __pyx_tp_traverse_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter, /*tp_traverse*/
+  __pyx_tp_clear_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter, /*tp_clear*/
+  0, /*tp_richcompare*/
+  0, /*tp_weaklistoffset*/
+  0, /*tp_iter*/
+  0, /*tp_iternext*/
+  __pyx_methods_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter, /*tp_methods*/
+  0, /*tp_members*/
+  0, /*tp_getset*/
+  0, /*tp_base*/
+  0, /*tp_dict*/
+  0, /*tp_descr_get*/
+  0, /*tp_descr_set*/
+  0, /*tp_dictoffset*/
+  __pyx_pw_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter_1__init__, /*tp_init*/
+  0, /*tp_alloc*/
+  __pyx_tp_new_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter, /*tp_new*/
+  0, /*tp_free*/
+  0, /*tp_is_gc*/
+  0, /*tp_bases*/
+  0, /*tp_mro*/
+  0, /*tp_cache*/
+  0, /*tp_subclasses*/
+  0, /*tp_weaklist*/
+  0, /*tp_del*/
+  0, /*tp_version_tag*/
+  #if PY_VERSION_HEX >= 0x030400a1
+  0, /*tp_finalize*/
+  #endif
+  #if PY_VERSION_HEX >= 0x030800b1 && (!CYTHON_COMPILING_IN_PYPY || PYPY_VERSION_NUM >= 0x07030800)
+  0, /*tp_vectorcall*/
+  #endif
+  #if PY_VERSION_HEX >= 0x030800b4 && PY_VERSION_HEX < 0x03090000
+  0, /*tp_print*/
+  #endif
+  #if CYTHON_COMPILING_IN_PYPY && PY_VERSION_HEX >= 0x03090000
+  0, /*tp_pypy_flags*/
+  #endif
+};
 static struct __pyx_vtabstruct_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter __pyx_vtable_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter;
 
 static PyObject *__pyx_tp_new_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter(PyTypeObject *t, PyObject *a, PyObject *k) {
@@ -6921,17 +8172,20 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_BufferedSocketWriter, __pyx_k_BufferedSocketWriter, sizeof(__pyx_k_BufferedSocketWriter), 0, 0, 1, 1},
   {&__pyx_n_s_BufferedWriter, __pyx_k_BufferedWriter, sizeof(__pyx_k_BufferedWriter), 0, 0, 1, 1},
   {&__pyx_n_s_CompressedBufferedWriter, __pyx_k_CompressedBufferedWriter, sizeof(__pyx_k_CompressedBufferedWriter), 0, 0, 1, 1},
+  {&__pyx_n_s_HttpBufferedSocketWriter, __pyx_k_HttpBufferedSocketWriter, sizeof(__pyx_k_HttpBufferedSocketWriter), 0, 0, 1, 1},
   {&__pyx_kp_s_Incompatible_checksums_0x_x_vs_0, __pyx_k_Incompatible_checksums_0x_x_vs_0, sizeof(__pyx_k_Incompatible_checksums_0x_x_vs_0), 0, 0, 1, 0},
   {&__pyx_kp_s_Incompatible_checksums_0x_x_vs_0_2, __pyx_k_Incompatible_checksums_0x_x_vs_0_2, sizeof(__pyx_k_Incompatible_checksums_0x_x_vs_0_2), 0, 0, 1, 0},
   {&__pyx_kp_s_Incompatible_checksums_0x_x_vs_0_3, __pyx_k_Incompatible_checksums_0x_x_vs_0_3, sizeof(__pyx_k_Incompatible_checksums_0x_x_vs_0_3), 0, 0, 1, 0},
+  {&__pyx_kp_s_Incompatible_checksums_0x_x_vs_0_4, __pyx_k_Incompatible_checksums_0x_x_vs_0_4, sizeof(__pyx_k_Incompatible_checksums_0x_x_vs_0_4), 0, 0, 1, 0},
   {&__pyx_n_s_MemoryError, __pyx_k_MemoryError, sizeof(__pyx_k_MemoryError), 0, 0, 1, 1},
   {&__pyx_n_s_NotImplementedError, __pyx_k_NotImplementedError, sizeof(__pyx_k_NotImplementedError), 0, 0, 1, 1},
   {&__pyx_n_s_PickleError, __pyx_k_PickleError, sizeof(__pyx_k_PickleError), 0, 0, 1, 1},
   {&__pyx_n_s_TooLargeStringSize, __pyx_k_TooLargeStringSize, sizeof(__pyx_k_TooLargeStringSize), 0, 0, 1, 1},
   {&__pyx_n_s_ValueError, __pyx_k_ValueError, sizeof(__pyx_k_ValueError), 0, 0, 1, 1},
-  {&__pyx_n_s__5, __pyx_k__5, sizeof(__pyx_k__5), 0, 0, 1, 1},
+  {&__pyx_n_s__6, __pyx_k__6, sizeof(__pyx_k__6), 0, 0, 1, 1},
   {&__pyx_n_s_bufsize, __pyx_k_bufsize, sizeof(__pyx_k_bufsize), 0, 0, 1, 1},
-  {&__pyx_kp_u_bytes_object_expected, __pyx_k_bytes_object_expected, sizeof(__pyx_k_bytes_object_expected), 0, 1, 0, 0},
+  {&__pyx_kp_s_bytes_object_expected, __pyx_k_bytes_object_expected, sizeof(__pyx_k_bytes_object_expected), 0, 0, 1, 0},
+  {&__pyx_n_s_chunks_gen, __pyx_k_chunks_gen, sizeof(__pyx_k_chunks_gen), 0, 0, 1, 1},
   {&__pyx_n_s_clickhouse_driver_bufferedwriter, __pyx_k_clickhouse_driver_bufferedwriter, sizeof(__pyx_k_clickhouse_driver_bufferedwriter), 0, 0, 1, 1},
   {&__pyx_n_s_cline_in_traceback, __pyx_k_cline_in_traceback, sizeof(__pyx_k_cline_in_traceback), 0, 0, 1, 1},
   {&__pyx_n_s_compressor, __pyx_k_compressor, sizeof(__pyx_k_compressor), 0, 0, 1, 1},
@@ -6957,6 +8211,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_pyx_unpickle_BufferedSocketWri, __pyx_k_pyx_unpickle_BufferedSocketWri, sizeof(__pyx_k_pyx_unpickle_BufferedSocketWri), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_unpickle_BufferedWriter, __pyx_k_pyx_unpickle_BufferedWriter, sizeof(__pyx_k_pyx_unpickle_BufferedWriter), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_unpickle_CompressedBuffere, __pyx_k_pyx_unpickle_CompressedBuffere, sizeof(__pyx_k_pyx_unpickle_CompressedBuffere), 0, 0, 1, 1},
+  {&__pyx_n_s_pyx_unpickle_HttpBufferedSocke, __pyx_k_pyx_unpickle_HttpBufferedSocke, sizeof(__pyx_k_pyx_unpickle_HttpBufferedSocke), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_vtable, __pyx_k_pyx_vtable, sizeof(__pyx_k_pyx_vtable), 0, 0, 1, 1},
   {&__pyx_n_s_reduce, __pyx_k_reduce, sizeof(__pyx_k_reduce), 0, 0, 1, 1},
   {&__pyx_n_s_reduce_cython, __pyx_k_reduce_cython, sizeof(__pyx_k_reduce_cython), 0, 0, 1, 1},
@@ -6965,6 +8220,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_setstate, __pyx_k_setstate, sizeof(__pyx_k_setstate), 0, 0, 1, 1},
   {&__pyx_n_s_setstate_cython, __pyx_k_setstate_cython, sizeof(__pyx_k_setstate_cython), 0, 0, 1, 1},
   {&__pyx_n_s_sock, __pyx_k_sock, sizeof(__pyx_k_sock), 0, 0, 1, 1},
+  {&__pyx_n_s_store, __pyx_k_store, sizeof(__pyx_k_store), 0, 0, 1, 1},
   {&__pyx_kp_s_stringsource, __pyx_k_stringsource, sizeof(__pyx_k_stringsource), 0, 0, 1, 0},
   {&__pyx_n_s_super, __pyx_k_super, sizeof(__pyx_k_super), 0, 0, 1, 1},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
@@ -6996,7 +8252,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * 
  *             self.write(make_varint(PyBytes_GET_SIZE(value)))
  */
-  __pyx_tuple_ = PyTuple_Pack(1, __pyx_kp_u_bytes_object_expected); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 56, __pyx_L1_error)
+  __pyx_tuple_ = PyTuple_Pack(1, __pyx_kp_s_bytes_object_expected); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 56, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple_);
   __Pyx_GIVEREF(__pyx_tuple_);
 
@@ -7013,27 +8269,34 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__3 = PyTuple_Pack(3, __pyx_int_62583983, __pyx_int_211840719, __pyx_int_82038463); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(1, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__3);
   __Pyx_GIVEREF(__pyx_tuple__3);
-  __pyx_tuple__4 = PyTuple_Pack(3, __pyx_int_17355272, __pyx_int_137744089, __pyx_int_158296731); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __pyx_tuple__4 = PyTuple_Pack(3, __pyx_int_210777778, __pyx_int_89037342, __pyx_int_155037407); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(1, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__4);
   __Pyx_GIVEREF(__pyx_tuple__4);
+  __pyx_tuple__5 = PyTuple_Pack(3, __pyx_int_17355272, __pyx_int_137744089, __pyx_int_158296731); if (unlikely(!__pyx_tuple__5)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__5);
+  __Pyx_GIVEREF(__pyx_tuple__5);
 
   /* "(tree fragment)":1
  * def __pyx_unpickle_BufferedWriter(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
  *     cdef object __pyx_PickleError
  *     cdef object __pyx_result
  */
-  __pyx_tuple__6 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__6)) __PYX_ERR(1, 1, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__6);
-  __Pyx_GIVEREF(__pyx_tuple__6);
-  __pyx_codeobj__7 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__6, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_BufferedWriter, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__7)) __PYX_ERR(1, 1, __pyx_L1_error)
-  __pyx_tuple__8 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(1, 1, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__8);
-  __Pyx_GIVEREF(__pyx_tuple__8);
-  __pyx_codeobj__9 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__8, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_BufferedSocketWri, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__9)) __PYX_ERR(1, 1, __pyx_L1_error)
-  __pyx_tuple__10 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__10)) __PYX_ERR(1, 1, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__10);
-  __Pyx_GIVEREF(__pyx_tuple__10);
-  __pyx_codeobj__11 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__10, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_CompressedBuffere, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__11)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_tuple__7 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__7);
+  __Pyx_GIVEREF(__pyx_tuple__7);
+  __pyx_codeobj__8 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__7, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_BufferedWriter, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__8)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_tuple__9 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__9)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__9);
+  __Pyx_GIVEREF(__pyx_tuple__9);
+  __pyx_codeobj__10 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__9, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_BufferedSocketWri, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__10)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_tuple__11 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__11)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__11);
+  __Pyx_GIVEREF(__pyx_tuple__11);
+  __pyx_codeobj__12 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__11, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_HttpBufferedSocke, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__12)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_tuple__13 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__13)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__13);
+  __Pyx_GIVEREF(__pyx_tuple__13);
+  __pyx_codeobj__14 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__13, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_CompressedBuffere, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__14)) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -7049,8 +8312,11 @@ static CYTHON_SMALL_CODE int __Pyx_InitGlobals(void) {
   __pyx_int_39656716 = PyInt_FromLong(39656716L); if (unlikely(!__pyx_int_39656716)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_62583983 = PyInt_FromLong(62583983L); if (unlikely(!__pyx_int_62583983)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_82038463 = PyInt_FromLong(82038463L); if (unlikely(!__pyx_int_82038463)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_int_89037342 = PyInt_FromLong(89037342L); if (unlikely(!__pyx_int_89037342)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_137744089 = PyInt_FromLong(137744089L); if (unlikely(!__pyx_int_137744089)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_int_155037407 = PyInt_FromLong(155037407L); if (unlikely(!__pyx_int_155037407)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_158296731 = PyInt_FromLong(158296731L); if (unlikely(!__pyx_int_158296731)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_int_210777778 = PyInt_FromLong(210777778L); if (unlikely(!__pyx_int_210777778)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_211840719 = PyInt_FromLong(211840719L); if (unlikely(!__pyx_int_211840719)) __PYX_ERR(0, 1, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
@@ -7125,20 +8391,35 @@ static int __Pyx_modinit_type_init_code(void) {
   if (PyObject_SetAttr(__pyx_m, __pyx_n_s_BufferedSocketWriter, (PyObject *)&__pyx_type_17clickhouse_driver_14bufferedwriter_BufferedSocketWriter) < 0) __PYX_ERR(0, 119, __pyx_L1_error)
   if (__Pyx_setup_reduce((PyObject*)&__pyx_type_17clickhouse_driver_14bufferedwriter_BufferedSocketWriter) < 0) __PYX_ERR(0, 119, __pyx_L1_error)
   __pyx_ptype_17clickhouse_driver_14bufferedwriter_BufferedSocketWriter = &__pyx_type_17clickhouse_driver_14bufferedwriter_BufferedSocketWriter;
+  __pyx_vtabptr_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter = &__pyx_vtable_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter;
+  __pyx_vtable_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter.__pyx_base = *__pyx_vtabptr_17clickhouse_driver_14bufferedwriter_BufferedWriter;
+  __pyx_vtable_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter.__pyx_base.write_into_stream = (PyObject *(*)(struct __pyx_obj_17clickhouse_driver_14bufferedwriter_BufferedWriter *, int __pyx_skip_dispatch))__pyx_f_17clickhouse_driver_14bufferedwriter_24HttpBufferedSocketWriter_write_into_stream;
+  __pyx_type_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter.tp_base = __pyx_ptype_17clickhouse_driver_14bufferedwriter_BufferedWriter;
+  if (PyType_Ready(&__pyx_type_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter) < 0) __PYX_ERR(0, 133, __pyx_L1_error)
+  #if PY_VERSION_HEX < 0x030800B1
+  __pyx_type_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter.tp_print = 0;
+  #endif
+  if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter.tp_dictoffset && __pyx_type_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter.tp_getattro == PyObject_GenericGetAttr)) {
+    __pyx_type_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter.tp_getattro = __Pyx_PyObject_GenericGetAttr;
+  }
+  if (__Pyx_SetVtable(__pyx_type_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter.tp_dict, __pyx_vtabptr_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter) < 0) __PYX_ERR(0, 133, __pyx_L1_error)
+  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_HttpBufferedSocketWriter, (PyObject *)&__pyx_type_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter) < 0) __PYX_ERR(0, 133, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter) < 0) __PYX_ERR(0, 133, __pyx_L1_error)
+  __pyx_ptype_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter = &__pyx_type_17clickhouse_driver_14bufferedwriter_HttpBufferedSocketWriter;
   __pyx_vtabptr_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter = &__pyx_vtable_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter;
   __pyx_vtable_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter.__pyx_base = *__pyx_vtabptr_17clickhouse_driver_14bufferedwriter_BufferedWriter;
   __pyx_vtable_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter.__pyx_base.write_into_stream = (PyObject *(*)(struct __pyx_obj_17clickhouse_driver_14bufferedwriter_BufferedWriter *, int __pyx_skip_dispatch))__pyx_f_17clickhouse_driver_14bufferedwriter_24CompressedBufferedWriter_write_into_stream;
   __pyx_type_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter.tp_base = __pyx_ptype_17clickhouse_driver_14bufferedwriter_BufferedWriter;
-  if (PyType_Ready(&__pyx_type_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter) < 0) __PYX_ERR(0, 133, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter) < 0) __PYX_ERR(0, 147, __pyx_L1_error)
   #if PY_VERSION_HEX < 0x030800B1
   __pyx_type_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter.tp_print = 0;
   #endif
   if ((CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP) && likely(!__pyx_type_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter.tp_dictoffset && __pyx_type_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter.tp_getattro == PyObject_GenericGetAttr)) {
     __pyx_type_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter.tp_getattro = __Pyx_PyObject_GenericGetAttr;
   }
-  if (__Pyx_SetVtable(__pyx_type_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter.tp_dict, __pyx_vtabptr_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter) < 0) __PYX_ERR(0, 133, __pyx_L1_error)
-  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_CompressedBufferedWriter, (PyObject *)&__pyx_type_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter) < 0) __PYX_ERR(0, 133, __pyx_L1_error)
-  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter) < 0) __PYX_ERR(0, 133, __pyx_L1_error)
+  if (__Pyx_SetVtable(__pyx_type_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter.tp_dict, __pyx_vtabptr_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter) < 0) __PYX_ERR(0, 147, __pyx_L1_error)
+  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_CompressedBufferedWriter, (PyObject *)&__pyx_type_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter) < 0) __PYX_ERR(0, 147, __pyx_L1_error)
+  if (__Pyx_setup_reduce((PyObject*)&__pyx_type_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter) < 0) __PYX_ERR(0, 147, __pyx_L1_error)
   __pyx_ptype_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter = &__pyx_type_17clickhouse_driver_14bufferedwriter_CompressedBufferedWriter;
   __Pyx_RefNannyFinishContext();
   return 0;
@@ -7413,7 +8694,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_INCREF(__pyx_n_s_errors);
   __Pyx_GIVEREF(__pyx_n_s_errors);
   PyList_SET_ITEM(__pyx_t_1, 0, __pyx_n_s_errors);
-  __pyx_t_2 = __Pyx_Import(__pyx_n_s__5, __pyx_t_1, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 6, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_Import(__pyx_n_s__6, __pyx_t_1, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 6, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_errors); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 6, __pyx_L1_error)
@@ -7466,11 +8747,23 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "(tree fragment)":1
- * def __pyx_unpickle_CompressedBufferedWriter(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
+ * def __pyx_unpickle_HttpBufferedSocketWriter(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
  *     cdef object __pyx_PickleError
  *     cdef object __pyx_result
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_17clickhouse_driver_14bufferedwriter_5__pyx_unpickle_CompressedBufferedWriter, NULL, __pyx_n_s_clickhouse_driver_bufferedwriter); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_17clickhouse_driver_14bufferedwriter_5__pyx_unpickle_HttpBufferedSocketWriter, NULL, __pyx_n_s_clickhouse_driver_bufferedwriter); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_pyx_unpickle_HttpBufferedSocke, __pyx_t_1) < 0) __PYX_ERR(1, 1, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "(tree fragment)":11
+ *         __pyx_unpickle_HttpBufferedSocketWriter__set_state(<HttpBufferedSocketWriter> __pyx_result, __pyx_state)
+ *     return __pyx_result
+ * cdef __pyx_unpickle_HttpBufferedSocketWriter__set_state(HttpBufferedSocketWriter __pyx_result, tuple __pyx_state):             # <<<<<<<<<<<<<<
+ *     __pyx_result.buffer = __pyx_state[0]; __pyx_result.buffer_size = __pyx_state[1]; __pyx_result.chunks_gen = __pyx_state[2]; __pyx_result.position = __pyx_state[3]
+ *     if len(__pyx_state) > 4 and hasattr(__pyx_result, '__dict__'):
+ */
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_17clickhouse_driver_14bufferedwriter_7__pyx_unpickle_CompressedBufferedWriter, NULL, __pyx_n_s_clickhouse_driver_bufferedwriter); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_pyx_unpickle_CompressedBuffere, __pyx_t_1) < 0) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;

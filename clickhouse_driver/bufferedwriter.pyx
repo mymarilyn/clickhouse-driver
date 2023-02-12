@@ -130,6 +130,20 @@ cdef class BufferedSocketWriter(BufferedWriter):
         self.position = 0
 
 
+cdef class HttpBufferedSocketWriter(BufferedWriter):
+    cdef object chunks_gen
+
+    def __init__(self, chunks_gen, bufsize):
+        self.chunks_gen = chunks_gen
+        super(HttpBufferedSocketWriter, self).__init__(bufsize)
+
+    cpdef write_into_stream(self):
+        self.chunks_gen.store(
+            PyBytes_FromStringAndSize(self.buffer, self.position)
+        )
+        self.position = 0
+
+
 cdef class CompressedBufferedWriter(BufferedWriter):
     cdef object compressor
 
