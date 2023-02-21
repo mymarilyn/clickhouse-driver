@@ -438,7 +438,7 @@ class Client(object):
 
     def query_dataframe(
             self, query, params=None, external_tables=None, query_id=None,
-            settings=None):
+            settings=None, replace_nonwords=True):
         """
         *New in version 0.2.0.*
 
@@ -453,6 +453,7 @@ class Client(object):
                          ClickHouse server will generate it.
         :param settings: dictionary of query settings.
                          Defaults to ``None`` (no additional settings).
+        :param replace_nonwords: boolean to replace non-words in column names to underscores
         :return: pandas DataFrame.
         """
 
@@ -467,7 +468,9 @@ class Client(object):
             settings=settings
         )
 
-        columns = [re.sub(r'\W', '_', name) for name, type_ in columns]
+        if replace_nonwords:
+            columns = [re.sub(r'\W', '_', name) for name, type_ in columns]
+
         return pd.DataFrame(
             {col: d for d, col in zip(data, columns)}, columns=columns
         )
