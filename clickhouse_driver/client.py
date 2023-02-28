@@ -778,6 +778,15 @@ class Client(object):
             elif name == 'settings_is_important':
                 kwargs[name] = asbool(value)
 
+            elif name == 'tcp_keepalive':
+                try:
+                    kwargs[name] = asbool(value)
+                except ValueError:
+                    parts = value.split(',')
+                    kwargs[name] = (
+                        float(parts[0]), float(parts[1]), int(parts[2])
+                    )
+
             # ssl
             elif name == 'verify':
                 kwargs[name] = asbool(value)

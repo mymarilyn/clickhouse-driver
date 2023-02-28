@@ -275,3 +275,12 @@ class ClientFromUrlTestCase(TestCase):
             'clickhouse://host?round_robin=true&alt_hosts=host2'
         )
         self.assertEqual(len(c.connections), 1)
+
+    def test_tcp_keepalive(self):
+        c = Client.from_url('clickhouse://host?tcp_keepalive=true')
+        self.assertTrue(c.connection.tcp_keepalive)
+
+        c = Client.from_url('clickhouse://host?tcp_keepalive=10.5,2.5,3')
+        self.assertEqual(
+            c.connection.tcp_keepalive, (10.5, 2.5, 3)
+        )

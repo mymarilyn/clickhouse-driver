@@ -264,6 +264,19 @@ class ConnectTestCase(BaseTestCase):
             self.assertFalse(client.connection.connected)
             self.assertFalse(list(client.connections)[0].connected)
 
+    def test_tcp_keepalive(self):
+        self.assertFalse(self.client.connection.tcp_keepalive)
+
+        with self.created_client(tcp_keepalive=True) as client:
+            self.assertTrue(client.connection.tcp_keepalive)
+
+            client.execute('SELECT 1')
+
+        with self.created_client(tcp_keepalive=(100, 20, 2)) as client:
+            self.assertEqual(client.connection.tcp_keepalive, (100, 20, 2))
+
+            client.execute('SELECT 1')
+
 
 class FakeBufferedReader(BufferedReader):
     def __init__(self, inputs, bufsize=128):

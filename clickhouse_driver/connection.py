@@ -3,6 +3,7 @@ import socket
 import ssl
 from collections import deque
 from contextlib import contextmanager
+from sys import platform
 from time import time
 from urllib.parse import urlparse
 
@@ -124,6 +125,13 @@ class Connection(object):
                                   ignored, ``True`` means that the query will
                                   fail with UNKNOWN_SETTING error.
                                   Defaults to ``False``.
+    :param tcp_keepalive: enables `TCP keepalive <https://tldp.org/HOWTO/
+                          TCP-Keepalive-HOWTO/overview.html>`_ on established
+                          connection. If is set to ``True``` system keepalive
+                          settings are used. You can also specify custom
+                          keepalive setting with tuple:
+                          ``(idle_time_sec, interval_sec, probes)``.
+                          Defaults to ``False``.
     """
 
     def __init__(
@@ -143,6 +151,7 @@ class Connection(object):
             server_hostname=None,
             alt_hosts=None,
             settings_is_important=False,
+            tcp_keepalive=False
     ):
         if secure:
             default_port = defines.DEFAULT_SECURE_PORT
@@ -164,6 +173,7 @@ class Connection(object):
         self.send_receive_timeout = send_receive_timeout
         self.sync_request_timeout = sync_request_timeout
         self.settings_is_important = settings_is_important
+        self.tcp_keepalive = tcp_keepalive
 
         self.secure_socket = secure
         self.verify_cert = verify
@@ -310,6 +320,8 @@ class Connection(object):
 
         # performance tweak
         self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        if self.tcp_keepalive:
+            self._set_keepalive()
 
         self.fin = BufferedSocketReader(self.socket, defines.BUFFER_SIZE)
         self.fout = BufferedSocketWriter(self.socket, defines.BUFFER_SIZE)
@@ -320,6 +332,34 @@ class Connection(object):
         self.block_in = self.get_block_in_stream()
         self.block_in_raw = BlockInputStream(self.fin, self.context)
         self.block_out = self.get_block_out_stream()
+
+    def _set_keepalive(self):
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+
+        if not isinstance(self.tcp_keepalive, tuple):
+            return
+
+        idle_time_sec, interval_sec, probes = self.tcp_keepalive
+
+        if platform == 'linux' or platform == 'win32':
+            # This should also work for Windows
+            # starting with Windows 10, version 1709.
+            self.socket.setsockopt(
+                socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, idle_time_sec
+            )
+            self.socket.setsockopt(
+                socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, interval_sec
+            )
+            self.socket.setsockopt(
+                socket.IPPROTO_TCP, socket.TCP_KEEPCNT, probes
+            )
+
+        elif platform == 'darwin':
+            TCP_KEEPALIVE = 0x10
+            # Only interval is available in mac os.
+            self.socket.setsockopt(
+                socket.IPPROTO_TCP, TCP_KEEPALIVE, interval_sec
+            )
 
     def _format_connection_error(self, e, host, port):
         err = (e.strerror + ' ') if e.strerror else ''

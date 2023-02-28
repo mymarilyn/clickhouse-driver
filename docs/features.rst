@@ -546,3 +546,43 @@ Each Client instance can be used as a context manager:
 
 Upon exit, any established connection to the ClickHouse server will be closed
 automatically.
+
+
+TCP keepalive
+-------------
+
+*New in version 0.2.6.*
+
+You can enable `TCP keepalive
+<https://tldp.org/HOWTO/TCP-Keepalive-HOWTO/overview.html>`_ on connection with
+ClickHouse server. This setting is disabled by default. When parameter
+``tcp_keepalive`` is set to ``True`` system TCP keepalive settings are used.
+
+    .. code-block:: python
+
+        >>> client = Client('localhost', tcp_keepalive=True)
+
+
+For Linux default TCP keepalive settings can be found in:
+
+    .. code-block:: bash
+
+        idle_time_sec - /proc/sys/net/ipv4/tcp_keepalive_time
+        interval_sec - /proc/sys/net/ipv4/tcp_keepalive_intvl
+        probes - /proc/sys/net/ipv4/tcp_keepalive_probes
+
+You can also specify custom keepalive settings with tuple
+``(idle_time_sec, interval_sec, probes)``:
+
+    .. code-block:: python
+
+        >>> client = Client('localhost', tcp_keepalive=(60.5, 5.1, 2))
+
+    .. note::
+
+        For Linux and Windows all parameters: idle time, interval and probes
+        can be changed for socket.
+
+        For Mac OS only the second parameter ``interval_sec`` can be changed
+        for socket. ``idle_time_sec``, ``probes`` are not used, but should be
+        specified for uniformity.
