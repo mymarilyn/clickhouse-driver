@@ -469,8 +469,9 @@ class Client(object):
             settings=settings
         )
 
+        columns = [name for name, type_ in columns]
         if replace_nonwords:
-            columns = [re.sub(r'\W', '_', name) for name, type_ in columns]
+            columns = [re.sub(r'\W', '_', x) for x in columns]
 
         return pd.DataFrame(
             {col: d for d, col in zip(data, columns)}, columns=columns
