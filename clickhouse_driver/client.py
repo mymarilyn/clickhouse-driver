@@ -453,7 +453,8 @@ class Client(object):
                          ClickHouse server will generate it.
         :param settings: dictionary of query settings.
                          Defaults to ``None`` (no additional settings).
-        :param replace_nonwords: boolean to replace non-words in column names to underscores
+        :param replace_nonwords: boolean to replace non-words in column names
+                                 to underscores. Defaults to ``True``.
         :return: pandas DataFrame.
         """
 
