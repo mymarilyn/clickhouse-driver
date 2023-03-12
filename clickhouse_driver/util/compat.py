@@ -5,6 +5,18 @@ try:
 except ImportError:
     import dummy_threading as threading  # noqa: F401
 
+import json  # noqa: F401
+try:
+    import orjson as json  # noqa: F811
+except ImportError:
+    pass
+
+try:
+    import ujson as json  # noqa: F811,F401
+except ImportError:
+    pass
+
+
 try:
     # since tzlocal 4.0+
     # this will avoid warning for get_localzone().key

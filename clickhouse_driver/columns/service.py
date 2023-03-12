@@ -15,6 +15,7 @@ from .intcolumn import (
     UInt8Column, UInt16Column, UInt32Column, UInt64Column
 )
 from .lowcardinalitycolumn import create_low_cardinality_column
+from .jsoncolumn import create_json_column
 from .mapcolumn import create_map_column
 from .nothingcolumn import NothingColumn
 from .nullcolumn import NullColumn
@@ -119,6 +120,11 @@ def get_column_by_spec(spec, column_options, use_numpy=None):
 
     elif spec.startswith('Map'):
         return create_map_column(
+            spec, create_column_with_options, column_options
+        )
+
+    elif spec.startswith("Object('json')"):
+        return create_json_column(
             spec, create_column_with_options, column_options
         )
 

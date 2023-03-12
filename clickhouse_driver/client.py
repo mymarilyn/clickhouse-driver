@@ -57,6 +57,12 @@ class Client(object):
         * ``round_robin`` -- If ``alt_hosts`` are provided the query will be
                            executed on host picked with round-robin algorithm.
                            New in version *0.2.5*.
+        * ``namedtuple_as_json`` -- Controls named tuple and nested types
+                           deserialization. To interpret these column alongside
+                           with ``allow_experimental_object_type=1`` as Python
+                           tuple set ``namedtuple_as_json`` to ``False``.
+                           Default: True.
+                           New in version *0.2.6*.
     """
 
     available_client_settings = (
@@ -67,7 +73,8 @@ class Client(object):
         'opentelemetry_traceparent',
         'opentelemetry_tracestate',
         'quota_key',
-        'input_format_null_as_default'
+        'input_format_null_as_default',
+        'namedtuple_as_json'
     )
 
     def __init__(self, *args, **kwargs):
@@ -97,6 +104,9 @@ class Client(object):
             ),
             'input_format_null_as_default': self.settings.pop(
                 'input_format_null_as_default', False
+            ),
+            'namedtuple_as_json': self.settings.pop(
+                'namedtuple_as_json', True
             )
         }
 
