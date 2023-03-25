@@ -226,6 +226,19 @@ class DateTimeTestCase(BaseDateTimeTestCase):
             inserted = self.emit_cli(query)
             self.assertEqual(inserted, '0\n1\n1500000000\n4294967295\n')
 
+    @require_server_version(20, 1, 2)
+    def test_negative_timestamps(self):
+        with self.create_table("a DateTime64(3, 'UTC')"):
+            times = np.array(['1900-01-01 00:00'], dtype='datetime64[ns]')
+            self.client.execute(
+                'INSERT INTO test(a) VALUES',
+                [times],
+                columnar=True,
+            )
+
+            inserted = self.client.execute('SELECT * FROM test', columnar=True)
+            self.assertArraysEqual(inserted[0], times)
+
 
 class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
     dt_type = 'DateTime'
