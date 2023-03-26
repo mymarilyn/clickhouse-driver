@@ -65,7 +65,7 @@ class NumpyDateTimeColumn(NumpyDateTimeColumnBase):
 
 
 class NumpyDateTime64Column(NumpyDateTimeColumnBase):
-    dtype = np.dtype(np.uint64)
+    dtype = np.dtype(np.int64)
     datetime_dtype = 'datetime64[ns]'
 
     max_scale = 9
@@ -75,15 +75,15 @@ class NumpyDateTime64Column(NumpyDateTimeColumnBase):
         super(NumpyDateTime64Column, self).__init__(**kwargs)
 
     def read_items(self, n_items, buf):
-        scale = 10 ** self.scale
-        frac_scale = 10 ** (self.max_scale - self.scale)
-
+        # Clickhouse:     t seconds is represented as t * 10^scale.
+        # datetime64[ns]: t seconds is represented as t * 10^9.
+        # Since 0 <= scale <= 9, multiply by the integer 10^(9 - scale).
         items = super(NumpyDateTime64Column, self).read_items(n_items, buf)
 
-        seconds = (items // scale).astype('datetime64[s]')
-        microseconds = ((items % scale) * frac_scale).astype('timedelta64[ns]')
+        tmp = np.copy(items)
+        tmp *= 10 ** (9 - self.scale)
+        dt = tmp.view(dtype='datetime64[ns]')
 
-        dt = seconds + microseconds
         return self.apply_timezones_after_read(dt)
 
     def write_items(self, items, buf):
