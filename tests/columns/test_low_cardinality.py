@@ -65,6 +65,15 @@ class LowCardinalityTestCase(BaseTestCase):
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
 
+    def test_nullable_date(self):
+        with self.create_table('a LowCardinality(Nullable(Date))'):
+            data = [(date(2023, 4, 1), ), (None, ), (date(1970, 1, 1), )]
+            self.client.execute('INSERT INTO test (a) VALUES', data)
+
+            query = 'SELECT * FROM test'
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
+
     def test_float(self):
         with self.create_table('a LowCardinality(Float)'):
             data = [(float(x),) for x in range(300)]

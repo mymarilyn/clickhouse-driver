@@ -48,12 +48,14 @@ class LowCardinalityColumn(Column):
     def _write_data(self, items, buf):
         index, keys = [], []
         key_by_index_element = {}
+        nested_is_nullable = False
 
         if self.nested_column.nullable:
             # First element represents NULL if column is nullable.
             index.append(self.nested_column.null_value)
             # Prevent null map writing. Reset nested column nullable flag.
             self.nested_column.nullable = False
+            nested_is_nullable = True
 
             for x in items:
                 if x is None:
@@ -94,7 +96,19 @@ class LowCardinalityColumn(Column):
         write_binary_int64(serialization_type, buf)
         write_binary_int64(len(index), buf)
 
-        self.nested_column.write_data(index, buf)
+        if nested_is_nullable:
+            # Given we reset nested column nullable flag above,
+            # we need to write null map manually. If to invoke
+            # write_data method, it will cause an exception,
+            # because `prepare_data` may not be able to handle
+            # null value correctly.
+            self.nested_column.write_items(
+                [self.nested_column.null_value], buf)
+            # Remove null map from index, because it is already written.
+            index_to_write = index[1:]
+            self.nested_column.write_data(index_to_write, buf)
+        else:
+            self.nested_column.write_data(index, buf)
         write_binary_int64(len(items), buf)
         int_column.write_items(keys, buf)
 
