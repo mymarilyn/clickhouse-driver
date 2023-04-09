@@ -155,7 +155,7 @@ class InsertTestCase(BaseTestCase):
             data = [{'a': 1}]
             self.client.execute(
                 "INSERT INTO test (a) "
-                "SELECT a from input ('a Int8')",
+                "SELECT a FROM input ('a Int8') FORMAT Native",
                 data
             )
 
