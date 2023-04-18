@@ -28,6 +28,14 @@ class TupleColumn(Column):
     def read_items(self, n_items, buf):
         return self.read_data(n_items, buf)
 
+    def read_state_prefix(self, buf):
+        for x in self.nested_columns:
+            x.read_state_prefix(buf)
+
+    def write_state_prefix(self, buf):
+        for x in self.nested_columns:
+            x.write_state_prefix(buf)
+
 
 def create_tuple_column(spec, column_by_spec_getter, column_options):
     inner_spec = get_inner_spec('Tuple', spec)

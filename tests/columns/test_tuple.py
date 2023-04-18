@@ -178,3 +178,22 @@ class TupleTestCase(BaseTestCase):
         with self.create_table(columns):
             with self.assertRaises(errors.TypeMismatchError):
                 self.client.execute('INSERT INTO test (a) VALUES', data)
+
+    def test_tuple_of_low_cardinality(self):
+        data = [((1, 2), )]
+        columns = 'a Tuple(LowCardinality(Int32), LowCardinality(Int32))'
+
+        with self.create_table(columns):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted,
+                '(1,2)\n'
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
