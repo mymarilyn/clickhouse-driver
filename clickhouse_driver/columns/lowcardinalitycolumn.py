@@ -35,6 +35,7 @@ class LowCardinalityColumn(Column):
     serialization_type = has_additional_keys_bit | need_update_dictionary
 
     def __init__(self, nested_column, **kwargs):
+        self.init_kwargs = kwargs
         self.nested_column = nested_column
         super(LowCardinalityColumn, self).__init__(**kwargs)
 
@@ -89,7 +90,7 @@ class LowCardinalityColumn(Column):
             return
 
         int_type = int(log(len(index), 2) / 8)
-        int_column = self.int_types[int_type]()
+        int_column = self.int_types[int_type](**self.init_kwargs)
 
         serialization_type = self.serialization_type | int_type
 
@@ -120,7 +121,7 @@ class LowCardinalityColumn(Column):
 
         # Lowest byte contains info about key type.
         key_type = serialization_type & 0xf
-        keys_column = self.int_types[key_type]()
+        keys_column = self.int_types[key_type](**self.init_kwargs)
 
         nullable = self.nested_column.nullable
         # Prevent null map reading. Reset nested column nullable flag.

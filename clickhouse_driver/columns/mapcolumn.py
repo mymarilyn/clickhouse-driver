@@ -13,7 +13,7 @@ class MapColumn(Column):
     null_value = {}
 
     def __init__(self, key_column, value_column, **kwargs):
-        self.offset_column = UInt64Column()
+        self.offset_column = UInt64Column(**kwargs)
         self.key_column = key_column
         self.value_column = value_column
         super(MapColumn, self).__init__(**kwargs)
@@ -57,7 +57,7 @@ class MapColumn(Column):
 
 
 def create_map_column(spec, column_by_spec_getter, column_options):
-    # Match commas outside of parentheses so we don't match the comma in
+    # Match commas outside of parentheses, so we don't match the comma in
     # Decimal types.
     key, value = comma_re.split(spec[4:-1])
     key_column = column_by_spec_getter(key.strip())

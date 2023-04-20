@@ -19,10 +19,9 @@ class Column(object):
         self.nullable = False
         self.types_check_enabled = types_check
         self.input_null_as_default = False
-        if 'context' in kwargs:
-            settings = kwargs['context'].client_settings
-            self.input_null_as_default = settings \
-                .get('input_format_null_as_default', False)
+        settings = kwargs['context'].client_settings
+        self.input_null_as_default = settings\
+            .get('input_format_null_as_default', False)
 
         super(Column, self).__init__()
 
