@@ -40,9 +40,13 @@ class LowCardinalityColumn(Column):
         super(LowCardinalityColumn, self).__init__(**kwargs)
 
     def read_state_prefix(self, buf):
-        return read_binary_uint64(buf)
+        super(LowCardinalityColumn, self).read_state_prefix(buf)
+
+        read_binary_uint64(buf)
 
     def write_state_prefix(self, buf):
+        super(LowCardinalityColumn, self).write_state_prefix(buf)
+
         # KeysSerializationVersion. See ClickHouse docs.
         write_binary_int64(1, buf)
 

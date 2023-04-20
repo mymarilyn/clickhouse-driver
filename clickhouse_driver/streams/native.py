@@ -1,8 +1,8 @@
 from ..block import ColumnOrientedBlock, BlockInfo
 from ..columns.service import read_column, write_column
-from ..reader import read_binary_str
+from ..reader import read_binary_str, read_binary_uint8
 from ..varint import write_varint, read_varint
-from ..writer import write_binary_str
+from ..writer import write_binary_str, write_binary_uint8
 from .. import defines
 
 
@@ -34,6 +34,11 @@ class BlockOutputStream(object):
                     items = block.get_column_by_index(i)
                 except IndexError:
                     raise ValueError('Different rows length')
+
+                if revision >= \
+                        defines.DBMS_MIN_REVISION_WITH_CUSTOM_SERIALIZATION:
+                    # We write always sparse data without custom serialization.
+                    write_binary_uint8(0, self.fout)
 
                 write_column(self.context, col_name, col_type, items,
                              self.fout, types_check=block.types_check)
@@ -70,9 +75,16 @@ class BlockInputStream(object):
             names.append(column_name)
             types.append(column_type)
 
+            has_custom_serialization = False
+            if revision >= defines.DBMS_MIN_REVISION_WITH_CUSTOM_SERIALIZATION:
+                has_custom_serialization = bool(read_binary_uint8(self.fin))
+
             if n_rows:
-                column = read_column(self.context, column_type, n_rows,
-                                     self.fin, use_numpy=use_numpy)
+                column = read_column(
+                    self.context, column_type, n_rows,
+                    self.fin, use_numpy=use_numpy,
+                    has_custom_serialization=has_custom_serialization
+                )
                 data.append(column)
 
         if self.context.client_settings['use_numpy']:

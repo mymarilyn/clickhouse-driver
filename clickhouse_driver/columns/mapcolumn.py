@@ -19,10 +19,14 @@ class MapColumn(Column):
         super(MapColumn, self).__init__(**kwargs)
 
     def read_state_prefix(self, buf):
+        super(MapColumn, self).read_state_prefix(buf)
+
         self.key_column.read_state_prefix(buf)
         self.value_column.read_state_prefix(buf)
 
     def write_state_prefix(self, buf):
+        super(MapColumn, self).write_state_prefix(buf)
+
         self.key_column.write_state_prefix(buf)
         self.value_column.write_state_prefix(buf)
 

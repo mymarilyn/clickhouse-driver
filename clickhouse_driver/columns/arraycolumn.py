@@ -111,9 +111,13 @@ class ArrayColumn(Column):
         self._write_data(value, buf)
 
     def read_state_prefix(self, buf):
-        return self.nested_column.read_state_prefix(buf)
+        super(ArrayColumn, self).read_state_prefix(buf)
+
+        self.nested_column.read_state_prefix(buf)
 
     def write_state_prefix(self, buf):
+        super(ArrayColumn, self).write_state_prefix(buf)
+
         self.nested_column.write_state_prefix(buf)
 
     def _read(self, size, buf):

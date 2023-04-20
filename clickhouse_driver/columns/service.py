@@ -137,8 +137,12 @@ def get_column_by_spec(spec, column_options, use_numpy=None):
             raise errors.UnknownTypeError('Unknown type {}'.format(spec))
 
 
-def read_column(context, column_spec, n_items, buf, use_numpy=None):
-    column_options = {'context': context}
+def read_column(context, column_spec, n_items, buf, use_numpy=None,
+                has_custom_serialization=False):
+    column_options = {
+        'context': context,
+        'has_custom_serialization': has_custom_serialization
+    }
     col = get_column_by_spec(column_spec, column_options, use_numpy=use_numpy)
     col.read_state_prefix(buf)
     return col.read_data(n_items, buf)

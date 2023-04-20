@@ -29,10 +29,14 @@ class TupleColumn(Column):
         return self.read_data(n_items, buf)
 
     def read_state_prefix(self, buf):
+        super(TupleColumn, self).read_state_prefix(buf)
+
         for x in self.nested_columns:
             x.read_state_prefix(buf)
 
     def write_state_prefix(self, buf):
+        super(TupleColumn, self).write_state_prefix(buf)
+
         for x in self.nested_columns:
             x.write_state_prefix(buf)
 
