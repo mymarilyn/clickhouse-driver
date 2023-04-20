@@ -2,7 +2,7 @@ on: [push, pull_request]
 name: build
 jobs:
   tests:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         use-numpy:
@@ -119,7 +119,7 @@ jobs:
   valgrind:
     name: Valgrind check
     needs: tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
@@ -167,7 +167,7 @@ jobs:
   wheels-linux:
     name: Wheels for Linux
     needs: valgrind
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
@@ -280,7 +280,7 @@ jobs:
   wheels-linux-non-x86:
     name: Wheels for Linux non-x86
     needs: valgrind
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         arch:
