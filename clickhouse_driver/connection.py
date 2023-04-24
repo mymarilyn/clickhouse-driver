@@ -329,6 +329,10 @@ class Connection(object):
         self.send_hello()
         self.receive_hello()
 
+        revision = self.server_info.revision
+        if revision >= defines.DBMS_MIN_PROTOCOL_VERSION_WITH_ADDENDUM:
+            self.send_addendum()
+
         self.block_in = self.get_block_in_stream()
         self.block_in_raw = BlockInputStream(self.fin, self.context)
         self.block_out = self.get_block_out_stream()
@@ -502,6 +506,14 @@ class Connection(object):
                                                      packet_type)
             self.disconnect()
             raise errors.UnexpectedPacketFromServerError(message)
+
+    def send_addendum(self):
+        revision = self.server_info.revision
+
+        if revision >= defines.DBMS_MIN_PROTOCOL_VERSION_WITH_QUOTA_KEY:
+            write_binary_str(
+                self.context.client_settings['quota_key'], self.fout
+            )
 
     def ping(self):
         timeout = self.sync_request_timeout
