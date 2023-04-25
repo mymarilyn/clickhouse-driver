@@ -284,3 +284,7 @@ class ClientFromUrlTestCase(TestCase):
         self.assertEqual(
             c.connection.tcp_keepalive, (10.5, 2.5, 3)
         )
+
+    def test_client_revision(self):
+        c = Client.from_url('clickhouse://host?client_revision=54032')
+        self.assertEqual(c.connection.client_revision, 54032)

@@ -132,6 +132,8 @@ class Connection(object):
                           keepalive setting with tuple:
                           ``(idle_time_sec, interval_sec, probes)``.
                           Defaults to ``False``.
+    :param client_revision: can be used for client version downgrading.
+                          Defaults to ``None``.
     """
 
     def __init__(
@@ -151,7 +153,8 @@ class Connection(object):
             server_hostname=None,
             alt_hosts=None,
             settings_is_important=False,
-            tcp_keepalive=False
+            tcp_keepalive=False,
+            client_revision=None
     ):
         if secure:
             default_port = defines.DEFAULT_SECURE_PORT
@@ -174,6 +177,9 @@ class Connection(object):
         self.sync_request_timeout = sync_request_timeout
         self.settings_is_important = settings_is_important
         self.tcp_keepalive = tcp_keepalive
+        self.client_revision = min(
+            client_revision or defines.CLIENT_REVISION, defines.CLIENT_REVISION
+        )
 
         self.secure_socket = secure
         self.verify_cert = verify
@@ -454,7 +460,7 @@ class Connection(object):
         write_varint(defines.CLIENT_VERSION_MINOR, self.fout)
         # NOTE For backward compatibility of the protocol,
         # client cannot send its version_patch.
-        write_varint(defines.CLIENT_REVISION, self.fout)
+        write_varint(self.client_revision, self.fout)
         write_binary_str(self.database, self.fout)
         write_binary_str(self.user, self.fout)
         write_binary_str(self.password, self.fout)
@@ -666,7 +672,8 @@ class Connection(object):
 
         revision = self.server_info.revision
         if revision >= defines.DBMS_MIN_REVISION_WITH_CLIENT_INFO:
-            client_info = ClientInfo(self.client_name, self.context)
+            client_info = ClientInfo(self.client_name, self.context,
+                                     client_revision=self.client_revision)
             client_info.query_kind = ClientInfo.QueryKind.INITIAL_QUERY
 
             client_info.write(revision, self.fout)

@@ -786,6 +786,8 @@ class Client(object):
                     kwargs[name] = (
                         float(parts[0]), float(parts[1]), int(parts[2])
                     )
+            elif name == 'client_revision':
+                kwargs[name] = int(value)
 
             # ssl
             elif name == 'verify':
