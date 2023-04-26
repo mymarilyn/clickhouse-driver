@@ -534,7 +534,7 @@ class Client(object):
                 query, params, self.connection.context
             )
 
-        self.connection.send_query(query, query_id=query_id)
+        self.connection.send_query(query, query_id=query_id, params=params)
         self.connection.send_external_tables(external_tables,
                                              types_check=types_check)
         return self.receive_result(with_column_types=with_column_types,
@@ -549,8 +549,7 @@ class Client(object):
             query = self.substitute_params(
                 query, params, self.connection.context
             )
-
-        self.connection.send_query(query, query_id=query_id)
+        self.connection.send_query(query, query_id=query_id, params=params)
         self.connection.send_external_tables(external_tables,
                                              types_check=types_check)
         return self.receive_result(with_column_types=with_column_types,
@@ -566,7 +565,7 @@ class Client(object):
                 query, params, self.connection.context
             )
 
-        self.connection.send_query(query, query_id=query_id)
+        self.connection.send_query(query, query_id=query_id, params=params)
         self.connection.send_external_tables(external_tables,
                                              types_check=types_check)
         return self.iter_receive_result(with_column_types=with_column_types)

@@ -69,6 +69,16 @@ with ``%`` symbol and ``%(myvar)s`` parameters.
 NOTE: formatting queries using Python's f-strings or concatenation can lead to SQL injections.
 Use ``%(myvar)s`` parameters instead.
 
+Server-side parameters supported since 0.2.6 version.
+    You can mix client-side and server-side formatting in one query:
+
+    .. code-block:: python
+
+        >>> client.execute(
+        ...     "SELECT 'test' like '%%es%%', %(myvar)s, {myvar:Int32}",
+        ...     {'myvar': 1}
+        ... )
+
 Customisation ``SELECT`` output with ``FORMAT`` clause is not supported.
 
 .. _execute-with-progress:

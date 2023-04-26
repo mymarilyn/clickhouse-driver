@@ -240,3 +240,31 @@ class ParametersSubstitutionTestCase(BaseTestCase):
 
         self.assertEqual(e.exception.args[0],
                          'Parameters are expected in dict form')
+
+
+class ServerSideParametersSubstitutionTestCase(BaseTestCase):
+    required_server_version = (22, 8)
+
+    def test_int(self):
+        rv = self.client.execute('SELECT {x:Int32}', {'x': 123})
+        self.assertEqual(rv, [(123, )])
+
+    def test_str(self):
+        rv = self.client.execute('SELECT {x:Int32}', {'x': '123'})
+        self.assertEqual(rv, [(123, )])
+
+    def test_escaped_str(self):
+        rv = self.client.execute(
+            'SELECT {x:String}, length({x:String})', {'x': '\t'}
+        )
+        self.assertEqual(rv, [('\t', 1)])
+
+        rv = self.client.execute(
+            'SELECT {x:String}, length({x:String})', {'x': '\\'}
+        )
+        self.assertEqual(rv, [('\\', 1)])
+
+        rv = self.client.execute(
+            'SELECT {x:String}, length({x:String})', {'x': "'"}
+        )
+        self.assertEqual(rv, [("'", 1)])

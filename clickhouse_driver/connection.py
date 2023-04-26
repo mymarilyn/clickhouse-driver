@@ -22,9 +22,10 @@ from .protocol import Compression, ClientPacketTypes, ServerPacketTypes
 from .queryprocessingstage import QueryProcessingStage
 from .reader import read_binary_str
 from .readhelpers import read_exception
-from .settings.writer import write_settings
+from .settings.writer import write_settings, SettingsFlags
 from .streams.native import BlockInputStream, BlockOutputStream
 from .util.compat import threading
+from .util.escape import escape_params
 from .varint import write_varint, read_varint
 from .writer import write_binary_str
 
@@ -662,7 +663,7 @@ class Connection(object):
         self.block_out.write(block)
         logger.debug('Block "%s" send time: %f', table_name, time() - start)
 
-    def send_query(self, query, query_id=None):
+    def send_query(self, query, query_id=None, params=None):
         if not self.connected:
             self.connect()
 
@@ -682,8 +683,11 @@ class Connection(object):
             revision >= defines
             .DBMS_MIN_REVISION_WITH_SETTINGS_SERIALIZED_AS_STRINGS
         )
+        settings_flags = 0
+        if self.settings_is_important:
+            settings_flags |= SettingsFlags.IMPORTANT
         write_settings(self.context.settings, self.fout, settings_as_strings,
-                       self.settings_is_important)
+                       settings_flags)
 
         if revision >= defines.DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET:
             write_binary_str('', self.fout)
@@ -692,6 +696,13 @@ class Connection(object):
         write_varint(self.compression, self.fout)
 
         write_binary_str(query, self.fout)
+
+        if revision >= defines.DBMS_MIN_PROTOCOL_VERSION_WITH_PARAMETERS:
+            # Always settings_as_strings = True
+            escaped = escape_params(
+                params or {}, self.context, for_server=True
+            )
+            write_settings(escaped, self.fout, True, SettingsFlags.CUSTOM)
 
         logger.debug('Query: %s', query)
 
