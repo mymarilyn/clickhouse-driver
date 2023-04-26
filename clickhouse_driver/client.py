@@ -125,12 +125,18 @@ class Client(object):
                 url = urlparse('clickhouse://' + host)
 
                 connection_kwargs = kwargs.copy()
-                if len(args) > 2:
-                    # port as positional argument
+                num_args = len(args)
+                if num_args >= 2:
+                    # host and port as positional arguments
                     connection_args = (url.hostname, url.port) + args[2:]
-                else:
-                    # port as keyword argument
+                elif num_args >= 1:
+                    # host as positional and port as keyword argument
                     connection_args = (url.hostname, ) + args[1:]
+                    connection_kwargs['port'] = url.port
+                else:
+                    # host and port as keyword arguments
+                    connection_args = tuple()
+                    connection_kwargs['host'] = url.hostname
                     connection_kwargs['port'] = url.port
 
                 connection = Connection(*connection_args, **connection_kwargs)

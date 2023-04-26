@@ -264,6 +264,31 @@ class ConnectTestCase(BaseTestCase):
             self.assertFalse(client.connection.connected)
             self.assertFalse(list(client.connections)[0].connected)
 
+    def test_round_robin_client_construction(self):
+        # host and port as keyword args
+        Client(
+            host='host',
+            port=9000,
+            round_robin=True,
+            alt_hosts='host2'
+        )
+
+        # host as positional and port as keyword arg
+        Client(
+            'host',
+            9000,
+            round_robin=True,
+            alt_hosts='host2'
+        )
+
+        # host and port as positional args
+        Client(
+            'host',
+            9000,
+            round_robin=True,
+            alt_hosts='host2'
+        )
+
     def test_tcp_keepalive(self):
         self.assertFalse(self.client.connection.tcp_keepalive)
 
