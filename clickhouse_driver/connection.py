@@ -46,7 +46,7 @@ class Packet(object):
 
 class ServerInfo(object):
     def __init__(self, name, version_major, version_minor, version_patch,
-                 revision, timezone, display_name):
+                 revision, timezone, display_name, used_revision):
         self.name = name
         self.version_major = version_major
         self.version_minor = version_minor
@@ -54,6 +54,7 @@ class ServerInfo(object):
         self.revision = revision
         self.timezone = timezone
         self.display_name = display_name
+        self.used_revision = used_revision
 
         super(ServerInfo, self).__init__()
 
@@ -68,6 +69,7 @@ class ServerInfo(object):
             ('name', self.name),
             ('version', version),
             ('revision', self.revision),
+            ('used revision', self.used_revision),
             ('timezone', self.timezone),
             ('display_name', self.display_name)
         ]
@@ -336,7 +338,7 @@ class Connection(object):
         self.send_hello()
         self.receive_hello()
 
-        revision = self.server_info.revision
+        revision = self.server_info.used_revision
         if revision >= defines.DBMS_MIN_PROTOCOL_VERSION_WITH_ADDENDUM:
             self.send_addendum()
 
@@ -477,25 +479,27 @@ class Connection(object):
             server_version_minor = read_varint(self.fin)
             server_revision = read_varint(self.fin)
 
+            used_revision = min(self.client_revision, server_revision)
+
             server_timezone = None
-            if server_revision >= \
+            if used_revision >= \
                     defines.DBMS_MIN_REVISION_WITH_SERVER_TIMEZONE:
                 server_timezone = read_binary_str(self.fin)
 
             server_display_name = ''
-            if server_revision >= \
+            if used_revision >= \
                     defines.DBMS_MIN_REVISION_WITH_SERVER_DISPLAY_NAME:
                 server_display_name = read_binary_str(self.fin)
 
             server_version_patch = server_revision
-            if server_revision >= \
+            if used_revision >= \
                     defines.DBMS_MIN_REVISION_WITH_VERSION_PATCH:
                 server_version_patch = read_varint(self.fin)
 
             self.server_info = ServerInfo(
                 server_name, server_version_major, server_version_minor,
                 server_version_patch, server_revision,
-                server_timezone, server_display_name
+                server_timezone, server_display_name, used_revision
             )
             self.context.server_info = self.server_info
 
@@ -515,7 +519,7 @@ class Connection(object):
             raise errors.UnexpectedPacketFromServerError(message)
 
     def send_addendum(self):
-        revision = self.server_info.revision
+        revision = self.server_info.used_revision
 
         if revision >= defines.DBMS_MIN_PROTOCOL_VERSION_WITH_QUOTA_KEY:
             write_binary_str(
@@ -626,7 +630,7 @@ class Connection(object):
             return BlockOutputStream(self.fout, self.context)
 
     def receive_data(self, may_be_compressed=True, may_be_use_numpy=False):
-        revision = self.server_info.revision
+        revision = self.server_info.used_revision
 
         if revision >= defines.DBMS_MIN_REVISION_WITH_TEMPORARY_TABLES:
             read_binary_str(self.fin)
@@ -640,7 +644,7 @@ class Connection(object):
 
     def receive_progress(self):
         progress = Progress()
-        progress.read(self.server_info.revision, self.fin)
+        progress.read(self.server_info, self.fin)
         return progress
 
     def receive_profile_info(self):
@@ -656,7 +660,7 @@ class Connection(object):
         start = time()
         write_varint(ClientPacketTypes.DATA, self.fout)
 
-        revision = self.server_info.revision
+        revision = self.server_info.used_revision
         if revision >= defines.DBMS_MIN_REVISION_WITH_TEMPORARY_TABLES:
             write_binary_str(table_name, self.fout)
 
@@ -671,7 +675,7 @@ class Connection(object):
 
         write_binary_str(query_id or '', self.fout)
 
-        revision = self.server_info.revision
+        revision = self.server_info.used_revision
         if revision >= defines.DBMS_MIN_REVISION_WITH_CLIENT_INFO:
             client_info = ClientInfo(self.client_name, self.context,
                                      client_revision=self.client_revision)

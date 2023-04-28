@@ -302,6 +302,10 @@ class ConnectTestCase(BaseTestCase):
 
             client.execute('SELECT 1')
 
+    def test_client_revision(self):
+        with self.created_client(client_revision=54032) as client:
+            client.execute('SELECT 1')
+
 
 class FakeBufferedReader(BufferedReader):
     def __init__(self, inputs, bufsize=128):

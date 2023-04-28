@@ -12,11 +12,11 @@ class Progress(object):
 
         super(Progress, self).__init__()
 
-    def read(self, server_revision, fin):
+    def read(self, server_info, fin):
         self.rows = read_varint(fin)
         self.bytes = read_varint(fin)
 
-        revision = server_revision
+        revision = server_info.used_revision
         if revision >= defines.DBMS_MIN_REVISION_WITH_TOTAL_ROWS_IN_PROGRESS:
             self.total_rows = read_varint(fin)
 
