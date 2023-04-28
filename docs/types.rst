@@ -56,9 +56,9 @@ Due to Python's current limitations minimal DateTime64 resolution is one microse
 String/FixedString(N)
 ---------------------
 
-INSERT types: :class:`str`/:func:`basestring <basestring>`, :class:`bytes`. See note below.
+INSERT types: :class:`str`, :class:`bytes`. See note below.
 
-SELECT type: :class:`str`/:func:`basestring <basestring>`, :class:`bytes`. See note below.
+SELECT type: :class:`str`, :class:`bytes`. See note below.
 
 String column is encoded/decoded with encoding specified by ``strings_encoding`` setting. Default encoding is UTF-8.
 
@@ -97,9 +97,9 @@ a ``UnicodeEncodeError`` will be raised.
 Enum8/16
 --------
 
-INSERT types: :class:`~enum.Enum`, :class:`int`, :class:`long`, :class:`str`/:func:`basestring <basestring>`.
+INSERT types: :class:`~enum.Enum`, :class:`int`, :class:`long`, :class:`str`.
 
-SELECT type: :class:`str`/:func:`basestring <basestring>`.
+SELECT type: :class:`str`.
 
     .. code-block:: python
 
@@ -180,7 +180,7 @@ SELECT type: :class:`bool`.
 UUID
 ----
 
-INSERT types: :class:`str`/:func:`basestring <basestring>`, :class:`~uuid.UUID`.
+INSERT types: :class:`str`, :class:`~uuid.UUID`.
 
 SELECT type: :class:`~uuid.UUID`.
 
@@ -207,7 +207,7 @@ IPv4/IPv6
 
 *New in version 0.0.19.*
 
-INSERT types: :class:`~ipaddress.IPv4Address`/:class:`~ipaddress.IPv6Address`, :class:`int`, :class:`long`, :class:`str`/:func:`basestring <basestring>`.
+INSERT types: :class:`~ipaddress.IPv4Address`/:class:`~ipaddress.IPv6Address`, :class:`int`, :class:`long`, :class:`str`.
 
 SELECT type: :class:`~ipaddress.IPv4Address`/:class:`~ipaddress.IPv6Address`.
 
@@ -477,7 +477,7 @@ Object('json')
 
 INSERT types: :class:`dict`.
 
-SELECT type: :class:`dict`, :class:`str`/:func:`basestring <basestring>`.
+SELECT type: :class:`dict`, :class:`str`.
 
 ``orjson`` and ``ujson`` implementations are supported for dumping data into
 json during ``INSERT``.
