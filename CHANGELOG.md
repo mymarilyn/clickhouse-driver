@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+## [0.2.6] - 2023-05-02
+### Added
+- JSON type. Solves issue [#320](https://github.com/mymarilyn/clickhouse-driver/issues/300).
+- On demand client revision downgrading.
+- Server-side query templating.
+- Sparse data type deserialization.
+- TCP keepalive.
+- [NumPy] Optional dataframe column names replacing. Pull request [#361](https://github.com/mymarilyn/clickhouse-driver/pull/361) by [notsovitalik](https://github.com/notsovitalik).
+- Substitution for parameters with time type. Solves issue [#359](https://github.com/mymarilyn/clickhouse-driver/issues/359). Pull request [#360](https://github.com/mymarilyn/clickhouse-driver/pull/360) by [ghazi-git](https://github.com/ghazi-git).
+
+### Fixed
+- Client construction with round_robin. Solves issue [#373](https://github.com/mymarilyn/clickhouse-driver/issues/373).
+- Column state prefixes reading and writing. Solves issue [#372](https://github.com/mymarilyn/clickhouse-driver/issues/372).
+- Inserts to a nullable LowCardinality columns. Solves issue [#363](https://github.com/mymarilyn/clickhouse-driver/issues/363). Pull request [#366](https://github.com/mymarilyn/clickhouse-driver/pull/366) by [Dmitry-k42](https://github.com/Dmitry-k42).
+- [NumPy] Avoid unnecessary timezone conversion. Solves issue [#354](https://github.com/mymarilyn/clickhouse-driver/issues/354). Pull request [#355](https://github.com/mymarilyn/clickhouse-driver/pull/355) by [edwinwzhe](https://github.com/edwinwzhe).
+
+### Changed
+- Protocol version bumped to 54459.
+- [NumPy] Speed-up reading Datetime64. Pull request [#365](https://github.com/mymarilyn/clickhouse-driver/pull/365) by [joelgibson](https://github.com/joelgibson).
+
+### Removed
+- Python 3.6 support.
+
 ## [0.2.5] - 2022-11-27
 ### Added
 - [NumPy] More readable exception for less columns in frame. Solves issue [#320](https://github.com/mymarilyn/clickhouse-driver/issues/320).
@@ -420,7 +443,8 @@
 - Date/DateTime types.
 - String types.
 
-[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.5...HEAD
+[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.6...HEAD
+[0.2.6]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.5...0.2.6
 [0.2.5]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.4...0.2.5
 [0.2.4]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.3...0.2.4
 [0.2.3]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.2...0.2.3

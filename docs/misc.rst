@@ -139,3 +139,19 @@ enable it if you want cast ``None`` value into default value for current type:
 
         >>> settings = {'input_format_null_as_default': True}
         >>> client = Client('localhost', settings=settings)
+
+
+Client revision downgrading
+---------------------------
+
+*New in version 0.2.6.*
+
+For various purposes client can be downgraded with ``client_revision``
+parameter.
+
+    .. code-block:: python
+
+        >>> from clickhouse_driver import Client, defines
+        >>>
+        >>> client = Client('localhost', client_revision=defines.DBMS_MIN_PROTOCOL_VERSION_WITH_INITIAL_QUERY_START_TIME)
+        >>> client.execute('SELECT version()')

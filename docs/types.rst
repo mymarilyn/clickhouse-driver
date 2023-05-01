@@ -481,3 +481,5 @@ SELECT type: :class:`dict`, :class:`str`.
 
 ``orjson`` and ``ujson`` implementations are supported for dumping data into
 json during ``INSERT``.
+
+Set ``allow_experimental_object_type=1`` for to enable json support.
