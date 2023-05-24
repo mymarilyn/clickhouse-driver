@@ -303,6 +303,7 @@ class Connection(object):
 
         version = ssl_options.get('ssl_version', ssl.PROTOCOL_TLS)
         context = ssl.SSLContext(version)
+        context.check_hostname = self.verify_cert
 
         if 'ca_certs' in ssl_options:
             context.load_verify_locations(ssl_options['ca_certs'])
