@@ -1,5 +1,6 @@
 [flake8]
 filename = *.py, *.pyx
+exclude = perf
 per-file-ignores =
     clickhouse_driver/columns/largeint.pyx: E225, E226, E227, E999
     clickhouse_driver/bufferedreader.pyx: E225, E226, E227, E999

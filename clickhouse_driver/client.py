@@ -1,5 +1,6 @@
 import re
 import ssl
+from collections import deque
 from contextlib import contextmanager
 from time import time
 import types
@@ -26,7 +27,7 @@ class Client(object):
                      for the client settings, see below). Defaults to ``None``
                      (no additional settings). See all available settings in
                      `ClickHouse docs
-                     <https://clickhouse.tech/docs/en/operations/settings/settings/>`_.
+                     <https://clickhouse.com/docs/en/operations/settings/settings/>`_.
     :param \\**kwargs: All other args are passed to the
                        :py:class:`~clickhouse_driver.connection.Connection`
                        constructor.
@@ -53,6 +54,15 @@ class Client(object):
                            default values if data type of this field is not
                            nullable. Does not work for NumPy. Default: False.
                            New in version *0.2.4*.
+        * ``round_robin`` -- If ``alt_hosts`` are provided the query will be
+                           executed on host picked with round-robin algorithm.
+                           New in version *0.2.5*.
+        * ``namedtuple_as_json`` -- Controls named tuple and nested types
+                           deserialization. To interpret these column alongside
+                           with ``allow_experimental_object_type=1`` as Python
+                           tuple set ``namedtuple_as_json`` to ``False``.
+                           Default: True.
+                           New in version *0.2.6*.
     """
 
     available_client_settings = (
@@ -63,7 +73,8 @@ class Client(object):
         'opentelemetry_traceparent',
         'opentelemetry_tracestate',
         'quota_key',
-        'input_format_null_as_default'
+        'input_format_null_as_default',
+        'namedtuple_as_json'
     )
 
     def __init__(self, *args, **kwargs):
@@ -93,6 +104,9 @@ class Client(object):
             ),
             'input_format_null_as_default': self.settings.pop(
                 'input_format_null_as_default', False
+            ),
+            'namedtuple_as_json': self.settings.pop(
+                'namedtuple_as_json', True
             )
         }
 
@@ -112,9 +126,33 @@ class Client(object):
             self.iter_query_result_cls = IterQueryResult
             self.progress_query_result_cls = ProgressQueryResult
 
-        self.connection = Connection(*args, **kwargs)
-        self.connection.context.settings = self.settings
-        self.connection.context.client_settings = self.client_settings
+        round_robin = kwargs.pop('round_robin', False)
+        self.connections = deque([Connection(*args, **kwargs)])
+
+        if round_robin and 'alt_hosts' in kwargs:
+            alt_hosts = kwargs.pop('alt_hosts')
+            for host in alt_hosts.split(','):
+                url = urlparse('clickhouse://' + host)
+
+                connection_kwargs = kwargs.copy()
+                num_args = len(args)
+                if num_args >= 2:
+                    # host and port as positional arguments
+                    connection_args = (url.hostname, url.port) + args[2:]
+                elif num_args >= 1:
+                    # host as positional and port as keyword argument
+                    connection_args = (url.hostname, ) + args[1:]
+                    connection_kwargs['port'] = url.port
+                else:
+                    # host and port as keyword arguments
+                    connection_args = tuple()
+                    connection_kwargs['host'] = url.hostname
+                    connection_kwargs['port'] = url.port
+
+                connection = Connection(*connection_args, **connection_kwargs)
+                self.connections.append(connection)
+
+        self.connection = self.get_connection()
         self.reset_last_query()
         super(Client, self).__init__()
 
@@ -124,7 +162,22 @@ class Client(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.disconnect()
 
+    def get_connection(self):
+        if hasattr(self, 'connection'):
+            self.connections.append(self.connection)
+
+        connection = self.connections.popleft()
+
+        connection.context.settings = self.settings
+        connection.context.client_settings = self.client_settings
+        return connection
+
     def disconnect(self):
+        self.disconnect_connection()
+        for connection in self.connections:
+            connection.disconnect()
+
+    def disconnect_connection(self):
         """
         Disconnects from the server.
         """
@@ -227,13 +280,29 @@ class Client(object):
         if query.lower().startswith('use '):
             self.connection.database = query[4:].strip()
 
+    def establish_connection(self, settings):
+        num_connections = len(self.connections)
+        if hasattr(self, 'connection'):
+            num_connections += 1
+
+        for i in range(num_connections):
+            try:
+                self.connection = self.get_connection()
+                self.make_query_settings(settings)
+                self.connection.force_connect()
+                self.last_query = QueryInfo()
+
+            except (errors.SocketTimeoutError, errors.NetworkError):
+                if i < num_connections - 1:
+                    continue
+                raise
+
+            return
+
     @contextmanager
     def disconnect_on_error(self, query, settings):
-        self.make_query_settings(settings)
-
         try:
-            self.connection.force_connect()
-            self.last_query = QueryInfo()
+            self.establish_connection(settings)
 
             yield
 
@@ -385,7 +454,7 @@ class Client(object):
 
     def query_dataframe(
             self, query, params=None, external_tables=None, query_id=None,
-            settings=None):
+            settings=None, replace_nonwords=True):
         """
         *New in version 0.2.0.*
 
@@ -400,6 +469,8 @@ class Client(object):
                          ClickHouse server will generate it.
         :param settings: dictionary of query settings.
                          Defaults to ``None`` (no additional settings).
+        :param replace_nonwords: boolean to replace non-words in column names
+                                 to underscores. Defaults to ``True``.
         :return: pandas DataFrame.
         """
 
@@ -414,8 +485,12 @@ class Client(object):
             settings=settings
         )
 
+        columns = [name for name, type_ in columns]
+        if replace_nonwords:
+            columns = [re.sub(r'\W', '_', x) for x in columns]
+
         return pd.DataFrame(
-            {re.sub(r'\W', '_', col[0]): d for d, col in zip(data, columns)}
+            {col: d for d, col in zip(data, columns)}, columns=columns
         )
 
     def insert_dataframe(
@@ -452,6 +527,12 @@ class Client(object):
             rv = None
             if sample_block:
                 columns = [x[0] for x in sample_block.columns_with_types]
+                # raise if any columns are missing from the dataframe
+                diff = set(columns) - set(dataframe.columns)
+                if len(diff):
+                    msg = "DataFrame missing required columns: {}"
+                    raise ValueError(msg.format(list(diff)))
+
                 data = [dataframe[column].values for column in columns]
                 rv = self.send_data(sample_block, data, columnar=True)
                 self.receive_end_of_query()
@@ -469,7 +550,7 @@ class Client(object):
                 query, params, self.connection.context
             )
 
-        self.connection.send_query(query, query_id=query_id)
+        self.connection.send_query(query, query_id=query_id, params=params)
         self.connection.send_external_tables(external_tables,
                                              types_check=types_check)
         return self.receive_result(with_column_types=with_column_types,
@@ -484,8 +565,7 @@ class Client(object):
             query = self.substitute_params(
                 query, params, self.connection.context
             )
-
-        self.connection.send_query(query, query_id=query_id)
+        self.connection.send_query(query, query_id=query_id, params=params)
         self.connection.send_external_tables(external_tables,
                                              types_check=types_check)
         return self.receive_result(with_column_types=with_column_types,
@@ -501,7 +581,7 @@ class Client(object):
                 query, params, self.connection.context
             )
 
-        self.connection.send_query(query, query_id=query_id)
+        self.connection.send_query(query, query_id=query_id, params=params)
         self.connection.send_external_tables(external_tables,
                                              types_check=types_check)
         return self.iter_receive_result(with_column_types=with_column_types)
@@ -582,6 +662,9 @@ class Client(object):
             if packet.type == ServerPacketTypes.END_OF_STREAM:
                 break
 
+            elif packet.type == ServerPacketTypes.PROGRESS:
+                continue
+
             elif packet.type == ServerPacketTypes.EXCEPTION:
                 raise packet.exception
 
@@ -589,6 +672,9 @@ class Client(object):
                 log_block(packet.block)
 
             elif packet.type == ServerPacketTypes.TABLE_COLUMNS:
+                pass
+
+            elif packet.type == ServerPacketTypes.PROFILE_EVENTS:
                 pass
 
             else:
@@ -604,6 +690,22 @@ class Client(object):
         return self.receive_result(with_column_types=with_column_types)
 
     def substitute_params(self, query, params, context):
+        """
+        Substitutes parameters into a provided query.
+
+        For example::
+
+            client = Client(...)
+
+            substituted_query = client.substitute_params(
+                query='SELECT 1234, %(foo)s',
+                params={'foo': 'bar'},
+                context=client.connection.context
+            )
+
+            # prints: SELECT 1234, 'bar'
+            print(substituted_query)
+        """
         if not isinstance(params, dict):
             raise ValueError('Parameters are expected in dict form')
 
@@ -676,6 +778,9 @@ class Client(object):
             elif name == 'use_numpy':
                 settings[name] = asbool(value)
 
+            elif name == 'round_robin':
+                kwargs[name] = asbool(value)
+
             elif name == 'client_name':
                 kwargs[name] = value
 
@@ -688,12 +793,24 @@ class Client(object):
             elif name == 'settings_is_important':
                 kwargs[name] = asbool(value)
 
+            elif name == 'tcp_keepalive':
+                try:
+                    kwargs[name] = asbool(value)
+                except ValueError:
+                    parts = value.split(',')
+                    kwargs[name] = (
+                        float(parts[0]), float(parts[1]), int(parts[2])
+                    )
+            elif name == 'client_revision':
+                kwargs[name] = int(value)
+
             # ssl
             elif name == 'verify':
                 kwargs[name] = asbool(value)
             elif name == 'ssl_version':
                 kwargs[name] = getattr(ssl, value)
-            elif name in ['ca_certs', 'ciphers', 'keyfile', 'certfile']:
+            elif name in ['ca_certs', 'ciphers', 'keyfile', 'certfile',
+                          'server_hostname']:
                 kwargs[name] = value
             elif name == 'alt_hosts':
                 kwargs['alt_hosts'] = value

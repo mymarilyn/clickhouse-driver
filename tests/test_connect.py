@@ -240,6 +240,72 @@ class ConnectTestCase(BaseTestCase):
         list(self.client.execute_iter('SELECT 1'))
         list(self.client.execute_iter('SELECT 1'))
 
+    def test_round_robin(self):
+        kwargs = {
+            'round_robin': True,
+            'alt_hosts': '{}:{}'.format(self.host, self.port)
+        }
+        with self.created_client(**kwargs) as client:
+            self.assertFalse(client.connection.connected)
+            self.assertFalse(list(client.connections)[0].connected)
+
+            client.execute('SELECT 1')
+
+            self.assertTrue(client.connection.connected)
+            self.assertFalse(list(client.connections)[0].connected)
+
+            client.execute('SELECT 1')
+
+            self.assertTrue(client.connection.connected)
+            self.assertTrue(list(client.connections)[0].connected)
+
+            client.disconnect()
+
+            self.assertFalse(client.connection.connected)
+            self.assertFalse(list(client.connections)[0].connected)
+
+    def test_round_robin_client_construction(self):
+        # host and port as keyword args
+        Client(
+            host='host',
+            port=9000,
+            round_robin=True,
+            alt_hosts='host2'
+        )
+
+        # host as positional and port as keyword arg
+        Client(
+            'host',
+            9000,
+            round_robin=True,
+            alt_hosts='host2'
+        )
+
+        # host and port as positional args
+        Client(
+            'host',
+            9000,
+            round_robin=True,
+            alt_hosts='host2'
+        )
+
+    def test_tcp_keepalive(self):
+        self.assertFalse(self.client.connection.tcp_keepalive)
+
+        with self.created_client(tcp_keepalive=True) as client:
+            self.assertTrue(client.connection.tcp_keepalive)
+
+            client.execute('SELECT 1')
+
+        with self.created_client(tcp_keepalive=(100, 20, 2)) as client:
+            self.assertEqual(client.connection.tcp_keepalive, (100, 20, 2))
+
+            client.execute('SELECT 1')
+
+    def test_client_revision(self):
+        with self.created_client(client_revision=54032) as client:
+            client.execute('SELECT 1')
+
 
 class FakeBufferedReader(BufferedReader):
     def __init__(self, inputs, bufsize=128):

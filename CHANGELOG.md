@@ -2,6 +2,67 @@
 
 ## Unreleased
 
+## [0.2.6] - 2023-05-02
+### Added
+- JSON type. Solves issue [#320](https://github.com/mymarilyn/clickhouse-driver/issues/300).
+- On demand client revision downgrading.
+- Server-side query templating.
+- Sparse data type deserialization.
+- TCP keepalive.
+- [NumPy] Optional dataframe column names replacing. Pull request [#361](https://github.com/mymarilyn/clickhouse-driver/pull/361) by [notsovitalik](https://github.com/notsovitalik).
+- Substitution for parameters with time type. Solves issue [#359](https://github.com/mymarilyn/clickhouse-driver/issues/359). Pull request [#360](https://github.com/mymarilyn/clickhouse-driver/pull/360) by [ghazi-git](https://github.com/ghazi-git).
+
+### Fixed
+- Client construction with round_robin. Solves issue [#373](https://github.com/mymarilyn/clickhouse-driver/issues/373).
+- Column state prefixes reading and writing. Solves issue [#372](https://github.com/mymarilyn/clickhouse-driver/issues/372).
+- Inserts to a nullable LowCardinality columns. Solves issue [#363](https://github.com/mymarilyn/clickhouse-driver/issues/363). Pull request [#366](https://github.com/mymarilyn/clickhouse-driver/pull/366) by [Dmitry-k42](https://github.com/Dmitry-k42).
+- [NumPy] Avoid unnecessary timezone conversion. Solves issue [#354](https://github.com/mymarilyn/clickhouse-driver/issues/354). Pull request [#355](https://github.com/mymarilyn/clickhouse-driver/pull/355) by [edwinwzhe](https://github.com/edwinwzhe).
+
+### Changed
+- Protocol version bumped to 54459.
+- [NumPy] Speed-up reading Datetime64. Pull request [#365](https://github.com/mymarilyn/clickhouse-driver/pull/365) by [joelgibson](https://github.com/joelgibson).
+
+### Removed
+- Python 3.6 support.
+
+## [0.2.5] - 2022-11-27
+### Added
+- [NumPy] More readable exception for less columns in frame. Solves issue [#320](https://github.com/mymarilyn/clickhouse-driver/issues/320).
+- Support `server_hostname` via SNI when connecting. Pull request [#325](https://github.com/mymarilyn/clickhouse-driver/pull/325) by [dspangen](https://github.com/dspangen).
+- [NumPy] Bool support. Pull request [#332](https://github.com/mymarilyn/clickhouse-driver/pull/332) by [DylanModesitt](https://github.com/DylanModesitt).
+- Multiple connections round-robin.
+- Wheels for Python 3.11.
+- Docstring for `substitute_params`. Pull request [#347](https://github.com/mymarilyn/clickhouse-driver/pull/347) by [jasonho-lynx](https://github.com/jasonho-lynx).
+
+### Fixed
+- Decimal support inside Map type. Pull request [#297](https://github.com/mymarilyn/clickhouse-driver/pull/297) by [zaius](https://github.com/zaius).
+- Preserve empty dataframe shape. Solves issue [#321](https://github.com/mymarilyn/clickhouse-driver/issues/321).
+- Preserve nanoseconds on INSERT for DateTime64. Solves issue [#307](https://github.com/mymarilyn/clickhouse-driver/issues/307).
+- Handle "progress" packets while inserting. Solves issue [#326](https://github.com/mymarilyn/clickhouse-driver/issues/326). Pull request [#327](https://github.com/mymarilyn/clickhouse-driver/pull/327) by [carlosfy](https://github.com/carlosfy).
+- [NumPy] Don't raise exception on INSERT when dataframe columns are superset of table's. Pull request [#340](https://github.com/mymarilyn/clickhouse-driver/pull/340) by [andrewresnikoff](https://github.com/andrewresnikoff).
+- Re-cythonize files for Python 3.11. Pull request [#342](https://github.com/mymarilyn/clickhouse-driver/pull/342) by [asottile-sentry](https://github.com/asottile-sentry).
+- NULL defaults to empty Array instead of one-element array. Solves issue [#339](https://github.com/mymarilyn/clickhouse-driver/issues/339).
+- Handle "profile event" packets while inserting.
+
+### Removed
+- Python 3.5 support.
+
+## [0.2.4] - 2022-06-13
+### Added
+- ``dict`` and ``namedtuple`` cursor factories. Solves issue [#290](https://github.com/mymarilyn/clickhouse-driver/issues/290).
+- Geo types: Point, Ring, Polygon, MultiPolygon. Solves issue [#228](https://github.com/mymarilyn/clickhouse-driver/issues/228).
+- [NumPy] Tuple type.
+- ``input_format_null_as_default`` option for NULL insert into not NULL columns. Solves issue [#312](https://github.com/mymarilyn/clickhouse-driver/issues/312).
+- Chunk size controlling in ``execute_iter`` by parameter ``chunk_size``. Solves issue [#314](https://github.com/mymarilyn/clickhouse-driver/issues/314). Pull request [#315](https://github.com/mymarilyn/clickhouse-driver/pull/315) by [MIracleyin](https://github.com/MIracleyin).
+
+### Fixed
+- Decimal precision check on INSERT. Solves issue [#289](https://github.com/mymarilyn/clickhouse-driver/issues/289). Pull request [#295](https://github.com/mymarilyn/clickhouse-driver/pull/295) by [joelynch](https://github.com/joelynch).
+- Using server's default database instead or ``default``. Solves issue [#309](https://github.com/mymarilyn/clickhouse-driver/issues/309).
+- ``python_requires`` to valid PEP 440 syntax in ``setup.py``. Pull request [#291](https://github.com/mymarilyn/clickhouse-driver/pull/291) by [LSturtew](https://github.com/LSturtew).
+
+### Changed
+- Protocol version bumped to 54453.
+
 ## [0.2.3] - 2022-02-07
 ### Added
 - `tzlocal`>=4.0 support. Pull request [#263](https://github.com/mymarilyn/clickhouse-driver/pull/263) by [azat](https://github.com/azat).
@@ -32,7 +93,7 @@
 - OpenTelemetry support. Solves issue [#230](https://github.com/mymarilyn/clickhouse-driver/issues/230).
 - `tzlocal`>=3.0 support.
 - Date32 type.
-- NumPy Nullable(T) support.
+- [NumPy] Nullable(T) support.
 
 ### Fixed
 - Boxing on DataFrames INSERT.
@@ -382,7 +443,10 @@
 - Date/DateTime types.
 - String types.
 
-[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.3...HEAD
+[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.6...HEAD
+[0.2.6]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.5...0.2.6
+[0.2.5]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.4...0.2.5
+[0.2.4]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.3...0.2.4
 [0.2.3]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.2...0.2.3
 [0.2.2]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.1...0.2.2
 [0.2.1]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.0...0.2.1

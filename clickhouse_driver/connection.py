@@ -3,6 +3,7 @@ import socket
 import ssl
 from collections import deque
 from contextlib import contextmanager
+from sys import platform
 from time import time
 from urllib.parse import urlparse
 
@@ -21,9 +22,10 @@ from .protocol import Compression, ClientPacketTypes, ServerPacketTypes
 from .queryprocessingstage import QueryProcessingStage
 from .reader import read_binary_str
 from .readhelpers import read_exception
-from .settings.writer import write_settings
+from .settings.writer import write_settings, SettingsFlags
 from .streams.native import BlockInputStream, BlockOutputStream
 from .util.compat import threading
+from .util.escape import escape_params
 from .varint import write_varint, read_varint
 from .writer import write_binary_str
 
@@ -44,7 +46,7 @@ class Packet(object):
 
 class ServerInfo(object):
     def __init__(self, name, version_major, version_minor, version_patch,
-                 revision, timezone, display_name):
+                 revision, timezone, display_name, used_revision):
         self.name = name
         self.version_major = version_major
         self.version_minor = version_minor
@@ -52,6 +54,7 @@ class ServerInfo(object):
         self.revision = revision
         self.timezone = timezone
         self.display_name = display_name
+        self.used_revision = used_revision
 
         super(ServerInfo, self).__init__()
 
@@ -66,6 +69,7 @@ class ServerInfo(object):
             ('name', self.name),
             ('version', version),
             ('revision', self.revision),
+            ('used revision', self.used_revision),
             ('timezone', self.timezone),
             ('display_name', self.display_name)
         ]
@@ -113,12 +117,26 @@ class Connection(object):
     :param ciphers: see :func:`ssl.wrap_socket` docs.
     :param keyfile: see :func:`ssl.wrap_socket` docs.
     :param certfile: see :func:`ssl.wrap_socket` docs.
+    :param server_hostname: Hostname to use in SSL Wrapper construction.
+                            Defaults to `None` which will send the passed
+                            host param during SSL initialization. This param
+                            may be used when connecting over an SSH tunnel
+                            to correctly identify the desired server via SNI.
     :param alt_hosts: list of alternative hosts for connection.
                       Example: alt_hosts=host1:port1,host2:port2.
     :param settings_is_important: ``False`` means unknown settings will be
                                   ignored, ``True`` means that the query will
                                   fail with UNKNOWN_SETTING error.
                                   Defaults to ``False``.
+    :param tcp_keepalive: enables `TCP keepalive <https://tldp.org/HOWTO/
+                          TCP-Keepalive-HOWTO/overview.html>`_ on established
+                          connection. If is set to ``True``` system keepalive
+                          settings are used. You can also specify custom
+                          keepalive setting with tuple:
+                          ``(idle_time_sec, interval_sec, probes)``.
+                          Defaults to ``False``.
+    :param client_revision: can be used for client version downgrading.
+                          Defaults to ``None``.
     """
 
     def __init__(
@@ -135,8 +153,11 @@ class Connection(object):
             # Secure socket parameters.
             verify=True, ssl_version=None, ca_certs=None, ciphers=None,
             keyfile=None, certfile=None,
+            server_hostname=None,
             alt_hosts=None,
             settings_is_important=False,
+            tcp_keepalive=False,
+            client_revision=None
     ):
         if secure:
             default_port = defines.DEFAULT_SECURE_PORT
@@ -158,6 +179,10 @@ class Connection(object):
         self.send_receive_timeout = send_receive_timeout
         self.sync_request_timeout = sync_request_timeout
         self.settings_is_important = settings_is_important
+        self.tcp_keepalive = tcp_keepalive
+        self.client_revision = min(
+            client_revision or defines.CLIENT_REVISION, defines.CLIENT_REVISION
+        )
 
         self.secure_socket = secure
         self.verify_cert = verify
@@ -175,6 +200,8 @@ class Connection(object):
             ssl_options['certfile'] = certfile
 
         self.ssl_options = ssl_options
+
+        self.server_hostname = server_hostname
 
         # Use LZ4 compression by default.
         if compression is True:
@@ -208,6 +235,14 @@ class Connection(object):
         self.is_query_executing = False
 
         super(Connection, self).__init__()
+
+    def __repr__(self):
+        dsn = '%s://%s:***@%s:%s/%s' % (
+            'clickhouses' if self.secure_socket else 'clickhouse',
+            self.user, self.host, self.port, self.database
+        ) if self.connected else '(not connected)'
+
+        return '<Connection(dsn=%s, compression=%s)>' % (dsn, self.compression)
 
     def get_description(self):
         return '{}:{}'.format(self.host, self.port)
@@ -247,7 +282,8 @@ class Connection(object):
 
                 if self.secure_socket:
                     ssl_context = self._create_ssl_context(ssl_options)
-                    sock = ssl_context.wrap_socket(sock, server_hostname=host)
+                    sock = ssl_context.wrap_socket(
+                        sock, server_hostname=self.server_hostname or host)
 
                 sock.connect(sa)
                 return sock
@@ -267,6 +303,7 @@ class Connection(object):
 
         version = ssl_options.get('ssl_version', ssl.PROTOCOL_TLS)
         context = ssl.SSLContext(version)
+        context.check_hostname = self.verify_cert
 
         if 'ca_certs' in ssl_options:
             context.load_verify_locations(ssl_options['ca_certs'])
@@ -293,6 +330,8 @@ class Connection(object):
 
         # performance tweak
         self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        if self.tcp_keepalive:
+            self._set_keepalive()
 
         self.fin = BufferedSocketReader(self.socket, defines.BUFFER_SIZE)
         self.fout = BufferedSocketWriter(self.socket, defines.BUFFER_SIZE)
@@ -300,9 +339,41 @@ class Connection(object):
         self.send_hello()
         self.receive_hello()
 
+        revision = self.server_info.used_revision
+        if revision >= defines.DBMS_MIN_PROTOCOL_VERSION_WITH_ADDENDUM:
+            self.send_addendum()
+
         self.block_in = self.get_block_in_stream()
         self.block_in_raw = BlockInputStream(self.fin, self.context)
         self.block_out = self.get_block_out_stream()
+
+    def _set_keepalive(self):
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+
+        if not isinstance(self.tcp_keepalive, tuple):
+            return
+
+        idle_time_sec, interval_sec, probes = self.tcp_keepalive
+
+        if platform == 'linux' or platform == 'win32':
+            # This should also work for Windows
+            # starting with Windows 10, version 1709.
+            self.socket.setsockopt(
+                socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, idle_time_sec
+            )
+            self.socket.setsockopt(
+                socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, interval_sec
+            )
+            self.socket.setsockopt(
+                socket.IPPROTO_TCP, socket.TCP_KEEPCNT, probes
+            )
+
+        elif platform == 'darwin':
+            TCP_KEEPALIVE = 0x10
+            # Only interval is available in mac os.
+            self.socket.setsockopt(
+                socket.IPPROTO_TCP, TCP_KEEPALIVE, interval_sec
+            )
 
     def _format_connection_error(self, e, host, port):
         err = (e.strerror + ' ') if e.strerror else ''
@@ -393,7 +464,7 @@ class Connection(object):
         write_varint(defines.CLIENT_VERSION_MINOR, self.fout)
         # NOTE For backward compatibility of the protocol,
         # client cannot send its version_patch.
-        write_varint(defines.CLIENT_REVISION, self.fout)
+        write_varint(self.client_revision, self.fout)
         write_binary_str(self.database, self.fout)
         write_binary_str(self.user, self.fout)
         write_binary_str(self.password, self.fout)
@@ -409,25 +480,27 @@ class Connection(object):
             server_version_minor = read_varint(self.fin)
             server_revision = read_varint(self.fin)
 
+            used_revision = min(self.client_revision, server_revision)
+
             server_timezone = None
-            if server_revision >= \
+            if used_revision >= \
                     defines.DBMS_MIN_REVISION_WITH_SERVER_TIMEZONE:
                 server_timezone = read_binary_str(self.fin)
 
             server_display_name = ''
-            if server_revision >= \
+            if used_revision >= \
                     defines.DBMS_MIN_REVISION_WITH_SERVER_DISPLAY_NAME:
                 server_display_name = read_binary_str(self.fin)
 
             server_version_patch = server_revision
-            if server_revision >= \
+            if used_revision >= \
                     defines.DBMS_MIN_REVISION_WITH_VERSION_PATCH:
                 server_version_patch = read_varint(self.fin)
 
             self.server_info = ServerInfo(
                 server_name, server_version_major, server_version_minor,
                 server_version_patch, server_revision,
-                server_timezone, server_display_name
+                server_timezone, server_display_name, used_revision
             )
             self.context.server_info = self.server_info
 
@@ -445,6 +518,14 @@ class Connection(object):
                                                      packet_type)
             self.disconnect()
             raise errors.UnexpectedPacketFromServerError(message)
+
+    def send_addendum(self):
+        revision = self.server_info.used_revision
+
+        if revision >= defines.DBMS_MIN_PROTOCOL_VERSION_WITH_QUOTA_KEY:
+            write_binary_str(
+                self.context.client_settings['quota_key'], self.fout
+            )
 
     def ping(self):
         timeout = self.sync_request_timeout
@@ -550,7 +631,7 @@ class Connection(object):
             return BlockOutputStream(self.fout, self.context)
 
     def receive_data(self, may_be_compressed=True, may_be_use_numpy=False):
-        revision = self.server_info.revision
+        revision = self.server_info.used_revision
 
         if revision >= defines.DBMS_MIN_REVISION_WITH_TEMPORARY_TABLES:
             read_binary_str(self.fin)
@@ -564,7 +645,7 @@ class Connection(object):
 
     def receive_progress(self):
         progress = Progress()
-        progress.read(self.server_info.revision, self.fin)
+        progress.read(self.server_info, self.fin)
         return progress
 
     def receive_profile_info(self):
@@ -580,14 +661,14 @@ class Connection(object):
         start = time()
         write_varint(ClientPacketTypes.DATA, self.fout)
 
-        revision = self.server_info.revision
+        revision = self.server_info.used_revision
         if revision >= defines.DBMS_MIN_REVISION_WITH_TEMPORARY_TABLES:
             write_binary_str(table_name, self.fout)
 
         self.block_out.write(block)
         logger.debug('Block "%s" send time: %f', table_name, time() - start)
 
-    def send_query(self, query, query_id=None):
+    def send_query(self, query, query_id=None, params=None):
         if not self.connected:
             self.connect()
 
@@ -595,9 +676,10 @@ class Connection(object):
 
         write_binary_str(query_id or '', self.fout)
 
-        revision = self.server_info.revision
+        revision = self.server_info.used_revision
         if revision >= defines.DBMS_MIN_REVISION_WITH_CLIENT_INFO:
-            client_info = ClientInfo(self.client_name, self.context)
+            client_info = ClientInfo(self.client_name, self.context,
+                                     client_revision=self.client_revision)
             client_info.query_kind = ClientInfo.QueryKind.INITIAL_QUERY
 
             client_info.write(revision, self.fout)
@@ -606,8 +688,11 @@ class Connection(object):
             revision >= defines
             .DBMS_MIN_REVISION_WITH_SETTINGS_SERIALIZED_AS_STRINGS
         )
+        settings_flags = 0
+        if self.settings_is_important:
+            settings_flags |= SettingsFlags.IMPORTANT
         write_settings(self.context.settings, self.fout, settings_as_strings,
-                       self.settings_is_important)
+                       settings_flags)
 
         if revision >= defines.DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET:
             write_binary_str('', self.fout)
@@ -616,6 +701,13 @@ class Connection(object):
         write_varint(self.compression, self.fout)
 
         write_binary_str(query, self.fout)
+
+        if revision >= defines.DBMS_MIN_PROTOCOL_VERSION_WITH_PARAMETERS:
+            # Always settings_as_strings = True
+            escaped = escape_params(
+                params or {}, self.context, for_server=True
+            )
+            write_settings(escaped, self.fout, True, SettingsFlags.CUSTOM)
 
         logger.debug('Query: %s', query)
 

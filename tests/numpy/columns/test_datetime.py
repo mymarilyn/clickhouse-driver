@@ -147,6 +147,50 @@ class DateTimeTestCase(BaseDateTimeTestCase):
                 inserted[0], self.make_numpy_d64ns(['2012-10-25T14:07:19.1'])
             )
 
+    @require_server_version(20, 1, 2)
+    def test_datetime64_nanosecond_precision(self):
+        with self.create_table('a DateTime64(8)'):
+            data = [self.make_numpy_d64ns([
+                '2012-10-25T14:07:19.12345678',
+                '2012-10-25T14:07:19.99999999',
+            ])]
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data, columnar=True
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted,
+                '2012-10-25 14:07:19.12345678\n'
+                '2012-10-25 14:07:19.99999999\n'
+            )
+
+            inserted = self.client.execute(query, columnar=True)
+            self.assertArraysEqual(inserted[0], data[0])
+
+    @require_server_version(20, 1, 2)
+    def test_datetime64_max_precision(self):
+        with self.create_table('a DateTime64(9)'):
+            data = [self.make_numpy_d64ns([
+                '2012-10-25T14:07:19.123456789',
+                '2012-10-25T14:07:19.999999999',
+            ])]
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data, columnar=True
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted,
+                '2012-10-25 14:07:19.123456789\n'
+                '2012-10-25 14:07:19.999999999\n'
+            )
+
+            inserted = self.client.execute(query, columnar=True)
+            self.assertArraysEqual(inserted[0], data[0])
+
     def test_insert_integers_datetime(self):
         with self.create_table('a DateTime'):
             self.client.execute(
@@ -181,6 +225,19 @@ class DateTimeTestCase(BaseDateTimeTestCase):
             query = 'SELECT toUInt32(a) FROM test ORDER BY a'
             inserted = self.emit_cli(query)
             self.assertEqual(inserted, '0\n1\n1500000000\n4294967295\n')
+
+    @require_server_version(20, 1, 2)
+    def test_negative_timestamps(self):
+        with self.create_table("a DateTime64(3, 'UTC')"):
+            times = np.array(['1900-01-01 00:00'], dtype='datetime64[ns]')
+            self.client.execute(
+                'INSERT INTO test(a) VALUES',
+                [times],
+                columnar=True,
+            )
+
+            inserted = self.client.execute('SELECT * FROM test', columnar=True)
+            self.assertArraysEqual(inserted[0], times)
 
 
 class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
@@ -525,6 +582,78 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
                 self.assertArraysEqual(
                     inserted[0], self.make_tz_numpy_array(dt, self.col_tz_name)
                 )
+
+    @require_server_version(1, 1, 54337)
+    def test_read_tz_aware_column(self):
+        # read data from tz aware column Asia/Novosibirsk
+        # offset_naive is False -> tz convert not needed
+
+        with self.create_table(self.table_columns(with_tz=True)):
+            with patch.object(
+                pd, 'to_datetime', wraps=pd.to_datetime
+            ) as to_datetime_spy:
+                self.client.execute(
+                    'INSERT INTO test (a) VALUES', [self.dt_arr], columnar=True
+                )
+
+                self.emit_cli(
+                    "INSERT INTO test (a) VALUES ('2017-07-14 05:40:00')",
+                )
+
+                to_datetime_calls_before_read = to_datetime_spy.call_count
+
+                query = 'SELECT * FROM test'
+                inserted = self.client.execute(query, columnar=True)
+
+                self.assertEqual(
+                    to_datetime_calls_before_read,
+                    to_datetime_spy.call_count
+                )
+
+                self.assertArraysEqual(
+                    inserted[0],
+                    self.make_tz_numpy_array(self.dt, self.col_tz_name)
+                )
+
+    @require_server_version(1, 1, 54337)
+    def test_read_tz_naive_column_with_client_timezone(self):
+        # read data from column without timezone
+        # client timezone = Asia/Novosibirsk
+        # offset_naive is True and timezone is not UTC -> tz convert needed
+
+        settings = {'use_client_time_zone': True}
+
+        with patch_env_tz('Asia/Novosibirsk'):
+            with self.create_table(self.table_columns()):
+                with patch.object(
+                    pd, 'to_datetime', wraps=pd.to_datetime
+                ) as to_datetime_spy:
+                    self.client.execute(
+                        'INSERT INTO test (a) VALUES', [self.dt_arr],
+                        settings=settings, columnar=True
+                    )
+
+                    self.emit_cli(
+                       "INSERT INTO test (a) VALUES ('2017-07-14 05:40:00')",
+                       use_client_time_zone=1
+                    )
+
+                    to_datetime_calls_before_read = to_datetime_spy.call_count
+
+                    query = 'SELECT * FROM test'
+                    inserted = self.client.execute(
+                        query, settings=settings, columnar=True
+                    )
+
+                    self.assertEqual(
+                        to_datetime_calls_before_read + 2,
+                        to_datetime_spy.call_count
+                    )
+
+                    self.assertArraysEqual(
+                        inserted[0],
+                        self.make_numpy_d64ns([self.dt_str] * 2)
+                    )
 
 
 class DateTime64TimezonesTestCase(DateTimeTimezonesTestCase):

@@ -126,9 +126,9 @@ class InputFormatNullTestCase(BaseTestCase):
         ('a Int8, b String', [(None, None)], [(0, '')], '0\t\n'),
         ('a LowCardinality(String)', [(None, )], [('', )], '\n'),
         ('a Tuple(Int32, Int32)', [(None,)], [((0, 0), )], '(0,0)\n'),
-        ('a Array(Array(Int32))', [(None,)], [([[0]],)], '[[0]]\n'),
+        ('a Array(Array(Int32))', [(None,)], [([],)], '[]\n'),
         ('a Map(String, UInt64)', [(None,)], [({},)], '{}\n'),
-        ('a Nested(i Int32)', [(None, )], [([0], )], '[0]\n')
+        ('a Nested(i Int32)', [(None, )], [([], )], '[]\n')
     ])
     def test_input_format_null_as_default(self, spec, data, res, cli_res):
         client_settings = {'input_format_null_as_default': True}

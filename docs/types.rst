@@ -46,7 +46,7 @@ insertion of datetime column is a bottleneck.
 
 SELECT type: :class:`~datetime.datetime`.
 
-Setting `use_client_time_zone <https://clickhouse.yandex/docs/en/single/#datetime>`_ is taken into consideration.
+Setting `use_client_time_zone <https://clickhouse.com/docs/en/sql-reference/data-types/datetime/#usage-remarks>`_ is taken into consideration.
 
 You can cast DateTime column to integers if you are facing performance issues when selecting large amount of rows.
 
@@ -56,9 +56,9 @@ Due to Python's current limitations minimal DateTime64 resolution is one microse
 String/FixedString(N)
 ---------------------
 
-INSERT types: :class:`str`/:func:`basestring <basestring>`, :class:`bytes`. See note below.
+INSERT types: :class:`str`, :class:`bytes`. See note below.
 
-SELECT type: :class:`str`/:func:`basestring <basestring>`, :class:`bytes`. See note below.
+SELECT type: :class:`str`, :class:`bytes`. See note below.
 
 String column is encoded/decoded with encoding specified by ``strings_encoding`` setting. Default encoding is UTF-8.
 
@@ -97,9 +97,9 @@ a ``UnicodeEncodeError`` will be raised.
 Enum8/16
 --------
 
-INSERT types: :class:`~enum.Enum`, :class:`int`, :class:`long`, :class:`str`/:func:`basestring <basestring>`.
+INSERT types: :class:`~enum.Enum`, :class:`int`, :class:`long`, :class:`str`.
 
-SELECT type: :class:`str`/:func:`basestring <basestring>`.
+SELECT type: :class:`str`.
 
     .. code-block:: python
 
@@ -180,7 +180,7 @@ SELECT type: :class:`bool`.
 UUID
 ----
 
-INSERT types: :class:`str`/:func:`basestring <basestring>`, :class:`~uuid.UUID`.
+INSERT types: :class:`str`, :class:`~uuid.UUID`.
 
 SELECT type: :class:`~uuid.UUID`.
 
@@ -207,7 +207,7 @@ IPv4/IPv6
 
 *New in version 0.0.19.*
 
-INSERT types: :class:`~ipaddress.IPv4Address`/:class:`~ipaddress.IPv6Address`, :class:`int`, :class:`long`, :class:`str`/:func:`basestring <basestring>`.
+INSERT types: :class:`~ipaddress.IPv4Address`/:class:`~ipaddress.IPv6Address`, :class:`int`, :class:`long`, :class:`str`.
 
 SELECT type: :class:`~ipaddress.IPv4Address`/:class:`~ipaddress.IPv6Address`.
 
@@ -281,6 +281,52 @@ Tuple(T1, T2, ...)
 INSERT types: :class:`list`, :class:`tuple`.
 
 SELECT type: :class:`tuple`.
+
+.. note::
+
+    Currently, for ClickHouse server 23.3.1, JSON column ``Object('json')``
+    and **namedtuple** column ``Tuple(b Int8)`` have the same binary
+    representation. There is no way to distinct one column from another without
+    additional inspection like ``DESCRIBE TABLE`` `query
+    <https://github.com/ClickHouse/ClickHouse/issues/48822>`_. But this will
+    not work for complicated queries with joins.
+
+    To interpret ClickHouse namedtuple column alongside with
+    ``allow_experimental_object_type=1`` as Python tuple set
+    ``namedtuple_as_json`` setting to ``False``.
+
+    .. code-block:: python
+
+        client.execute(..., settings={'namedtuple_as_json': False})
+
+    .. code-block:: sql
+
+        CREATE TABLE test (
+            a Tuple(b Int8),
+            c Object('json')
+        ) ENGINE = Memory
+
+        INSERT INTO test VALUES ((1), '{"x": 2}');
+
+    .. code-block:: python
+
+        >>> client.execute('SELECT * FROM test')
+        [((1,), (2,))]
+
+        >>> client.execute(
+        ...     'SELECT * FROM test',
+        ...     settings={'allow_experimental_object_type': 1}
+        ... )
+        [({'b': 1}, {'x': 2})]
+
+        >>> client.execute(
+        ...     'SELECT * FROM test',
+        ...     settings={
+        ...         'allow_experimental_object_type': 1,
+        ...         'namedtuple_as_json': False
+        ...     }
+        ... )
+        [((1,), (2,))]
 
 
 Nested(flatten_nested=1, default)
@@ -407,3 +453,33 @@ Map(key, value)
 INSERT types: :class:`dict`.
 
 SELECT type: :class:`dict`.
+
+
+Geo
+---
+
+*New in version 0.2.4.*
+
+Point, Ring, Polygon, MultiPolygon.
+
+These types are just aliases:
+
+* Point: Tuple(Float64, Float64)
+* Ring: Array(Point)
+* Polygon: Array(Ring)
+* MultiPolygon: Array(Polygon)
+
+
+Object('json')
+--------------
+
+*New in version 0.2.6.*
+
+INSERT types: :class:`dict`.
+
+SELECT type: :class:`dict`, :class:`str`.
+
+``orjson`` and ``ujson`` implementations are supported for dumping data into
+json during ``INSERT``.
+
+Set ``allow_experimental_object_type=1`` for to enable json support.

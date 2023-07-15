@@ -15,6 +15,7 @@ from .intcolumn import (
     UInt8Column, UInt16Column, UInt32Column, UInt64Column
 )
 from .lowcardinalitycolumn import create_low_cardinality_column
+from .jsoncolumn import create_json_column
 from .mapcolumn import create_map_column
 from .nothingcolumn import NothingColumn
 from .nullcolumn import NullColumn
@@ -122,6 +123,11 @@ def get_column_by_spec(spec, column_options, use_numpy=None):
             spec, create_column_with_options, column_options
         )
 
+    elif spec.startswith("Object('json')"):
+        return create_json_column(
+            spec, create_column_with_options, column_options
+        )
+
     else:
         for alias, primitive in aliases:
             if spec.startswith(alias):
@@ -137,8 +143,12 @@ def get_column_by_spec(spec, column_options, use_numpy=None):
             raise errors.UnknownTypeError('Unknown type {}'.format(spec))
 
 
-def read_column(context, column_spec, n_items, buf, use_numpy=None):
-    column_options = {'context': context}
+def read_column(context, column_spec, n_items, buf, use_numpy=None,
+                has_custom_serialization=False):
+    column_options = {
+        'context': context,
+        'has_custom_serialization': has_custom_serialization
+    }
     col = get_column_by_spec(column_spec, column_options, use_numpy=use_numpy)
     col.read_state_prefix(buf)
     return col.read_data(n_items, buf)

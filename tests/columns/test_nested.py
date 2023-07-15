@@ -1,15 +1,14 @@
 from tests.testcase import BaseTestCase
-from tests.util import require_server_version
-from clickhouse_driver.columns import nestedcolumn
 
 
 class NestedTestCase(BaseTestCase):
+    required_server_version = (21, 3, 13)
+
     def entuple(self, lst):
         return tuple(
             self.entuple(x) if isinstance(x, list) else x for x in lst
         )
 
-    @require_server_version(21, 3, 13)
     def test_simple(self):
         columns = 'n Nested(i Int32, s String)'
 
@@ -40,7 +39,6 @@ class NestedTestCase(BaseTestCase):
                 [(['a', 'b'],)]
             )
 
-    @require_server_version(21, 3, 13)
     def test_multiple_rows(self):
         columns = 'n Nested(i Int32, s String)'
 
@@ -61,7 +59,6 @@ class NestedTestCase(BaseTestCase):
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
 
-    @require_server_version(21, 3, 13)
     def test_dict(self):
         columns = 'n Nested(i Int32, s String)'
 
@@ -88,18 +85,22 @@ class NestedTestCase(BaseTestCase):
                 [([(0, 'a'), (1, 'b')],), ([(3, 'd'), (4, 'e')],)]
             )
 
-    def test_get_nested_columns(self):
-        self.assertEqual(
-            nestedcolumn.get_nested_columns(
-                'Nested(a Tuple(Array(Int8)),\n b Nullable(String))',
-            ),
-            ['Tuple(Array(Int8))', 'Nullable(String)']
-        )
+    def test_nested_side_effect_as_json(self):
+        client_settings = {
+            'allow_experimental_object_type': True
+        }
+        columns = 'n Nested(i Int32, s String)'
 
-    def test_get_columns_with_types(self):
-        self.assertEqual(
-            nestedcolumn.get_columns_with_types(
-                'Nested(a Tuple(Array(Int8)),\n b Nullable(String))',
-            ),
-            [('a', 'Tuple(Array(Int8))'), ('b', 'Nullable(String)')]
-        )
+        data = [([(0, 'a'), (1, 'b')],)]
+
+        with self.create_table(columns, flatten_nested=0):
+            with self.created_client(settings=client_settings) as client:
+                client.execute(
+                    'INSERT INTO test (n) VALUES', data
+                )
+
+            inserted = client.execute('SELECT * FROM test')
+            self.assertEqual(
+                inserted,
+                [([{'i': 0, 's': 'a'}, {'i': 1, 's': 'b'}],)]
+            )

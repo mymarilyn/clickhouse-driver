@@ -2,24 +2,24 @@ on: [push, pull_request]
 name: build
 jobs:
   tests:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         use-numpy:
           - 0
         python-version:
-          - "3.5"
-          - "3.6"
           - "3.7"
           - "3.8"
           - "3.9"
           - "3.10"
+          - "3.11"
           - "pypy-3.6"
           - "pypy-3.7"
         clickhouse-version:
+          - 23.2.6.34
+          - 22.9.5.25
           - 22.2.3.5
           - 21.12.3.32
-          - 21.9.3.30
           - 21.9.3.30
           - 21.4.6.55
           - 21.3.10.1
@@ -92,7 +92,7 @@ jobs:
         env:
           USE_NUMPY: ${{ matrix.use-numpy }}
       - name: Run tests
-        run: coverage run -m py.test --timeout=10 -v
+        run: coverage run -m pytest --timeout=10 -v
         timeout-minutes: 5
         env:
           # Set initial TZ for docker exec -e "`env | grep ^TZ`"
@@ -118,7 +118,7 @@ jobs:
   valgrind:
     name: Valgrind check
     needs: tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
@@ -166,7 +166,7 @@ jobs:
   wheels-linux:
     name: Wheels for Linux
     needs: valgrind
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
@@ -184,7 +184,7 @@ jobs:
           pip install --upgrade pip setuptools
           pip install cython cibuildwheel==$VERSION
         env:
-          VERSION: 2.2.2
+          VERSION: 2.11.2
       - name: Build wheels
         run: cibuildwheel --output-dir wheelhouse
         env:
@@ -221,7 +221,7 @@ jobs:
           pip install --upgrade pip setuptools
           pip install cython cibuildwheel==$VERSION
         env:
-          VERSION: 2.2.2
+          VERSION: 2.11.2
       - name: Build wheels
         run: cibuildwheel --output-dir wheelhouse
         env:
@@ -260,7 +260,7 @@ jobs:
         run: |
           pip install cibuildwheel==$env:VERSION
         env:
-          VERSION: 2.2.2
+          VERSION: 2.11.2
       - name: Build wheels
         run: cibuildwheel --output-dir wheelhouse
         env:
@@ -279,7 +279,7 @@ jobs:
   wheels-linux-non-x86:
     name: Wheels for Linux non-x86
     needs: valgrind
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         arch:
@@ -309,7 +309,7 @@ jobs:
           pip install --upgrade pip setuptools
           pip install cibuildwheel==$VERSION
         env:
-          VERSION: 2.2.2
+          VERSION: 2.11.2
       - name: Build wheels
         run: cibuildwheel --output-dir wheelhouse
         env:

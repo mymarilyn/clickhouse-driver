@@ -28,14 +28,13 @@ class ClientInfo(object):
     client_version_major = defines.CLIENT_VERSION_MAJOR
     client_version_minor = defines.CLIENT_VERSION_MINOR
     client_version_patch = defines.CLIENT_VERSION_PATCH
-    client_revision = defines.CLIENT_REVISION
     interface = Interface.TCP
 
     initial_user = ''
     initial_query_id = ''
     initial_address = '0.0.0.0:0'
 
-    def __init__(self, client_name, context):
+    def __init__(self, client_name, context, client_revision):
         self.query_kind = ClientInfo.QueryKind.NO_QUERY
 
         try:
@@ -44,6 +43,7 @@ class ClientInfo(object):
             self.os_user = ''
         self.client_hostname = socket.gethostname()
         self.client_name = client_name
+        self.client_revision = client_revision
 
         self.client_trace_context = OpenTelemetryTraceContext(
             context.client_settings['opentelemetry_traceparent'],
