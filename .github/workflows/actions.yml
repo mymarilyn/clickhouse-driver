@@ -184,7 +184,7 @@ jobs:
           pip install --upgrade pip setuptools
           pip install cython cibuildwheel==$VERSION
         env:
-          VERSION: 2.11.2
+          VERSION: 2.16.0
       - name: Build wheels
         run: cibuildwheel --output-dir wheelhouse
         env:
@@ -221,7 +221,7 @@ jobs:
           pip install --upgrade pip setuptools
           pip install cython cibuildwheel==$VERSION
         env:
-          VERSION: 2.11.2
+          VERSION: 2.16.0
       - name: Build wheels
         run: cibuildwheel --output-dir wheelhouse
         env:
@@ -261,7 +261,7 @@ jobs:
         run: |
           pip install cibuildwheel==$env:VERSION
         env:
-          VERSION: 2.11.2
+          VERSION: 2.16.0
       - name: Build wheels
         run: cibuildwheel --output-dir wheelhouse
         env:
@@ -310,7 +310,7 @@ jobs:
           pip install --upgrade pip setuptools
           pip install cibuildwheel==$VERSION
         env:
-          VERSION: 2.11.2
+          VERSION: 2.16.0
       - name: Build wheels
         run: cibuildwheel --output-dir wheelhouse
         env:
