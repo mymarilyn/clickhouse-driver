@@ -34,7 +34,7 @@ class DateColumn(FormatColumn):
                 items[i] = null_value
                 continue
 
-            if type(item) != date:
+            if item is not date:
                 item = date(item.year, item.month, item.day)
 
             if min_value <= item <= max_value:
