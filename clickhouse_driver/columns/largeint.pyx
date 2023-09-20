@@ -7,7 +7,7 @@ cdef object MAX_UINT64 = writer.MAX_UINT64
 cdef object MAX_INT64 = writer.MAX_INT64
 
 
-def int128_from_quads(quad_items, unsigned long long n_items):
+def int128_from_quads(self, quad_items, unsigned long long n_items):
     cdef unsigned int factor = 2
     items = PyTuple_New(n_items)
 
@@ -33,7 +33,7 @@ def int128_from_quads(quad_items, unsigned long long n_items):
     return items
 
 
-def int128_to_quads(items, unsigned long long n_items):
+def int128_to_quads(self, items, unsigned long long n_items):
     cdef unsigned int factor = 2
     quad_items = PyTuple_New(n_items * factor)
 
@@ -67,7 +67,7 @@ def int128_to_quads(items, unsigned long long n_items):
     return quad_items
 
 
-def uint128_from_quads(quad_items, unsigned long long n_items):
+def uint128_from_quads(self, quad_items, unsigned long long n_items):
     cdef unsigned int factor = 2
     items = PyTuple_New(n_items)
 
@@ -84,7 +84,7 @@ def uint128_from_quads(quad_items, unsigned long long n_items):
     return items
 
 
-def uint128_to_quads(items, unsigned long long n_items):
+def uint128_to_quads(self, items, unsigned long long n_items):
     cdef unsigned int factor = 2
     quad_items = PyTuple_New(n_items * factor)
 
@@ -108,7 +108,7 @@ def uint128_to_quads(items, unsigned long long n_items):
 # 256 bits
 
 
-def int256_from_quads(quad_items, unsigned long long n_items):
+def int256_from_quads(self, quad_items, unsigned long long n_items):
     cdef unsigned int factor = 4
     items = PyTuple_New(n_items)
 
@@ -141,7 +141,7 @@ def int256_from_quads(quad_items, unsigned long long n_items):
     return items
 
 
-def int256_to_quads(items, unsigned long long n_items):
+def int256_to_quads(self, items, unsigned long long n_items):
     cdef unsigned int factor = 4
     quad_items = PyTuple_New(n_items * factor)
 
@@ -191,7 +191,7 @@ def int256_to_quads(items, unsigned long long n_items):
     return quad_items
 
 
-def uint256_from_quads(quad_items, unsigned long long n_items):
+def uint256_from_quads(self, quad_items, unsigned long long n_items):
     cdef unsigned int factor = 4
     items = PyTuple_New(n_items)
 
@@ -213,7 +213,7 @@ def uint256_from_quads(quad_items, unsigned long long n_items):
     return items
 
 
-def uint256_to_quads(items, unsigned long long n_items):
+def uint256_to_quads(self, items, unsigned long long n_items):
     cdef unsigned int factor = 4
     quad_items = PyTuple_New(n_items * factor)
 
