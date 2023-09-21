@@ -645,11 +645,22 @@ class Client(object):
         else:
             slicer = column_chunks if columnar else chunks
 
+        revision = self.connection.server_info.used_revision
+        should_wait_for_profile_event = (
+            revision >=
+            defines.DBMS_MIN_PROTOCOL_VERSION_WITH_PROFILE_EVENTS_IN_INSERT
+        )
+
         for chunk in slicer(data, client_settings['insert_block_size']):
             block = block_cls(sample_block.columns_with_types, chunk,
                               types_check=types_check)
             self.connection.send_data(block)
             inserted_rows += block.num_rows
+
+            # Starting from the specific revision there are profile events
+            # sent by server in response to each inserted block
+            if should_wait_for_profile_event:
+                self.receive_packet()
 
         # Empty block means end of data.
         self.connection.send_data(block_cls())
