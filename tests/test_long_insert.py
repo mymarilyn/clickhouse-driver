@@ -17,5 +17,3 @@ class LongInsertTestCase(BaseTestCase):
             'insert into function null(\'x Int\') (x) values',
             data
         )
-
-
