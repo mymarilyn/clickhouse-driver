@@ -12,8 +12,8 @@ class LongInsertTestCase(BaseTestCase):
     }
 
     def test_long_insert(self):
-        data = [{'x': 1}] * 100_000
-        self.client.execute(
-            'insert into function null(\'x Int\') (x) values',
-            data
-        )
+        with self.create_table('x Int32'):
+            data = [{'x': 1}] * 100_000
+            self.client.execute(
+                'INSERT INTO test (x) VALUES', data
+            )
