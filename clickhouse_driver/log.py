@@ -2,7 +2,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
+# Keep in sync with ClickHouse priorities
+# https://github.com/ClickHouse/ClickHouse/blob/master/src/Interpreters/InternalTextLogsQueue.cpp
 log_priorities = (
     'Unknown',
     'Fatal',
@@ -12,7 +13,8 @@ log_priorities = (
     'Notice',
     'Information',
     'Debug',
-    'Trace'
+    'Trace',
+    'Test',
 )
 
 
@@ -25,7 +27,7 @@ def log_block(block):
     for row in block.get_rows():
         row = dict(zip(column_names, row))
 
-        if 1 <= row['priority'] <= 8:
+        if 1 <= row['priority'] <= 9:
             priority = log_priorities[row['priority']]
         else:
             priority = row[0]
