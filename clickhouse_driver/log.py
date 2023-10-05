@@ -17,6 +17,8 @@ log_priorities = (
     'Test',
 )
 
+num_priorities = len(log_priorities)
+
 
 def log_block(block):
     if block is None:
@@ -27,7 +29,7 @@ def log_block(block):
     for row in block.get_rows():
         row = dict(zip(column_names, row))
 
-        if 1 <= row['priority'] <= 9:
+        if 1 <= row['priority'] <= num_priorities:
             priority = log_priorities[row['priority']]
         else:
             priority = row[0]
