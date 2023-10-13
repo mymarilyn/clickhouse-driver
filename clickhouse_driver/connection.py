@@ -557,27 +557,6 @@ class Connection(object):
 
         return True
 
-    def receive_profile_events(self):
-        revision = self.server_info.used_revision
-        if (
-            revision <
-            defines.DBMS_MIN_PROTOCOL_VERSION_WITH_PROFILE_EVENTS_IN_INSERT
-        ):
-            return None
-
-        packet_type = read_varint(self.fin)
-        if packet_type == ServerPacketTypes.PROFILE_EVENTS:
-            self.receive_data(may_be_compressed=False)
-            return None
-        elif packet_type == ServerPacketTypes.EXCEPTION:
-            raise self.receive_exception()
-        else:
-            message = self.unexpected_packet_message(
-                'ProfileEvent or Exception', packet_type
-            )
-            self.disconnect()
-            raise errors.UnexpectedPacketFromServerError(message)
-
     def receive_packet(self):
         packet = Packet()
 
