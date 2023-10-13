@@ -698,15 +698,18 @@ class Client(object):
             if packet.type == ServerPacketTypes.END_OF_STREAM:
                 break
 
-            elif packet.type == ServerPacketTypes.EXCEPTION:
-                raise packet.exception
-
             elif packet.type == ServerPacketTypes.LOG:
                 log_block(packet.block)
 
+            elif packet.type == ServerPacketTypes.PROGRESS:
+                continue
+
+            elif packet.type == ServerPacketTypes.EXCEPTION:
+                raise packet.exception
+
             else:
                 message = self.connection.unexpected_packet_message(
-                    'Exception, EndOfStream or Log', packet.type
+                    'EndOfStream, Log, Progress or Exception', packet.type
                 )
                 raise errors.UnexpectedPacketFromServerError(message)
 
@@ -727,12 +730,15 @@ class Client(object):
             elif packet.type == ServerPacketTypes.PROGRESS:
                 self.last_query.store_progress(packet.progress)
 
+            elif packet.type == ServerPacketTypes.LOG:
+                log_block(packet.block)
+
             elif packet.type == ServerPacketTypes.EXCEPTION:
                 raise packet.exception
 
             else:
                 message = self.connection.unexpected_packet_message(
-                    'ProfileEvent, Progress or Exception', packet.type
+                    'ProfileEvents, Progress, Log or Exception', packet.type
                 )
                 raise errors.UnexpectedPacketFromServerError(message)
 
