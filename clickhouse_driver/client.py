@@ -597,7 +597,7 @@ class Client(object):
         if sample_block:
             rv = self.send_data(sample_block, data,
                                 types_check=types_check, columnar=columnar)
-            self.receive_end_of_query()
+            self.receive_end_of_insert_query()
             return rv
 
     def receive_sample_block(self):
@@ -651,8 +651,15 @@ class Client(object):
             self.connection.send_data(block)
             inserted_rows += block.num_rows
 
+            # Starting from the specific revision there are profile events
+            # sent by server in response to each inserted block
+            self.receive_profile_events()
+
         # Empty block means end of data.
         self.connection.send_data(block_cls())
+        # If enabled by revision profile events are also sent after empty block
+        self.receive_profile_events()
+
         return inserted_rows
 
     def receive_end_of_query(self):
@@ -679,7 +686,59 @@ class Client(object):
 
             else:
                 message = self.connection.unexpected_packet_message(
-                    'Exception, EndOfStream or Log', packet.type
+                    'Exception, EndOfStream, Progress, TableColumns, '
+                    'ProfileEvents or Log', packet.type
+                )
+                raise errors.UnexpectedPacketFromServerError(message)
+
+    def receive_end_of_insert_query(self):
+        while True:
+            packet = self.connection.receive_packet()
+
+            if packet.type == ServerPacketTypes.END_OF_STREAM:
+                break
+
+            elif packet.type == ServerPacketTypes.LOG:
+                log_block(packet.block)
+
+            elif packet.type == ServerPacketTypes.PROGRESS:
+                continue
+
+            elif packet.type == ServerPacketTypes.EXCEPTION:
+                raise packet.exception
+
+            else:
+                message = self.connection.unexpected_packet_message(
+                    'EndOfStream, Log, Progress or Exception', packet.type
+                )
+                raise errors.UnexpectedPacketFromServerError(message)
+
+    def receive_profile_events(self):
+        revision = self.connection.server_info.used_revision
+        if (
+            revision <
+            defines.DBMS_MIN_PROTOCOL_VERSION_WITH_PROFILE_EVENTS_IN_INSERT
+        ):
+            return None
+
+        while True:
+            packet = self.connection.receive_packet()
+
+            if packet.type == ServerPacketTypes.PROFILE_EVENTS:
+                break
+
+            elif packet.type == ServerPacketTypes.PROGRESS:
+                self.last_query.store_progress(packet.progress)
+
+            elif packet.type == ServerPacketTypes.LOG:
+                log_block(packet.block)
+
+            elif packet.type == ServerPacketTypes.EXCEPTION:
+                raise packet.exception
+
+            else:
+                message = self.connection.unexpected_packet_message(
+                    'ProfileEvents, Progress, Log or Exception', packet.type
                 )
                 raise errors.UnexpectedPacketFromServerError(message)
 

@@ -163,6 +163,13 @@ class InsertTestCase(BaseTestCase):
             inserted = self.emit_cli(query)
             self.assertEqual(inserted, '1\n')
 
+    def test_profile_events(self):
+        with self.create_table('x Int32'):
+            data = [{'x': 1}]
+            self.client.execute(
+                'INSERT INTO test (x) VALUES', data
+            )
+
 
 class InsertColumnarTestCase(BaseTestCase):
     def test_insert_tuple_ok(self):
