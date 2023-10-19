@@ -13,6 +13,7 @@ jobs:
           - "3.9"
           - "3.10"
           - "3.11"
+          - "3.12"
           - "pypy-3.6"
           - "pypy-3.7"
         clickhouse-version:
@@ -184,7 +185,7 @@ jobs:
           pip install --upgrade pip setuptools
           pip install cython cibuildwheel==$VERSION
         env:
-          VERSION: 2.16.0
+          VERSION: 2.16.2
       - name: Build wheels
         run: cibuildwheel --output-dir wheelhouse
         env:
@@ -221,7 +222,7 @@ jobs:
           pip install --upgrade pip setuptools
           pip install cython cibuildwheel==$VERSION
         env:
-          VERSION: 2.16.0
+          VERSION: 2.16.2
       - name: Build wheels
         run: cibuildwheel --output-dir wheelhouse
         env:
@@ -261,7 +262,7 @@ jobs:
         run: |
           pip install cibuildwheel==$env:VERSION
         env:
-          VERSION: 2.16.0
+          VERSION: 2.16.2
       - name: Build wheels
         run: cibuildwheel --output-dir wheelhouse
         env:
@@ -310,7 +311,7 @@ jobs:
           pip install --upgrade pip setuptools
           pip install cibuildwheel==$VERSION
         env:
-          VERSION: 2.16.0
+          VERSION: 2.16.2
       - name: Build wheels
         run: cibuildwheel --output-dir wheelhouse
         env:
