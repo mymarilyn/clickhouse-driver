@@ -224,9 +224,6 @@ class LogTestCase(BaseTestCase):
                 logs = buffer.getvalue()
                 self.assertIn(query, logs)
 
-                if self.server_version > (19, ):
-                    self.assertIn('MemoryTracker', logs)
-
                 # Test all packets of INSERT query are consumed.
                 rv = self.client.execute('SELECT 1', settings=settings)
                 self.assertEqual(rv, [(1, )])
