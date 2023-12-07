@@ -60,3 +60,20 @@ class UUIDTestCase(BaseTestCase):
 
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
+
+    def test_input_format_null_as_default(self):
+        with self.create_table('a UUID'):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', [(None, )],
+                settings={'input_format_null_as_default': True}
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted,
+                             '00000000-0000-0000-0000-000000000000\n')
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, [
+                (UUID(int=0), )
+            ])

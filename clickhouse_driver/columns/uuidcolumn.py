@@ -54,7 +54,7 @@ class UUIDColumn(FormatColumn):
 
             try:
                 if not isinstance(item, UUID):
-                    item = UUID(item)
+                    item = UUID(int=item) if item is null_value else UUID(item)
 
             except ValueError:
                 raise errors.CannotParseUuidError(
