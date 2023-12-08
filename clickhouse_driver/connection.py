@@ -497,6 +497,13 @@ class Connection(object):
                     defines.DBMS_MIN_REVISION_WITH_VERSION_PATCH:
                 server_version_patch = read_varint(self.fin)
 
+            if used_revision >= defines. \
+                    DBMS_MIN_PROTOCOL_VERSION_WITH_PASSWORD_COMPLEXITY_RULES:
+                rules_size = read_varint(self.fin)
+                for _i in range(rules_size):
+                    read_binary_str(self.fin)  # original_pattern
+                    read_binary_str(self.fin)  # exception_message
+
             self.server_info = ServerInfo(
                 server_name, server_version_major, server_version_minor,
                 server_version_patch, server_revision,
