@@ -670,7 +670,7 @@ class Client(object):
                 break
 
             elif packet.type == ServerPacketTypes.PROGRESS:
-                continue
+                self.last_query.store_progress(packet.progress)
 
             elif packet.type == ServerPacketTypes.EXCEPTION:
                 raise packet.exception
@@ -682,7 +682,7 @@ class Client(object):
                 pass
 
             elif packet.type == ServerPacketTypes.PROFILE_EVENTS:
-                pass
+                self.last_query.store_profile(packet.profile_info)
 
             else:
                 message = self.connection.unexpected_packet_message(
@@ -702,7 +702,7 @@ class Client(object):
                 log_block(packet.block)
 
             elif packet.type == ServerPacketTypes.PROGRESS:
-                continue
+                self.last_query.store_progress(packet.progress)
 
             elif packet.type == ServerPacketTypes.EXCEPTION:
                 raise packet.exception
@@ -725,6 +725,7 @@ class Client(object):
             packet = self.connection.receive_packet()
 
             if packet.type == ServerPacketTypes.PROFILE_EVENTS:
+                self.last_query.store_profile(packet.profile_info)
                 break
 
             elif packet.type == ServerPacketTypes.PROGRESS:
