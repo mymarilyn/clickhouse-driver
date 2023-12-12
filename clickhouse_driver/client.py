@@ -592,8 +592,8 @@ class Client(object):
         self.connection.send_query(query_without_data, query_id=query_id)
         self.connection.send_external_tables(external_tables,
                                              types_check=types_check)
-
         sample_block = self.receive_sample_block()
+
         if sample_block:
             rv = self.send_data(sample_block, data,
                                 types_check=types_check, columnar=columnar)

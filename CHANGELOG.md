@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+### Fixed
+- Memory leak when clickhouse raise exception onBufferedSocketWriter.write_into_stream. Solves issue [#406](https://github.com/mymarilyn/clickhouse-driver/issues/406).
 
 ## [0.2.6] - 2023-05-02
 ### Added
