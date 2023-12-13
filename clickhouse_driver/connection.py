@@ -20,7 +20,7 @@ from .log import log_block
 from .progress import Progress
 from .protocol import Compression, ClientPacketTypes, ServerPacketTypes
 from .queryprocessingstage import QueryProcessingStage
-from .reader import read_binary_str
+from .reader import read_binary_str, read_binary_uint64
 from .readhelpers import read_exception
 from .settings.writer import write_settings, SettingsFlags
 from .streams.native import BlockInputStream, BlockOutputStream
@@ -503,6 +503,10 @@ class Connection(object):
                 for _i in range(rules_size):
                     read_binary_str(self.fin)  # original_pattern
                     read_binary_str(self.fin)  # exception_message
+
+            if used_revision >= defines. \
+                    DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET_V2:
+                read_binary_uint64(self.fin)  # read_nonce
 
             self.server_info = ServerInfo(
                 server_name, server_version_major, server_version_minor,
