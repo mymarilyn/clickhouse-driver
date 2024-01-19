@@ -245,6 +245,8 @@ class ParametersSubstitutionTestCase(BaseTestCase):
 class ServerSideParametersSubstitutionTestCase(BaseTestCase):
     required_server_version = (22, 8)
 
+    client_kwargs = {'settings': {'server_side_params': True}}
+
     def test_int(self):
         rv = self.client.execute('SELECT {x:Int32}', {'x': 123})
         self.assertEqual(rv, [(123, )])
@@ -268,3 +270,11 @@ class ServerSideParametersSubstitutionTestCase(BaseTestCase):
             'SELECT {x:String}, length({x:String})', {'x': "'"}
         )
         self.assertEqual(rv, [("'", 1)])
+
+
+class NoServerSideParametersSubstitutionTestCase(BaseTestCase):
+    def test_reserved_keywords(self):
+        self.client.execute(
+            'SELECT * FROM system.events LIMIT %(limit)s OFFSET %(offset)s',
+            {'limit': 20, 'offset': 30}
+        )

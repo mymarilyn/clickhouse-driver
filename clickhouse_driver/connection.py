@@ -714,10 +714,13 @@ class Connection(object):
         write_binary_str(query, self.fout)
 
         if revision >= defines.DBMS_MIN_PROTOCOL_VERSION_WITH_PARAMETERS:
-            # Always settings_as_strings = True
-            escaped = escape_params(
-                params or {}, self.context, for_server=True
-            )
+            if self.context.client_settings['server_side_params']:
+                # Always settings_as_strings = True
+                escaped = escape_params(
+                    params or {}, self.context, for_server=True
+                )
+            else:
+                escaped = {}
             write_settings(escaped, self.fout, True, SettingsFlags.CUSTOM)
 
         logger.debug('Query: %s', query)

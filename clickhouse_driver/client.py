@@ -63,6 +63,11 @@ class Client(object):
                            tuple set ``namedtuple_as_json`` to ``False``.
                            Default: True.
                            New in version *0.2.6*.
+        * ``server_side_params`` -- Species on which side query parameters
+                           should be rendered into placeholders.
+                           Default: False. Means that parameters are rendered
+                           on driver's side.
+                           New in version *0.2.7*.
     """
 
     available_client_settings = (
@@ -74,7 +79,8 @@ class Client(object):
         'opentelemetry_tracestate',
         'quota_key',
         'input_format_null_as_default',
-        'namedtuple_as_json'
+        'namedtuple_as_json',
+        'server_side_params'
     )
 
     def __init__(self, *args, **kwargs):
@@ -107,6 +113,9 @@ class Client(object):
             ),
             'namedtuple_as_json': self.settings.pop(
                 'namedtuple_as_json', True
+            ),
+            'server_side_params': self.settings.pop(
+                'server_side_params', False
             )
         }
 
@@ -766,6 +775,10 @@ class Client(object):
             # prints: SELECT 1234, 'bar'
             print(substituted_query)
         """
+        # In case of server side templating we don't substitute here.
+        if self.connection.context.client_settings['server_side_params']:
+            return query
+
         if not isinstance(params, dict):
             raise ValueError('Parameters are expected in dict form')
 
