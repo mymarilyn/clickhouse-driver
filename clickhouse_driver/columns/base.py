@@ -1,6 +1,61 @@
 from struct import Struct, error as struct_error
 
 from . import exceptions
+from ..varint import read_varint
+
+
+class CommonSerialization(object):
+    def __init__(self, column):
+        self.column = column
+        super(CommonSerialization, self).__init__()
+
+    def read_sparse(self, n_items, buf):
+        return n_items
+
+    def apply_sparse(self, items):
+        return items
+
+
+class SparseSerialization(CommonSerialization):
+
+    def __init__(self, *args, **kwargs):
+        self.sparse_indexes = []
+        self.items_total = None
+        super(SparseSerialization, self).__init__(*args, **kwargs)
+
+    def read_sparse(self, n_items, buf):
+        sparse_indexes = []
+        items_total = 0
+        non_default_items = 0
+
+        END_OF_GRANULE_FLAG = 1 << 62
+        end_of_granule = False
+
+        while not end_of_granule:
+            group_size = read_varint(buf)
+            end_of_granule = group_size & END_OF_GRANULE_FLAG
+            group_size &= ~END_OF_GRANULE_FLAG
+
+            items_total += group_size + 1
+            if not end_of_granule:
+                non_default_items += 1
+                sparse_indexes.append(items_total)
+
+        self.sparse_indexes = sparse_indexes
+        self.items_total = items_total
+
+        return non_default_items
+
+    def apply_sparse(self, items):
+        default = self.column.null_value
+        if self.column.after_read_items:
+            default = self.column.after_read_items([default])[0]
+
+        rv = [default] * (self.items_total - 1)
+        for item_number, i in enumerate(self.sparse_indexes):
+            rv[i - 1] = items[item_number]
+
+        return rv
 
 
 class Column(object):
@@ -15,9 +70,18 @@ class Column(object):
 
     null_value = 0
 
-    def __init__(self, types_check=False, **kwargs):
+    def __init__(self, types_check=False, has_custom_serialization=False,
+                 **kwargs):
         self.nullable = False
         self.types_check_enabled = types_check
+        self.has_custom_serialization = has_custom_serialization
+        self.serialization = CommonSerialization(self)
+        self.input_null_as_default = False
+
+        self.context = kwargs['context']
+        self.input_null_as_default = self.context.client_settings \
+            .get('input_format_null_as_default', False)
+
         super(Column, self).__init__()
 
     def make_null_struct(self, n_items):
@@ -39,6 +103,7 @@ class Column(object):
     def prepare_items(self, items):
         nullable = self.nullable
         null_value = self.null_value
+        null_as_default = self.input_null_as_default
 
         check_item = self.check_item
         if self.types_check_enabled:
@@ -46,15 +111,18 @@ class Column(object):
         else:
             check_item_type = False
 
-        if (not self.nullable and not check_item_type and
+        if (not (self.nullable or null_as_default) and not check_item_type and
                 not check_item and not self.before_write_items):
             return items
 
         nulls_map = [False] * len(items) if self.nullable else None
         for i, x in enumerate(items):
-            if x is None and nullable:
-                nulls_map[i] = True
-                x = null_value
+            if x is None:
+                if nullable:
+                    nulls_map[i] = True
+                    x = null_value
+                elif null_as_default:
+                    x = null_value
 
             else:
                 if check_item_type:
@@ -84,12 +152,15 @@ class Column(object):
         raise NotImplementedError
 
     def read_data(self, n_items, buf):
+        n_items = self.serialization.read_sparse(n_items, buf)
+
         if self.nullable:
             nulls_map = self._read_nulls_map(n_items, buf)
         else:
             nulls_map = None
 
-        return self._read_data(n_items, buf, nulls_map=nulls_map)
+        items = self._read_data(n_items, buf, nulls_map=nulls_map)
+        return self.serialization.apply_sparse(items)
 
     def _read_data(self, n_items, buf, nulls_map=None):
         items = self.read_items(n_items, buf)
@@ -107,7 +178,10 @@ class Column(object):
         raise NotImplementedError
 
     def read_state_prefix(self, buf):
-        pass
+        if self.has_custom_serialization:
+            use_custom_serialization = read_varint(buf)
+            if use_custom_serialization:
+                self.serialization = SparseSerialization(self)
 
     def write_state_prefix(self, buf):
         pass

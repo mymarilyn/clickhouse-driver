@@ -5,6 +5,7 @@ from unittest.mock import patch
 from freezegun import freeze_time
 
 from tests.testcase import BaseTestCase
+from tests.util import require_server_version
 
 
 class DateTestCase(BaseTestCase):
@@ -89,6 +90,19 @@ class Date32TestCase(BaseTestCase):
             query = 'SELECT * FROM test'
             inserted = self.emit_cli(query)
             self.assertEqual(inserted, '1970-01-01\n1970-01-01\n1970-01-01\n')
+
+    @require_server_version(22, 8)
+    def test_boundaries_1900(self):
+        with self.create_table('a Date32'):
+            data = [(date(1900, 1, 1),)]
+            self.client.execute('INSERT INTO test (a) VALUES', data)
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, '1900-01-01\n')
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
 
     def test_boundaries(self):
         with self.create_table('a Date32'):

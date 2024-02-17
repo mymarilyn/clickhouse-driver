@@ -141,6 +141,29 @@ class DataFrameTestCase(NumpyBaseTestCase):
             )
             self.assertEqual(rv, n)
 
+    def test_empty_frame_shape(self):
+        df = self.client.query_dataframe(
+            'SELECT number AS a, number AS a FROM system.numbers LIMIT 0'
+        )
+
+        self.assertEqual(df.shape, (0, 2))
+
+    def test_data_less_columns_than_expected(self):
+        with self.create_table('a Int8, b Int8'):
+            with self.assertRaises(ValueError) as e:
+                df = pd.DataFrame([1, 2, 3], columns=['a'])
+                self.client.insert_dataframe('INSERT INTO test VALUES', df)
+            expected = "DataFrame missing required columns: ['b']"
+            self.assertEqual(str(e.exception), expected)
+
+    def test_data_different_columns_than_expected(self):
+        with self.create_table('a Int8, b Int8'):
+            with self.assertRaises(ValueError) as e:
+                df = pd.DataFrame([[1, 2], [3, 4]], columns=['a', 'c'])
+                self.client.insert_dataframe('INSERT INTO test VALUES', df)
+            expected = "DataFrame missing required columns: ['b']"
+            self.assertEqual(str(e.exception), expected)
+
 
 class NoNumPyTestCase(BaseTestCase):
     def setUp(self):

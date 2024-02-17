@@ -6,7 +6,7 @@ from .base import FormatColumn
 epoch_start = date(1970, 1, 1)
 epoch_end = date(2149, 6, 6)
 
-epoch_start_date32 = date(1925, 1, 1)
+epoch_start_date32 = date(1900, 1, 1)
 epoch_end_date32 = date(2283, 11, 11)
 
 
@@ -34,7 +34,7 @@ class DateColumn(FormatColumn):
                 items[i] = null_value
                 continue
 
-            if type(item) != date:
+            if item is not date:
                 item = date(item.year, item.month, item.day)
 
             if min_value <= item <= max_value:

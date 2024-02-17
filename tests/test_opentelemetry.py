@@ -21,7 +21,14 @@ class OpenTelemetryTestCase(BaseTestCase):
                 client.execute(query, settings=settings)
                 value = buffer.getvalue()
                 self.assertIn('OpenTelemetry', value)
-                self.assertIn('1af7651916cd43dd8448eb211c80319c', value)
+
+                # ClickHouse 22.2+ use big-endian:
+                # https://github.com/ClickHouse/ClickHouse/pull/33723
+                if self.server_version >= (22, 2):
+                    tp = '8448eb211c80319c1af7651916cd43dd'
+                else:
+                    tp = '1af7651916cd43dd8448eb211c80319c'
+                self.assertIn(tp, value)
 
     def test_no_tracestate(self):
         traceparent = '00-1af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01'
@@ -37,7 +44,13 @@ class OpenTelemetryTestCase(BaseTestCase):
                 client.execute(query, settings=settings)
                 value = buffer.getvalue()
                 self.assertIn('OpenTelemetry', value)
-                self.assertIn('1af7651916cd43dd8448eb211c80319c', value)
+                # ClickHouse 22.2+ use big-endian:
+                # https://github.com/ClickHouse/ClickHouse/pull/33723
+                if self.server_version >= (22, 2):
+                    tp = '8448eb211c80319c1af7651916cd43dd'
+                else:
+                    tp = '1af7651916cd43dd8448eb211c80319c'
+                self.assertIn(tp, value)
 
     def test_bad_traceparent(self):
         settings = {'opentelemetry_traceparent': 'bad'}

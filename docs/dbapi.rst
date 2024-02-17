@@ -27,3 +27,12 @@ Cursor
 .. autoclass:: clickhouse_driver.dbapi.cursor.Cursor
    :members:
    :inherited-members:
+
+Extras
+------
+
+.. _dbapi-extras:
+
+.. autoclass:: clickhouse_driver.dbapi.extras.DictCursor
+
+.. autoclass:: clickhouse_driver.dbapi.extras.NamedTupleCursor

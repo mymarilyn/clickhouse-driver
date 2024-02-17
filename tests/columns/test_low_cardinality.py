@@ -1,7 +1,9 @@
 from datetime import date, timedelta
 from decimal import Decimal
+from uuid import UUID
 
 from tests.testcase import BaseTestCase
+from tests.util import require_server_version
 
 
 class LowCardinalityTestCase(BaseTestCase):
@@ -59,6 +61,25 @@ class LowCardinalityTestCase(BaseTestCase):
         with self.create_table('a LowCardinality(Date)'):
             start = date(1970, 1, 1)
             data = [(start + timedelta(x), ) for x in range(300)]
+            self.client.execute('INSERT INTO test (a) VALUES', data)
+
+            query = 'SELECT * FROM test'
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
+
+    def test_nullable_date(self):
+        with self.create_table('a LowCardinality(Nullable(Date))'):
+            data = [(date(2023, 4, 1), ), (None, ), (date(1970, 1, 1), )]
+            self.client.execute('INSERT INTO test (a) VALUES', data)
+
+            query = 'SELECT * FROM test'
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
+
+    @require_server_version(21, 6)
+    def test_nullable_uuid(self):
+        with self.create_table('a LowCardinality(Nullable(UUID))'):
+            data = [(UUID('2efcead4-ff55-4db5-bdb4-6b36a308d8e0'), ), (None, )]
             self.client.execute('INSERT INTO test (a) VALUES', data)
 
             query = 'SELECT * FROM test'

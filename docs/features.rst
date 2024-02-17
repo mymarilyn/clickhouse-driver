@@ -16,7 +16,7 @@ Features
 External data for query processing
 ----------------------------------
 
-You can pass `external data <https://clickhouse.yandex/docs/en/single/index.html#external-data-for-query-processing>`_
+You can pass `external data <https://clickhouse.com/docs/en/engines/table-engines/special/external-data/>`_
 alongside with query:
 
     .. code-block:: python
@@ -38,7 +38,7 @@ alongside with query:
 Settings
 --------
 
-There are a lot of ClickHouse server `settings <https://clickhouse.yandex/docs/en/single/index.html#server-settings>`_.
+There are a lot of ClickHouse server `settings <https://clickhouse.com/docs/en/operations/settings/settings/>`_.
 Settings can be specified during Client initialization:
 
     .. code-block:: python
@@ -133,7 +133,7 @@ You can manually set query identificator for each query. UUID for example:
 
 You can cancel query with specific id by sending another query with the same
 query id if option `replace_running_query
-<https://clickhouse.yandex/docs/en/single/#replace-running-query>`_ is set to 1.
+<https://clickhouse.com/docs/en/operations/settings/settings/#replace-running-query>`_ is set to 1.
 
 Query results are fetched by the same instance of Client that emitted query.
 
@@ -186,6 +186,7 @@ Statistics is sent from ClickHouse server and calculated on client side.
     - total rows;
     - written rows (*new in version 0.1.3*);
     - written bytes (*new in version 0.1.3*);
+    - elapsed nanoseconds on server side (*new in version 0.2.7*);
 
     .. code-block:: python
 
@@ -197,8 +198,10 @@ Statistics is sent from ClickHouse server and calculated on client side.
         80
         >>> client.last_query.progress.total_rows
         10
+        >>> client.last_query.progress.elapsed_ns
+        5328901
 
-* elapsed time:
+* elapsed time calculated on client (driver) side:
 
     .. code-block:: python
 
@@ -279,6 +282,36 @@ of hosts if previous host is unavailable:
 
 All queries within established connection will be sent to the same host.
 
+*New in version 0.2.5.*
+
+You can specify `round_robin` parameter alongside with `alt_hosts`. The host
+for query execution will be picked with round-robin algorithm.
+
+    .. code-block:: python
+
+        >>> from clickhouse_driver import Client
+        >>> client = Client(
+        ...     'host1', alt_hosts='host2:1234,host3', round_robin=True
+        ... )
+        >>> client.execute('SELECT 1')
+        [(1,)]
+        >>> client.execute('SELECT 2')
+        [(2,)]
+        >>> client.execute('SELECT 3')
+        [(3,)]
+        >>> client.execute('SELECT 4')
+        [(4,)]
+
+
+In this example queries will be executed on following hosts:
+
+* `SELECT 1` will be executed on host1;
+* `SELECT 2` will be executed on host2;
+* `SELECT 3` will be executed on host3;
+* `SELECT 4` will be executed on host1.
+
+Connection to each host will be established on the first query to the host. All
+established connections will be kept until client disconnection or disposal.
 
 Python DB API 2.0
 -----------------
@@ -349,6 +382,26 @@ managers:
         >>> with connect('clickhouse://localhost') as conn:
         >>>     with conn.cursor() as cursor:
         >>>        cursor.execute('SHOW TABLES')
+        >>>        print(cursor.fetchall())
+
+
+You can use ``cursor_factory`` argument to get results as dicts or named tuples
+(since version 0.2.4):
+
+    .. code-block:: python
+
+        >>> from clickhouse_driver.dbapi.extras import DictCursor
+        >>> with connect('clickhouse://localhost') as conn:
+        >>>     with conn.cursor(cursor_factory=DictCursor) as cursor:
+        >>>        cursor.execute('SELECT * FROM system.tables')
+        >>>        print(cursor.fetchall())
+
+    .. code-block:: python
+
+        >>> from clickhouse_driver.dbapi.extras import NamedTupleCursor
+        >>> with connect('clickhouse://localhost') as conn:
+        >>>     with conn.cursor(cursor_factory=NamedTupleCursor) as cursor:
+        >>>        cursor.execute('SELECT * FROM system.tables')
         >>>        print(cursor.fetchall())
 
 
@@ -496,3 +549,43 @@ Each Client instance can be used as a context manager:
 
 Upon exit, any established connection to the ClickHouse server will be closed
 automatically.
+
+
+TCP keepalive
+-------------
+
+*New in version 0.2.6.*
+
+You can enable `TCP keepalive
+<https://tldp.org/HOWTO/TCP-Keepalive-HOWTO/overview.html>`_ on connection with
+ClickHouse server. This setting is disabled by default. When parameter
+``tcp_keepalive`` is set to ``True`` system TCP keepalive settings are used.
+
+    .. code-block:: python
+
+        >>> client = Client('localhost', tcp_keepalive=True)
+
+
+For Linux default TCP keepalive settings can be found in:
+
+    .. code-block:: bash
+
+        idle_time_sec - /proc/sys/net/ipv4/tcp_keepalive_time
+        interval_sec - /proc/sys/net/ipv4/tcp_keepalive_intvl
+        probes - /proc/sys/net/ipv4/tcp_keepalive_probes
+
+You can also specify custom keepalive settings with tuple
+``(idle_time_sec, interval_sec, probes)``:
+
+    .. code-block:: python
+
+        >>> client = Client('localhost', tcp_keepalive=(60.5, 5.1, 2))
+
+    .. note::
+
+        For Linux and Windows all parameters: idle time, interval and probes
+        can be changed for socket.
+
+        For Mac OS only the second parameter ``interval_sec`` can be changed
+        for socket. ``idle_time_sec``, ``probes`` are not used, but should be
+        specified for uniformity.

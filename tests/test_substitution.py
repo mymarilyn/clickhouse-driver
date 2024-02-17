@@ -1,7 +1,7 @@
 # coding=utf-8
 from __future__ import unicode_literals
 
-from datetime import date, datetime
+from datetime import date, datetime, time
 from decimal import Decimal
 from unittest.mock import Mock
 from uuid import UUID
@@ -52,6 +52,15 @@ class ParametersSubstitutionTestCase(BaseTestCase):
 
         rv = self.client.execute(tpl, params)
         self.assertEqual(rv, [(d, )])
+
+    def test_time(self):
+        t = time(8, 20, 15)
+        params = {'x': t}
+
+        self.assert_subst(self.single_tpl, params, "SELECT '08:20:15'")
+
+        rv = self.client.execute(self.single_tpl, params)
+        self.assertEqual(rv, [('08:20:15', )])
 
     def test_datetime(self):
         dt = datetime(2017, 10, 16, 0, 18, 50)
@@ -231,3 +240,41 @@ class ParametersSubstitutionTestCase(BaseTestCase):
 
         self.assertEqual(e.exception.args[0],
                          'Parameters are expected in dict form')
+
+
+class ServerSideParametersSubstitutionTestCase(BaseTestCase):
+    required_server_version = (22, 8)
+
+    client_kwargs = {'settings': {'server_side_params': True}}
+
+    def test_int(self):
+        rv = self.client.execute('SELECT {x:Int32}', {'x': 123})
+        self.assertEqual(rv, [(123, )])
+
+    def test_str(self):
+        rv = self.client.execute('SELECT {x:Int32}', {'x': '123'})
+        self.assertEqual(rv, [(123, )])
+
+    def test_escaped_str(self):
+        rv = self.client.execute(
+            'SELECT {x:String}, length({x:String})', {'x': '\t'}
+        )
+        self.assertEqual(rv, [('\t', 1)])
+
+        rv = self.client.execute(
+            'SELECT {x:String}, length({x:String})', {'x': '\\'}
+        )
+        self.assertEqual(rv, [('\\', 1)])
+
+        rv = self.client.execute(
+            'SELECT {x:String}, length({x:String})', {'x': "'"}
+        )
+        self.assertEqual(rv, [("'", 1)])
+
+
+class NoServerSideParametersSubstitutionTestCase(BaseTestCase):
+    def test_reserved_keywords(self):
+        self.client.execute(
+            'SELECT * FROM system.events LIMIT %(limit)s OFFSET %(offset)s',
+            {'limit': 20, 'offset': 30}
+        )

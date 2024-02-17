@@ -7,13 +7,18 @@ from .available import settings as available_settings
 logger = logging.getLogger(__name__)
 
 
-def write_settings(settings, buf, settings_as_strings, is_important=False):
+class SettingsFlags:
+    IMPORTANT = 0x1
+    CUSTOM = 0x2
+
+
+def write_settings(settings, buf, settings_as_strings, flags):
     for setting, value in (settings or {}).items():
         # If the server support settings as string we do not need to know
         # anything about them, so we can write any setting.
         if settings_as_strings:
             write_binary_str(setting, buf)
-            write_binary_uint8(int(is_important), buf)
+            write_binary_uint8(flags, buf)
             write_binary_str(str(value), buf)
 
         else:

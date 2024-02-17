@@ -11,7 +11,7 @@ import tzlocal
 
 def skip_by_server_version(testcase, version_required):
     testcase.skipTest(
-        'Mininum revision required: {}'.format(
+        'Minimum revision required: {}'.format(
             '.'.join(str(x) for x in version_required)
         )
     )

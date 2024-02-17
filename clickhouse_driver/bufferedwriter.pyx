@@ -78,10 +78,10 @@ cdef class BufferedWriter(object):
 
             memcpy(&items_buf[buf_pos], c_value, value_len)
             buf_pos += length
-
-        self.write(PyBytes_FromStringAndSize(items_buf, items_buf_size))
-
-        PyMem_Free(items_buf)
+        try:
+            self.write(PyBytes_FromStringAndSize(items_buf, items_buf_size))
+        finally:
+            PyMem_Free(items_buf)
 
     def write_fixed_strings(self, items, Py_ssize_t length, encoding=None):
         if encoding is None:
@@ -110,10 +110,10 @@ cdef class BufferedWriter(object):
 
             memcpy(&items_buf[buf_pos], c_value, value_len)
             buf_pos += length
-
-        self.write(PyBytes_FromStringAndSize(items_buf, items_buf_size))
-
-        PyMem_Free(items_buf)
+        try:
+            self.write(PyBytes_FromStringAndSize(items_buf, items_buf_size))
+        finally:
+            PyMem_Free(items_buf)
 
 
 cdef class BufferedSocketWriter(BufferedWriter):

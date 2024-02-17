@@ -6,10 +6,10 @@ from .base import Column
 from .intcolumn import UInt8Column, UInt16Column, UInt32Column, UInt64Column
 
 
-def create_low_cardinality_column(spec, column_by_spec_getter):
+def create_low_cardinality_column(spec, column_by_spec_getter, column_options):
     inner = spec[15:-1]
     nested = column_by_spec_getter(inner)
-    return LowCardinalityColumn(nested)
+    return LowCardinalityColumn(nested, **column_options)
 
 
 class LowCardinalityColumn(Column):
@@ -35,25 +35,32 @@ class LowCardinalityColumn(Column):
     serialization_type = has_additional_keys_bit | need_update_dictionary
 
     def __init__(self, nested_column, **kwargs):
+        self.init_kwargs = kwargs
         self.nested_column = nested_column
         super(LowCardinalityColumn, self).__init__(**kwargs)
 
     def read_state_prefix(self, buf):
-        return read_binary_uint64(buf)
+        super(LowCardinalityColumn, self).read_state_prefix(buf)
+
+        read_binary_uint64(buf)
 
     def write_state_prefix(self, buf):
+        super(LowCardinalityColumn, self).write_state_prefix(buf)
+
         # KeysSerializationVersion. See ClickHouse docs.
         write_binary_int64(1, buf)
 
     def _write_data(self, items, buf):
         index, keys = [], []
         key_by_index_element = {}
+        nested_is_nullable = False
 
         if self.nested_column.nullable:
             # First element represents NULL if column is nullable.
             index.append(self.nested_column.null_value)
             # Prevent null map writing. Reset nested column nullable flag.
             self.nested_column.nullable = False
+            nested_is_nullable = True
 
             for x in items:
                 if x is None:
@@ -87,14 +94,26 @@ class LowCardinalityColumn(Column):
             return
 
         int_type = int(log(len(index), 2) / 8)
-        int_column = self.int_types[int_type]()
+        int_column = self.int_types[int_type](**self.init_kwargs)
 
         serialization_type = self.serialization_type | int_type
 
         write_binary_int64(serialization_type, buf)
         write_binary_int64(len(index), buf)
 
-        self.nested_column.write_data(index, buf)
+        if nested_is_nullable:
+            # Given we reset nested column nullable flag above,
+            # we need to write null map manually. If to invoke
+            # write_data method, it will cause an exception,
+            # because `prepare_data` may not be able to handle
+            # null value correctly.
+            self.nested_column.write_items(
+                [self.nested_column.null_value], buf)
+            # Remove null map from index, because it is already written.
+            index_to_write = index[1:]
+            self.nested_column.write_data(index_to_write, buf)
+        else:
+            self.nested_column.write_data(index, buf)
         write_binary_int64(len(items), buf)
         int_column.write_items(keys, buf)
 
@@ -106,7 +125,7 @@ class LowCardinalityColumn(Column):
 
         # Lowest byte contains info about key type.
         key_type = serialization_type & 0xf
-        keys_column = self.int_types[key_type]()
+        keys_column = self.int_types[key_type](**self.init_kwargs)
 
         nullable = self.nested_column.nullable
         # Prevent null map reading. Reset nested column nullable flag.

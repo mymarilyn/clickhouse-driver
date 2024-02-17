@@ -28,25 +28,31 @@ class ArrayColumn(Column):
     py_types = (list, tuple)
 
     def __init__(self, nested_column, **kwargs):
-        self.size_column = UInt64Column()
+        self.init_kwargs = kwargs
+        self.size_column = UInt64Column(**kwargs)
         self.nested_column = nested_column
         self._write_depth_0_size = True
         super(ArrayColumn, self).__init__(**kwargs)
+        self.null_value = []
 
     def write_data(self, data, buf):
         # Column of Array(T) is stored in "compact" format and passed to server
         # wrapped into another Array without size of wrapper array.
-        self.nested_column = ArrayColumn(self.nested_column)
+        self.nested_column = ArrayColumn(
+            self.nested_column, **self.init_kwargs
+        )
         self.nested_column.nullable = self.nullable
         self.nullable = False
         self._write_depth_0_size = False
         self._write(data, buf)
 
-    def read_data(self, rows, buf):
-        self.nested_column = ArrayColumn(self.nested_column)
+    def read_data(self, n_rows, buf):
+        self.nested_column = ArrayColumn(
+            self.nested_column, **self.init_kwargs
+        )
         self.nested_column.nullable = self.nullable
         self.nullable = False
-        return self._read(rows, buf)[0]
+        return self._read(n_rows, buf)[0]
 
     def _write_sizes(self, value, buf):
         nulls_map = []
@@ -99,14 +105,19 @@ class ArrayColumn(Column):
                 self.nested_column._write_nulls_map(value, buf)
 
     def _write(self, value, buf):
+        value = self.prepare_items(value)
         self._write_sizes(value, buf)
         self._write_nulls_data(value, buf)
         self._write_data(value, buf)
 
     def read_state_prefix(self, buf):
-        return self.nested_column.read_state_prefix(buf)
+        super(ArrayColumn, self).read_state_prefix(buf)
+
+        self.nested_column.read_state_prefix(buf)
 
     def write_state_prefix(self, buf):
+        super(ArrayColumn, self).write_state_prefix(buf)
+
         self.nested_column.write_state_prefix(buf)
 
     def _read(self, size, buf):
@@ -145,6 +156,6 @@ class ArrayColumn(Column):
         return tuple(data)
 
 
-def create_array_column(spec, column_by_spec_getter):
+def create_array_column(spec, column_by_spec_getter, column_options):
     inner = spec[6:-1]
-    return ArrayColumn(column_by_spec_getter(inner))
+    return ArrayColumn(column_by_spec_getter(inner), **column_options)

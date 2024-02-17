@@ -1,5 +1,6 @@
 import socket
 import getpass
+from time import time
 
 from . import defines
 from . import errors
@@ -27,14 +28,13 @@ class ClientInfo(object):
     client_version_major = defines.CLIENT_VERSION_MAJOR
     client_version_minor = defines.CLIENT_VERSION_MINOR
     client_version_patch = defines.CLIENT_VERSION_PATCH
-    client_revision = defines.CLIENT_REVISION
     interface = Interface.TCP
 
     initial_user = ''
     initial_query_id = ''
     initial_address = '0.0.0.0:0'
 
-    def __init__(self, client_name, context):
+    def __init__(self, client_name, context, client_revision):
         self.query_kind = ClientInfo.QueryKind.NO_QUERY
 
         try:
@@ -43,6 +43,7 @@ class ClientInfo(object):
             self.os_user = ''
         self.client_hostname = socket.gethostname()
         self.client_name = client_name
+        self.client_revision = client_revision
 
         self.client_trace_context = OpenTelemetryTraceContext(
             context.client_settings['opentelemetry_traceparent'],
@@ -50,6 +51,8 @@ class ClientInfo(object):
         )
 
         self.quota_key = context.client_settings['quota_key']
+        self.distributed_depth = 0
+        self.initial_query_start_time_microseconds = int(time() * 1000000)
 
         super(ClientInfo, self).__init__()
 
@@ -71,6 +74,14 @@ class ClientInfo(object):
         write_binary_str(self.initial_query_id, fout)
         write_binary_str(self.initial_address, fout)
 
+        if (
+            revision >=
+            defines.DBMS_MIN_PROTOCOL_VERSION_WITH_INITIAL_QUERY_START_TIME
+        ):
+            write_binary_uint64(
+                self.initial_query_start_time_microseconds, fout
+            )
+
         write_binary_uint8(self.interface, fout)
 
         write_binary_str(self.os_user, fout)
@@ -82,6 +93,10 @@ class ClientInfo(object):
 
         if revision >= defines.DBMS_MIN_REVISION_WITH_QUOTA_KEY_IN_CLIENT_INFO:
             write_binary_str(self.quota_key, fout)
+
+        if revision >= \
+                defines.DBMS_MIN_PROTOCOL_VERSION_WITH_DISTRIBUTED_DEPTH:
+            write_varint(self.distributed_depth, fout)
 
         if revision >= defines.DBMS_MIN_REVISION_WITH_VERSION_PATCH:
             write_varint(self.client_version_patch, fout)
@@ -97,3 +112,8 @@ class ClientInfo(object):
             else:
                 # Don't have OpenTelemetry header.
                 write_binary_uint8(0, fout)
+
+        if revision >= defines.DBMS_MIN_REVISION_WITH_PARALLEL_REPLICAS:
+            write_varint(0, fout)  # collaborate_with_initiator
+            write_varint(0, fout)  # count_participating_replicas
+            write_varint(0, fout)  # number_of_current_replica

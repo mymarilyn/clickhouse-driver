@@ -45,13 +45,13 @@ Create container desired version of ``clickhouse-server``:
 
     .. code-block:: bash
 
-        docker run --rm -e "TZ=Europe/Moscow" -p 127.0.0.1:9000:9000 --name test-clickhouse-server yandex/clickhouse-server:$VERSION
+        docker run --rm -e "TZ=Europe/Moscow" -p 127.0.0.1:9000:9000 --name test-clickhouse-server clickhouse/clickhouse-server:$VERSION
 
 Create container with the same version of ``clickhouse-client``:
 
     .. code-block:: bash
 
-        docker run --rm --entrypoint "/bin/sh" --name test-clickhouse-client --link test-clickhouse-server:clickhouse-server yandex/clickhouse-client:$VERSION -c 'while :; do sleep 1; done'
+        docker run --rm --entrypoint "/bin/sh" --name test-clickhouse-client --link test-clickhouse-server:clickhouse-server clickhouse/clickhouse-client:$VERSION -c 'while :; do sleep 1; done'
 
 Create ``clickhouse-client`` script on your host machine:
 
@@ -77,3 +77,11 @@ Set ``TZ=UTC`` and run tests:
 
         export TZ=UTC
         py.test -v
+
+GitHub Actions in forked repository
+-----------------------------------
+
+Workflows in forked repositories can be used for running tests.
+
+Workflows don't run in forked repositories by default.
+You must enable GitHub Actions in the **Actions** tab of the forked repository.

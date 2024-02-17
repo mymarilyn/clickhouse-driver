@@ -21,7 +21,7 @@ from clickhouse_driver import __version__, VERSION
 # -- Project information -----------------------------------------------------
 
 project = u'clickhouse-driver'
-copyright = u'2017-2020, clickhouse-driver authors'
+copyright = u'2017-2022, clickhouse-driver authors'
 author = u'clickhouse-driver authors'
 
 # The short X.Y version
@@ -66,7 +66,7 @@ master_doc = 'index'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.

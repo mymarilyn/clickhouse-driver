@@ -1,22 +1,32 @@
+import re
 from .base import Column
 from .intcolumn import UInt64Column
 from ..util.helpers import pairwise
 
 
+comma_re = re.compile(r',(?![^()]*\))')
+
+
 class MapColumn(Column):
     py_types = (dict, )
 
+    null_value = {}
+
     def __init__(self, key_column, value_column, **kwargs):
-        self.offset_column = UInt64Column()
+        self.offset_column = UInt64Column(**kwargs)
         self.key_column = key_column
         self.value_column = value_column
         super(MapColumn, self).__init__(**kwargs)
 
     def read_state_prefix(self, buf):
+        super(MapColumn, self).read_state_prefix(buf)
+
         self.key_column.read_state_prefix(buf)
         self.value_column.read_state_prefix(buf)
 
     def write_state_prefix(self, buf):
+        super(MapColumn, self).write_state_prefix(buf)
+
         self.key_column.write_state_prefix(buf)
         self.value_column.write_state_prefix(buf)
 
@@ -50,9 +60,11 @@ class MapColumn(Column):
         self.value_column.write_data(values, buf)
 
 
-def create_map_column(spec, column_by_spec_getter):
-    key, value = spec[4:-1].split(',')
+def create_map_column(spec, column_by_spec_getter, column_options):
+    # Match commas outside of parentheses, so we don't match the comma in
+    # Decimal types.
+    key, value = comma_re.split(spec[4:-1])
     key_column = column_by_spec_getter(key.strip())
     value_column = column_by_spec_getter(value.strip())
 
-    return MapColumn(key_column, value_column)
+    return MapColumn(key_column, value_column, **column_options)

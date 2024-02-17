@@ -15,6 +15,7 @@ from .intcolumn import (
     UInt8Column, UInt16Column, UInt32Column, UInt64Column
 )
 from .lowcardinalitycolumn import create_low_cardinality_column
+from .jsoncolumn import create_json_column
 from .mapcolumn import create_map_column
 from .nothingcolumn import NothingColumn
 from .nullcolumn import NullColumn
@@ -24,6 +25,7 @@ from .simpleaggregatefunctioncolumn import (
 )
 from .stringcolumn import create_string_column
 from .tuplecolumn import create_tuple_column
+from .nestedcolumn import create_nested_column
 from .uuidcolumn import UUIDColumn
 from .intervalcolumn import (
     IntervalYearColumn, IntervalMonthColumn, IntervalWeekColumn,
@@ -45,6 +47,16 @@ column_by_type = {c.ch_type: c for c in [
 ]}
 
 logger = logging.getLogger(__name__)
+
+
+aliases = [
+    # Begin Geo types
+    ('Point', 'Tuple(Float64, Float64)'),
+    ('Ring', 'Array(Point)'),
+    ('Polygon', 'Array(Ring)'),
+    ('MultiPolygon', 'Array(Polygon)')
+    # End Geo types
+]
 
 
 def get_column_by_spec(spec, column_options, use_numpy=None):
@@ -79,25 +91,50 @@ def get_column_by_spec(spec, column_options, use_numpy=None):
         return create_decimal_column(spec, column_options)
 
     elif spec.startswith('Array'):
-        return create_array_column(spec, create_column_with_options)
+        return create_array_column(
+            spec, create_column_with_options, column_options
+        )
 
     elif spec.startswith('Tuple'):
-        return create_tuple_column(spec, create_column_with_options)
+        return create_tuple_column(
+            spec, create_column_with_options, column_options
+        )
+
+    elif spec.startswith('Nested'):
+        return create_nested_column(
+            spec, create_column_with_options, column_options
+        )
 
     elif spec.startswith('Nullable'):
         return create_nullable_column(spec, create_column_with_options)
 
     elif spec.startswith('LowCardinality'):
-        return create_low_cardinality_column(spec, create_column_with_options)
+        return create_low_cardinality_column(
+            spec, create_column_with_options, column_options
+        )
 
     elif spec.startswith('SimpleAggregateFunction'):
         return create_simple_aggregate_function_column(
-            spec, create_column_with_options)
+            spec, create_column_with_options
+        )
 
     elif spec.startswith('Map'):
-        return create_map_column(spec, create_column_with_options)
+        return create_map_column(
+            spec, create_column_with_options, column_options
+        )
+
+    elif spec.startswith("Object('json')"):
+        return create_json_column(
+            spec, create_column_with_options, column_options
+        )
 
     else:
+        for alias, primitive in aliases:
+            if spec.startswith(alias):
+                return create_column_with_options(
+                    primitive + spec[len(alias):]
+                )
+
         try:
             cls = column_by_type[spec]
             return cls(**column_options)
@@ -106,11 +143,15 @@ def get_column_by_spec(spec, column_options, use_numpy=None):
             raise errors.UnknownTypeError('Unknown type {}'.format(spec))
 
 
-def read_column(context, column_spec, n_items, buf):
-    column_options = {'context': context}
-    column = get_column_by_spec(column_spec, column_options)
-    column.read_state_prefix(buf)
-    return column.read_data(n_items, buf)
+def read_column(context, column_spec, n_items, buf, use_numpy=None,
+                has_custom_serialization=False):
+    column_options = {
+        'context': context,
+        'has_custom_serialization': has_custom_serialization
+    }
+    col = get_column_by_spec(column_spec, column_options, use_numpy=use_numpy)
+    col.read_state_prefix(buf)
+    return col.read_data(n_items, buf)
 
 
 def write_column(context, column_name, column_spec, items, buf,

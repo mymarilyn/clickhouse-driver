@@ -1,10 +1,10 @@
 from tests.testcase import BaseTestCase
+from decimal import Decimal
 
 
 class MapTestCase(BaseTestCase):
     required_server_version = (21, 1, 2)
-    # TODO: detect stable version
-    stable_support_version = (22, 14, 9)
+    stable_support_version = (21, 8, 1)
 
     def client_kwargs(self, version):
         if version < self.stable_support_version:
@@ -97,6 +97,26 @@ class MapTestCase(BaseTestCase):
                 "{'key1':[]}\n"
                 "{'key2':[1,2,3]}\n"
                 "{'key3':[1,1,1,1]}\n"
+            )
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
+
+    def test_decimal(self):
+        columns = 'a Map(String, Decimal(9, 2))'
+        with self.create_table(columns):
+            data = [
+                ({'key1': Decimal('123.45')}, ),
+                ({'key2': Decimal('234.56')}, ),
+                ({'key3': Decimal('345.67')}, )
+            ]
+            self.client.execute('INSERT INTO test (a) VALUES', data)
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted,
+                "{'key1':123.45}\n"
+                "{'key2':234.56}\n"
+                "{'key3':345.67}\n"
             )
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)

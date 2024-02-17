@@ -6,7 +6,7 @@ Installation
 Python Version
 --------------
 
-Clickhouse-driver supports Python 3.4 and newer and PyPy.
+Clickhouse-driver supports Python 3.7 and newer and PyPy.
 
 Build Dependencies
 ------------------
@@ -21,9 +21,9 @@ Example for `python:alpine` docker image:
 
 By default there are wheels for Linux, Mac OS X and Windows.
 
-Packages for Linux and Mac OS X are available for python: 3.6 -- 3.10.
+Packages for Linux and Mac OS X are available for python: 3.7 -- 3.11.
 
-Packages for Windows are available for python: 3.6 -- 3.10.
+Packages for Windows are available for python: 3.7 -- 3.11.
 
 Starting from version *0.2.3* there are wheels for musl-based Linux distributions.
 

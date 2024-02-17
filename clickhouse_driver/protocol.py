@@ -72,15 +72,24 @@ class ServerPacketTypes(object):
     # Columns' description for default values calculation
     TABLE_COLUMNS = 11
 
+    # List of unique parts ids.
+    PART_UUIDS = 12
+
+    # String (UUID) describes a request for which next task is needed
+    READ_TASK_REQUEST = 13
+
+    # Packet with profile events from server.
+    PROFILE_EVENTS = 14
+
     _types_str = [
         'Hello', 'Data', 'Exception', 'Progress', 'Pong', 'EndOfStream',
         'ProfileInfo', 'Totals', 'Extremes', 'TablesStatusResponse', 'Log',
-        'TableColumns'
+        'TableColumns', 'PartUUIDs', 'ReadTaskRequest', 'ProfileEvents'
     ]
 
     @classmethod
     def to_str(cls, packet):
-        return 'Unknown packet' if packet > 11 else cls._types_str[packet]
+        return 'Unknown packet' if packet > 14 else cls._types_str[packet]
 
     @classmethod
     def strings_in_message(cls, packet):

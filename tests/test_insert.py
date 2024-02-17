@@ -3,6 +3,7 @@ from datetime import date
 from tests.testcase import BaseTestCase
 from clickhouse_driver import errors
 from clickhouse_driver.errors import ServerException
+from tests.util import require_server_version
 
 
 class InsertTestCase(BaseTestCase):
@@ -147,6 +148,27 @@ class InsertTestCase(BaseTestCase):
                 'INSERT INTO test (a) VALUES', [(x,) for x in range(5)]
             )
             self.assertEqual(rv, 5)
+
+    @require_server_version(22, 3, 6)
+    def test_insert_from_input(self):
+        with self.create_table('a Int8'):
+            data = [{'a': 1}]
+            self.client.execute(
+                "INSERT INTO test (a) "
+                "SELECT a FROM input ('a Int8') FORMAT Native",
+                data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, '1\n')
+
+    def test_profile_events(self):
+        with self.create_table('x Int32'):
+            data = [{'x': 1}]
+            self.client.execute(
+                'INSERT INTO test (x) VALUES', data
+            )
 
 
 class InsertColumnarTestCase(BaseTestCase):

@@ -1,4 +1,5 @@
 import types
+from collections import namedtuple
 from contextlib import contextmanager
 import socket
 from unittest.mock import patch
@@ -7,6 +8,7 @@ from clickhouse_driver import connect
 from clickhouse_driver.dbapi import (
     ProgrammingError, InterfaceError, OperationalError
 )
+from clickhouse_driver.dbapi.extras import DictCursor, NamedTupleCursor
 from tests.testcase import BaseTestCase
 
 
@@ -30,8 +32,9 @@ class DBAPITestCaseBase(BaseTestCase):
 
     @contextmanager
     def created_cursor(self, **kwargs):
+        cursor_kwargs = kwargs.pop('cursor_kwargs', {})
         with self.created_connection(**kwargs) as connection:
-            cursor = connection.cursor()
+            cursor = connection.cursor(**cursor_kwargs)
 
             try:
                 yield cursor
@@ -368,3 +371,126 @@ class InterfaceTestCase(DBAPITestCaseBase):
             with self.assertRaises(ProgrammingError) as e:
                 cursor.fetchall()
             self.assertEqual(str(e.exception), 'no results to fetch')
+
+
+class DictCursorFactoryTestCase(DBAPITestCaseBase):
+    def test_execute_fetchone(self):
+        cursor_kwargs = {'cursor_factory': DictCursor}
+
+        with self.created_cursor(cursor_kwargs=cursor_kwargs) as cursor:
+            cursor.execute('SELECT number FROM system.numbers LIMIT 4')
+
+            self.assertIsInstance(cursor._rows, list)
+            self.assertEqual(cursor.fetchone(), {'number': 0})
+            self.assertEqual(cursor.fetchone(), {'number': 1})
+            self.assertEqual(cursor.fetchone(), {'number': 2})
+            self.assertEqual(cursor.fetchone(), {'number': 3})
+            self.assertEqual(cursor.fetchone(), None)
+
+    def test_execute_fetchmany(self):
+        cursor_kwargs = {'cursor_factory': DictCursor}
+
+        with self.created_cursor(cursor_kwargs=cursor_kwargs) as cursor:
+            cursor.execute('SELECT number FROM system.numbers LIMIT 4')
+
+            self.assertIsInstance(cursor._rows, list)
+            self.assertEqual(cursor.fetchmany(), [{'number': 0}])
+            self.assertEqual(cursor.fetchmany(None), [{'number': 1}])
+            self.assertEqual(cursor.fetchmany(0), [])
+            self.assertEqual(
+                cursor.fetchmany(-1), [{'number': 2}, {'number': 3}]
+            )
+
+            cursor.execute('SELECT number FROM system.numbers LIMIT 4')
+            self.assertEqual(cursor.fetchmany(1), [{'number': 0}])
+            self.assertEqual(
+                cursor.fetchmany(2), [{'number': 1}, {'number': 2}]
+            )
+            self.assertEqual(cursor.fetchmany(3), [{'number': 3}])
+            self.assertEqual(cursor.fetchmany(3), [])
+
+            cursor.arraysize = 2
+            cursor.execute('SELECT number FROM system.numbers LIMIT 4')
+            self.assertEqual(
+                cursor.fetchmany(), [{'number': 0}, {'number': 1}])
+            self.assertEqual(
+                cursor.fetchmany(), [{'number': 2}, {'number': 3}]
+            )
+
+    def test_execute_fetchall(self):
+        cursor_kwargs = {'cursor_factory': DictCursor}
+
+        with self.created_cursor(cursor_kwargs=cursor_kwargs) as cursor:
+            cursor.execute('SELECT number FROM system.numbers LIMIT 4')
+            self.assertEqual(cursor.rowcount, 4)
+            self.assertEqual(
+                cursor.fetchall(), [
+                    {'number': 0}, {'number': 1}, {'number': 2}, {'number': 3}
+                ])
+
+
+class NamedTupleCursorFactoryTestCase(DBAPITestCaseBase):
+    def test_execute_fetchone(self):
+        cursor_kwargs = {'cursor_factory': NamedTupleCursor}
+
+        with self.created_cursor(cursor_kwargs=cursor_kwargs) as cursor:
+            cursor.execute('SELECT number FROM system.numbers LIMIT 4')
+
+            self.assertIsInstance(cursor._rows, list)
+            nt = namedtuple('Record', cursor._columns)
+
+            self.assertEqual(cursor.fetchone(), nt(0))
+            self.assertEqual(cursor.fetchone(), nt(1))
+            self.assertEqual(cursor.fetchone(), nt(2))
+            self.assertEqual(cursor.fetchone(), nt(3))
+            self.assertEqual(cursor.fetchone(), None)
+
+    def test_execute_fetchmany(self):
+        cursor_kwargs = {'cursor_factory': NamedTupleCursor}
+
+        with self.created_cursor(cursor_kwargs=cursor_kwargs) as cursor:
+            cursor.execute('SELECT number FROM system.numbers LIMIT 4')
+
+            self.assertIsInstance(cursor._rows, list)
+            nt = namedtuple('Record', cursor._columns)
+
+            self.assertEqual(cursor.fetchmany(), [nt(0)])
+            self.assertEqual(cursor.fetchmany(None), [nt(1)])
+            self.assertEqual(cursor.fetchmany(0), [])
+            self.assertEqual(cursor.fetchmany(-1), [nt(2), nt(3)])
+
+            cursor.execute('SELECT number FROM system.numbers LIMIT 4')
+            self.assertEqual(cursor.fetchmany(1), [nt(0)])
+            self.assertEqual(cursor.fetchmany(2), [nt(1), nt(2)])
+            self.assertEqual(cursor.fetchmany(3), [nt(3)])
+            self.assertEqual(cursor.fetchmany(3), [])
+
+            cursor.arraysize = 2
+            cursor.execute('SELECT number FROM system.numbers LIMIT 4')
+            self.assertEqual(cursor.fetchmany(), [nt(0), nt(1)])
+            self.assertEqual(cursor.fetchmany(), [nt(2), nt(3)])
+
+    def test_execute_fetchall(self):
+        cursor_kwargs = {'cursor_factory': NamedTupleCursor}
+
+        with self.created_cursor(cursor_kwargs=cursor_kwargs) as cursor:
+            cursor.execute('SELECT number FROM system.numbers LIMIT 4')
+            self.assertEqual(cursor.rowcount, 4)
+            nt = namedtuple('Record', cursor._columns)
+
+            self.assertEqual(cursor.fetchall(), [nt(0), nt(1), nt(2), nt(3)])
+
+    def test_make_nt_caching(self):
+        cursor_kwargs = {'cursor_factory': NamedTupleCursor}
+
+        with self.created_cursor(cursor_kwargs=cursor_kwargs) as cursor:
+            cursor.execute('SELECT number FROM system.numbers LIMIT 4')
+
+            self.assertIsInstance(cursor._rows, list)
+            nt = namedtuple('Record', cursor._columns)
+
+            self.assertEqual(cursor.fetchone(), nt(0))
+
+            with patch('clickhouse_driver.dbapi.extras.namedtuple') as nt_mock:
+                nt_mock.side_effect = ValueError
+                self.assertEqual(cursor.fetchone(), nt(1))

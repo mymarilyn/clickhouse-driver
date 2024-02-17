@@ -69,6 +69,16 @@ with ``%`` symbol and ``%(myvar)s`` parameters.
 NOTE: formatting queries using Python's f-strings or concatenation can lead to SQL injections.
 Use ``%(myvar)s`` parameters instead.
 
+Server-side parameters supported since 0.2.6 version.
+    You can mix client-side and server-side formatting in one query:
+
+    .. code-block:: python
+
+        >>> client.execute(
+        ...     "SELECT 'test' like '%%es%%', %(myvar)s, {myvar:Int32}",
+        ...     {'myvar': 1}
+        ... )
+
 Customisation ``SELECT`` output with ``FORMAT`` clause is not supported.
 
 .. _execute-with-progress:
@@ -130,7 +140,7 @@ When you are dealing with large datasets block by block results streaming may be
 Inserting data
 --------------
 
-Insert queries in `Native protocol <https://clickhouse.yandex/docs/en/single/index.html#native-interface-tcp>`_
+Insert queries in `Native protocol <https://clickhouse.com/docs/en/interfaces/tcp/>`_
 are a little bit tricky because of ClickHouse's columnar nature. And because we're using Python.
 
 INSERT query consists of two parts: query statement and query values. Query values are split into chunks called blocks.
