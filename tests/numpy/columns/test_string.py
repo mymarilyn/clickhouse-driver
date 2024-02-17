@@ -90,7 +90,7 @@ class ByteStringTestCase(NumpyBaseTestCase):
         })
         with self.create_table('a String'):
             self.client.insert_dataframe(
-                "insert into table test values", frame,
+                "insert into table test values", df,
                 settings={"use_numpy": True},
             )
             numpy_result = self.client.query_dataframe(
