@@ -1,7 +1,9 @@
 try:
     import numpy as np
+    import pandas as pd
 except ImportError:
     np = None
+    dp = None
 
 from tests.numpy.testcase import NumpyBaseTestCase
 
@@ -78,22 +80,28 @@ class ByteStringTestCase(NumpyBaseTestCase):
                 inserted[0], [np.array([None, b'test', None, b'nullable'])]
             )
             self.assertEqual(inserted[0].dtype, object)
-    
+
     def test_trailing_zero(self):
-        import pandas as pd
+        df = pd.DataFrame(data={
+            'a': [
+                b'\x00\x00\x00\x00\x00\x00\x00\x002\xc0\xcf>\x00\x00\x00\x00',
+                b'\x00\x00\x00\x00\x00\x00\x00\x002\xc0\xcf>\x00\x00\x00\x00'
+            ]
+        })
         with self.create_table('a String'):
-            assert self.client is not None
-            assert np is not None
             self.client.insert_dataframe(
                 "insert into table test values",
-                pd.DataFrame(
-                    data={'a':[
-                        b'\x00\x00\x00\x00\x00\x00\x00\x002\xc0\xcf>\x00\x00\x00\x00', 
-                        b'\x00\x00\x00\x00\x00\x00\x00\x002\xc0\xcf>\x00\x00\x00\x00']}),
+                ,
                 settings={"use_numpy": True},
             )
-            numpy_result = self.client.query_dataframe("select * from testtable", settings={'strings_as_bytes': True, "use_numpy": True})
-            normal_result = self.client.query_dataframe("select * from testtable", settings={'strings_as_bytes': True, "use_numpy": False})
+            numpy_result = self.client.query_dataframe(
+                "select * from testtable",
+                settings={'strings_as_bytes': True, "use_numpy": True}
+            )
+            normal_result = self.client.query_dataframe(
+                "select * from testtable",
+                settings={'strings_as_bytes': True, "use_numpy": False}
+            )
             self.assertTrue(np.allclose(numpy_result, normal_result))
 
 
