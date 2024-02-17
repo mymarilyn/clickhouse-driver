@@ -25,7 +25,8 @@ class NumpyDateTimeColumnBase(NumpyColumn):
             ts = pd.to_datetime(dt, utc=True).tz_convert(timezone)
             ts = ts.tz_localize(None)
             return ts.to_numpy(self.datetime_dtype)
-
+        
+        return dt
 
     def apply_timezones_before_write(self, items):
         if isinstance(items, pd.DatetimeIndex):
