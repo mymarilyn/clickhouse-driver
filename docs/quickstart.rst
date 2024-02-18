@@ -70,14 +70,35 @@ NOTE: formatting queries using Python's f-strings or concatenation can lead to S
 Use ``%(myvar)s`` parameters instead.
 
 Server-side parameters supported since 0.2.6 version.
-    You can mix client-side and server-side formatting in one query:
+Since 0.2.7 it's disabled by default to avoid "limit" and "offset" names collision.
+See, `issue <https://github.com/mymarilyn/clickhouse-driver/issues/376>`_.
+You can decide which side parameters should be rendered into placeholders with
+``server_side_params``. If it's set to:
+
+  * ``True`` - parameters are rendered on server side;
+  * ``False``- default, parameters are rendered in driver side.
+
+``myvar`` will be rendered on server side and the actual query sent to server
+will be ``SELECT 'test' like '%%es%%', {myvar:Int32}``:
 
     .. code-block:: python
 
         >>> client.execute(
-        ...     "SELECT 'test' like '%%es%%', %(myvar)s, {myvar:Int32}",
+        ...     "SELECT 'test' like '%%es%%', {myvar:Int32}",
+        ...     {'myvar': 1}, settings={'server_side_params': True}
+        ... )
+
+``myvar`` will be rendered on driver side and the actual query sent to server
+will be ``SELECT 'test' like '%%es%%', 1``:
+
+    .. code-block:: python
+
+        >>> client.execute(
+        ...     "SELECT 'test' like '%%es%%', %(myvar)s,
         ...     {'myvar': 1}
         ... )
+
+You can't mix client-side and server-side formatting in one query.
 
 Customisation ``SELECT`` output with ``FORMAT`` clause is not supported.
 

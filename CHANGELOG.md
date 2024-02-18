@@ -1,8 +1,24 @@
 # Changelog
 
 ## Unreleased
+
+## [0.2.7] - 2024-02-20
+### Added
+- Wheels for Python 3.12.
+- Toggle hostname verification with ``verify`` option. Solves issue [#378](https://github.com/mymarilyn/clickhouse-driver/issues/378). Pull request [#379](https://github.com/mymarilyn/clickhouse-driver/pull/379) by [adamleko](https://github.com/adamleko).
+
 ### Fixed
-- Memory leak when clickhouse raise exception onBufferedSocketWriter.write_into_stream. Solves issue [#406](https://github.com/mymarilyn/clickhouse-driver/issues/406).
+- Date32 start interval changed to 1900-01-01. Solves issue [#409](https://github.com/mymarilyn/clickhouse-driver/issues/409).
+- Memory leak when clickhouse raise exception on ``BufferedSocketWriter.write_into_stream``. Solves issue [#406](https://github.com/mymarilyn/clickhouse-driver/issues/406). Pull request [#407](https://github.com/mymarilyn/clickhouse-driver/pull/407) by [pulina](https://github.com/pulina).
+- ``input_format_null_as_default`` option for UUID produce ``00000000-0000-0000-0000-000000000000`` if set to true. Solves issue [#401](https://github.com/mymarilyn/clickhouse-driver/issues/401).
+- [Tests] Remove MemoryTracker asserting on INSERT statements. Solves issue [#403](https://github.com/mymarilyn/clickhouse-driver/issues/403).
+- Store "progress" and "profile" stats on INSERT statements. Solves issue [#391](https://github.com/mymarilyn/clickhouse-driver/issues/391). Pull request [#392](https://github.com/mymarilyn/clickhouse-driver/pull/392) by [insomnes](https://github.com/insomnes).
+- Add ``send_logs_level=test`` log level support. Solves issue [#383](https://github.com/mymarilyn/clickhouse-driver/issues/383). Pull request [#395](https://github.com/mymarilyn/clickhouse-driver/pull/395) by [the-horhe](https://github.com/the-horhe).
+- ``self`` in ``int128_from_quads``, ``int128_to_quads``, ``int256_from_quads``, ``int256_to_quads``. Solves issue [#400](https://github.com/mymarilyn/clickhouse-driver/issues/400).
+
+### Changed
+- Server-side parameters substitution is turned off by default. You can't mix client-side and server-side formatting in one query. Solves issue [#376](https://github.com/mymarilyn/clickhouse-driver/issues/376) and [#410](https://github.com/mymarilyn/clickhouse-driver/issues/410).
+- Protocol version bumped to 54462.
 
 ## [0.2.6] - 2023-05-02
 ### Added
