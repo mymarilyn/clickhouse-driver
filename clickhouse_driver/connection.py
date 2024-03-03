@@ -314,7 +314,7 @@ class Connection(object):
             context.set_ciphers(ssl_options['ciphers'])
 
         if 'cert_reqs' in ssl_options:
-            context.options = ssl_options['cert_reqs']
+            context.verify_mode = ssl_options['cert_reqs']
 
         if 'certfile' in ssl_options:
             keyfile = ssl_options.get('keyfile')
