@@ -70,7 +70,7 @@ jobs:
         run: |
           echo "VERSION=${{ matrix.clickhouse-version }}" > tests/.env
           if [[ "${{ matrix.clickhouse-version }}" > "21.7" ]]; then echo "ORG=clickhouse"; else echo "ORG=yandex" ; fi  >> tests/.env
-          if [[ "21.9.3.30" = "`echo -e "21.9.3.30\n${{ matrix.clickhouse-version }}" | sort -V | head -n1`" ]]; then echo "TOP_LEVEL=clickhouse"; else echo "TOP_LEVEL=yandex" ; fi  >> tests/.env
+          if [[ "21.10" = "`echo -e "21.10\n${{ matrix.clickhouse-version }}" | sort -V | head -n1`" ]]; then echo "TOP_LEVEL=clickhouse"; else echo "TOP_LEVEL=yandex" ; fi  >> tests/.env
           docker-compose -f tests/docker-compose.yml up -d
       - name: Setup clickhouse-client proxy for docker
         run: |
