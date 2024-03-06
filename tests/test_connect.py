@@ -307,7 +307,7 @@ class ConnectTestCase(BaseTestCase):
             client.execute('SELECT 1')
 
     def test_client_with_no_cert_validation(self):
-        with self.created_client(port=9440,
+        with self.created_client(port=self.secure_port,
                                  secure=True, verify=False) as client:
             client.execute('SELECT 1')
 

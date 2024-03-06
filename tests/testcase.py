@@ -22,6 +22,7 @@ class BaseTestCase(TestCase):
     clickhouse_client_binary = file_config.get('db', 'client')
     host = file_config.get('db', 'host')
     port = file_config.getint('db', 'port')
+    secure_port = file_config.getint('db', 'secure_port')
     database = file_config.get('db', 'database')
     user = file_config.get('db', 'user')
     password = file_config.get('db', 'password')
