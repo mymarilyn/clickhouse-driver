@@ -8,6 +8,10 @@ services:
       - TZ=Europe/Moscow
     ports:
       - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9440:9440"
+    volumes:
+      - "./clickhouse_server_config/$TOP_LEVEL.xml:/etc/clickhouse-server/config.d/test_config.xml"
+      - "./clickhouse_server_config/certs:/etc/clickhouse-server/certs"
 
   clickhouse-client:
     image: "$ORG/clickhouse-server:$VERSION"

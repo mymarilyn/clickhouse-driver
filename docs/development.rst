@@ -45,7 +45,7 @@ Create container desired version of ``clickhouse-server``:
 
     .. code-block:: bash
 
-        docker run --rm -e "TZ=Europe/Moscow" -p 127.0.0.1:9000:9000 --name test-clickhouse-server clickhouse/clickhouse-server:$VERSION
+        docker run --rm -e "TZ=Europe/Moscow" -p 127.0.0.1:9000:9000 -p 127.0.0.1:9440:9440 --name test-clickhouse-server clickhouse/clickhouse-server:$VERSION
 
 Create container with the same version of ``clickhouse-client``:
 
