@@ -8,6 +8,13 @@ class BlockInfo(object):
     is_overflows = False
     bucket_num = -1
 
+    def __repr__(self) -> str:
+        cls_name = self.__class__.__name__
+        attrs = {
+            key: val for key, val in (vars(self)).items() if not key.startswith("_")
+        }
+        return f"{cls_name}({', '.join([f'{aname}={aval}' for aname, aval in attrs.items()])})"
+
     def write(self, buf):
         # Set of pairs (`FIELD_NUM`, value) in binary form. Then 0.
         write_varint(1, buf)
@@ -32,14 +39,22 @@ class BlockInfo(object):
 
 
 class BaseBlock(object):
-    def __init__(self, columns_with_types=None, data=None,
-                 info=None, types_check=False):
+    def __init__(
+        self, columns_with_types=None, data=None, info=None, types_check=False
+    ):
         self.columns_with_types = columns_with_types or []
         self.types_check = types_check
         self.info = info or BlockInfo()
         self.data = self.normalize(data or [])
 
         super(BaseBlock, self).__init__()
+
+    def __repr__(self) -> str:
+        cls_name = self.__class__.__name__
+        attrs = {
+            key: val for key, val in (vars(self)).items() if not key.startswith("_")
+        }
+        return f"{cls_name}({', '.join([f'{aname}={aval}' for aname, aval in attrs.items()])})"
 
     def normalize(self, data):
         return data
@@ -96,7 +111,7 @@ class ColumnOrientedBlock(BaseBlock):
 
         got = len(data)
         if expected_row_len != got:
-            msg = 'Expected {} columns, got {}'.format(expected_row_len, got)
+            msg = "Expected {} columns, got {}".format(expected_row_len, got)
             raise ValueError(msg)
 
     def _check_all_columns_equal_length(self, data):
@@ -105,12 +120,12 @@ class ColumnOrientedBlock(BaseBlock):
         for column in data:
             got = len(column)
             if got != expected:
-                msg = 'Expected {} rows, got {}'.format(expected, got)
+                msg = "Expected {} rows, got {}".format(expected, got)
                 raise ValueError(msg)
 
 
 class RowOrientedBlock(BaseBlock):
-    dict_row_types = (dict, )
+    dict_row_types = (dict,)
     tuple_row_types = (list, tuple)
     supported_row_types = dict_row_types + tuple_row_types
 
@@ -171,8 +186,8 @@ class RowOrientedBlock(BaseBlock):
         columns_with_cwt = []
         for name, type_ in columns_with_types:
             cwt = None
-            if type_.startswith('Nested'):
-                inner_spec = get_inner_spec('Nested', type_)
+            if type_.startswith("Nested"):
+                inner_spec = get_inner_spec("Nested", type_)
                 cwt = get_inner_columns_with_types(inner_spec)
             columns_with_cwt.append((name, cwt))
 
@@ -185,9 +200,9 @@ class RowOrientedBlock(BaseBlock):
                 if cwt is None:
                     new_data.append(row[name])
                 else:
-                    new_data.append(self._pure_mutate_dicts_to_rows(
-                        row[name], cwt, check_row_type
-                    ))
+                    new_data.append(
+                        self._pure_mutate_dicts_to_rows(row[name], cwt, check_row_type)
+                    )
             data[i] = new_data
         # return for recursion
         return data
@@ -197,7 +212,7 @@ class RowOrientedBlock(BaseBlock):
 
         got = len(data[0])
         if expected_row_len != got:
-            msg = 'Expected {} columns, got {}'.format(expected_row_len, got)
+            msg = "Expected {} columns, got {}".format(expected_row_len, got)
             raise ValueError(msg)
 
         if self.types_check:
@@ -208,20 +223,19 @@ class RowOrientedBlock(BaseBlock):
     def _check_row_type(self, row):
         if not isinstance(row, self.supported_row_types):
             raise TypeError(
-                'Unsupported row type: {}. dict, list or tuple is expected.'
-                .format(type(row))
+                "Unsupported row type: {}. dict, list or tuple is expected.".format(
+                    type(row)
+                )
             )
 
     def _check_tuple_row_type(self, row):
         if not isinstance(row, self.tuple_row_types):
             raise TypeError(
-                'Unsupported row type: {}. list or tuple is expected.'
-                .format(type(row))
+                "Unsupported row type: {}. list or tuple is expected.".format(type(row))
             )
 
     def _check_dict_row_type(self, row):
         if not isinstance(row, self.dict_row_types):
             raise TypeError(
-                'Unsupported row type: {}. dict is expected.'
-                .format(type(row))
+                "Unsupported row type: {}. dict is expected.".format(type(row))
             )

@@ -1,16 +1,30 @@
 from itertools import islice, tee
 
+try:
+    import numpy as np
+
+    CHECK_NUMPY_TYPES = True
+except ImportError:
+    CHECK_NUMPY_TYPES = False
+
+
+def _check_sequence_to_be_an_expected_iterable(seq):
+    expected = [list, tuple]
+    if CHECK_NUMPY_TYPES:
+        expected.append(np.ndarray)
+    return isinstance(seq, tuple(expected))
+
 
 def chunks(seq, n):
     # islice is MUCH slower than slice for lists and tuples.
-    if isinstance(seq, (list, tuple)):
+    if _check_sequence_to_be_an_expected_iterable(seq):
         i = 0
-        item = seq[i:i+n]
-        while item:
+        item = seq[i : i + n]
+        # DeprecationWarning: The truth value of an empty array is ambiguous. -> numpy caused
+        while len(item):
             yield list(item)
             i += n
-            item = seq[i:i+n]
-
+            item = seq[i : i + n]
     else:
         it = iter(seq)
         item = list(islice(it, n))
@@ -27,15 +41,13 @@ def pairwise(iterable):
 
 def column_chunks(columns, n):
     for column in columns:
-        if not isinstance(column, (list, tuple)):
+        if not _check_sequence_to_be_an_expected_iterable(column):
             raise TypeError(
-                'Unsupported column type: {}. list or tuple is expected.'
-                .format(type(column))
+                f"Unsupported column type: {type(column)}. Expected list, tuple or numpy.ndarray"
             )
 
     # create chunk generator for every column
     g = [chunks(column, n) for column in columns]
-
     while True:
         # get next chunk for every column
         item = [next(column, []) for column in g]
@@ -48,10 +60,10 @@ def column_chunks(columns, n):
 def asbool(obj):
     if isinstance(obj, str):
         obj = obj.strip().lower()
-        if obj in ['true', 'yes', 'on', 'y', 't', '1']:
+        if obj in ["true", "yes", "on", "y", "t", "1"]:
             return True
-        elif obj in ['false', 'no', 'off', 'n', 'f', '0']:
+        elif obj in ["false", "no", "off", "n", "f", "0"]:
             return False
         else:
-            raise ValueError('String is not true/false: %r' % obj)
+            raise ValueError(f"String is not true/false: {obj!r}")
     return bool(obj)

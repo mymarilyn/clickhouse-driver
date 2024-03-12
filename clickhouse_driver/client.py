@@ -11,11 +11,11 @@ from .block import ColumnOrientedBlock, RowOrientedBlock
 from .connection import Connection
 from .log import log_block
 from .protocol import ServerPacketTypes
-from .result import (
-    IterQueryResult, ProgressQueryResult, QueryResult, QueryInfo
-)
+from .result import IterQueryResult, ProgressQueryResult, QueryResult, QueryInfo
 from .util.escape import escape_params
 from .util.helpers import column_chunks, chunks, asbool
+
+NUMPY_EXTRAS_MSG = "NumPy extras must be installed: pandas"
 
 
 class Client(object):
@@ -71,77 +71,72 @@ class Client(object):
     """
 
     available_client_settings = (
-        'insert_block_size',  # TODO: rename to max_insert_block_size
-        'strings_as_bytes',
-        'strings_encoding',
-        'use_numpy',
-        'opentelemetry_traceparent',
-        'opentelemetry_tracestate',
-        'quota_key',
-        'input_format_null_as_default',
-        'namedtuple_as_json',
-        'server_side_params'
+        "insert_block_size",  # TODO: rename to max_insert_block_size
+        "strings_as_bytes",
+        "strings_encoding",
+        "use_numpy",
+        "opentelemetry_traceparent",
+        "opentelemetry_tracestate",
+        "quota_key",
+        "input_format_null_as_default",
+        "namedtuple_as_json",
+        "server_side_params",
     )
 
     def __init__(self, *args, **kwargs):
-        self.settings = (kwargs.pop('settings', None) or {}).copy()
+        self.settings = (kwargs.pop("settings", None) or {}).copy()
 
         self.client_settings = {
-            'insert_block_size': int(self.settings.pop(
-                'insert_block_size', defines.DEFAULT_INSERT_BLOCK_SIZE,
-            )),
-            'strings_as_bytes': self.settings.pop(
-                'strings_as_bytes', False
+            "insert_block_size": int(
+                self.settings.pop(
+                    "insert_block_size",
+                    defines.DEFAULT_INSERT_BLOCK_SIZE,
+                )
             ),
-            'strings_encoding': self.settings.pop(
-                'strings_encoding', defines.STRINGS_ENCODING
+            "strings_as_bytes": self.settings.pop("strings_as_bytes", False),
+            "strings_encoding": self.settings.pop(
+                "strings_encoding", defines.STRINGS_ENCODING
             ),
-            'use_numpy': self.settings.pop(
-                'use_numpy', False
+            "use_numpy": self.settings.pop("use_numpy", False),
+            "opentelemetry_traceparent": self.settings.pop(
+                "opentelemetry_traceparent", None
             ),
-            'opentelemetry_traceparent': self.settings.pop(
-                'opentelemetry_traceparent', None
+            "opentelemetry_tracestate": self.settings.pop(
+                "opentelemetry_tracestate", ""
             ),
-            'opentelemetry_tracestate': self.settings.pop(
-                'opentelemetry_tracestate', ''
+            "quota_key": self.settings.pop("quota_key", ""),
+            "input_format_null_as_default": self.settings.pop(
+                "input_format_null_as_default", False
             ),
-            'quota_key': self.settings.pop(
-                'quota_key', ''
-            ),
-            'input_format_null_as_default': self.settings.pop(
-                'input_format_null_as_default', False
-            ),
-            'namedtuple_as_json': self.settings.pop(
-                'namedtuple_as_json', True
-            ),
-            'server_side_params': self.settings.pop(
-                'server_side_params', False
-            )
+            "namedtuple_as_json": self.settings.pop("namedtuple_as_json", True),
+            "server_side_params": self.settings.pop("server_side_params", False),
         }
 
-        if self.client_settings['use_numpy']:
+        if self.client_settings["use_numpy"]:
             try:
                 from .numpy.result import (
-                    NumpyIterQueryResult, NumpyProgressQueryResult,
-                    NumpyQueryResult
+                    NumpyIterQueryResult,
+                    NumpyProgressQueryResult,
+                    NumpyQueryResult,
                 )
+
                 self.query_result_cls = NumpyQueryResult
                 self.iter_query_result_cls = NumpyIterQueryResult
                 self.progress_query_result_cls = NumpyProgressQueryResult
             except ImportError:
-                raise RuntimeError('Extras for NumPy must be installed')
+                raise RuntimeError(NUMPY_EXTRAS_MSG)
         else:
             self.query_result_cls = QueryResult
             self.iter_query_result_cls = IterQueryResult
             self.progress_query_result_cls = ProgressQueryResult
 
-        round_robin = kwargs.pop('round_robin', False)
+        round_robin = kwargs.pop("round_robin", False)
         self.connections = deque([Connection(*args, **kwargs)])
 
-        if round_robin and 'alt_hosts' in kwargs:
-            alt_hosts = kwargs.pop('alt_hosts')
-            for host in alt_hosts.split(','):
-                url = urlparse('clickhouse://' + host)
+        if round_robin and "alt_hosts" in kwargs:
+            alt_hosts = kwargs.pop("alt_hosts")
+            for host in alt_hosts.split(","):
+                url = urlparse("clickhouse://" + host)
 
                 connection_kwargs = kwargs.copy()
                 num_args = len(args)
@@ -150,13 +145,13 @@ class Client(object):
                     connection_args = (url.hostname, url.port) + args[2:]
                 elif num_args >= 1:
                     # host as positional and port as keyword argument
-                    connection_args = (url.hostname, ) + args[1:]
-                    connection_kwargs['port'] = url.port
+                    connection_args = (url.hostname,) + args[1:]
+                    connection_kwargs["port"] = url.port
                 else:
                     # host and port as keyword arguments
                     connection_args = tuple()
-                    connection_kwargs['host'] = url.hostname
-                    connection_kwargs['port'] = url.port
+                    connection_kwargs["host"] = url.hostname
+                    connection_kwargs["port"] = url.port
 
                 connection = Connection(*connection_args, **connection_kwargs)
                 self.connections.append(connection)
@@ -172,7 +167,7 @@ class Client(object):
         self.disconnect()
 
     def get_connection(self):
-        if hasattr(self, 'connection'):
+        if hasattr(self, "connection"):
             self.connections.append(self.connection)
 
         connection = self.connections.popleft()
@@ -196,8 +191,7 @@ class Client(object):
     def reset_last_query(self):
         self.last_query = None
 
-    def receive_result(self, with_column_types=False, progress=False,
-                       columnar=False):
+    def receive_result(self, with_column_types=False, progress=False, columnar=False):
 
         gen = self.packet_generator()
 
@@ -215,9 +209,7 @@ class Client(object):
     def iter_receive_result(self, with_column_types=False):
         gen = self.packet_generator()
 
-        result = self.iter_query_result_cls(
-            gen, with_column_types=with_column_types
-        )
+        result = self.iter_query_result_cls(gen, with_column_types=with_column_types)
 
         for rows in result:
             for row in rows:
@@ -285,13 +277,13 @@ class Client(object):
         self.connection.context.settings = query_settings
 
     def track_current_database(self, query):
-        query = query.strip('; ')
-        if query.lower().startswith('use '):
+        query = query.strip("; ")
+        if query.lower().startswith("use "):
             self.connection.database = query[4:].strip()
 
     def establish_connection(self, settings):
         num_connections = len(self.connections)
-        if hasattr(self, 'connection'):
+        if hasattr(self, "connection"):
             num_connections += 1
 
         for i in range(num_connections):
@@ -321,9 +313,17 @@ class Client(object):
             self.disconnect()
             raise
 
-    def execute(self, query, params=None, with_column_types=False,
-                external_tables=None, query_id=None, settings=None,
-                types_check=False, columnar=False):
+    def execute(
+        self,
+        query,
+        params=None,
+        with_column_types=False,
+        external_tables=None,
+        query_id=None,
+        settings=None,
+        types_check=False,
+        columnar=False,
+    ):
         """
         Executes query.
 
@@ -374,24 +374,37 @@ class Client(object):
 
             if is_insert:
                 rv = self.process_insert_query(
-                    query, params, external_tables=external_tables,
-                    query_id=query_id, types_check=types_check,
-                    columnar=columnar
+                    query,
+                    params,
+                    external_tables=external_tables,
+                    query_id=query_id,
+                    types_check=types_check,
+                    columnar=columnar,
                 )
             else:
                 rv = self.process_ordinary_query(
-                    query, params=params, with_column_types=with_column_types,
+                    query,
+                    params=params,
+                    with_column_types=with_column_types,
                     external_tables=external_tables,
-                    query_id=query_id, types_check=types_check,
-                    columnar=columnar
+                    query_id=query_id,
+                    types_check=types_check,
+                    columnar=columnar,
                 )
             self.last_query.store_elapsed(time() - start_time)
             return rv
 
     def execute_with_progress(
-            self, query, params=None, with_column_types=False,
-            external_tables=None, query_id=None, settings=None,
-            types_check=False, columnar=False):
+        self,
+        query,
+        params=None,
+        with_column_types=False,
+        external_tables=None,
+        query_id=None,
+        settings=None,
+        types_check=False,
+        columnar=False,
+    ):
         """
         Executes SELECT query with progress information.
         See, :ref:`execute-with-progress`.
@@ -420,15 +433,26 @@ class Client(object):
 
         with self.disconnect_on_error(query, settings):
             return self.process_ordinary_query_with_progress(
-                query, params=params, with_column_types=with_column_types,
-                external_tables=external_tables, query_id=query_id,
-                types_check=types_check, columnar=columnar
+                query,
+                params=params,
+                with_column_types=with_column_types,
+                external_tables=external_tables,
+                query_id=query_id,
+                types_check=types_check,
+                columnar=columnar,
             )
 
     def execute_iter(
-            self, query, params=None, with_column_types=False,
-            external_tables=None, query_id=None, settings=None,
-            types_check=False, chunk_size=1):
+        self,
+        query,
+        params=None,
+        with_column_types=False,
+        external_tables=None,
+        query_id=None,
+        settings=None,
+        types_check=False,
+        chunk_size=1,
+    ):
         """
         *New in version 0.0.14.*
 
@@ -455,15 +479,24 @@ class Client(object):
         """
         with self.disconnect_on_error(query, settings):
             rv = self.iter_process_ordinary_query(
-                query, params=params, with_column_types=with_column_types,
+                query,
+                params=params,
+                with_column_types=with_column_types,
                 external_tables=external_tables,
-                query_id=query_id, types_check=types_check
+                query_id=query_id,
+                types_check=types_check,
             )
             return chunks(rv, chunk_size) if chunk_size > 1 else rv
 
     def query_dataframe(
-            self, query, params=None, external_tables=None, query_id=None,
-            settings=None, replace_nonwords=True):
+        self,
+        query,
+        params=None,
+        external_tables=None,
+        query_id=None,
+        settings=None,
+        replace_nonwords=True,
+    ):
         """
         *New in version 0.2.0.*
 
@@ -486,25 +519,27 @@ class Client(object):
         try:
             import pandas as pd
         except ImportError:
-            raise RuntimeError('Extras for NumPy must be installed')
+            raise RuntimeError(NUMPY_EXTRAS_MSG)
 
         data, columns = self.execute(
-            query, columnar=True, with_column_types=True, params=params,
-            external_tables=external_tables, query_id=query_id,
-            settings=settings
+            query,
+            columnar=True,
+            with_column_types=True,
+            params=params,
+            external_tables=external_tables,
+            query_id=query_id,
+            settings=settings,
         )
 
         columns = [name for name, type_ in columns]
         if replace_nonwords:
-            columns = [re.sub(r'\W', '_', x) for x in columns]
+            columns = [re.sub(r"\W", "_", x) for x in columns]
 
-        return pd.DataFrame(
-            {col: d for d, col in zip(data, columns)}, columns=columns
-        )
+        return pd.DataFrame({col: d for d, col in zip(data, columns)}, columns=columns)
 
     def insert_dataframe(
-            self, query, dataframe, external_tables=None, query_id=None,
-            settings=None):
+        self, query, dataframe, external_tables=None, query_id=None, settings=None
+    ):
         """
         *New in version 0.2.0.*
 
@@ -524,7 +559,7 @@ class Client(object):
         try:
             import pandas as pd  # noqa: F401
         except ImportError:
-            raise RuntimeError('Extras for NumPy must be installed')
+            raise RuntimeError(NUMPY_EXTRAS_MSG)
 
         start_time = time()
 
@@ -536,13 +571,21 @@ class Client(object):
             rv = None
             if sample_block:
                 columns = [x[0] for x in sample_block.columns_with_types]
-                # raise if any columns are missing from the dataframe
                 diff = set(columns) - set(dataframe.columns)
                 if len(diff):
-                    msg = "DataFrame missing required columns: {}"
-                    raise ValueError(msg.format(list(diff)))
+                    raise ValueError(
+                        f"DataFrame has missing required columns: {list(diff)}"
+                    )
 
-                data = [dataframe[column].values for column in columns]
+                # TODO: to find a more pandas-idiomatic way of data "tuplefication"
+                data = []
+                for column in columns:
+                    column_values = dataframe[column].values
+                    for idx, col_vals in enumerate(column_values):
+                        if isinstance(col_vals, dict):
+                            column_values[idx] = tuple(col_vals.values())
+                    data.append(column_values)
+
                 rv = self.send_data(sample_block, data, columnar=True)
                 self.receive_end_of_query()
 
@@ -550,62 +593,78 @@ class Client(object):
             return rv
 
     def process_ordinary_query_with_progress(
-            self, query, params=None, with_column_types=False,
-            external_tables=None, query_id=None,
-            types_check=False, columnar=False):
+        self,
+        query,
+        params=None,
+        with_column_types=False,
+        external_tables=None,
+        query_id=None,
+        types_check=False,
+        columnar=False,
+    ):
 
         if params is not None:
-            query = self.substitute_params(
-                query, params, self.connection.context
-            )
+            query = self.substitute_params(query, params, self.connection.context)
 
         self.connection.send_query(query, query_id=query_id, params=params)
-        self.connection.send_external_tables(external_tables,
-                                             types_check=types_check)
-        return self.receive_result(with_column_types=with_column_types,
-                                   progress=True, columnar=columnar)
+        self.connection.send_external_tables(external_tables, types_check=types_check)
+        return self.receive_result(
+            with_column_types=with_column_types, progress=True, columnar=columnar
+        )
 
     def process_ordinary_query(
-            self, query, params=None, with_column_types=False,
-            external_tables=None, query_id=None,
-            types_check=False, columnar=False):
+        self,
+        query,
+        params=None,
+        with_column_types=False,
+        external_tables=None,
+        query_id=None,
+        types_check=False,
+        columnar=False,
+    ):
 
         if params is not None:
-            query = self.substitute_params(
-                query, params, self.connection.context
-            )
+            query = self.substitute_params(query, params, self.connection.context)
         self.connection.send_query(query, query_id=query_id, params=params)
-        self.connection.send_external_tables(external_tables,
-                                             types_check=types_check)
-        return self.receive_result(with_column_types=with_column_types,
-                                   columnar=columnar)
+        self.connection.send_external_tables(external_tables, types_check=types_check)
+        return self.receive_result(
+            with_column_types=with_column_types, columnar=columnar
+        )
 
     def iter_process_ordinary_query(
-            self, query, params=None, with_column_types=False,
-            external_tables=None, query_id=None,
-            types_check=False):
+        self,
+        query,
+        params=None,
+        with_column_types=False,
+        external_tables=None,
+        query_id=None,
+        types_check=False,
+    ):
 
         if params is not None:
-            query = self.substitute_params(
-                query, params, self.connection.context
-            )
+            query = self.substitute_params(query, params, self.connection.context)
 
         self.connection.send_query(query, query_id=query_id, params=params)
-        self.connection.send_external_tables(external_tables,
-                                             types_check=types_check)
+        self.connection.send_external_tables(external_tables, types_check=types_check)
         return self.iter_receive_result(with_column_types=with_column_types)
 
-    def process_insert_query(self, query_without_data, data,
-                             external_tables=None, query_id=None,
-                             types_check=False, columnar=False):
+    def process_insert_query(
+        self,
+        query_without_data,
+        data,
+        external_tables=None,
+        query_id=None,
+        types_check=False,
+        columnar=False,
+    ):
         self.connection.send_query(query_without_data, query_id=query_id)
-        self.connection.send_external_tables(external_tables,
-                                             types_check=types_check)
+        self.connection.send_external_tables(external_tables, types_check=types_check)
         sample_block = self.receive_sample_block()
 
         if sample_block:
-            rv = self.send_data(sample_block, data,
-                                types_check=types_check, columnar=columnar)
+            rv = self.send_data(
+                sample_block, data, types_check=types_check, columnar=columnar
+            )
             self.receive_end_of_insert_query()
             return rv
 
@@ -627,7 +686,7 @@ class Client(object):
 
             else:
                 message = self.connection.unexpected_packet_message(
-                    'Data, Exception, Log or TableColumns', packet.type
+                    "Data, Exception, Log or TableColumns", packet.type
                 )
                 raise errors.UnexpectedPacketFromServerError(message)
 
@@ -637,7 +696,7 @@ class Client(object):
         client_settings = self.connection.context.client_settings
         block_cls = ColumnOrientedBlock if columnar else RowOrientedBlock
 
-        if client_settings['use_numpy']:
+        if client_settings["use_numpy"]:
             try:
                 from .numpy.helpers import column_chunks as numpy_column_chunks
 
@@ -645,21 +704,19 @@ class Client(object):
                     slicer = numpy_column_chunks
                 else:
                     raise ValueError(
-                        'NumPy inserts is only allowed with columnar=True'
+                        "NumPy inserts are only allowed when columnar=True"
                     )
-
             except ImportError:
-                raise RuntimeError('Extras for NumPy must be installed')
-
+                raise RuntimeError(NUMPY_EXTRAS_MSG)
         else:
             slicer = column_chunks if columnar else chunks
 
-        for chunk in slicer(data, client_settings['insert_block_size']):
-            block = block_cls(sample_block.columns_with_types, chunk,
-                              types_check=types_check)
+        for chunk in slicer(data, client_settings["insert_block_size"]):
+            block = block_cls(
+                sample_block.columns_with_types, chunk, types_check=types_check
+            )
             self.connection.send_data(block)
             inserted_rows += block.num_rows
-
             # Starting from the specific revision there are profile events
             # sent by server in response to each inserted block
             self.receive_profile_events()
@@ -695,8 +752,9 @@ class Client(object):
 
             else:
                 message = self.connection.unexpected_packet_message(
-                    'Exception, EndOfStream, Progress, TableColumns, '
-                    'ProfileEvents or Log', packet.type
+                    "Exception, EndOfStream, Progress, TableColumns, "
+                    "ProfileEvents or Log",
+                    packet.type,
                 )
                 raise errors.UnexpectedPacketFromServerError(message)
 
@@ -718,16 +776,13 @@ class Client(object):
 
             else:
                 message = self.connection.unexpected_packet_message(
-                    'EndOfStream, Log, Progress or Exception', packet.type
+                    "EndOfStream, Log, Progress or Exception", packet.type
                 )
                 raise errors.UnexpectedPacketFromServerError(message)
 
     def receive_profile_events(self):
         revision = self.connection.server_info.used_revision
-        if (
-            revision <
-            defines.DBMS_MIN_PROTOCOL_VERSION_WITH_PROFILE_EVENTS_IN_INSERT
-        ):
+        if revision < defines.DBMS_MIN_PROTOCOL_VERSION_WITH_PROFILE_EVENTS_IN_INSERT:
             return None
 
         while True:
@@ -748,7 +803,7 @@ class Client(object):
 
             else:
                 message = self.connection.unexpected_packet_message(
-                    'ProfileEvents, Progress, Log or Exception', packet.type
+                    "ProfileEvents, Progress, Log or Exception", packet.type
                 )
                 raise errors.UnexpectedPacketFromServerError(message)
 
@@ -776,11 +831,11 @@ class Client(object):
             print(substituted_query)
         """
         # In case of server side templating we don't substitute here.
-        if self.connection.context.client_settings['server_side_params']:
+        if self.connection.context.client_settings["server_side_params"]:
             return query
 
         if not isinstance(params, dict):
-            raise ValueError('Parameters are expected in dict form')
+            raise ValueError("Parameters are expected in dict form")
 
         escaped = escape_params(params, context)
         return query % escaped
@@ -810,27 +865,23 @@ class Client(object):
         host = url.hostname
 
         if url.port is not None:
-            kwargs['port'] = url.port
+            kwargs["port"] = url.port
 
-        path = url.path.replace('/', '', 1)
+        path = url.path.replace("/", "", 1)
         if path:
-            kwargs['database'] = path
+            kwargs["database"] = path
 
         if url.username is not None:
-            kwargs['user'] = unquote(url.username)
+            kwargs["user"] = unquote(url.username)
 
         if url.password is not None:
-            kwargs['password'] = unquote(url.password)
+            kwargs["password"] = unquote(url.password)
 
-        if url.scheme == 'clickhouses':
-            kwargs['secure'] = True
+        if url.scheme == "clickhouses":
+            kwargs["secure"] = True
 
-        compression_algs = {'lz4', 'lz4hc', 'zstd'}
-        timeouts = {
-            'connect_timeout',
-            'send_receive_timeout',
-            'sync_request_timeout'
-        }
+        compression_algs = {"lz4", "lz4hc", "zstd"}
+        timeouts = {"connect_timeout", "send_receive_timeout", "sync_request_timeout"}
 
         for name, value in parse_qs(url.query).items():
             if not value or not len(value):
@@ -838,59 +889,62 @@ class Client(object):
 
             value = value[0]
 
-            if name == 'compression':
+            if name == "compression":
                 value = value.lower()
                 if value in compression_algs:
                     kwargs[name] = value
                 else:
                     kwargs[name] = asbool(value)
 
-            elif name == 'secure':
+            elif name == "secure":
                 kwargs[name] = asbool(value)
 
-            elif name == 'use_numpy':
+            elif name == "use_numpy":
                 settings[name] = asbool(value)
 
-            elif name == 'round_robin':
+            elif name == "round_robin":
                 kwargs[name] = asbool(value)
 
-            elif name == 'client_name':
+            elif name == "client_name":
                 kwargs[name] = value
 
             elif name in timeouts:
                 kwargs[name] = float(value)
 
-            elif name == 'compress_block_size':
+            elif name == "compress_block_size":
                 kwargs[name] = int(value)
 
-            elif name == 'settings_is_important':
+            elif name == "settings_is_important":
                 kwargs[name] = asbool(value)
 
-            elif name == 'tcp_keepalive':
+            elif name == "tcp_keepalive":
                 try:
                     kwargs[name] = asbool(value)
                 except ValueError:
-                    parts = value.split(',')
-                    kwargs[name] = (
-                        float(parts[0]), float(parts[1]), int(parts[2])
-                    )
-            elif name == 'client_revision':
+                    parts = value.split(",")
+                    kwargs[name] = (float(parts[0]), float(parts[1]), int(parts[2]))
+            elif name == "client_revision":
                 kwargs[name] = int(value)
 
             # ssl
-            elif name == 'verify':
+            elif name == "verify":
                 kwargs[name] = asbool(value)
-            elif name == 'ssl_version':
+            elif name == "ssl_version":
                 kwargs[name] = getattr(ssl, value)
-            elif name in ['ca_certs', 'ciphers', 'keyfile', 'certfile',
-                          'server_hostname']:
+            elif name in [
+                "ca_certs",
+                "ciphers",
+                "keyfile",
+                "certfile",
+                "server_hostname",
+            ]:
                 kwargs[name] = value
-            elif name == 'alt_hosts':
-                kwargs['alt_hosts'] = value
+            elif name == "alt_hosts":
+                kwargs["alt_hosts"] = value
             else:
                 settings[name] = value
 
         if settings:
-            kwargs['settings'] = settings
+            kwargs["settings"] = settings
 
         return cls(host, **kwargs)
