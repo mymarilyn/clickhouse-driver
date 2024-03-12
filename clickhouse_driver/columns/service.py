@@ -29,7 +29,9 @@ from .mapcolumn import create_map_column
 from .nothingcolumn import NothingColumn
 from .nullcolumn import NullColumn
 from .nullablecolumn import create_nullable_column
-from .simpleaggregatefunctioncolumn import create_simple_aggregate_function_column
+from .simpleaggregatefunctioncolumn import (
+    create_simple_aggregate_function_column,
+)
 from .stringcolumn import create_string_column
 from .tuplecolumn import create_tuple_column
 from .nestedcolumn import create_nested_column
@@ -108,7 +110,8 @@ def get_column_by_spec(spec, column_options, use_numpy=None):
         except errors.UnknownTypeError:
             use_numpy = False
             logger.warning(
-                f"NumPy support is not implemented for {spec}. Using generic column"
+                f"NumPy support is not implemented for {spec}. "
+                "Using a generic column"
             )
 
     def create_column_with_options(x):
@@ -123,11 +126,17 @@ def get_column_by_spec(spec, column_options, use_numpy=None):
     elif spec.startswith("Decimal"):
         return create_decimal_column(spec, column_options)
     elif spec.startswith("Array"):
-        return create_array_column(spec, create_column_with_options, column_options)
+        return create_array_column(
+            spec, create_column_with_options, column_options
+        )
     elif spec.startswith("Tuple"):
-        return create_tuple_column(spec, create_column_with_options, column_options)
+        return create_tuple_column(
+            spec, create_column_with_options, column_options
+        )
     elif spec.startswith("Nested"):
-        return create_nested_column(spec, create_column_with_options, column_options)
+        return create_nested_column(
+            spec, create_column_with_options, column_options
+        )
     elif spec.startswith("Nullable"):
         return create_nullable_column(spec, create_column_with_options)
     elif spec.startswith("LowCardinality"):
@@ -135,15 +144,23 @@ def get_column_by_spec(spec, column_options, use_numpy=None):
             spec, create_column_with_options, column_options
         )
     elif spec.startswith("SimpleAggregateFunction"):
-        return create_simple_aggregate_function_column(spec, create_column_with_options)
+        return create_simple_aggregate_function_column(
+            spec, create_column_with_options
+        )
     elif spec.startswith("Map"):
-        return create_map_column(spec, create_column_with_options, column_options)
+        return create_map_column(
+            spec, create_column_with_options, column_options
+        )
     elif spec.startswith("Object('json')"):
-        return create_json_column(spec, create_column_with_options, column_options)
+        return create_json_column(
+            spec, create_column_with_options, column_options
+        )
     else:
         for alias, primitive in aliases:
             if spec.startswith(alias):
-                return create_column_with_options(primitive + spec[len(alias) :])
+                return create_column_with_options(
+                    primitive + spec[len(alias) :]  # noqa: E203
+                )
         try:
             cls = column_by_type[spec]
             return cls(**column_options)
@@ -152,7 +169,12 @@ def get_column_by_spec(spec, column_options, use_numpy=None):
 
 
 def read_column(
-    context, column_spec, n_items, buf, use_numpy=None, has_custom_serialization=False
+    context,
+    column_spec,
+    n_items,
+    buf,
+    use_numpy=None,
+    has_custom_serialization=False,
 ):
     column_options = {
         "context": context,
@@ -163,7 +185,9 @@ def read_column(
     return col.read_data(n_items, buf)
 
 
-def write_column(context, column_name, column_spec, items, buf, types_check=False):
+def write_column(
+    context, column_name, column_spec, items, buf, types_check=False
+):
     column_options = {"context": context, "types_check": types_check}
     column = get_column_by_spec(column_spec, column_options)
 

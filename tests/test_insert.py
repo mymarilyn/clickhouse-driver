@@ -120,7 +120,8 @@ class InsertTestCase(BaseTestCase):
     def test_insert_from_select(self):
         with self.create_table("a UInt64"):
             inserted = self.client.execute(
-                "INSERT INTO test (a) " "SELECT number FROM system.numbers LIMIT 5"
+                "INSERT INTO test (a) "
+                "SELECT number FROM system.numbers LIMIT 5"
             )
             self.assertEqual(inserted, [])
 
@@ -139,7 +140,8 @@ class InsertTestCase(BaseTestCase):
         with self.create_table("a Int8"):
             data = [{"a": 1}]
             self.client.execute(
-                "INSERT INTO test (a) " "SELECT a FROM input ('a Int8') FORMAT Native",
+                "INSERT INTO test (a) "
+                "SELECT a FROM input ('a Int8') FORMAT Native",
                 data,
             )
 
@@ -157,7 +159,9 @@ class InsertColumnarTestCase(BaseTestCase):
     def test_insert_tuple_ok(self):
         with self.create_table("a Int8, b Int8"):
             data = [(1, 2, 3), (4, 5, 6)]
-            self.client.execute("INSERT INTO test (a, b) VALUES", data, columnar=True)
+            self.client.execute(
+                "INSERT INTO test (a, b) VALUES", data, columnar=True
+            )
 
             query = "SELECT * FROM test"
             inserted = self.emit_cli(query)
@@ -205,7 +209,9 @@ class InsertColumnarTestCase(BaseTestCase):
                     columnar=True,
                 )
 
-            self.assertIn("Expected list, tuple or numpy.ndarray", str(e.exception))
+            self.assertIn(
+                "Expected list, tuple or numpy.ndarray", str(e.exception)
+            )
 
             with self.assertRaises(TypeError) as e:
                 data = [(1, 2), 3]
@@ -216,7 +222,9 @@ class InsertColumnarTestCase(BaseTestCase):
                     columnar=True,
                 )
 
-            self.assertIn("Expected list, tuple or numpy.ndarray", str(e.exception))
+            self.assertIn(
+                "Expected list, tuple or numpy.ndarray", str(e.exception)
+            )
 
 
 @skipIf(not PANDAS_IMPORTED, reason="pandas cannot be imported")
@@ -281,7 +289,9 @@ class InsertDataFrameTestCase(BaseTestCase):
             query = "SELECT * FROM test"
             result = self.client.execute(query)
             # normalising the result
-            result = [tuple(map(lambda val: round(val, 1), row[0])) for row in result]
+            result = [
+                tuple(map(lambda val: round(val, 1), row[0])) for row in result
+            ]
 
             # sorted for ensuring the order - data races
             self.assertEqual(

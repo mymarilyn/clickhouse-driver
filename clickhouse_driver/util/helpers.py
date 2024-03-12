@@ -19,12 +19,12 @@ def chunks(seq, n):
     # islice is MUCH slower than slice for lists and tuples.
     if _check_sequence_to_be_an_expected_iterable(seq):
         i = 0
-        item = seq[i : i + n]
-        # DeprecationWarning: The truth value of an empty array is ambiguous. -> numpy caused
+        item = seq[i : i + n]  # noqa: E203
+        # DeprecationWarning: The truth value of an empty array is ambiguous.
         while len(item):
             yield list(item)
             i += n
-            item = seq[i : i + n]
+            item = seq[i : i + n]  # noqa: E203
     else:
         it = iter(seq)
         item = list(islice(it, n))
@@ -43,7 +43,8 @@ def column_chunks(columns, n):
     for column in columns:
         if not _check_sequence_to_be_an_expected_iterable(column):
             raise TypeError(
-                f"Unsupported column type: {type(column)}. Expected list, tuple or numpy.ndarray"
+                f"Unsupported column type: {type(column)}. "
+                "Expected list, tuple or numpy.ndarray"
             )
 
     # create chunk generator for every column

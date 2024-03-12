@@ -8,13 +8,6 @@ class BlockInfo(object):
     is_overflows = False
     bucket_num = -1
 
-    def __repr__(self) -> str:
-        cls_name = self.__class__.__name__
-        attrs = {
-            key: val for key, val in (vars(self)).items() if not key.startswith("_")
-        }
-        return f"{cls_name}({', '.join([f'{aname}={aval}' for aname, aval in attrs.items()])})"
-
     def write(self, buf):
         # Set of pairs (`FIELD_NUM`, value) in binary form. Then 0.
         write_varint(1, buf)
@@ -48,13 +41,6 @@ class BaseBlock(object):
         self.data = self.normalize(data or [])
 
         super(BaseBlock, self).__init__()
-
-    def __repr__(self) -> str:
-        cls_name = self.__class__.__name__
-        attrs = {
-            key: val for key, val in (vars(self)).items() if not key.startswith("_")
-        }
-        return f"{cls_name}({', '.join([f'{aname}={aval}' for aname, aval in attrs.items()])})"
 
     def normalize(self, data):
         return data
@@ -201,7 +187,9 @@ class RowOrientedBlock(BaseBlock):
                     new_data.append(row[name])
                 else:
                     new_data.append(
-                        self._pure_mutate_dicts_to_rows(row[name], cwt, check_row_type)
+                        self._pure_mutate_dicts_to_rows(
+                            row[name], cwt, check_row_type
+                        )
                     )
             data[i] = new_data
         # return for recursion
@@ -223,15 +211,15 @@ class RowOrientedBlock(BaseBlock):
     def _check_row_type(self, row):
         if not isinstance(row, self.supported_row_types):
             raise TypeError(
-                "Unsupported row type: {}. dict, list or tuple is expected.".format(
-                    type(row)
-                )
+                f"Unsupported row type: {type(row)}. "
+                "dict, list or tuple is expected."
             )
 
     def _check_tuple_row_type(self, row):
         if not isinstance(row, self.tuple_row_types):
             raise TypeError(
-                "Unsupported row type: {}. list or tuple is expected.".format(type(row))
+                f"Unsupported row type: {type(row)}. "
+                "list or tuple is expected."
             )
 
     def _check_dict_row_type(self, row):

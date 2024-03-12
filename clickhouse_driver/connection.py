@@ -199,7 +199,8 @@ class Connection(object):
         self.settings_is_important = settings_is_important
         self.tcp_keepalive = tcp_keepalive
         self.client_revision = min(
-            client_revision or defines.CLIENT_REVISION, defines.CLIENT_REVISION
+            client_revision or defines.CLIENT_REVISION,
+            defines.CLIENT_REVISION,
         )
 
         self.secure_socket = secure
@@ -268,7 +269,10 @@ class Connection(object):
             else "(not connected)"
         )
 
-        return "<Connection(dsn=%s, compression=%s)>" % (dsn, self.compression)
+        return "<Connection(dsn=%s, compression=%s)>" % (
+            dsn,
+            self.compression,
+        )
 
     def get_description(self):
         return "{}:{}".format(self.host, self.port)
@@ -390,12 +394,16 @@ class Connection(object):
             self.socket.setsockopt(
                 socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, interval_sec
             )
-            self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, probes)
+            self.socket.setsockopt(
+                socket.IPPROTO_TCP, socket.TCP_KEEPCNT, probes
+            )
 
         elif platform == "darwin":
             TCP_KEEPALIVE = 0x10
             # Only interval is available in mac os.
-            self.socket.setsockopt(socket.IPPROTO_TCP, TCP_KEEPALIVE, interval_sec)
+            self.socket.setsockopt(
+                socket.IPPROTO_TCP, TCP_KEEPALIVE, interval_sec
+            )
 
     def _format_connection_error(self, e, host, port):
         err = (e.strerror + " ") if e.strerror else ""
@@ -405,7 +413,9 @@ class Connection(object):
         if self.connected:
             self.disconnect()
 
-        logger.debug("Connecting. Database: %s. User: %s", self.database, self.user)
+        logger.debug(
+            "Connecting. Database: %s. User: %s", self.database, self.user
+        )
 
         err = None
         for i in range(len(self.hosts)):
@@ -417,13 +427,17 @@ class Connection(object):
 
             except socket.timeout as e:
                 self.disconnect()
-                logger.warning("Failed to connect to %s:%s", host, port, exc_info=True)
+                logger.warning(
+                    "Failed to connect to %s:%s", host, port, exc_info=True
+                )
                 err_str = self._format_connection_error(e, host, port)
                 err = errors.SocketTimeoutError(err_str)
 
             except socket.error as e:
                 self.disconnect()
-                logger.warning("Failed to connect to %s:%s", host, port, exc_info=True)
+                logger.warning(
+                    "Failed to connect to %s:%s", host, port, exc_info=True
+                )
                 err_str = self._format_connection_error(e, host, port)
                 err = errors.NetworkError(err_str)
 
@@ -503,7 +517,10 @@ class Connection(object):
                 server_timezone = read_binary_str(self.fin)
 
             server_display_name = ""
-            if used_revision >= defines.DBMS_MIN_REVISION_WITH_SERVER_DISPLAY_NAME:
+            if (
+                used_revision
+                >= defines.DBMS_MIN_REVISION_WITH_SERVER_DISPLAY_NAME
+            ):
                 server_display_name = read_binary_str(self.fin)
 
             server_version_patch = server_revision
@@ -512,14 +529,17 @@ class Connection(object):
 
             if (
                 used_revision
-                >= defines.DBMS_MIN_PROTOCOL_VERSION_WITH_PASSWORD_COMPLEXITY_RULES
+                >= defines.DBMS_MIN_PROTOCOL_VERSION_WITH_PASSWORD_COMPLEXITY_RULES  # noqa: E501
             ):
                 rules_size = read_varint(self.fin)
                 for _i in range(rules_size):
                     read_binary_str(self.fin)  # original_pattern
                     read_binary_str(self.fin)  # exception_message
 
-            if used_revision >= defines.DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET_V2:
+            if (
+                used_revision
+                >= defines.DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET_V2  # noqa: E501
+            ):
                 read_binary_uint64(self.fin)  # read_nonce
 
             self.server_info = ServerInfo(
@@ -547,7 +567,9 @@ class Connection(object):
             raise self.receive_exception()
 
         else:
-            message = self.unexpected_packet_message("Hello or Exception", packet_type)
+            message = self.unexpected_packet_message(
+                "Hello or Exception", packet_type
+            )
             self.disconnect()
             raise errors.UnexpectedPacketFromServerError(message)
 
@@ -555,7 +577,9 @@ class Connection(object):
         revision = self.server_info.used_revision
 
         if revision >= defines.DBMS_MIN_PROTOCOL_VERSION_WITH_QUOTA_KEY:
-            write_binary_str(self.context.client_settings["quota_key"], self.fout)
+            write_binary_str(
+                self.context.client_settings["quota_key"], self.fout
+            )
 
     def ping(self):
         timeout = self.sync_request_timeout
@@ -580,7 +604,9 @@ class Connection(object):
             except (socket.error, EOFError) as e:
                 # It's just a warning now.
                 # Current connection will be closed, new will be established.
-                logger.warning("Error on %s ping: %s", self.get_description(), e)
+                logger.warning(
+                    "Error on %s ping: %s", self.get_description(), e
+                )
                 return False
 
         return True
@@ -617,7 +643,9 @@ class Connection(object):
             pass
 
         elif packet_type == ServerPacketTypes.TABLE_COLUMNS:
-            packet.multistring_message = self.receive_multistring_message(packet_type)
+            packet.multistring_message = self.receive_multistring_message(
+                packet_type
+            )
 
         elif packet_type == ServerPacketTypes.PART_UUIDS:
             packet.block = self.receive_data()
@@ -650,7 +678,10 @@ class Connection(object):
             from .streams.compressed import CompressedBlockOutputStream
 
             return CompressedBlockOutputStream(
-                self.compressor_cls, self.compress_block_size, self.fout, self.context
+                self.compressor_cls,
+                self.compress_block_size,
+                self.fout,
+                self.context,
             )
         else:
             return BlockOutputStream(self.fout, self.context)
@@ -704,20 +735,26 @@ class Connection(object):
         revision = self.server_info.used_revision
         if revision >= defines.DBMS_MIN_REVISION_WITH_CLIENT_INFO:
             client_info = ClientInfo(
-                self.client_name, self.context, client_revision=self.client_revision
+                self.client_name,
+                self.context,
+                client_revision=self.client_revision,
             )
             client_info.query_kind = ClientInfo.QueryKind.INITIAL_QUERY
 
             client_info.write(revision, self.fout)
 
         settings_as_strings = (
-            revision >= defines.DBMS_MIN_REVISION_WITH_SETTINGS_SERIALIZED_AS_STRINGS
+            revision
+            >= defines.DBMS_MIN_REVISION_WITH_SETTINGS_SERIALIZED_AS_STRINGS
         )
         settings_flags = 0
         if self.settings_is_important:
             settings_flags |= SettingsFlags.IMPORTANT
         write_settings(
-            self.context.settings, self.fout, settings_as_strings, settings_flags
+            self.context.settings,
+            self.fout,
+            settings_as_strings,
+            settings_flags,
         )
 
         if revision >= defines.DBMS_MIN_REVISION_WITH_INTERSERVER_SECRET:
@@ -731,7 +768,9 @@ class Connection(object):
         if revision >= defines.DBMS_MIN_PROTOCOL_VERSION_WITH_PARAMETERS:
             if self.context.client_settings["server_side_params"]:
                 # Always settings_as_strings = True
-                escaped = escape_params(params or {}, self.context, for_server=True)
+                escaped = escape_params(
+                    params or {}, self.context, for_server=True
+                )
             else:
                 escaped = {}
             write_settings(escaped, self.fout, True, SettingsFlags.CUSTOM)
@@ -748,7 +787,9 @@ class Connection(object):
     def send_external_tables(self, tables, types_check=False):
         for table in tables or []:
             if not table["structure"]:
-                raise ValueError('Empty table "{}" structure'.format(table["name"]))
+                raise ValueError(
+                    'Empty table "{}" structure'.format(table["name"])
+                )
 
             data = table["data"]
             block_cls = RowOrientedBlock
@@ -761,7 +802,9 @@ class Connection(object):
 
                 block_cls = NumpyColumnOrientedBlock
 
-            block = block_cls(table["structure"], data, types_check=types_check)
+            block = block_cls(
+                table["structure"], data, types_check=types_check
+            )
             self.send_data(block, table_name=table["name"])
 
         # Empty block, end of data transfer.

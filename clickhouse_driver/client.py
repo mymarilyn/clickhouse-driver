@@ -11,7 +11,12 @@ from .block import ColumnOrientedBlock, RowOrientedBlock
 from .connection import Connection
 from .log import log_block
 from .protocol import ServerPacketTypes
-from .result import IterQueryResult, ProgressQueryResult, QueryResult, QueryInfo
+from .result import (
+    IterQueryResult,
+    ProgressQueryResult,
+    QueryResult,
+    QueryInfo,
+)
 from .util.escape import escape_params
 from .util.helpers import column_chunks, chunks, asbool
 
@@ -108,8 +113,12 @@ class Client(object):
             "input_format_null_as_default": self.settings.pop(
                 "input_format_null_as_default", False
             ),
-            "namedtuple_as_json": self.settings.pop("namedtuple_as_json", True),
-            "server_side_params": self.settings.pop("server_side_params", False),
+            "namedtuple_as_json": self.settings.pop(
+                "namedtuple_as_json", True
+            ),
+            "server_side_params": self.settings.pop(
+                "server_side_params", False
+            ),
         }
 
         if self.client_settings["use_numpy"]:
@@ -191,7 +200,9 @@ class Client(object):
     def reset_last_query(self):
         self.last_query = None
 
-    def receive_result(self, with_column_types=False, progress=False, columnar=False):
+    def receive_result(
+        self, with_column_types=False, progress=False, columnar=False
+    ):
 
         gen = self.packet_generator()
 
@@ -209,7 +220,9 @@ class Client(object):
     def iter_receive_result(self, with_column_types=False):
         gen = self.packet_generator()
 
-        result = self.iter_query_result_cls(gen, with_column_types=with_column_types)
+        result = self.iter_query_result_cls(
+            gen, with_column_types=with_column_types
+        )
 
         for rows in result:
             for row in rows:
@@ -535,10 +548,17 @@ class Client(object):
         if replace_nonwords:
             columns = [re.sub(r"\W", "_", x) for x in columns]
 
-        return pd.DataFrame({col: d for d, col in zip(data, columns)}, columns=columns)
+        return pd.DataFrame(
+            {col: d for d, col in zip(data, columns)}, columns=columns
+        )
 
     def insert_dataframe(
-        self, query, dataframe, external_tables=None, query_id=None, settings=None
+        self,
+        query,
+        dataframe,
+        external_tables=None,
+        query_id=None,
+        settings=None,
     ):
         """
         *New in version 0.2.0.*
@@ -577,7 +597,7 @@ class Client(object):
                         f"DataFrame has missing required columns: {list(diff)}"
                     )
 
-                # TODO: to find a more pandas-idiomatic way of data "tuplefication"
+                # TODO: to find a more pandas-idiomatic way
                 data = []
                 for column in columns:
                     column_values = dataframe[column].values
@@ -604,12 +624,18 @@ class Client(object):
     ):
 
         if params is not None:
-            query = self.substitute_params(query, params, self.connection.context)
+            query = self.substitute_params(
+                query, params, self.connection.context
+            )
 
         self.connection.send_query(query, query_id=query_id, params=params)
-        self.connection.send_external_tables(external_tables, types_check=types_check)
+        self.connection.send_external_tables(
+            external_tables, types_check=types_check
+        )
         return self.receive_result(
-            with_column_types=with_column_types, progress=True, columnar=columnar
+            with_column_types=with_column_types,
+            progress=True,
+            columnar=columnar,
         )
 
     def process_ordinary_query(
@@ -624,9 +650,13 @@ class Client(object):
     ):
 
         if params is not None:
-            query = self.substitute_params(query, params, self.connection.context)
+            query = self.substitute_params(
+                query, params, self.connection.context
+            )
         self.connection.send_query(query, query_id=query_id, params=params)
-        self.connection.send_external_tables(external_tables, types_check=types_check)
+        self.connection.send_external_tables(
+            external_tables, types_check=types_check
+        )
         return self.receive_result(
             with_column_types=with_column_types, columnar=columnar
         )
@@ -642,10 +672,14 @@ class Client(object):
     ):
 
         if params is not None:
-            query = self.substitute_params(query, params, self.connection.context)
+            query = self.substitute_params(
+                query, params, self.connection.context
+            )
 
         self.connection.send_query(query, query_id=query_id, params=params)
-        self.connection.send_external_tables(external_tables, types_check=types_check)
+        self.connection.send_external_tables(
+            external_tables, types_check=types_check
+        )
         return self.iter_receive_result(with_column_types=with_column_types)
 
     def process_insert_query(
@@ -658,7 +692,9 @@ class Client(object):
         columnar=False,
     ):
         self.connection.send_query(query_without_data, query_id=query_id)
-        self.connection.send_external_tables(external_tables, types_check=types_check)
+        self.connection.send_external_tables(
+            external_tables, types_check=types_check
+        )
         sample_block = self.receive_sample_block()
 
         if sample_block:
@@ -782,7 +818,10 @@ class Client(object):
 
     def receive_profile_events(self):
         revision = self.connection.server_info.used_revision
-        if revision < defines.DBMS_MIN_PROTOCOL_VERSION_WITH_PROFILE_EVENTS_IN_INSERT:
+        if (
+            revision
+            < defines.DBMS_MIN_PROTOCOL_VERSION_WITH_PROFILE_EVENTS_IN_INSERT
+        ):
             return None
 
         while True:
@@ -881,7 +920,11 @@ class Client(object):
             kwargs["secure"] = True
 
         compression_algs = {"lz4", "lz4hc", "zstd"}
-        timeouts = {"connect_timeout", "send_receive_timeout", "sync_request_timeout"}
+        timeouts = {
+            "connect_timeout",
+            "send_receive_timeout",
+            "sync_request_timeout",
+        }
 
         for name, value in parse_qs(url.query).items():
             if not value or not len(value):
@@ -922,7 +965,11 @@ class Client(object):
                     kwargs[name] = asbool(value)
                 except ValueError:
                     parts = value.split(",")
-                    kwargs[name] = (float(parts[0]), float(parts[1]), int(parts[2]))
+                    kwargs[name] = (
+                        float(parts[0]),
+                        float(parts[1]),
+                        int(parts[2]),
+                    )
             elif name == "client_revision":
                 kwargs[name] = int(value)
 
