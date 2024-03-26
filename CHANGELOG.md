@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- fix `client.insert_dataframe()` behaviour for tables with tuple columns. Solves issues [#356](https://github.com/mymarilyn/clickhouse-driver/issues/356) and [#417](https://github.com/mymarilyn/clickhouse-driver/issues/417). Pull request [#426](https://github.com/mymarilyn/clickhouse-driver/pull/426) by [stankudrow](https://github.com/stankudrow/).
+
 ## [0.2.7] - 2024-02-20
 ### Added
 - Wheels for Python 3.12.
