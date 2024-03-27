@@ -1,12 +1,27 @@
 from itertools import islice, tee
 
+try:
+    import numpy as np
+
+    CHECK_NUMPY_TYPES = True
+except ImportError:
+    CHECK_NUMPY_TYPES = False
+
+
+def _check_sequence_to_be_an_expected_iterable(seq):
+    expected = [list, tuple]
+    if CHECK_NUMPY_TYPES:
+        expected.append(np.ndarray)
+    return isinstance(seq, tuple(expected))
+
 
 def chunks(seq, n):
     # islice is MUCH slower than slice for lists and tuples.
-    if isinstance(seq, (list, tuple)):
+    if _check_sequence_to_be_an_expected_iterable(seq):
         i = 0
         item = seq[i:i+n]
-        while item:
+        # DeprecationWarning: The truth value of an empty array is ambiguous.
+        while len(item):
             yield list(item)
             i += n
             item = seq[i:i+n]
@@ -27,10 +42,10 @@ def pairwise(iterable):
 
 def column_chunks(columns, n):
     for column in columns:
-        if not isinstance(column, (list, tuple)):
+        if not _check_sequence_to_be_an_expected_iterable(column):
             raise TypeError(
-                'Unsupported column type: {}. list or tuple is expected.'
-                .format(type(column))
+                f"Unsupported column type: {type(column)}. "
+                "Expected list, tuple or numpy.ndarray"
             )
 
     # create chunk generator for every column

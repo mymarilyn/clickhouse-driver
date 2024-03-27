@@ -539,10 +539,19 @@ class Client(object):
                 # raise if any columns are missing from the dataframe
                 diff = set(columns) - set(dataframe.columns)
                 if len(diff):
-                    msg = "DataFrame missing required columns: {}"
-                    raise ValueError(msg.format(list(diff)))
+                    raise ValueError(
+                        f"DataFrame has missing required columns: {list(diff)}"
+                    )
 
-                data = [dataframe[column].values for column in columns]
+                # TODO: to find a more pandas-idiomatic way
+                data = []
+                for column in columns:
+                    column_values = dataframe[column].values
+                    for idx, col_vals in enumerate(column_values):
+                        if isinstance(col_vals, dict):
+                            column_values[idx] = tuple(col_vals.values())
+                    data.append(column_values)
+
                 rv = self.send_data(sample_block, data, columnar=True)
                 self.receive_end_of_query()
 

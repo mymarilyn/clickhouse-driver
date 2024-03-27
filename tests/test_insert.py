@@ -223,7 +223,7 @@ class InsertColumnarTestCase(BaseTestCase):
                     types_check=True, columnar=True
                 )
 
-            self.assertIn('list or tuple is expected', str(e.exception))
+            self.assertIn("Expected list, tuple or numpy.ndarray", str(e.exception))
 
             with self.assertRaises(TypeError) as e:
                 data = [(1, 2), 3]
@@ -232,4 +232,4 @@ class InsertColumnarTestCase(BaseTestCase):
                     types_check=True, columnar=True
                 )
 
-            self.assertIn('list or tuple is expected', str(e.exception))
+            self.assertIn("Expected list, tuple or numpy.ndarray", str(e.exception))
