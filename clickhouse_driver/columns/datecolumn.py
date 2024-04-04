@@ -14,18 +14,16 @@ epoch_end_date32 = date(2299, 12, 31)
 
 
 class LazyLUT(dict):
-    def __init__(self, *args, _default_factory, _start, _end, **kwargs):
+    def __init__(self, *args, _default_factory, **kwargs):
         super().__init__(*args, **kwargs)
         self._default_factory = _default_factory
-        # assuming start & env validations are already present in CH & before_write_items, may be redundant
-        self._start = _start
-        self._end = _end
 
     def __missing__(self, key):
-        if not (self._start <= key <= self._end):
-            raise KeyError(key)
-
         return self.setdefault(key, self._default_factory(key))
+
+
+lazy_date_lut = LazyLUT(_default_factory=lambda x: epoch_start + timedelta(x))
+lazy_date_lut_reverse = LazyLUT(_default_factory=lambda x: (x - epoch_start).days)
 
 
 class DateColumn(FormatColumn):
@@ -37,6 +35,8 @@ class DateColumn(FormatColumn):
     max_value = epoch_end
 
     date_lut_days = (epoch_end - epoch_start).days + 1
+    date_lut = lazy_date_lut
+    date_lut_reverse = lazy_date_lut_reverse
 
     def before_write_items(self, items, nulls_map=None):
         null_value = self.null_value
@@ -75,31 +75,11 @@ class Date32Column(DateColumn):
 
     min_value = epoch_start_date32
     max_value = epoch_end_date32
+    date_lut = lazy_date_lut
+    date_lut_reverse = lazy_date_lut_reverse
 
 
-if getenv('CLICKHOUSE_DRIVER_LASY_DATE_LUT'):
-    DateColumn.date_lut = LazyLUT(
-        _default_factory=lambda x: epoch_start + timedelta(x),
-        _start=0,
-        _end=DateColumn.date_lut_days - 1,
-    )
-    DateColumn.date_lut_reverse = LazyLUT(
-        _default_factory= lambda x: (x - epoch_start).days,
-        _start=DateColumn.min_value,
-        _end=DateColumn.max_value,
-    )
-
-    Date32Column.date_lut = LazyLUT(
-        _default_factory=lambda x: epoch_start + timedelta(x),
-        _start=(epoch_start_date32 - epoch_start).days,
-        _end=Date32Column.date_lut_days - 1,
-    )
-    Date32Column.date_lut_reverse = LazyLUT(
-        _default_factory= lambda x: (x - epoch_start).days,
-        _start=Date32Column.min_value,
-        _end=Date32Column.max_value,
-    )
-else:
+if not getenv('CLICKHOUSE_DRIVER_LASY_DATE_LUT'):
     DateColumn.date_lut = {x: epoch_start + timedelta(x) for x in range(DateColumn.date_lut_days)}
     DateColumn.date_lut_reverse = {value: key for key, value in DateColumn.date_lut.items()}
 
