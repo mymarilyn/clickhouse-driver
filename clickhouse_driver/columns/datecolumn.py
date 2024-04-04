@@ -1,4 +1,3 @@
-from os import getenv
 from datetime import date, timedelta
 
 from .base import FormatColumn
@@ -77,14 +76,3 @@ class Date32Column(DateColumn):
     max_value = epoch_end_date32
     date_lut = lazy_date_lut
     date_lut_reverse = lazy_date_lut_reverse
-
-
-if not getenv('CLICKHOUSE_DRIVER_LASY_DATE_LUT'):
-    DateColumn.date_lut = {x: epoch_start + timedelta(x) for x in range(DateColumn.date_lut_days)}
-    DateColumn.date_lut_reverse = {value: key for key, value in DateColumn.date_lut.items()}
-
-    Date32Column.date_lut = {
-        x: epoch_start + timedelta(x)
-        for x in range((epoch_start_date32 - epoch_start).days, Date32Column.date_lut_days)
-    }
-    Date32Column.date_lut_reverse = {value: key for key, value in Date32Column.date_lut.items()}
