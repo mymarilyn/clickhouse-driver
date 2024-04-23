@@ -280,9 +280,9 @@ class ClientFromUrlTestCase(TestCase):
         c = Client.from_url('clickhouse://host?tcp_keepalive=true')
         self.assertTrue(c.connection.tcp_keepalive)
 
-        c = Client.from_url('clickhouse://host?tcp_keepalive=10.5,2.5,3')
+        c = Client.from_url('clickhouse://host?tcp_keepalive=10,2,3')
         self.assertEqual(
-            c.connection.tcp_keepalive, (10.5, 2.5, 3)
+            c.connection.tcp_keepalive, (10, 2, 3)
         )
 
     def test_client_revision(self):

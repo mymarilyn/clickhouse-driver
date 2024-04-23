@@ -579,7 +579,7 @@ You can also specify custom keepalive settings with tuple
 
     .. code-block:: python
 
-        >>> client = Client('localhost', tcp_keepalive=(60.5, 5.1, 2))
+        >>> client = Client('localhost', tcp_keepalive=(60, 5, 2))
 
     .. note::
 
