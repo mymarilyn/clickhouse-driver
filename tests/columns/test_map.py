@@ -120,3 +120,16 @@ class MapTestCase(BaseTestCase):
             )
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
+
+    def test_only_empty_map(self):
+        columns = 'a Map(String, Map(String, Int32))'
+        with self.create_table(columns):
+            data = [
+                ({}, ),
+            ]
+            self.client.execute('INSERT INTO test (a) VALUES', data)
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, '{}\n')
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)

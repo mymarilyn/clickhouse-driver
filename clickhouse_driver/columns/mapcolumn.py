@@ -31,6 +31,9 @@ class MapColumn(Column):
         self.value_column.write_state_prefix(buf)
 
     def read_items(self, n_items, buf):
+        if not n_items:
+            return [{}]
+
         offsets = list(self.offset_column.read_items(n_items, buf))
         last_offset = offsets[-1]
         keys = self.key_column.read_data(last_offset, buf)
