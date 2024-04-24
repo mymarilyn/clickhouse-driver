@@ -84,22 +84,26 @@ class Date32TestCase(BaseTestCase):
             data = [
                 (date(5555, 1, 1), ),
                 (date(1, 1, 1), ),
-                (date(2284, 1, 1), )
+                (date(2300, 1, 1), ),
+                (date(1899, 12, 31), )
             ]
             self.client.execute('INSERT INTO test (a) VALUES', data)
             query = 'SELECT * FROM test'
             inserted = self.emit_cli(query)
-            self.assertEqual(inserted, '1970-01-01\n1970-01-01\n1970-01-01\n')
+            self.assertEqual(
+                inserted,
+                '1970-01-01\n1970-01-01\n1970-01-01\n1970-01-01\n',
+            )
 
     @require_server_version(22, 8)
     def test_boundaries_1900(self):
         with self.create_table('a Date32'):
-            data = [(date(1900, 1, 1),)]
+            data = [(date(1900, 1, 1),), (date(2299, 12, 31), )]
             self.client.execute('INSERT INTO test (a) VALUES', data)
 
             query = 'SELECT * FROM test'
             inserted = self.emit_cli(query)
-            self.assertEqual(inserted, '1900-01-01\n')
+            self.assertEqual(inserted, '1900-01-01\n2299-12-31\n')
 
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)

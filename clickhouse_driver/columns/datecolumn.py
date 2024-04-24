@@ -7,22 +7,20 @@ epoch_start = date(1970, 1, 1)
 epoch_end = date(2149, 6, 6)
 
 epoch_start_date32 = date(1900, 1, 1)
-# Why was it 17 year earlier that limit set in clickhouse?
-# epoch_end_date32 = date(2283, 11, 11)
 epoch_end_date32 = date(2299, 12, 31)
 
 
 class LazyLUT(dict):
-    def __init__(self, *args, _default_factory, **kwargs):
+    def __init__(self, *args, _factory, **kwargs):
         super().__init__(*args, **kwargs)
-        self._default_factory = _default_factory
+        self._default_factory = _factory
 
     def __missing__(self, key):
         return self.setdefault(key, self._default_factory(key))
 
 
-lazy_date_lut = LazyLUT(_default_factory=lambda x: epoch_start + timedelta(x))
-lazy_date_lut_reverse = LazyLUT(_default_factory=lambda x: (x - epoch_start).days)
+lazy_date_lut = LazyLUT(_factory=lambda x: epoch_start + timedelta(x))
+lazy_date_lut_reverse = LazyLUT(_factory=lambda x: (x - epoch_start).days)
 
 
 class DateColumn(FormatColumn):
@@ -67,6 +65,7 @@ class DateColumn(FormatColumn):
                 (None if is_null else date_lut[items[i]])
                 for i, is_null in enumerate(nulls_map)
             )
+
 
 class Date32Column(DateColumn):
     ch_type = 'Date32'
