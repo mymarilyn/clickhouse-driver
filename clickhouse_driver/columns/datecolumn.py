@@ -1,3 +1,4 @@
+from os import getenv
 from datetime import date, timedelta
 
 from .base import FormatColumn
@@ -19,8 +20,41 @@ class LazyLUT(dict):
         return self.setdefault(key, self._default_factory(key))
 
 
-lazy_date_lut = LazyLUT(_factory=lambda x: epoch_start + timedelta(x))
-lazy_date_lut_reverse = LazyLUT(_factory=lambda x: (x - epoch_start).days)
+def make_date_lut_range(date_start, date_end):
+    return range(
+        (date_start - epoch_start).days,
+        (date_end - epoch_start).days + 1,
+    )
+
+
+enable_lazy_date_lut = getenv('CLICKHOUSE_DRIVER_LASY_DATE_LUT', False)
+if enable_lazy_date_lut:
+    try:
+        start, end = enable_lazy_date_lut.split(':')
+        start_date = date.fromisoformat(start)
+        end_date = date.fromisoformat(end)
+
+        date_range = make_date_lut_range(start_date, end_date)
+    except ValueError:
+        date_range = ()
+
+    # Since we initialize lazy lut with some initially warmed values,
+    # we use iterator and not dict comprehension for memory & time optimization
+    _date_lut = LazyLUT(
+        ((x, epoch_start + timedelta(days=x)) for x in date_range),
+        _factory=lambda x: epoch_start + timedelta(days=x),
+    )
+    _date_lut_reverse = LazyLUT(
+        ((value, key) for key, value in _date_lut.items()),
+        _factory=lambda x: (x - epoch_start).days,
+    )
+else:
+    # If lazy lut is not enabled, we fallback to static dict initialization
+    # In both cases, we use same lut for both data types,
+    # since one encompasses the other and we can avoid duplicating overlap
+    date_range = make_date_lut_range(epoch_start_date32, epoch_end_date32)
+    _date_lut = {x: epoch_start + timedelta(days=x) for x in date_range}
+    _date_lut_reverse = {value: key for key, value in _date_lut.items()}
 
 
 class DateColumn(FormatColumn):
@@ -31,9 +65,8 @@ class DateColumn(FormatColumn):
     min_value = epoch_start
     max_value = epoch_end
 
-    date_lut_days = (epoch_end - epoch_start).days + 1
-    date_lut = lazy_date_lut
-    date_lut_reverse = lazy_date_lut_reverse
+    date_lut = _date_lut
+    date_lut_reverse = _date_lut_reverse
 
     def before_write_items(self, items, nulls_map=None):
         null_value = self.null_value
@@ -73,5 +106,3 @@ class Date32Column(DateColumn):
 
     min_value = epoch_start_date32
     max_value = epoch_end_date32
-    date_lut = lazy_date_lut
-    date_lut_reverse = lazy_date_lut_reverse
