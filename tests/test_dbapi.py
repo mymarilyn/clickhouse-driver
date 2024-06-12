@@ -309,13 +309,13 @@ class ExtrasTestCase(DBAPITestCaseBase):
 
     def test_settings(self):
         with self.created_cursor() as cursor:
-            cursor.set_settings({'max_threads': 100500})
+            cursor.set_settings({'max_threads': 42})
 
             cursor.execute(
                 "SELECT name, value, changed FROM system.settings "
                 "WHERE name = 'max_threads'",
             )
-            self.assertEqual(cursor.fetchall(), [('max_threads', '100500', 1)])
+            self.assertEqual(cursor.fetchall(), [('max_threads', '42', 1)])
 
     def test_set_query_id(self):
         with self.created_cursor() as cursor:

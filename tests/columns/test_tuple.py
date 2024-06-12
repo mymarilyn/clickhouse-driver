@@ -180,8 +180,8 @@ class TupleTestCase(BaseTestCase):
                 self.client.execute('INSERT INTO test (a) VALUES', data)
 
     def test_tuple_of_low_cardinality(self):
-        data = [((1, 2), )]
-        columns = 'a Tuple(LowCardinality(Int32), LowCardinality(Int32))'
+        data = [(('1', '2'), )]
+        columns = 'a Tuple(LowCardinality(String), LowCardinality(String))'
 
         with self.create_table(columns):
             self.client.execute(
@@ -192,7 +192,7 @@ class TupleTestCase(BaseTestCase):
             inserted = self.emit_cli(query)
             self.assertEqual(
                 inserted,
-                '(1,2)\n'
+                "('1','2')\n"
             )
 
             inserted = self.client.execute(query)

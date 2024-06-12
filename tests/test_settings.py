@@ -54,14 +54,14 @@ class SettingTestCase(BaseTestCase):
         self.assertEqual(rv, [('format_csv_delimiter', 'd', 1)])
 
     def test_max_threads_apply(self):
-        settings = {'max_threads': 100500}
+        settings = {'max_threads': 42}
 
         rv = self.client.execute(
             "SELECT name, value, changed FROM system.settings "
             "WHERE name = 'max_threads'",
             settings=settings
         )
-        self.assertEqual(rv, [('max_threads', '100500', 1)])
+        self.assertEqual(rv, [('max_threads', '42', 1)])
 
         settings = {'max_threads': 'auto'}
 
