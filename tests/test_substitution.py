@@ -19,7 +19,7 @@ class ParametersSubstitutionTestCase(BaseTestCase):
 
     def assert_subst(self, tpl, params, sql):
         ctx = Mock()
-        ctx.server_info.timezone = 'Europe/Moscow'
+        ctx.server_info.get_timezone.return_value = 'Europe/Moscow'
         self.assertEqual(self.client.substitute_params(tpl, params, ctx), sql)
 
     def test_int(self):

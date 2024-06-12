@@ -53,10 +53,14 @@ class ServerInfo(object):
         self.version_patch = version_patch
         self.revision = revision
         self.timezone = timezone
+        self.session_timezone = None
         self.display_name = display_name
         self.used_revision = used_revision
 
         super(ServerInfo, self).__init__()
+
+    def get_timezone(self):
+        return self.session_timezone or self.timezone
 
     def version_tuple(self):
         return self.version_major, self.version_minor, self.version_patch
@@ -612,6 +616,12 @@ class Connection(object):
 
         elif packet_type == ServerPacketTypes.PROFILE_EVENTS:
             packet.block = self.receive_data(may_be_compressed=False)
+
+        elif packet_type == ServerPacketTypes.TIMEZONE_UPDATE:
+            timezone = read_binary_str(self.fin)
+            if timezone:
+                logger.info('Server timezone changed to %s', timezone)
+                self.server_info.session_timezone = timezone
 
         else:
             message = 'Unknown packet {} from server {}'.format(

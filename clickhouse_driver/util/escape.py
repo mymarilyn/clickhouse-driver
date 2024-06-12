@@ -21,7 +21,7 @@ escape_chars_map = {
 
 
 def escape_datetime(item, context):
-    server_tz = timezone(context.server_info.timezone)
+    server_tz = timezone(context.server_info.get_timezone())
 
     if item.tzinfo is not None:
         item = item.astimezone(server_tz)

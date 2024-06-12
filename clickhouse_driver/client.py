@@ -312,6 +312,7 @@ class Client(object):
     def disconnect_on_error(self, query, settings):
         try:
             self.establish_connection(settings)
+            self.connection.server_info.session_timezone = None
 
             yield
 
@@ -746,9 +747,13 @@ class Client(object):
             elif packet.type == ServerPacketTypes.EXCEPTION:
                 raise packet.exception
 
+            elif packet.type == ServerPacketTypes.TIMEZONE_UPDATE:
+                pass
+
             else:
                 message = self.connection.unexpected_packet_message(
-                    'ProfileEvents, Progress, Log or Exception', packet.type
+                    'ProfileEvents, Progress, Log, Exception or '
+                    'TimezoneUpdate', packet.type
                 )
                 raise errors.UnexpectedPacketFromServerError(message)
 

@@ -133,8 +133,9 @@ def create_numpy_datetime_column(spec, column_options):
         offset_naive = False
     else:
         if not context.settings.get('use_client_time_zone', False):
-            if local_tz_name != context.server_info.timezone:
-                tz_name = context.server_info.timezone
+            remote_timezone = context.server_info.get_timezone()
+            if local_tz_name != remote_timezone:
+                tz_name = remote_timezone
 
     timezone = get_timezone(tz_name) if tz_name else None
     local_timezone = get_timezone(local_tz_name) if local_tz_name else None

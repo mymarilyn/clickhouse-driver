@@ -156,7 +156,7 @@ class InsertTestCase(BaseTestCase):
             self.client.execute(
                 "INSERT INTO test (a) "
                 "SELECT a FROM input ('a Int8') FORMAT Native",
-                data
+                data, settings={'session_timezone': 'UTC'}
             )
 
             query = 'SELECT * FROM test'

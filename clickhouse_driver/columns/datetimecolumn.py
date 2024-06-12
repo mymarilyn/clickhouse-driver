@@ -193,8 +193,9 @@ def create_datetime_column(spec, column_options):
     else:
         if not context.settings.get('use_client_time_zone', False):
             local_timezone = get_localzone_name_compat()
-            if local_timezone != context.server_info.timezone:
-                tz_name = context.server_info.timezone
+            remote_timezone = context.server_info.get_timezone()
+            if local_timezone != remote_timezone:
+                tz_name = remote_timezone
 
     if tz_name:
         timezone = get_timezone(tz_name)
