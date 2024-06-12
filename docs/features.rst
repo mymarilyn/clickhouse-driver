@@ -198,6 +198,8 @@ Statistics is sent from ClickHouse server and calculated on client side.
         80
         >>> client.last_query.progress.total_rows
         10
+        >>> client.last_query.progress.total_bytes
+        0
         >>> client.last_query.progress.elapsed_ns
         5328901
 
