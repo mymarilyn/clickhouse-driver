@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## [0.2.8] - 2024-06-12
+### Added
+- Lazy date LUT initialization for memory reducing. See [docs](https://clickhouse-driver.readthedocs.io/en/0.2.8/types.html#date-date32). Solves issue [#430](https://github.com/mymarilyn/clickhouse-driver/issues/430). Pull request [#431](https://github.com/mymarilyn/clickhouse-driver/pull/431) by [DaniilAnichin](https://github.com/DaniilAnichin).
+- Dependabot for up-to-date GitHub actions. Pull request [#421](https://github.com/mymarilyn/clickhouse-driver/pull/422) by [cclauss](https://github.com/cclauss).
+
+### Fixed
+- TCP keepalive idle_time_sec, interval_sec type to integer. Solves issue [#432](https://github.com/mymarilyn/clickhouse-driver/issues/432).
+- Empty Map type read IndexError. Solves issue [#433](https://github.com/mymarilyn/clickhouse-driver/issues/433).
+- Test on current versions of PyPy. Pull request [#424](https://github.com/mymarilyn/clickhouse-driver/pull/424) by [cclauss](https://github.com/cclauss).
+- Connection `verify=False` ignoring. Solves issue [#420](https://github.com/mymarilyn/clickhouse-driver/issues/420). Pull request [#421](https://github.com/mymarilyn/clickhouse-driver/pull/421) by [akurdyukov](https://github.com/akurdyukov).
+
 ## [0.2.7] - 2024-02-20
 ### Added
 - Wheels for Python 3.12.
@@ -461,7 +472,9 @@
 - Date/DateTime types.
 - String types.
 
-[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.6...HEAD
+[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.8...HEAD
+[0.2.8]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.7...0.2.8
+[0.2.7]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.6...0.2.7
 [0.2.6]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.5...0.2.6
 [0.2.5]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.4...0.2.5
 [0.2.4]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.3...0.2.4

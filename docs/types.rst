@@ -32,6 +32,27 @@ INSERT types: :class:`~datetime.date`, :class:`~datetime.datetime`.
 
 SELECT type: :class:`~datetime.date`.
 
+Since version 0.2.8 you can save memory in your application.
+
+During package initialization special date lookup table (LUT) was always build
+for whole supported date range. It takes some time and ~40MB of memory.
+This table is used for fast Date columns (de)serialization. Now you
+can control LUT initialization process. There are 3 options:
+
+  * Static initialization with whole date range like it was before 0.2.8.
+    Default.
+  * Lazy initialization. LUT will filled during Date columns processing. To
+    enable this option set ``CLICKHOUSE_DRIVER_LASY_DATE_LUT`` environment
+    variable with non-empty value.
+
+    Example ``CLICKHOUSE_DRIVER_LASY_DATE_LUT=1``.
+  * Lazy with static partial date range initialization. To enable this option
+    set ``CLICKHOUSE_DRIVER_LASY_DATE_LUT`` environment variable with desired
+    date range. LUT will partially filled with specified date range. If some
+    date is not in this interval LUT will be lazy updated.
+
+    Example ``CLICKHOUSE_DRIVER_LASY_DATE_LUT=2000-01-01:2030-01-01``.
+
 
 DateTime('timezone')/DateTime64('timezone')
 -------------------------------------------
