@@ -17,7 +17,7 @@ else:
     tests_require.append('lz4')
 
 if USE_NUMPY:
-    tests_require.extend(['numpy', 'pandas'])
+    tests_require.extend(['numpy', 'pandas', 'pyarrow>=7.0.0'])
 
 try:
     from pip import main as pipmain
