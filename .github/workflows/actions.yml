@@ -163,7 +163,7 @@ jobs:
         env:
           USE_NUMPY: 1
       - name: Run tests under valgrind
-        run: valgrind --error-exitcode=1 --suppressions=valgrind.supp py.test -v
+        run: valgrind -s --error-exitcode=1 --suppressions=valgrind.supp py.test -v
         env:
           # Set initial TZ for docker exec -e "`env | grep ^TZ`"
           TZ: UTC
