@@ -1,13 +1,16 @@
 import numpy as np
 import pandas as pd
+from pandas.core.arrays import ExtensionArray
 
 
 def column_chunks(columns, n):
     for column in columns:
-        if not isinstance(column, (np.ndarray, pd.DatetimeIndex)):
+        if not isinstance(
+            column, (np.ndarray, pd.DatetimeIndex, ExtensionArray)
+        ):
             raise TypeError(
                 'Unsupported column type: {}. '
-                'ndarray/DatetimeIndex is expected.'
+                'ndarray/DatetimeIndex/ExtensionArray is expected.'
                 .format(type(column))
             )
 

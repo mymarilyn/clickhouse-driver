@@ -3,6 +3,11 @@ try:
 except ImportError:
     np = None
 
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
+
 from tests.numpy.testcase import NumpyBaseTestCase
 
 
@@ -39,6 +44,28 @@ class StringTestCase(NumpyBaseTestCase):
                 inserted[0], [np.array([None, 'test', None, 'nullable'])]
             )
             self.assertEqual(inserted[0].dtype, object)
+
+    def test_insert_pandas_string(self):
+        with self.create_table('a String'):
+            df = pd.DataFrame({'a': ['a', 'b', 'c']}, dtype='string')
+            self.client.insert_dataframe(
+                'INSERT INTO test VALUES', dataframe=df
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, 'a\nb\nc\n')
+
+    def test_insert_pandas_pyarrow_string(self):
+        with self.create_table('a String'):
+            df = pd.DataFrame({'a': ['a', 'b', 'c']}, dtype='string[pyarrow]')
+            self.client.insert_dataframe(
+                'INSERT INTO test VALUES', dataframe=df
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, 'a\nb\nc\n')
 
 
 class ByteStringTestCase(NumpyBaseTestCase):
