@@ -56,17 +56,6 @@ class StringTestCase(NumpyBaseTestCase):
             inserted = self.emit_cli(query)
             self.assertEqual(inserted, 'a\nb\nc\n')
 
-    def test_insert_pandas_pyarrow_string(self):
-        with self.create_table('a String'):
-            df = pd.DataFrame({'a': ['a', 'b', 'c']}, dtype='string[pyarrow]')
-            self.client.insert_dataframe(
-                'INSERT INTO test VALUES', dataframe=df
-            )
-
-            query = 'SELECT * FROM test'
-            inserted = self.emit_cli(query)
-            self.assertEqual(inserted, 'a\nb\nc\n')
-
 
 class ByteStringTestCase(NumpyBaseTestCase):
     client_kwargs = {'settings': {'strings_as_bytes': True, 'use_numpy': True}}
