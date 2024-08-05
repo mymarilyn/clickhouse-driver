@@ -655,6 +655,29 @@ class DateTimeTimezonesTestCase(BaseDateTimeTestCase):
                         self.make_numpy_d64ns([self.dt_str] * 2)
                     )
 
+    @require_server_version(1, 1, 54337)
+    def test_do_not_localize_already_localized(self):
+        # Insert datetime with timezone Asia/Kamchatka
+        # into column with no timezone
+        # using server's timezone (Europe/Moscow)
+        with patch_env_tz('Asia/Novosibirsk'):
+            with self.create_table(self.table_columns()):
+                self.client.execute(
+                    'INSERT INTO test (a) VALUES',
+                    [np.array([pd.Timestamp('2017-07-14 05:40:00+1200')])],
+                    columnar=True
+                )
+
+                self.emit_cli(
+                    "INSERT INTO test (a) VALUES "
+                    "(toDateTime('2017-07-14 05:40:00', 'Asia/Kamchatka'))",
+                )
+
+                query = 'SELECT toInt32(a) FROM test'
+                inserted = self.emit_cli(query)
+                # 1499967600 = 1500000000 - 12 * 3600
+                self.assertEqual(inserted, '1499967600\n1499967600\n')
+
 
 class DateTime64TimezonesTestCase(DateTimeTimezonesTestCase):
     dt_type = 'DateTime64'
