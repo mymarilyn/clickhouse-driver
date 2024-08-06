@@ -1,10 +1,9 @@
 import re
-import ssl
 from collections import deque
 from contextlib import contextmanager
 from time import time
 import types
-from urllib.parse import urlparse, parse_qs, unquote
+from urllib.parse import urlparse
 
 from . import errors, defines
 from .block import ColumnOrientedBlock, RowOrientedBlock
@@ -15,7 +14,7 @@ from .result import (
     IterQueryResult, ProgressQueryResult, QueryResult, QueryInfo
 )
 from .util.escape import escape_params
-from .util.helpers import column_chunks, chunks, asbool
+from .util.helpers import column_chunks, chunks, parse_url
 
 
 class Client(object):
@@ -801,101 +800,13 @@ class Client(object):
             clickhouses://[user:password]@localhost:9440/default
 
         Three URL schemes are supported:
-            clickhouse:// creates a normal TCP socket connection
-            clickhouses:// creates a SSL wrapped TCP socket connection
+
+            * clickhouse:// creates a normal TCP socket connection
+            * clickhouses:// creates a SSL wrapped TCP socket connection
 
         Any additional querystring arguments will be passed along to
         the Connection class's initializer.
         """
-        url = urlparse(url)
-
-        settings = {}
-        kwargs = {}
-
-        host = url.hostname
-
-        if url.port is not None:
-            kwargs['port'] = url.port
-
-        path = url.path.replace('/', '', 1)
-        if path:
-            kwargs['database'] = path
-
-        if url.username is not None:
-            kwargs['user'] = unquote(url.username)
-
-        if url.password is not None:
-            kwargs['password'] = unquote(url.password)
-
-        if url.scheme == 'clickhouses':
-            kwargs['secure'] = True
-
-        compression_algs = {'lz4', 'lz4hc', 'zstd'}
-        timeouts = {
-            'connect_timeout',
-            'send_receive_timeout',
-            'sync_request_timeout'
-        }
-
-        for name, value in parse_qs(url.query).items():
-            if not value or not len(value):
-                continue
-
-            value = value[0]
-
-            if name == 'compression':
-                value = value.lower()
-                if value in compression_algs:
-                    kwargs[name] = value
-                else:
-                    kwargs[name] = asbool(value)
-
-            elif name == 'secure':
-                kwargs[name] = asbool(value)
-
-            elif name == 'use_numpy':
-                settings[name] = asbool(value)
-
-            elif name == 'round_robin':
-                kwargs[name] = asbool(value)
-
-            elif name == 'client_name':
-                kwargs[name] = value
-
-            elif name in timeouts:
-                kwargs[name] = float(value)
-
-            elif name == 'compress_block_size':
-                kwargs[name] = int(value)
-
-            elif name == 'settings_is_important':
-                kwargs[name] = asbool(value)
-
-            elif name == 'tcp_keepalive':
-                try:
-                    kwargs[name] = asbool(value)
-                except ValueError:
-                    parts = value.split(',')
-                    kwargs[name] = (
-                        int(parts[0]), int(parts[1]), int(parts[2])
-                    )
-            elif name == 'client_revision':
-                kwargs[name] = int(value)
-
-            # ssl
-            elif name == 'verify':
-                kwargs[name] = asbool(value)
-            elif name == 'ssl_version':
-                kwargs[name] = getattr(ssl, value)
-            elif name in ['ca_certs', 'ciphers', 'keyfile', 'certfile',
-                          'server_hostname']:
-                kwargs[name] = value
-            elif name == 'alt_hosts':
-                kwargs['alt_hosts'] = value
-            else:
-                settings[name] = value
-
-        if settings:
-            kwargs['settings'] = settings
+        host, kwargs = parse_url(url)
 
         return cls(host, **kwargs)
