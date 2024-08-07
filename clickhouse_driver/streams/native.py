@@ -1,9 +1,13 @@
+import logging
+
 from ..block import ColumnOrientedBlock, BlockInfo
 from ..columns.service import read_column, write_column
 from ..reader import read_binary_str, read_binary_uint8
 from ..varint import write_varint, read_varint
 from ..writer import write_binary_str, write_binary_uint8
 from .. import defines
+
+logger = logging.getLogger(__name__)
 
 
 class BlockOutputStream(object):
@@ -40,6 +44,7 @@ class BlockOutputStream(object):
                     # We write always sparse data without custom serialization.
                     write_binary_uint8(0, self.fout)
 
+                logger.debug('Writing column %s', col_name)
                 write_column(self.context, col_name, col_type, items,
                              self.fout, types_check=block.types_check)
 
@@ -80,6 +85,7 @@ class BlockInputStream(object):
                 has_custom_serialization = bool(read_binary_uint8(self.fin))
 
             if n_rows:
+                logger.debug('Reading column %s', column_name)
                 column = read_column(
                     self.context, column_type, n_rows,
                     self.fin, use_numpy=use_numpy,
