@@ -248,15 +248,27 @@ Query logs can be received from server by using `send_logs_level` setting:
         >>>
         >>> settings = {'send_logs_level': 'debug'}
         >>> client.execute('SELECT 1', settings=settings)
-        2018-12-14 10:24:53,873 INFO     clickhouse_driver.log: [ klebedev-ThinkPad-T460 ] [ 25 ] {b328ad33-60e8-4012-b4cc-97f44a7b28f2} <Debug> executeQuery: (from 127.0.0.1:57762) SELECT 1
-        2018-12-14 10:24:53,874 INFO     clickhouse_driver.log: [ klebedev-ThinkPad-T460 ] [ 25 ] {b328ad33-60e8-4012-b4cc-97f44a7b28f2} <Debug> executeQuery: Query pipeline:
+        2018-12-14 10:24:53,873 INFO     clickhouse_driver.log: [ klebedev-ThinkPad-T460 ] [ 2018-12-14 10:24:53.865340 ] [ 25 ] {b328ad33-60e8-4012-b4cc-97f44a7b28f2} <Debug> executeQuery: (from 127.0.0.1:57762) SELECT 1
+        2018-12-14 10:24:53,874 INFO     clickhouse_driver.log: [ klebedev-ThinkPad-T460 ] [ 2018-12-14 10:24:53.866763 ] [ 25 ] {b328ad33-60e8-4012-b4cc-97f44a7b28f2} <Debug> executeQuery: Query pipeline:
         Expression
          Expression
           One
 
-        2018-12-14 10:24:53,875 INFO     clickhouse_driver.log: [ klebedev-ThinkPad-T460 ] [ 25 ] {b328ad33-60e8-4012-b4cc-97f44a7b28f2} <Information> executeQuery: Read 1 rows, 1.00 B in 0.004 sec., 262 rows/sec., 262.32 B/sec.
-        2018-12-14 10:24:53,875 INFO     clickhouse_driver.log: [ klebedev-ThinkPad-T460 ] [ 25 ] {b328ad33-60e8-4012-b4cc-97f44a7b28f2} <Debug> MemoryTracker: Peak memory usage (for query): 40.23 KiB.
+        2018-12-14 10:24:53,875 INFO     clickhouse_driver.log: [ klebedev-ThinkPad-T460 ] [ 2018-12-14 10:24:53.867802 ] [ 25 ] {b328ad33-60e8-4012-b4cc-97f44a7b28f2} <Information> executeQuery: Read 1 rows, 1.00 B in 0.004 sec., 262 rows/sec., 262.32 B/sec.
+        2018-12-14 10:24:53,875 INFO     clickhouse_driver.log: [ klebedev-ThinkPad-T460 ] [ 2018-12-14 10:24:53.867895 ] [ 25 ] {b328ad33-60e8-4012-b4cc-97f44a7b28f2} <Debug> MemoryTracker: Peak memory usage (for query): 40.23 KiB.
         [(1,)]
+
+    .. note::
+
+        ``LogRecord`` instances produced by the driver contain all attributes
+        from ClickHouse `Log` blocks, available via `server_` prefix (e.g.
+        `server_event_time`, `server_query_id`, etc.), and by default the driver
+        concatenates all of them and places to ``LogRecord.msg``. Calling
+
+        >>> clickhouse_driver.log.configure_logger(raw_log_record=True)
+
+        allows to disable concatenation of the attributes into a single message
+        string.
 
 
 Multiple hosts
