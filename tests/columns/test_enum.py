@@ -149,3 +149,27 @@ class EnumTestCase(BaseTestCase):
                     (None, ), ('hello', ), (None, ), ('world', ),
                 ]
             )
+
+    def test_invalid_python_names(self):
+        data = [(1, ), (2, ), (3, )]
+        with self.create_table("a Enum8('mro' = 1, '' = 2, 'test' = 3)"):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted, (
+                    'mro\n'
+                    '\n'
+                    'test\n'
+                )
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(
+                inserted, [
+                    ('mro', ), ('', ), ('test', )
+                ]
+            )

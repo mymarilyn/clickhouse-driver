@@ -147,12 +147,8 @@ SELECT type: :class:`str`.
         >>> client.execute('SELECT * FROM test')
         [('foo',), ('bar',), ('foo',)]
 
-Currently clickhouse-driver can't handle empty enum value due to Python's `Enum` mechanics.
-Enum member name must be not empty. See `issue`_ and  `workaround`_.
-
-.. _issue: https://github.com/mymarilyn/clickhouse-driver/issues/48
-.. _workaround: https://github.com/mymarilyn/clickhouse-driver/issues/48#issuecomment-412480613
-
+*Starting from version 0.2.9* clickhouse-driver can handle special enum values:
+``mro`` and ``''``.
 
 Array(T)
 --------
