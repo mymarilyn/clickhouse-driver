@@ -307,6 +307,20 @@ class ConnectTestCase(BaseTestCase):
             client.execute('SELECT 1')
 
     def test_client_with_no_cert_validation(self):
+        try:
+            self.client.execute('SELECT showCertificate()')
+        except errors.ServerException as e:
+            # If there is no such function skip this check.
+            if e.code == errors.ErrorCodes.UNKNOWN_FUNCTION:
+                pass
+
+            # If certificate not found
+            elif e.code == errors.ErrorCodes.POCO_EXCEPTION and \
+                    'No such file or directory' in e.message:
+                self.skipTest('No certificate found on ClickHouse server')
+            else:
+                raise
+
         with self.created_client(port=self.secure_port,
                                  secure=True, verify=False) as client:
             client.execute('SELECT 1')
