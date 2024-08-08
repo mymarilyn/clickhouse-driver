@@ -37,12 +37,13 @@ def get_inner_columns(spec):
 
 
 def get_inner_columns_with_types(spec):
+    spec = spec.strip()
     brackets = 0
     prev_comma = 0
     prev_space = 0
 
     columns = []
-    for i, x in enumerate(spec + ','):
+    for i, x in enumerate(spec.strip() + ','):
         if x == ',':
             if brackets == 0:
                 columns.append((
