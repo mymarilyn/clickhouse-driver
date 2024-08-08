@@ -305,15 +305,14 @@ class Connection(object):
     def _create_ssl_context(self, ssl_options):
         purpose = ssl.Purpose.SERVER_AUTH
 
-        version = ssl_options.get('ssl_version', ssl.PROTOCOL_TLS)
+        version = ssl_options.get('ssl_version', ssl.PROTOCOL_TLS_CLIENT)
         context = ssl.SSLContext(version)
         context.check_hostname = self.verify_cert
 
         if 'ca_certs' in ssl_options:
             context.load_verify_locations(ssl_options['ca_certs'])
         elif ssl_options.get('cert_reqs') != ssl.CERT_NONE:
-            context.load_default_certs(purpose
-                                       )
+            context.load_default_certs(purpose)
         if 'ciphers' in ssl_options:
             context.set_ciphers(ssl_options['ciphers'])
 
