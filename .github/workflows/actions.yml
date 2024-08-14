@@ -91,6 +91,7 @@ jobs:
           # Newer coveralls do not work with github actions.
           pip install 'coveralls<3.0.0'
           pip install cython
+          pip install -U 'setuptools<72.2'
           python testsrequire.py
           python setup.py develop
           # Limit each test time execution.

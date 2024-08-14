@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+## [0.2.9] - 2024-08-16
+### Added
+- Debug logging on columns read/write. Solves issue [#404](https://github.com/mymarilyn/clickhouse-driver/issues/404).
+- Separate `parse_url` function for external tools. Solves issue [#438](https://github.com/mymarilyn/clickhouse-driver/issues/438).
+- [NumPy] Support for pandas StringArray and ArrowStringArray writing. Solves issue [#337](https://github.com/mymarilyn/clickhouse-driver/issues/337). Pull request [#441](https://github.com/mymarilyn/clickhouse-driver/pull/441) by [Simon-Chenzw](https://github.com/Simon-Chenzw).
+
+### Fixed
+- `ssl.PROTOCOL_TLS` deprecation warning for Python 3.10+.
+- Trailing spaces in external tables declaration. Solves issue [#385](https://github.com/mymarilyn/clickhouse-driver/issues/385).
+- [Tests] Skip certificate validation test during run on local machine. Solves issue [#442](https://github.com/mymarilyn/clickhouse-driver/issues/442).
+- Handle special enum values: ``'mro'`` and ``''``. Solves issue [#333](https://github.com/mymarilyn/clickhouse-driver/issues/333).
+- [NumPy] Do not localize already localized pandas datetime. Solves issue [#444](https://github.com/mymarilyn/clickhouse-driver/issues/444).
+- [Tests] Run tests for server 24+.
+
+### Changed
+- Protocol version bumped to 54468.
+
 ## [0.2.8] - 2024-06-12
 ### Added
 - Lazy date LUT initialization for memory reducing. See [docs](https://clickhouse-driver.readthedocs.io/en/0.2.8/types.html#date-date32). Solves issue [#430](https://github.com/mymarilyn/clickhouse-driver/issues/430). Pull request [#431](https://github.com/mymarilyn/clickhouse-driver/pull/431) by [DaniilAnichin](https://github.com/DaniilAnichin).
@@ -168,7 +185,7 @@
 ## [0.2.0] - 2020-12-14
 ### Added
 - NumPy reading/writing for columns: Float32/64, [U]Int8/16/32/64, Date/DateTime(‘timezone’)/DateTime64(‘timezone’), String/FixedString(N), LowCardinality(T). Merge [Arturus's](https://github.com/Arturus/clickhouse-driver) fork.
-- pandas DataFrame reading/writing.
+- Pandas DataFrame reading/writing.
 - Ability to mark all settings as important to fail on unknown settings on sever side.
 - SSL SNI support. Solves issue [#172](https://github.com/mymarilyn/clickhouse-driver/issues/172).
 - Wheels for Python 3.9 and PyPy.
@@ -472,7 +489,8 @@
 - Date/DateTime types.
 - String types.
 
-[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.8...HEAD
+[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.9...HEAD
+[0.2.9]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.8...0.2.9
 [0.2.8]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.7...0.2.8
 [0.2.7]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.6...0.2.7
 [0.2.6]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.5...0.2.6

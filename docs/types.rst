@@ -148,7 +148,7 @@ SELECT type: :class:`str`.
         [('foo',), ('bar',), ('foo',)]
 
 *Starting from version 0.2.9* clickhouse-driver can handle special enum values:
-``mro`` and ``''``.
+``'mro'`` and ``''``.
 
 Array(T)
 --------

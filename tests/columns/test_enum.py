@@ -151,7 +151,7 @@ class EnumTestCase(BaseTestCase):
             )
 
     def test_invalid_python_names(self):
-        data = [(1, ), (2, ), (3, )]
+        data = [(1, ), (2, ), (3, ), ('', ), ('mro', )]
         with self.create_table("a Enum8('mro' = 1, '' = 2, 'test' = 3)"):
             self.client.execute(
                 'INSERT INTO test (a) VALUES', data
@@ -164,12 +164,14 @@ class EnumTestCase(BaseTestCase):
                     'mro\n'
                     '\n'
                     'test\n'
+                    '\n'
+                    'mro\n'
                 )
             )
 
             inserted = self.client.execute(query)
             self.assertEqual(
                 inserted, [
-                    ('mro', ), ('', ), ('test', )
+                    ('mro', ), ('', ), ('test', ), ('', ), ('mro', )
                 ]
             )

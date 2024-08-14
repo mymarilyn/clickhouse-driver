@@ -21,9 +21,9 @@ Example for `python:alpine` docker image:
 
 By default there are wheels for Linux, Mac OS X and Windows.
 
-Packages for Linux and Mac OS X are available for python: 3.7 -- 3.11.
+Packages for Linux and Mac OS X are available for python: 3.7 -- 3.12.
 
-Packages for Windows are available for python: 3.7 -- 3.11.
+Packages for Windows are available for python: 3.7 -- 3.12.
 
 Starting from version *0.2.3* there are wheels for musl-based Linux distributions.
 
