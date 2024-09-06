@@ -92,6 +92,28 @@ class ConnectTestCase(BaseTestCase):
                 # Close newly created socket.
                 connection.socket.close()
 
+    def test_transport_disable_reconnect(self):
+        with self.created_client(disable_reconnect=True) as client:
+            # Create connection.
+            client.execute('SELECT 1')
+
+            connection = client.connection
+
+            with patch.object(connection, 'ping') as mocked_ping:
+                mocked_ping.return_value = False
+
+                self.assertTrue(connection.connected)
+                error = errors.NetworkError
+                with self.assertRaises(error) as e:
+                    client.execute('SELECT 1')
+
+                self.assertFalse(connection.connected)
+
+                self.assertEqual(
+                    str(e.exception),
+                    'Code: 210. Connection was closed, reconnect is disabled.'
+                )
+
     def test_socket_error_on_ping(self):
         self.client.execute('SELECT 1')
 

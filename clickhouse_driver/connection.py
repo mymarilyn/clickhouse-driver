@@ -141,6 +141,10 @@ class Connection(object):
                           Defaults to ``False``.
     :param client_revision: can be used for client version downgrading.
                           Defaults to ``None``.
+    :param disable_reconnect: disable automatic reconnect in case of
+                              failed ``ping``, helpful when every reconnect
+                              need to be caught in calling code.
+                              Defaults to ``False``.
     """
 
     def __init__(
@@ -161,7 +165,8 @@ class Connection(object):
             alt_hosts=None,
             settings_is_important=False,
             tcp_keepalive=False,
-            client_revision=None
+            client_revision=None,
+            disable_reconnect=False,
     ):
         if secure:
             default_port = defines.DEFAULT_SECURE_PORT
@@ -187,6 +192,7 @@ class Connection(object):
         self.client_revision = min(
             client_revision or defines.CLIENT_REVISION, defines.CLIENT_REVISION
         )
+        self.disable_reconnect = disable_reconnect
 
         self.secure_socket = secure
         self.verify_cert = verify
@@ -258,6 +264,11 @@ class Connection(object):
             self.connect()
 
         elif not self.ping():
+            if self.disable_reconnect:
+                raise errors.NetworkError(
+                    "Connection was closed, reconnect is disabled."
+                )
+
             logger.warning('Connection was closed, reconnecting.')
             self.connect()
 
