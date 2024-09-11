@@ -1,6 +1,30 @@
 import logging
 
-logger = logging.getLogger(__name__)
+
+def default_message_filter(record):
+    record.msg = (
+        f'[ {record.server_host_name} ] '
+        f'[ {record.server_event_time}.'
+        f'{record.server_event_time_microseconds:06d} ] '
+        f'[ {record.server_thread_id} ] '
+        f'{{{record.server_query_id}}} '
+        f'<{record.server_priority}> '
+        f'{record.server_source}: '
+        f'{record.server_text}'
+    )
+    return True
+
+
+def configure_logger(raw_log_record=False):
+    logger = logging.getLogger(__name__)
+    if raw_log_record:
+        logger.removeFilter(default_message_filter)
+    else:
+        logger.addFilter(default_message_filter)
+    return logger
+
+
+logger = configure_logger()
 
 # Keep in sync with ClickHouse priorities
 # https://github.com/ClickHouse/ClickHouse/blob/master/src/Interpreters/InternalTextLogsQueue.cpp
@@ -30,19 +54,13 @@ def log_block(block):
         row = dict(zip(column_names, row))
 
         if 1 <= row['priority'] <= num_priorities:
-            priority = log_priorities[row['priority']]
+            row['priority'] = log_priorities[row['priority']]
         else:
-            priority = row[0]
+            row['priority'] = row[0]
 
         # thread_number in servers prior 20.x
-        thread_id = row.get('thread_id') or row['thread_number']
+        row['thread_id'] = row.get('thread_id') or row['thread_number']
 
-        logger.info(
-            '[ %s ] [ %s ] {%s} <%s> %s: %s',
-            row['host_name'],
-            thread_id,
-            row['query_id'],
-            priority,
-            row['source'],
-            row['text']
-        )
+        # put log block row into LogRecord extra
+        extra = {"server_"+k: v for k, v in row.items()}
+        logger.info(row['text'], extra=extra)

@@ -2,6 +2,7 @@ import types
 from unittest.mock import patch
 
 from clickhouse_driver.errors import ServerException
+from clickhouse_driver.log import configure_logger
 from tests.testcase import BaseTestCase, file_config
 from tests.util import capture_logging
 from clickhouse_driver.util.helpers import chunks
@@ -245,3 +246,30 @@ class LogTestCase(BaseTestCase):
                 query = 'SELECT 1'
                 client.execute(query, settings=settings)
                 self.assertIn(query, buffer.getvalue())
+
+    def test_logs_with_raw_record(self):
+        def assertion_interceptor(record):
+            # Assert server-related LogRecord attributes have values
+            self.assertIsNotNone(record.server_event_time)
+            self.assertIsNotNone(record.server_event_time_microseconds)
+            self.assertIsNotNone(record.server_thread_id)
+            self.assertIsNotNone(record.server_host_name)
+            self.assertIsNotNone(record.server_query_id)
+            self.assertIsNotNone(record.server_priority)
+            self.assertIsNotNone(record.server_text)
+            self.assertIsNotNone(record.server_source)
+
+            # Assert LogRecord message hasn't been transformed
+            self.assertEqual(record.msg, record.server_text)
+
+            return True
+
+        driver_logger = configure_logger(raw_log_record=True)
+        driver_logger.addFilter(assertion_interceptor)
+        with capture_logging('clickhouse_driver.log', 'INFO') as buffer:
+            settings = {'send_logs_level': 'trace'}
+            query = 'SELECT 1'
+            self.client.execute(query, settings=settings)
+            self.assertIn(query, buffer.getvalue())
+
+        configure_logger()
