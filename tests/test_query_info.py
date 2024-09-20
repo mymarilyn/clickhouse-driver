@@ -39,8 +39,11 @@ class QueryInfoTestCase(BaseTestCase):
 
         self.assertGreater(last_query.elapsed, 0)
 
-        self.assertEqual(last_query.stats['SelectQuery'], 1)
-        self.assertEqual(last_query.stats['SelectedRows'], 42)
+        if self.server_version > (22, 8):
+            self.assertEqual(last_query.stats['SelectQuery'], 1)
+            self.assertEqual(last_query.stats['SelectedRows'], 42)
+        else:
+            self.assertDictEqual(last_query.stats, {})
 
     def test_last_query_after_execute_iter(self):
         with self.sample_table():
@@ -60,8 +63,11 @@ class QueryInfoTestCase(BaseTestCase):
 
         self.assertEqual(last_query.elapsed, 0)
 
-        self.assertEqual(last_query.stats['SelectQuery'], 1)
-        self.assertEqual(last_query.stats['SelectedRows'], 42)
+        if self.server_version > (22, 8):
+            self.assertEqual(last_query.stats['SelectQuery'], 1)
+            self.assertEqual(last_query.stats['SelectedRows'], 42)
+        else:
+            self.assertDictEqual(last_query.stats, {})
 
     def test_last_query_after_execute_with_progress(self):
         with self.sample_table():
@@ -83,8 +89,11 @@ class QueryInfoTestCase(BaseTestCase):
 
         self.assertEqual(last_query.elapsed, 0)
 
-        self.assertEqual(last_query.stats['SelectQuery'], 1)
-        self.assertEqual(last_query.stats['SelectedRows'], 42)
+        if self.server_version > (22, 8):
+            self.assertEqual(last_query.stats['SelectQuery'], 1)
+            self.assertEqual(last_query.stats['SelectedRows'], 42)
+        else:
+            self.assertDictEqual(last_query.stats, {})
 
     def test_last_query_progress_total_rows(self):
         self.client.execute('SELECT number FROM numbers(10) LIMIT 10')
@@ -105,8 +114,11 @@ class QueryInfoTestCase(BaseTestCase):
 
         self.assertGreater(last_query.elapsed, 0)
 
-        self.assertEqual(last_query.stats['SelectQuery'], 1)
-        self.assertEqual(last_query.stats['SelectedRows'], 10)
+        if self.server_version > (22, 8):
+            self.assertEqual(last_query.stats['SelectQuery'], 1)
+            self.assertEqual(last_query.stats['SelectedRows'], 10)
+        else:
+            self.assertDictEqual(last_query.stats, {})
 
     def test_last_query_after_execute_insert(self):
         with self.sample_table():
@@ -123,8 +135,11 @@ class QueryInfoTestCase(BaseTestCase):
 
         self.assertGreater(last_query.elapsed, 0)
 
-        self.assertEqual(last_query.stats['InsertQuery'], 1)
-        self.assertEqual(last_query.stats['InsertedRows'], 42)
+        if self.server_version > (22, 8):
+            self.assertEqual(last_query.stats['InsertQuery'], 1)
+            self.assertEqual(last_query.stats['InsertedRows'], 42)
+        else:
+            self.assertDictEqual(last_query.stats, {})
 
     def test_override_after_subsequent_queries(self):
         query = 'SELECT * FROM test WHERE foo < %(i)s ORDER BY foo LIMIT 5'
@@ -134,8 +149,12 @@ class QueryInfoTestCase(BaseTestCase):
 
                 last_query = self.client.last_query
                 self.assertEqual(last_query.profile_info.rows_before_limit, i)
-                self.assertEqual(last_query.stats['SelectQuery'], 1)
-                self.assertEqual(last_query.stats['SelectedRows'], 42)
+
+                if self.server_version > (22, 8):
+                    self.assertEqual(last_query.stats['SelectQuery'], 1)
+                    self.assertEqual(last_query.stats['SelectedRows'], 42)
+                else:
+                    self.assertDictEqual(last_query.stats, {})
 
     def test_reset_last_query(self):
         with self.sample_table():
@@ -168,9 +187,12 @@ class QueryInfoTestCase(BaseTestCase):
         self.assertEqual(last_query.progress.total_rows, total_rows)
 
         last_query = self.client.last_query
-        self.assertEqual(last_query.stats['SelectQuery'], 1)
-        self.assertEqual(last_query.stats['SelectedRows'], 100000000)
-        self.assertEqual(last_query.stats['SelectedBytes'], 800000000)
+        if self.server_version > (22, 8):
+            self.assertEqual(last_query.stats['SelectQuery'], 1)
+            self.assertEqual(last_query.stats['SelectedRows'], 100000000)
+            self.assertEqual(last_query.stats['SelectedBytes'], 800000000)
+        else:
+            self.assertDictEqual(last_query.stats, {})
 
     def test_progress_info_ddl(self):
         self.client.execute('DROP TABLE IF EXISTS foo')
