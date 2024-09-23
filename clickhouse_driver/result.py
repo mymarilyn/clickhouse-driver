@@ -130,6 +130,7 @@ class QueryInfo(object):
         self.profile_info = BlockStreamProfileInfo()
         self.progress = Progress()
         self.elapsed = 0
+        self.stats = {}
 
     def store_profile(self, profile_info):
         self.profile_info = profile_info
@@ -142,3 +143,14 @@ class QueryInfo(object):
 
     def store_elapsed(self, elapsed):
         self.elapsed = elapsed
+
+    def store_profile_events(self, packet):
+        data = QueryResult([packet]).get_result()
+        column_names = [i[0] for i in packet.block.columns_with_types]
+        for row in data:
+            item = dict(zip(column_names, row))
+            name = item.get('name', '')
+            if item['type'] == 'increment':
+                self.stats[name] = self.stats.get(name, 0) + item['value']
+            elif item['type'] == 'gauge':
+                self.stats[name] = item['value']
