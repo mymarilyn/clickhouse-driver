@@ -39,7 +39,7 @@ class QueryInfoTestCase(BaseTestCase):
 
         self.assertGreater(last_query.elapsed, 0)
 
-        if self.server_version > (22, 8):
+        if self.server_version >= (21, 12):
             self.assertEqual(last_query.stats['SelectQuery'], 1)
             self.assertEqual(last_query.stats['SelectedRows'], 42)
         else:
@@ -63,7 +63,7 @@ class QueryInfoTestCase(BaseTestCase):
 
         self.assertEqual(last_query.elapsed, 0)
 
-        if self.server_version > (22, 8):
+        if self.server_version >= (21, 12):
             self.assertEqual(last_query.stats['SelectQuery'], 1)
             self.assertEqual(last_query.stats['SelectedRows'], 42)
         else:
@@ -89,7 +89,7 @@ class QueryInfoTestCase(BaseTestCase):
 
         self.assertEqual(last_query.elapsed, 0)
 
-        if self.server_version > (22, 8):
+        if self.server_version >= (21, 12):
             self.assertEqual(last_query.stats['SelectQuery'], 1)
             self.assertEqual(last_query.stats['SelectedRows'], 42)
         else:
@@ -114,7 +114,7 @@ class QueryInfoTestCase(BaseTestCase):
 
         self.assertGreater(last_query.elapsed, 0)
 
-        if self.server_version > (22, 8):
+        if self.server_version >= (21, 12):
             self.assertEqual(last_query.stats['SelectQuery'], 1)
             self.assertEqual(last_query.stats['SelectedRows'], 10)
         else:
@@ -135,7 +135,7 @@ class QueryInfoTestCase(BaseTestCase):
 
         self.assertGreater(last_query.elapsed, 0)
 
-        if self.server_version > (22, 8):
+        if self.server_version >= (21, 12):
             self.assertEqual(last_query.stats['InsertQuery'], 1)
             self.assertEqual(last_query.stats['InsertedRows'], 42)
         else:
@@ -150,7 +150,7 @@ class QueryInfoTestCase(BaseTestCase):
                 last_query = self.client.last_query
                 self.assertEqual(last_query.profile_info.rows_before_limit, i)
 
-                if self.server_version > (22, 8):
+                if self.server_version >= (21, 12):
                     self.assertEqual(last_query.stats['SelectQuery'], 1)
                     self.assertEqual(last_query.stats['SelectedRows'], 42)
                 else:
@@ -187,7 +187,7 @@ class QueryInfoTestCase(BaseTestCase):
         self.assertEqual(last_query.progress.total_rows, total_rows)
 
         last_query = self.client.last_query
-        if self.server_version > (22, 8):
+        if self.server_version >= (21, 12):
             self.assertEqual(last_query.stats['SelectQuery'], 1)
             self.assertEqual(last_query.stats['SelectedRows'], 100000000)
             self.assertEqual(last_query.stats['SelectedBytes'], 800000000)
