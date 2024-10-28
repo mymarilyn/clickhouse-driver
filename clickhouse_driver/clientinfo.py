@@ -39,7 +39,7 @@ class ClientInfo(object):
 
         try:
             self.os_user = getpass.getuser()
-        except KeyError:
+        except OSError:
             self.os_user = ''
         self.client_hostname = socket.gethostname()
         self.client_name = client_name
