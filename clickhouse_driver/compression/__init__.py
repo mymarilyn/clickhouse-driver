@@ -1,7 +1,10 @@
 import importlib
+import logging
 
 from .. import errors
 from ..protocol import CompressionMethodByte
+
+logger = logging.getLogger(__name__)
 
 
 def get_compressor_cls(alg):
@@ -10,6 +13,7 @@ def get_compressor_cls(alg):
         return module.Compressor
 
     except ImportError:
+        logger.warning('Unable to import module %s', alg, exc_info=True)
         raise errors.UnknownCompressionMethod(
             "Unknown compression method: '{}'".format(alg)
         )
