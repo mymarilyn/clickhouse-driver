@@ -553,6 +553,9 @@ class Connection(object):
             )
 
     def ping(self):
+        if not self.socket:
+            return None
+
         timeout = self.sync_request_timeout
 
         with self.timeout_setter(timeout):
