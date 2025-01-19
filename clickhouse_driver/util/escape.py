@@ -26,7 +26,12 @@ def escape_datetime(item, context):
     if item.tzinfo is not None:
         item = item.astimezone(server_tz)
 
-    return "'%s'" % item.strftime('%Y-%m-%d %H:%M:%S')
+    if item.microsecond:
+        format = '%Y-%m-%d %H:%M:%S.%f'
+    else:
+        format = '%Y-%m-%d %H:%M:%S'
+
+    return "'%s'" % item.strftime(format)
 
 
 def maybe_enquote_for_server(f):
@@ -34,19 +39,36 @@ def maybe_enquote_for_server(f):
     def wrapper(*args, **kwargs):
         rv = f(*args, **kwargs)
 
-        if kwargs.get('for_server'):
-            is_str = isinstance(rv, str)
+        if not kwargs.get('for_server'):
+            return rv
 
-            if not is_str or (is_str and not rv.startswith("'")):
-                rv = "'%s'" % rv
+        is_str = isinstance(rv, str)
 
-        return rv
+        nested = kwargs.get('nested')
+        item = kwargs['item'] if 'item' in kwargs else args[0]
+        if is_str and not isinstance(item, (list, tuple)):
+            if rv[0] == "'":
+                if nested:
+                    return "\\'%s\\'" % rv[1:-1]
+                return rv
+            if nested:
+                return "\\'%s\\'" % rv
+            return "'%s'" % rv
+
+        if kwargs.get('for_iterable'):
+            return '%s' % rv
+
+        if nested:
+            return "\\'%s\\'" % rv
+        return "'%s'" % rv
 
     return wrapper
 
 
 @maybe_enquote_for_server
-def escape_param(item, context, for_server=False):
+def escape_param(
+    item, context, for_server=False, for_iterable=False, nested=False
+):
     if item is None:
         return 'NULL'
 
@@ -67,12 +89,28 @@ def escape_param(item, context, for_server=False):
 
     elif isinstance(item, list):
         return "[%s]" % ', '.join(
-            str(escape_param(x, context, for_server=for_server)) for x in item
+            str(
+                escape_param(
+                    x,
+                    context,
+                    for_server=for_server,
+                    for_iterable=True,
+                    nested=True,
+                )
+            ) for x in item
         )
 
     elif isinstance(item, tuple):
         return "(%s)" % ', '.join(
-            str(escape_param(x, context, for_server=for_server)) for x in item
+            str(
+                escape_param(
+                    x,
+                    context,
+                    for_server=for_server,
+                    for_iterable=True,
+                    nested=True,
+                )
+            ) for x in item
         )
 
     elif isinstance(item, Enum):

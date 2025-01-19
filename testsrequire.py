@@ -5,6 +5,7 @@ USE_NUMPY = bool(int(os.getenv('USE_NUMPY', '0')))
 
 tests_require = [
     'pytest',
+    'pytest-subtests'
     'parameterized',
     'freezegun',
     'zstd',

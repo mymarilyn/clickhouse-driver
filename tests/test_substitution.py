@@ -1,10 +1,13 @@
 # coding=utf-8
 from __future__ import unicode_literals
 
+import struct
+import unittest
 from datetime import date, datetime, time
 from decimal import Decimal
+from ipaddress import ip_address
 from unittest.mock import Mock
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from enum import IntEnum, Enum
 from pytz import timezone
@@ -247,13 +250,181 @@ class ServerSideParametersSubstitutionTestCase(BaseTestCase):
 
     client_kwargs = {'settings': {'server_side_params': True}}
 
+    def _test_type_aliases(self, x, type_name, type_postfix=''):
+        aliases = self.client.execute(
+            "SELECT name FROM system.data_type_families "
+            f"WHERE alias_to = '{type_name}'"
+        )
+        for (alias,) in aliases:
+            with self.subTest(
+                msg=f'{alias}{type_postfix}',
+                alias_to=f'{type_name}{type_postfix}',
+            ):
+                rv = self.client.execute(
+                    f'SELECT {{x:{alias}{type_postfix}}}', {'x': x}
+                )
+                self.assertEqual(rv, [(x, )])
+
+    def _test_type_serialization(self, x, type_pattern, type_postfix=''):
+        matching_types = self.client.execute(
+            f"SELECT name FROM system.data_type_families "
+            f"WHERE match(name, '{type_pattern}')"
+        )
+        self.assertGreaterEqual(
+            len(matching_types), 1, msg='Matching types not found'
+        )
+        for (matching_type,) in matching_types:
+            with self.subTest(msg=f'{matching_type}{type_postfix}'):
+                rv = self.client.execute(
+                    f'SELECT {{x:{matching_type}{type_postfix}}}', {'x': x}
+                )
+                self.assertEqual(rv, [(x, )])
+            self._test_type_aliases(x, matching_type, type_postfix)
+
     def test_int(self):
-        rv = self.client.execute('SELECT {x:Int32}', {'x': 123})
-        self.assertEqual(rv, [(123, )])
+        self._test_type_serialization(123, '^Int\\d+$')
+
+    def test_uint(self):
+        self._test_type_serialization(123, '^UInt\\d+$')
+
+    def test_float(self):
+        # Make sure float is the same in single and double precision
+        x = struct.unpack('=f', struct.pack('=f', 123.45))[0]
+
+        self._test_type_serialization(x, '^Float\\d+$')
+
+    def test_decimal(self):
+        x = Decimal(12345) / Decimal(100)
+        self._test_type_serialization(x, '^Decimal$', '(5,2)')
 
     def test_str(self):
-        rv = self.client.execute('SELECT {x:Int32}', {'x': '123'})
-        self.assertEqual(rv, [(123, )])
+        x = "123'"
+        self._test_type_serialization(x, '^String$')
+
+    def test_date(self):
+        x = date(year=2024, month=1, day=18)
+        self._test_type_serialization(x, '^Date\\d*$')
+
+    def test_datetime(self):
+        x = datetime(
+            year=2024,
+            month=1,
+            day=18,
+            hour=23,
+            minute=12,
+            second=27,
+            microsecond=0,
+            tzinfo=None,
+        )
+        self._test_type_serialization(x, '^DateTime$')
+
+    def test_datetime64(self):
+        x = datetime(
+            year=2024,
+            month=1,
+            day=18,
+            hour=23,
+            minute=12,
+            second=27,
+            microsecond=123,
+            tzinfo=None,
+        )
+        self._test_type_serialization(x, '^DateTime64$', '(6)')
+
+    def test_enum(self):
+        class HelloEnum(Enum):
+            hello = 'hello'
+        x = HelloEnum.hello
+        with self.subTest(msg='Enum'):
+            rv = self.client.execute(
+                "SELECT {x:Enum('hello')}", {'x': x}
+            )
+            self.assertEqual(rv, [(x.value, )])
+        aliases = self.client.execute(
+            "SELECT name FROM system.data_type_families "
+            "WHERE alias_to = 'Enum'"
+        )
+        for (alias,) in aliases:
+            with self.subTest(
+                msg=f"{alias}('hello')",
+                alias_to="Enum('hello')",
+            ):
+                rv = self.client.execute(
+                    f"SELECT {{x:{alias}('hello')}}", {'x': x}
+                )
+                self.assertEqual(rv, [(x.value, )])
+
+    def test_bool(self):
+        x = True
+        self._test_type_serialization(x, '^Bool$')
+
+    def test_uuid(self):
+        x = uuid4()
+        self._test_type_serialization(x, '^UUID')
+
+    def test_ipv4(self):
+        x = ip_address('127.0.0.1')
+        self._test_type_serialization(x, '^IPv4$')
+
+    def test_ipv6(self):
+        x = ip_address('2001:db8::')
+        self._test_type_serialization(x, '^IPv6$')
+
+    def test_array__int(self):
+        x = [1, 2, 3]
+        self._test_type_serialization(x, '^Array$', '(Int32)')
+
+    def test_array__float(self):
+        x = [1.23, 2.34, 3.45]
+        self._test_type_serialization(x, '^Array$', '(Float64)')
+
+    def test_array__str(self):
+        x = ['1', '2', '3']
+        self._test_type_serialization(x, '^Array$', '(String)')
+
+    def test_2d_array__int(self):
+        x = [[1, 2, 3], [5, 6]]
+        self._test_type_serialization(x, '^Array$', '(Array(Int32))')
+
+    def test_2d_array__float(self):
+        x = [[1.23, 2.34, 3.45], [5.67, 6.78]]
+        self._test_type_serialization(x, '^Array$', '(Array(Float64))')
+
+    def test_2d_array__str(self):
+        x = [['1', '2', '3'], ['5', '6']]
+        self._test_type_serialization(x, '^Array$', '(Array(String))')
+
+    def test_3d_array__int(self):
+        x = [[[1, 2, 3], [5, 6]]]
+        self._test_type_serialization(x, '^Array$', '(Array(Array(Int32)))')
+
+    def test_3d_array__float(self):
+        x = [[[1.23, 2.34, 3.45], [5.67, 6.78]]]
+        self._test_type_serialization(x, '^Array$', '(Array(Array(Float64)))')
+
+    def test_3d_array__str(self):
+        x = [[['1', '2', '3'], ['5', '6']]]
+        self._test_type_serialization(x, '^Array$', '(Array(Array(String)))')
+
+    def test_tuple(self):
+        x = (1, 1.23, '123')
+        self._test_type_serialization(x, '^Tuple$', '(Int32, Float64, String)')
+
+    def test_nested_tuple(self):
+        x = (1, (1.23, '123'), [('1', 1), ('2', 2), ('3', 3)])
+        self._test_type_serialization(
+            x,
+            '^Tuple$',
+            '(Int32, Tuple(Float64, String), Array(Tuple(String, Int32)))'
+        )
+
+    def test_map(self):
+        x = {1: 2, 3: 4}
+        self._test_type_serialization(x, '^Map$', '(UInt32, UInt32)')
+
+    @unittest.skip('Duplicate keys not supported')
+    def test_map__duplicate_keys(self):
+        pass
 
     def test_escaped_str(self):
         rv = self.client.execute(
