@@ -161,10 +161,8 @@ jobs:
           echo '127.0.0.1 clickhouse-server' | sudo tee /etc/hosts > /dev/null
       - name: Install requirements
         run: |
-          python testsrequire.py
-          python setup.py develop
-        env:
-          USE_NUMPY: 1
+          pip install -e .[lz4,zstd,numpy]
+          pip install -r tests/requirements.txt
       - name: Run tests under valgrind
         run: valgrind -s --error-exitcode=1 --suppressions=valgrind.supp py.test -v
         env:
