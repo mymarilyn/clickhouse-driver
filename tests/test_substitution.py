@@ -418,9 +418,13 @@ class ServerSideParametersSubstitutionTestCase(BaseTestCase):
             '(Int32, Tuple(Float64, String), Array(Tuple(String, Int32)))'
         )
 
-    def test_map(self):
+    def test_map__int(self):
         x = {1: 2, 3: 4}
         self._test_type_serialization(x, '^Map$', '(UInt32, UInt32)')
+
+    def test_map__string(self):
+        x = {'1': '34', '2': '45'}
+        self._test_type_serialization(x, '^Map$', '(String, String)')
 
     @unittest.skip('Duplicate keys not supported')
     def test_map__duplicate_keys(self):
