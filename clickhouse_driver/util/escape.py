@@ -55,11 +55,8 @@ def maybe_enquote_for_server(f):
                 return f"\\'{rv}\\'"
             return f"'{rv}'"
 
-        if kwargs.get('for_iterable'):
-            return str(rv)
-
         if nested:
-            return f"\\'{rv!s}\\'"
+            return str(rv)
         return f"'{rv!s}'"
 
     return wrapper
@@ -67,7 +64,7 @@ def maybe_enquote_for_server(f):
 
 @maybe_enquote_for_server
 def escape_param(
-    item, context, for_server=False, for_iterable=False, nested=False
+    item, context, for_server=False, nested=False
 ):
     if item is None:
         return 'NULL'
@@ -94,7 +91,6 @@ def escape_param(
                     x,
                     context,
                     for_server=for_server,
-                    for_iterable=True,
                     nested=True,
                 )
             ) for x in item
@@ -108,7 +104,6 @@ def escape_param(
                     x,
                     context,
                     for_server=for_server,
-                    for_iterable=True,
                     nested=True,
                 )
             ) for x in item
@@ -121,7 +116,6 @@ def escape_param(
             escape_param,
             context=context,
             for_server=for_server,
-            for_iterable=True,
             nested=True,
         )
 
