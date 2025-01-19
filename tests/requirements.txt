@@ -1,0 +1,5 @@
+pytest
+pytest-subtests
+parameterized
+freezegun
+pytest-timeout

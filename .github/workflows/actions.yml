@@ -86,18 +86,20 @@ jobs:
       - name: Build cython extensions with tracing
         run: CYTHON_TRACE=1 python setup.py build_ext --define CYTHON_TRACE
         if: ${{ !contains(matrix.python-version, 'pypy') }}
-      - name: Install requirements
+      - name: Prepare for install
         run: |
           # Newer coveralls do not work with github actions.
           pip install 'coveralls<3.0.0'
           pip install cython
           pip install -U 'setuptools<72.2'
-          python testsrequire.py
-          python setup.py develop
-          # Limit each test time execution.
-          pip install pytest-timeout
-        env:
-          USE_NUMPY: ${{ matrix.use-numpy }}
+      - name: Install requirements (numpy)
+        run: pip install -e .[lz4,zstd,numpy]
+        if: ${{ matrix.use-numpy }}
+      - name: Install requirements
+        run: pip install -e .[lz4,zstd]
+        if: ${{ !matrix.use-numpy }}
+      - name: Install test requirements
+        run: pip install -r tests/requirements.txt
       - name: Run tests
         run: coverage run -m pytest --timeout=10 -v
         timeout-minutes: 5
