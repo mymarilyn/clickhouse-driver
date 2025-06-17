@@ -199,7 +199,7 @@ class ClientFromUrlTestCase(TestCase):
         expected.update({
             'keyfile': '/tmp/client.key',
             'certfile': '/tmp/client.cert',
-            'keypass': foobar,
+            'keypass': 'foobar',
         })
         self.assertEqual(c.connection.ssl_options, expected)
 
