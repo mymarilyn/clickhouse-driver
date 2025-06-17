@@ -101,6 +101,14 @@ Secure connection
         ...     'localhost', secure=True,
         ...     ca_certs='/etc/clickhouse-server/server.crt'
         ... )
+        >>> # Using a client certificate with optional password
+        >>> self_signed_client = Client(
+        ...     'localhost', secure=True,
+        ...     ca_certs='/etc/clickhouse-client/ca.crt',
+        ...     certfile='/etc/clickhouse-client/client.crt',
+        ...     keyfile='/etc/clickhouse-client/client.key',
+        ...     keypass='supersecret'
+        ... )
         >>> # Disable verification.
         ... no_verifyed_client = Client(
         ...     'localhost', secure=True, verify=False
