@@ -191,6 +191,20 @@ class ClientFromUrlTestCase(TestCase):
 
         c = Client.from_url(
             base_url +
+            'keyfile=/tmp/client.key&'
+            'certfile=/tmp/client.cert&'
+            'keypass=foobar'
+        )
+        expected = base_expected.copy()
+        expected.update({
+            'keyfile': '/tmp/client.key',
+            'certfile': '/tmp/client.cert',
+            'keypass': foobar,
+        })
+        self.assertEqual(c.connection.ssl_options, expected)
+
+        c = Client.from_url(
+            base_url +
             'certfile=/tmp/client.cert'
         )
         expected = base_expected.copy()
