@@ -207,6 +207,8 @@ class Connection(object):
             ssl_options['ciphers'] = ciphers
         if keyfile is not None:
             ssl_options['keyfile'] = keyfile
+        if keypass is not None:
+            ssl_options['keypass'] = keypass
         if certfile is not None:
             ssl_options['certfile'] = certfile
 
@@ -333,7 +335,7 @@ class Connection(object):
 
         if 'certfile' in ssl_options:
             keyfile = ssl_options.get('keyfile')
-            keypass = ssl_options.get('password')
+            keypass = ssl_options.get('keypass')
             context.load_cert_chain(ssl_options['certfile'],
                 keyfile=keyfile,
                 password=keypass
