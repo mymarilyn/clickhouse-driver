@@ -334,10 +334,9 @@ class Connection(object):
         if 'certfile' in ssl_options:
             keyfile = ssl_options.get('keyfile')
             keypass = ssl_options.get('password')
-            context.load_cert_chain(
-                ssl_options['certfile'],
+            context.load_cert_chain(ssl_options['certfile'],
                 keyfile=keyfile,
-                password=lambda: keypass
+                password=keypass
             )
 
         return context
