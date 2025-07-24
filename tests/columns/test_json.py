@@ -13,7 +13,11 @@ class JSONTestCase(BaseTestCase):
         return {'allow_experimental_object_type': 1}
 
     def test_simple(self):
-        rv = self.client.execute("SELECT '{\"bb\": {\"cc\": [255, 1]}}'::Object('json')")
+        rv = self.client.execute(
+            """
+            SELECT '{\"bb\": {\"cc\": [255, 1]}}'::Object('json')
+            """,
+        )
         self.assertEqual(rv, [({'bb': {'cc': [255, 1]}},)])
 
     def test_from_table(self):
