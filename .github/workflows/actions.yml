@@ -88,7 +88,7 @@ jobs:
         run: |
           # Newer coveralls do not work with github actions.
           pip install 'coveralls>=4.0.0'
-          pip install cython
+          pip install 'cython<3.1.0'
           pip install -U 'setuptools<72.2'
           python testsrequire.py
           python setup.py develop
