@@ -248,7 +248,7 @@ jobs:
   wheels-windows:
     name: Wheels for Windows
     needs: valgrind
-    runs-on: windows-2019
+    runs-on: windows-2022
     steps:
       - name: Set git to use repo line breaks
         run: |
