@@ -123,13 +123,13 @@ jobs:
   valgrind:
     name: Valgrind check
     needs: tests
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.9
+          python-version: 3.12
           architecture: x64
       - name: Install valgrind
         run: sudo apt-get update && sudo apt-get install -y valgrind
@@ -157,6 +157,7 @@ jobs:
           echo '127.0.0.1 clickhouse-server' | sudo tee /etc/hosts > /dev/null
       - name: Install requirements
         run: |
+          pip install --upgrade pip setuptools
           python testsrequire.py
           python setup.py develop
         env:
