@@ -122,6 +122,7 @@ class Connection(object):
     :param keyfile: see :func:`ssl.wrap_socket` docs.
     :param keypass: see :func:`ssl.wrap_socket` docs.
     :param certfile: see :func:`ssl.wrap_socket` docs.
+    :param check_hostname: see :func:`ssl.wrap_socket` docs.
     :param server_hostname: Hostname to use in SSL Wrapper construction.
                             Defaults to `None` which will send the passed
                             host param during SSL initialization. This param
@@ -161,7 +162,7 @@ class Connection(object):
             secure=False,
             # Secure socket parameters.
             verify=True, ssl_version=None, ca_certs=None, ciphers=None,
-            keyfile=None, keypass=None, certfile=None,
+            keyfile=None, keypass=None, certfile=None, check_hostname=True,
             server_hostname=None,
             alt_hosts=None,
             settings_is_important=False,
@@ -214,6 +215,7 @@ class Connection(object):
 
         self.ssl_options = ssl_options
 
+        self.check_hostname = check_hostname if self.verify_cert else False
         self.server_hostname = server_hostname
 
         # Use LZ4 compression by default.
@@ -321,7 +323,7 @@ class Connection(object):
 
         version = ssl_options.get('ssl_version', ssl.PROTOCOL_TLS_CLIENT)
         context = ssl.SSLContext(version)
-        context.check_hostname = self.verify_cert
+        context.check_hostname = self.check_hostname
 
         if 'ca_certs' in ssl_options:
             context.load_verify_locations(ssl_options['ca_certs'])
@@ -336,10 +338,10 @@ class Connection(object):
         if 'certfile' in ssl_options:
             keyfile = ssl_options.get('keyfile')
             keypass = ssl_options.get('keypass')
-            context.load_cert_chain(ssl_options['certfile'],
-                                    keyfile=keyfile,
-                                    password=keypass
-                                    )
+            context.load_cert_chain(
+                ssl_options['certfile'],
+                keyfile=keyfile, password=keypass
+            )
 
         return context
 
