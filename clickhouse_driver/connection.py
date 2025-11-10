@@ -120,6 +120,7 @@ class Connection(object):
     :param ca_certs: see :func:`ssl.wrap_socket` docs.
     :param ciphers: see :func:`ssl.wrap_socket` docs.
     :param keyfile: see :func:`ssl.wrap_socket` docs.
+    :param keypass: see :func:`ssl.wrap_socket` docs.
     :param certfile: see :func:`ssl.wrap_socket` docs.
     :param server_hostname: Hostname to use in SSL Wrapper construction.
                             Defaults to `None` which will send the passed
@@ -160,7 +161,7 @@ class Connection(object):
             secure=False,
             # Secure socket parameters.
             verify=True, ssl_version=None, ca_certs=None, ciphers=None,
-            keyfile=None, certfile=None,
+            keyfile=None, keypass=None, certfile=None,
             server_hostname=None,
             alt_hosts=None,
             settings_is_important=False,
@@ -206,6 +207,8 @@ class Connection(object):
             ssl_options['ciphers'] = ciphers
         if keyfile is not None:
             ssl_options['keyfile'] = keyfile
+        if keypass is not None:
+            ssl_options['keypass'] = keypass
         if certfile is not None:
             ssl_options['certfile'] = certfile
 
@@ -332,7 +335,11 @@ class Connection(object):
 
         if 'certfile' in ssl_options:
             keyfile = ssl_options.get('keyfile')
-            context.load_cert_chain(ssl_options['certfile'], keyfile=keyfile)
+            keypass = ssl_options.get('keypass')
+            context.load_cert_chain(ssl_options['certfile'],
+                                    keyfile=keyfile,
+                                    password=keypass
+                                    )
 
         return context
 
@@ -553,6 +560,9 @@ class Connection(object):
             )
 
     def ping(self):
+        if not self.socket:
+            return None
+
         timeout = self.sync_request_timeout
 
         with self.timeout_setter(timeout):

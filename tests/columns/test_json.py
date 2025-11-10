@@ -13,11 +13,15 @@ class JSONTestCase(BaseTestCase):
         return {'allow_experimental_object_type': 1}
 
     def test_simple(self):
-        rv = self.client.execute("SELECT '{\"bb\": {\"cc\": [255, 1]}}'::JSON")
+        rv = self.client.execute(
+            """
+            SELECT '{\"bb\": {\"cc\": [255, 1]}}'::Object('json')
+            """,
+        )
         self.assertEqual(rv, [({'bb': {'cc': [255, 1]}},)])
 
     def test_from_table(self):
-        with self.create_table('a Object(\'json\')'):
+        with self.create_table("a Object('json')"):
             data = [
                 ({},),
                 ({'key1': 1}, ),
@@ -46,7 +50,7 @@ class JSONTestCase(BaseTestCase):
             self.assertEqual(inserted, data_with_all_keys)
 
     def test_insert_json_strings(self):
-        with self.create_table('a Object(\'json\')'):
+        with self.create_table("a Object('json')"):
             data = [
                 (json.dumps({'i-am': 'dumped json'}),),
             ]
@@ -67,7 +71,7 @@ class JSONTestCase(BaseTestCase):
         settings = {'namedtuple_as_json': False}
         query = 'SELECT * FROM test'
 
-        with self.create_table('a Object(\'json\')'):
+        with self.create_table("a Object('json')"):
             data = [
                 ({'key': 'value'}, ),
             ]
