@@ -7,6 +7,11 @@ from sys import platform
 from time import time
 from urllib.parse import urlparse
 
+try:
+    import certifi
+except ImportError:
+    certifi = None
+
 from . import defines
 from . import errors
 from .block import RowOrientedBlock
@@ -198,6 +203,9 @@ class Connection(object):
 
         self.secure_socket = secure
         self.verify_cert = verify
+
+        if certifi is not None:
+            ca_certs = ca_certs or certifi.where()
 
         ssl_options = {}
         if ssl_version is not None:
