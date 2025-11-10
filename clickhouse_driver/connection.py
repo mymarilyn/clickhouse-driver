@@ -128,6 +128,7 @@ class Connection(object):
     :param keypass: see :func:`ssl.wrap_socket` docs.
     :param certfile: see :func:`ssl.wrap_socket` docs.
     :param check_hostname: see :func:`ssl.wrap_socket` docs.
+                           Defaults to ``True``.
     :param server_hostname: Hostname to use in SSL Wrapper construction.
                             Defaults to `None` which will send the passed
                             host param during SSL initialization. This param
