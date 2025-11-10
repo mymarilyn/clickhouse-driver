@@ -157,7 +157,7 @@ def parse_url(url):
             kwargs[name] = asbool(value)
         elif name == 'ssl_version':
             kwargs[name] = getattr(ssl, value)
-        elif name in ['ca_certs', 'ciphers', 'keyfile', 'certfile',
+        elif name in ['ca_certs', 'ciphers', 'keyfile', 'keypass', 'certfile',
                       'server_hostname']:
             kwargs[name] = value
         elif name == 'alt_hosts':
