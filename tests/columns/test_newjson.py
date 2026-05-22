@@ -2,7 +2,7 @@ from tests.testcase import BaseTestCase
 
 
 class NewJSONTestCase(BaseTestCase):
-    required_server_version = (22, 3, 2)
+    required_server_version = (24, 8, 0)
 
     def client_kwargs(self, version):
         return {"settings": {"enable_json_type": True}}
