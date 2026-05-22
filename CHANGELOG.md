@@ -2,7 +2,24 @@
 
 ## Unreleased
 
-- Add support for new JSON data type, Solves issue [#473](https://github.com/mymarilyn/clickhouse-driver/issues/473) and [#460](https://github.com/mymarilyn/clickhouse-driver/issues/460).
+- Native `JSON` support. Solves issue [#473](https://github.com/mymarilyn/clickhouse-driver/issues/473) and [#460](https://github.com/mymarilyn/clickhouse-driver/issues/460). Pull request [#503](https://github.com/mymarilyn/clickhouse-driver/pull/503/) by [khvn26](https://github.com/khvn26), [gsergey418](https://github.com/gsergey418).
+
+## [0.2.10] - 2026-10-10
+### Added
+- Wheels for Python 3.13 and 3.14.
+- Tunable parameter `check_hostname` for host checking in SSL. Enabled by default.
+- Support for encrypted keyfiles. Pull request [#485](https://github.com/mymarilyn/clickhouse-driver/pull/485) by [TheMysteriousX](https://github.com/TheMysteriousX).
+- Optional automatic reconnect disabling. Solves issue [#452](https://github.com/mymarilyn/clickhouse-driver/issues/452). Pull request [#453](https://github.com/mymarilyn/clickhouse-driver/pull/453) by [crazyproger](https://github.com/crazyproger).
+
+### Fixed
+- `conneciton.ping()` on not established connection. Pull request [#465](https://github.com/mymarilyn/clickhouse-driver/pull/465) by [azat](https://github.com/azat).
+- `getuser()` exception in Python 3.13. Pull request [#462](https://github.com/mymarilyn/clickhouse-driver/pull/462) by [darkydash](https://github.com/darkydash).
+
+### Changed
+- `JSON` renamed to `Object('json')`. Pull request [#490](https://github.com/mymarilyn/clickhouse-driver/pull/490) by [alsugiliazova](https://github.com/alsugiliazova).
+
+### Removed
+- Python 3.7 and 3.8 support.
 
 ## [0.2.9] - 2024-08-16
 ### Added
@@ -491,7 +508,8 @@
 - Date/DateTime types.
 - String types.
 
-[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.9...HEAD
+[Unreleased]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.10...HEAD
+[0.2.10]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.9...0.2.10
 [0.2.9]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.8...0.2.9
 [0.2.8]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.7...0.2.8
 [0.2.7]: https://github.com/mymarilyn/clickhouse-driver/compare/0.2.6...0.2.7

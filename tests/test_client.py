@@ -213,6 +213,12 @@ class ClientFromUrlTestCase(TestCase):
         })
         self.assertEqual(c.connection.ssl_options, expected)
 
+    def test_check_hostname(self):
+        c = Client.from_url(
+            'clickhouses://host?verify=true&check_hostname=false'
+        )
+        self.assertEqual(c.connection.check_hostname, False)
+
     def test_alt_hosts(self):
         c = Client.from_url('clickhouse://host?alt_hosts=host2:1234')
         self.assertHostsEqual(c, [('host', 9000), ('host2', 1234)])
