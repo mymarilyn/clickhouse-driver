@@ -1,0 +1,22 @@
+<clickhouse>
+    <!--
+        Test-only user override. Recent ClickHouse images (25.x+) ship a
+        ``default-user.xml`` that locks the ``default`` user down to
+        ``::1`` / ``127.0.0.1``, which blocks our driver from connecting
+        across the docker network. Re-open the user with an empty
+        password from any address. Both ``<clickhouse>`` and ``<yandex>``
+        wrappers are accepted by every supported server version, but the
+        equivalent ``yandex.xml`` is mounted on the legacy matrix rows.
+    -->
+    <users>
+        <default>
+            <password></password>
+            <networks>
+                <ip>::/0</ip>
+            </networks>
+            <profile>default</profile>
+            <quota>default</quota>
+            <access_management>1</access_management>
+        </default>
+    </users>
+</clickhouse>

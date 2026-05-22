@@ -11,6 +11,7 @@ services:
       - "127.0.0.1:9440:9440"
     volumes:
       - "./clickhouse_server_config/$TOP_LEVEL.xml:/etc/clickhouse-server/config.d/test_config.xml"
+      - "./clickhouse_server_config/${TOP_LEVEL}_users.xml:/etc/clickhouse-server/users.d/test_users.xml"
       - "./clickhouse_server_config/certs:/etc/clickhouse-server/certs"
 
   clickhouse-client:
