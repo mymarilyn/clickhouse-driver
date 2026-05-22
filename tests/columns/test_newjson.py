@@ -1,5 +1,3 @@
-import json
-
 from tests.testcase import BaseTestCase
 
 
@@ -822,3 +820,59 @@ class NewJSONTestCase(BaseTestCase):
             ]
             result = self.client.execute(query)
             self.assertEqual(result, expected_result)
+
+    def test_json_shared_paths(self):
+        # Paths that overflow max_dynamic_paths land in the JSON column's
+        # shared data sub-column. Force a merge so the shared data
+        # representation is actually persisted.
+        spec = "id UInt32, a JSON(max_dynamic_paths=2, max_dynamic_types=2)"
+        template = "CREATE TABLE test ({}) ENGINE = MergeTree ORDER BY id"
+        with self.create_table(spec, template=template):
+            data = []
+            for i in range(8):
+                data.append({
+                    "id": i,
+                    "a": {
+                        "common": "shared",
+                        "k{}".format(i): i,
+                        "num": i * 2,
+                    },
+                })
+            self.client.execute(
+                "INSERT INTO test (id, a) VALUES", data)
+            self.client.execute("OPTIMIZE TABLE test FINAL")
+            result = self.client.execute(
+                "SELECT a FROM test ORDER BY id")
+            expected = [
+                ({
+                    "common": "shared",
+                    "k{}".format(i): i,
+                    "num": i * 2,
+                },) for i in range(8)
+            ]
+            self.assertEqual(result, expected)
+
+    def test_json_shared_paths_mixed_types(self):
+        # All paths go to shared data because both limits are zero; the
+        # values exercise the binary-encoded type tags for Int, Float,
+        # String and Bool.
+        spec = "id UInt32, a JSON(max_dynamic_paths=0, max_dynamic_types=0)"
+        template = "CREATE TABLE test ({}) ENGINE = MergeTree ORDER BY id"
+        with self.create_table(spec, template=template):
+            data = [
+                {"id": 0, "a": {"x": 1, "y": "two", "z": True}},
+                {"id": 1, "a": {"x": 2, "y": "three", "z": False}},
+                {"id": 2, "a": {"f": 3.5}},
+                {"id": 3, "a": {}},
+            ]
+            self.client.execute(
+                "INSERT INTO test (id, a) VALUES", data)
+            self.client.execute("OPTIMIZE TABLE test FINAL")
+            result = self.client.execute(
+                "SELECT a FROM test ORDER BY id")
+            self.assertEqual(result, [
+                ({"x": 1, "y": "two", "z": True},),
+                ({"x": 2, "y": "three", "z": False},),
+                ({"f": 3.5},),
+                ({},),
+            ])

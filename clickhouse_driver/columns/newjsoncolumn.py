@@ -1,8 +1,24 @@
+import io
+from struct import Struct
+
 from .base import Column
 from .stringcolumn import String
-from ..reader import read_binary_uint8, read_binary_bytes_fixed_len, read_binary_str, read_binary_str_fixed_len, read_binary_uint64
+from ..reader import (
+    read_binary_bytes_fixed_len,
+    read_binary_str,
+    read_binary_str_fixed_len,
+    read_binary_uint8,
+    read_binary_uint64,
+)
 from ..util.compat import json
+from ..varint import read_varint
 from ..writer import write_binary_uint8, write_binary_uint64
+
+
+# Sentinel key used inside the intermediary paths dict to carry per-row
+# shared-data entries (paths that overflowed max_dynamic_paths /
+# max_dynamic_types and were encoded into the JSON column's shared variant).
+_SHARED_ROWS_KEY = '__clickhouse_driver_shared_rows__'
 
 
 class NewJsonColumn(Column):
@@ -24,9 +40,7 @@ class NewJsonColumn(Column):
     def read_items(self, n_items, buf):
         paths = self._read_paths(buf)
         if paths is None:
-            shared_paths = self._read_shared_paths(buf)
-            self._read_shared_values(buf, shared_paths)
-            return []
+            paths = {}
         self._read_specs(buf, paths)
         self._read_values(buf, paths, n_items)
 
@@ -40,8 +54,7 @@ class NewJsonColumn(Column):
 
         paths_count = read_binary_uint8(buf)
         if paths_count == 0:
-            print("Warning: shared path JSON deserialization not implemented, skipping shared paths.")
-            return
+            return None
         paths = {}
         for i in range(paths_count):
             strlen = read_binary_uint8(buf)
@@ -64,14 +77,12 @@ class NewJsonColumn(Column):
             next_byte = read_binary_uint8(buf)
             if next_byte != spec_count:
                 spec = read_binary_str_fixed_len(buf, next_byte)
-                col[spec] = {
-                    "values": [], "positions": []}
+                col[spec] = {"values": [], "positions": []}
                 start = 1
 
             for i in range(start, spec_count):
                 spec = read_binary_str(buf)
-                col[spec] = {
-                    "values": [], "positions": []}
+                col[spec] = {"values": [], "positions": []}
 
             read_binary_bytes_fixed_len(buf, 8)
 
@@ -86,11 +97,13 @@ class NewJsonColumn(Column):
         Read header for JSON objects inside a tuple.
         """
         col[spec]["tuple_header"] = []
-        for i, subspec in enumerate(spec[6:-2].split("), ")):
+        subspecs = spec[6:-2].split("), ")
+        for i, subspec in enumerate(subspecs):
             if subspec.startswith("JSON"):
                 paths = self._read_paths(buf)
                 if paths is None:
-                    col[spec]["tuple_header"] += [None for _ in range(len(spec[6:-2].split("), ")) - i)]
+                    remaining = len(subspecs) - i
+                    col[spec]["tuple_header"] += [None] * remaining
                     return
                 self._read_specs(buf, paths)
                 col[spec]["tuple_header"].append(paths)
@@ -107,7 +120,8 @@ class NewJsonColumn(Column):
 
     def _read_values(self, buf, paths, n_items):
         """
-        Read values.
+        Read values for each dynamic path, then the JSON column's shared
+        data (paths that overflowed max_dynamic_paths/max_dynamic_types).
         """
         for col in paths.values():
             specs = self._read_row_positions(buf, col, n_items)
@@ -132,25 +146,237 @@ class NewJsonColumn(Column):
                     reader = self.column_by_spec_getter(spec)
                     col[spec]["values"] += reader.read_items(1, buf)
 
-        read_binary_bytes_fixed_len(buf, 8 * n_items)
+        self._read_shared_data(buf, paths, n_items)
+
+    def _read_shared_data(self, buf, paths, n_items):
+        """
+        Read the JSON column's shared data: an Array(Tuple(String, String))
+        sub-column whose first string is the path name and whose second
+        string is the value encoded as ``encodeDataType + serializeBinary``.
+
+        The N UInt64 cumulative array offsets are always present (zero
+        offsets are written even when no paths overflowed).
+        """
+        if n_items == 0:
+            paths[_SHARED_ROWS_KEY] = []
+            return
+
+        offsets = [read_binary_uint64(buf) for _ in range(n_items)]
+        total = offsets[-1] if offsets else 0
+        if total == 0:
+            paths[_SHARED_ROWS_KEY] = [[] for _ in range(n_items)]
+            return
+
+        path_names = [read_binary_str(buf) for _ in range(total)]
+        encoded_values = [self._read_binary_bytes(buf) for _ in range(total)]
+        decoded_values = [
+            self._decode_binary_value(blob) for blob in encoded_values
+        ]
+
+        shared_rows = [[] for _ in range(n_items)]
+        prev = 0
+        for row, off in enumerate(offsets):
+            for i in range(prev, off):
+                shared_rows[row].append(
+                    (path_names[i], decoded_values[i]))
+            prev = off
+
+        paths[_SHARED_ROWS_KEY] = shared_rows
+
+    @staticmethod
+    def _read_binary_bytes(buf):
+        length = read_varint(buf)
+        return read_binary_bytes_fixed_len(buf, length)
+
+    @staticmethod
+    def _read_varint_bytesio(buf):
+        # The ``varint`` Cython module's ``read_varint`` expects a
+        # ``read_one()`` method (provided by the driver's buffered
+        # readers). ``io.BytesIO`` does not implement it, so decode
+        # LEB128 manually here.
+        shift = 0
+        result = 0
+        while True:
+            byte = buf.read(1)
+            if not byte:
+                return result
+            b = byte[0]
+            result |= (b & 0x7f) << shift
+            shift += 7
+            if b < 0x80:
+                return result
+
+    # Binary type tags used by ClickHouse's encodeDataType. Only the types
+    # we know how to decode into Python values are listed; the rest fall
+    # through to ``_decode_binary_unsupported``.
+    _BINARY_TAG_NOTHING = 0x00
+    _BINARY_TAG_UINT8 = 0x01
+    _BINARY_TAG_UINT16 = 0x02
+    _BINARY_TAG_UINT32 = 0x03
+    _BINARY_TAG_UINT64 = 0x04
+    _BINARY_TAG_INT8 = 0x07
+    _BINARY_TAG_INT16 = 0x08
+    _BINARY_TAG_INT32 = 0x09
+    _BINARY_TAG_INT64 = 0x0A
+    _BINARY_TAG_FLOAT32 = 0x0D
+    _BINARY_TAG_FLOAT64 = 0x0E
+    _BINARY_TAG_STRING = 0x15
+    _BINARY_TAG_ARRAY = 0x1E
+    _BINARY_TAG_NULLABLE = 0x23
+    _BINARY_TAG_BOOL = 0x2D
+
+    _PRIMITIVE_STRUCTS = {
+        _BINARY_TAG_UINT8: Struct('<B'),
+        _BINARY_TAG_UINT16: Struct('<H'),
+        _BINARY_TAG_UINT32: Struct('<I'),
+        _BINARY_TAG_UINT64: Struct('<Q'),
+        _BINARY_TAG_INT8: Struct('<b'),
+        _BINARY_TAG_INT16: Struct('<h'),
+        _BINARY_TAG_INT32: Struct('<i'),
+        _BINARY_TAG_INT64: Struct('<q'),
+        _BINARY_TAG_FLOAT32: Struct('<f'),
+        _BINARY_TAG_FLOAT64: Struct('<d'),
+    }
+
+    def _decode_binary_value(self, blob):
+        """
+        Decode a value stored in the JSON column's shared variant.
+        ``blob`` is the raw bytes of one ``String`` entry, holding
+        ``encodeDataType(type) + serializeBinary(value)``.
+        """
+        buf = io.BytesIO(blob)
+        return self._decode_binary_inner(buf)
+
+    def _decode_binary_inner(self, buf):
+        tag = buf.read(1)
+        if not tag:
+            return None
+        tag = tag[0]
+
+        if tag == self._BINARY_TAG_NOTHING:
+            return None
+
+        if tag in self._PRIMITIVE_STRUCTS:
+            s = self._PRIMITIVE_STRUCTS[tag]
+            return s.unpack(buf.read(s.size))[0]
+
+        if tag == self._BINARY_TAG_BOOL:
+            return bool(buf.read(1)[0])
+
+        if tag == self._BINARY_TAG_STRING:
+            length = self._read_varint_bytesio(buf)
+            return buf.read(length).decode('utf-8')
+
+        if tag == self._BINARY_TAG_NULLABLE:
+            # Encoded type bytes for the inner type are immediately followed
+            # by the value, which is prefixed with a single null-flag byte.
+            return self._decode_nullable(buf)
+
+        if tag == self._BINARY_TAG_ARRAY:
+            return self._decode_array(buf)
+
+        return self._decode_binary_unsupported(tag, buf)
+
+    def _decode_nullable(self, buf):
+        # Skip the inner type encoding so we can read the value that follows.
+        self._skip_encoded_type(buf)
+        is_null = buf.read(1)[0]
+        if is_null:
+            return None
+        # The remaining bytes are the inner value's serializeBinary output;
+        # the inner type was already consumed above, so dispatch by looking
+        # ahead at the next type tag is impossible. The encoded type already
+        # consumed told us what to expect, but ClickHouse writes the value
+        # in its own format directly (no additional tag). We re-read the
+        # original buffer using a separate path.
+        # For shared data, ClickHouse always uses the full
+        # encodeDataType + serializeBinary roundtrip without wrapping
+        # primitives in Nullable, so this branch is rarely hit. Fall back
+        # to returning the raw remaining bytes.
+        return buf.read()
+
+    def _decode_array(self, buf):
+        # Array(T): inner type encoding, then VarUInt size, then size values
+        # in T's binary form. To stay general we decode each element by
+        # re-reading the inner type tag we saved.
+        type_bytes = self._capture_encoded_type(buf)
+        size = self._read_varint_bytesio(buf)
+        result = []
+        for _ in range(size):
+            inner_buf = io.BytesIO(type_bytes + buf.read(self._value_size(
+                type_bytes, buf)))
+            inner_buf.seek(0)
+            result.append(self._decode_binary_inner(inner_buf))
+        return result
+
+    def _value_size(self, type_bytes, buf):
+        # Best-effort: for primitive types we can size the value, for
+        # variable-length we read until the entry boundary. ClickHouse's
+        # serializeBinary for primitives writes exactly ``struct.size``
+        # bytes; for String it writes ``VarUInt + bytes``. We don't have a
+        # good general size, so fall back to reading the rest of ``buf``.
+        tag = type_bytes[0]
+        if tag in self._PRIMITIVE_STRUCTS:
+            return self._PRIMITIVE_STRUCTS[tag].size
+        if tag == self._BINARY_TAG_BOOL:
+            return 1
+        # Unknown size — consume the rest of the buffer for this element.
+        return len(buf.getvalue()) - buf.tell()
+
+    def _skip_encoded_type(self, buf):
+        tag = buf.read(1)[0]
+        if tag in (self._BINARY_TAG_NULLABLE, self._BINARY_TAG_ARRAY):
+            self._skip_encoded_type(buf)
+
+    def _capture_encoded_type(self, buf):
+        start = buf.tell()
+        self._skip_encoded_type(buf)
+        end = buf.tell()
+        buf.seek(start)
+        return buf.read(end - start)
+
+    def _decode_binary_unsupported(self, tag, buf):
+        # Return the remaining bytes so users see something rather than a
+        # silent KeyError. Surfaces unknown types without breaking the
+        # whole query.
+        return {
+            '__unsupported_binary_type__': tag,
+            'raw': buf.read(),
+        }
 
     def _read_complex_tuple_values(self, buf, col, spec):
         """
         Read values in a tuple with nested JSON elements.
         """
-        col[spec]["values"] = [[] for _ in range(len(col[spec]["positions"]))]
-        for i, subspec in enumerate(spec[6:-2].split("), ")):
-            if not subspec.startswith("Array") and not subspec.startswith("Tuple") and not subspec.startswith("JSON"):
+        col[spec]["values"] = [
+            [] for _ in range(len(col[spec]["positions"]))]
+        subspecs = spec[6:-2].split("), ")
+        for i, subspec in enumerate(subspecs):
+            if (not subspec.startswith("Array")
+                    and not subspec.startswith("Tuple")
+                    and not subspec.startswith("JSON")):
                 buf.read(len(col[spec]["positions"]))
             for row in col[spec]["values"]:
                 if subspec.startswith("JSON"):
                     paths = col[spec]["tuple_header"][i]
                     if paths is None:
-                        # Read simplified nested JSON with max_dynamic_types = 0 and max_dynamic_paths = 0.
-                        shared_paths = self._read_shared_paths(buf)
-                        self._read_shared_values(buf, shared_paths)
+                        # Nested JSON declared with
+                        # max_dynamic_types=0 / max_dynamic_paths=0: only
+                        # shared data carries the row.
+                        empty_paths = {}
+                        self._read_shared_data(
+                            buf, empty_paths,
+                            len(col[spec]["positions"]))
+                        shared = empty_paths.get(_SHARED_ROWS_KEY, [])
+                        for pos, entries in enumerate(shared):
+                            obj = {}
+                            for path, value in entries:
+                                obj[path] = value
+                            self._denormalize_json(obj)
+                            col[spec]["values"][pos].append(obj)
                         break
-                    self._read_values(buf, paths, len(col[spec]["positions"]))
+                    self._read_values(
+                        buf, paths, len(col[spec]["positions"]))
                     result = self._fold_json(
                         len(col[spec]["positions"]), paths)
                     for pos, item in enumerate(result):
@@ -168,37 +394,7 @@ class NewJsonColumn(Column):
                     reader = self.column_by_spec_getter(
                         subspec[9:])
                     row += reader.read_data(1, buf)
-    
-    
-    def _read_shared_paths(self, buf):
-        """
-        Read json paths with max_dynamic_types = 0 and max_dynamic_paths = 0.
-        """
-        paths_count = read_binary_uint8(buf)
-        read_binary_bytes_fixed_len(buf, 7)
 
-        paths = {}
-        for i in range(paths_count):
-            strlen = read_binary_uint8(buf)
-            col = read_binary_str_fixed_len(buf, strlen)
-            paths[col] = {}
-        
-        return paths
-    
-    def _read_shared_values(self, buf, paths):
-        """
-        Read json values with max_dynamic_types = 0 and max_dynamic_paths = 0.
-        """
-        for path in paths:
-            content_len = read_binary_uint8(buf)
-            paths[path] = self._unmarshal_shared_values(read_binary_bytes_fixed_len(buf, content_len))
-
-    def _unmarshal_shared_values(self, bin):
-        """
-        Unmarshal json values with max_dynamic_types = 0 and max_dynamic_paths = 0.
-        """
-        return bin
-    
     def _read_complex_array_values(self, buf, col, spec):
         """
         Read values in an array with nested JSON elements.
@@ -221,15 +417,17 @@ class NewJsonColumn(Column):
         Read value positions in the record list.
         """
         specs = []
-        skip = len(
-            col) - len([v for v in col if v.startswith("String") or v.startswith("Tuple")])
+        skip = len(col) - len(
+            [v for v in col
+             if v.startswith("String") or v.startswith("Tuple")])
         for i in range(n_items):
             spec_number = read_binary_uint8(buf)
             if spec_number < 255:
                 if spec_number > skip:
                     spec_number -= 1
                 spec = list(col.keys())[spec_number]
-                if not (spec.startswith("Array") or spec.startswith("Tuple")) or spec not in specs:
+                if not (spec.startswith("Array")
+                        or spec.startswith("Tuple")) or spec not in specs:
                     specs.append(spec)
                 col[spec]["positions"].append(i)
 
@@ -237,7 +435,8 @@ class NewJsonColumn(Column):
 
     def write_items(self, items, buf, depth=0):
         # Convert all items to dictionaries.
-        items = [x if not isinstance(x, str) else json.loads(x) for x in items]
+        items = [
+            x if not isinstance(x, str) else json.loads(x) for x in items]
 
         paths = self._unfold_json(items, depth)
 
@@ -264,9 +463,11 @@ class NewJsonColumn(Column):
             buf.write(b"\x00" * 8)
             for spec in col:
                 if spec.startswith("Tuple") and "JSON" in spec:
-                    self._write_complex_tuple_header(col, spec, depth+1, buf)
+                    self._write_complex_tuple_header(
+                        col, spec, depth + 1, buf)
                 elif spec.startswith("Array") and "JSON" in spec:
-                    self._write_complex_array_header(col, spec, depth+1, buf)
+                    self._write_complex_array_header(
+                        col, spec, depth + 1, buf)
 
     def _write_values(self, paths, rows, buf, depth=0):
         """
@@ -278,7 +479,7 @@ class NewJsonColumn(Column):
                 if spec.startswith("Array"):
                     if "JSON" in spec:
                         self._write_complex_array_values(
-                            col, spec, depth+1, buf)
+                            col, spec, depth + 1, buf)
                     else:
                         insert = self._preprocess_array(
                             col[spec]["values"], spec[6:-1])
@@ -287,7 +488,7 @@ class NewJsonColumn(Column):
                 elif spec.startswith("Tuple"):
                     if "JSON" in spec:
                         self._write_complex_tuple_values(
-                            col, spec, depth+1, buf)
+                            col, spec, depth + 1, buf)
                     else:
                         writer = self.column_by_spec_getter(spec)
                         writer.write_items(col[spec]["values"], buf)
@@ -327,13 +528,18 @@ class NewJsonColumn(Column):
         Write values in a tuple with nested JSON elements.
         """
         for i, subspec in enumerate(spec[6:-2].split("), ")):
-            if not subspec.startswith("Array") and not subspec.startswith("Tuple") and not subspec.startswith("JSON"):
+            is_simple = (
+                not subspec.startswith("Array")
+                and not subspec.startswith("Tuple")
+                and not subspec.startswith("JSON"))
+            if is_simple:
                 buf.write(b"\x00" * len(col[spec]["values"]))
             for row in col[spec]["values"]:
                 if subspec.startswith("JSON"):
                     items = [item[i] for item in col[spec]["values"]]
                     paths = self._unfold_json(items, depth=depth)
-                    self._write_values(paths, len(items), buf, depth=depth)
+                    self._write_values(
+                        paths, len(items), buf, depth=depth)
                     break
                 elif subspec.startswith("Array"):
                     insert = self._preprocess_array(
@@ -377,7 +583,12 @@ class NewJsonColumn(Column):
         elif isinstance(item, bool):
             return "Bool"
         elif isinstance(item, dict):
-            return f"JSON(max_dynamic_types={int(2 ** (4 - depth))}, max_dynamic_paths={int(4 ** (4 - depth))})"
+            max_types = int(2 ** (4 - depth))
+            max_paths = int(4 ** (4 - depth))
+            return (
+                "JSON(max_dynamic_types={}, "
+                "max_dynamic_paths={})".format(max_types, max_paths)
+            )
         elif isinstance(item, list):
             value_types = []
             for entry in item:
@@ -389,16 +600,19 @@ class NewJsonColumn(Column):
                 unique_specs = []
                 for entry in item:
                     spec = self._get_json_value_spec(entry, depth)
-                    if not spec.startswith("Array") and not spec.startswith("Tuple") and not spec.startswith("JSON"):
-                        result += f"Nullable({spec}), "
+                    if (not spec.startswith("Array")
+                            and not spec.startswith("Tuple")
+                            and not spec.startswith("JSON")):
+                        result += "Nullable({}), ".format(spec)
                     else:
-                        result += f"{spec}, "
+                        result += "{}, ".format(spec)
                     if spec not in unique_specs:
                         unique_specs.append(spec)
 
                 # Return an array if all specs are the same
                 if len(unique_specs) == 1:
-                    return f"Array({self._get_json_value_spec(item[0], depth=depth)})"
+                    inner = self._get_json_value_spec(item[0], depth=depth)
+                    return "Array({})".format(inner)
                 result = result[:-2] + ")"
                 return result
             else:
@@ -420,12 +634,14 @@ class NewJsonColumn(Column):
 
     def _get_row_posititons(self, col, row_count):
         """
-        Returns bytes corresponding to the position of specs between records.
+        Returns bytes corresponding to the position of specs between
+        records.
         """
         result = [255] * row_count
         count = 0
-        skip = len(col) - len([v for v in col.keys()
-                               if v.startswith("String") or v.startswith("Tuple")])
+        skip = len(col) - len(
+            [v for v in col.keys()
+             if v.startswith("String") or v.startswith("Tuple")])
         for spec in col:
             if count == skip:
                 count += 1
@@ -436,7 +652,8 @@ class NewJsonColumn(Column):
 
     def _normalize_json(self, obj,):
         """
-        Deals with converting a nested dictionary to a dictionary of paths with depth one.
+        Deals with converting a nested dictionary to a dictionary of
+        paths with depth one.
         """
         if isinstance(obj, dict):
             result = {}
@@ -444,28 +661,29 @@ class NewJsonColumn(Column):
                 if obj[k] is not None:
                     obj_res = self._normalize_json(obj[k])
                     for obj_k in obj_res:
-                        result[f"{k}.{obj_k}"] = obj_res[obj_k]
+                        result["{}.{}".format(k, obj_k)] = obj_res[obj_k]
             return result
         else:
             return {"": obj}
 
     def _unfold_json_item(self, obj, depth, result={}, row_count=0):
         """
-        Converts a single record into an intermeditary format stored in result.
+        Converts a single record into an intermeditary format stored in
+        result.
         """
         for k in obj:
             if obj[k] is not None:
                 obj_res = self._normalize_json(obj[k])
                 for obj_k in obj_res:
-                    if f"{k}.{obj_k}" not in result:
-                        result[f"{k}.{obj_k}"] = {}
+                    key = "{}.{}".format(k, obj_k)
+                    if key not in result:
+                        result[key] = {}
                     spec = self._get_json_value_spec(obj_res[obj_k], depth)
-                    if spec not in result[f"{k}.{obj_k}"]:
-                        result[f"{k}.{obj_k}"][spec] = {
+                    if spec not in result[key]:
+                        result[key][spec] = {
                             "values": [], "positions": []}
-                    result[f"{k}.{obj_k}"][spec]["values"].append(
-                        obj_res[obj_k])
-                    result[f"{k}.{obj_k}"][spec]["positions"].append(row_count)
+                    result[key][spec]["values"].append(obj_res[obj_k])
+                    result[key][spec]["positions"].append(row_count)
         return result
 
     def _unfold_json(self, items, depth):
@@ -483,7 +701,8 @@ class NewJsonColumn(Column):
 
     def _denormalize_json(self, obj):
         """
-        Converts a dictionary of paths with depth one to a nested dictionary.
+        Converts a dictionary of paths with depth one to a nested
+        dictionary.
         """
         keys = list(obj.keys())
         for key in keys:
@@ -503,10 +722,17 @@ class NewJsonColumn(Column):
         """
         result = [{} for _ in range(n_items)]
 
+        shared_rows = obj.pop(_SHARED_ROWS_KEY, None)
+
         for key, item in obj.items():
             for spec in item.values():
                 for i in range(len(spec["values"])):
                     result[spec["positions"][i]][key] = spec["values"][i]
+
+        if shared_rows is not None:
+            for row_idx, entries in enumerate(shared_rows):
+                for path, value in entries:
+                    result[row_idx][path] = value
 
         [self._denormalize_json(item) for item in result]
         return result
@@ -518,9 +744,10 @@ class NewJsonColumn(Column):
         insert = []
         if array_type.startswith("Array"):
             for item in values:
-                insert.append(self._preprocess_array(item, array_type[6:-1]))
+                insert.append(
+                    self._preprocess_array(item, array_type[6:-1]))
             return insert
-        
+
         if "String" in array_type:
             for item in values:
                 arr = []
