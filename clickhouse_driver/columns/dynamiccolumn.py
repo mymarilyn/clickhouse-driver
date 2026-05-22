@@ -33,7 +33,7 @@ NULL_DISCRIMINATOR = 0xFF
 # SHARED_VARIANT_TYPE_NAME from ClickHouse src/Columns/ColumnDynamic.h.
 # Participates in the alphabetical sort of variant names alongside
 # user-declared variants.
-_SHARED_VARIANT_NAME = "SharedVariant"
+SHARED_VARIANT_NAME = "SharedVariant"
 
 
 class DynamicColumn(Column):
@@ -86,13 +86,13 @@ class DynamicColumn(Column):
         # SharedVariant type name ("SharedVariant") participates in the
         # sort, so we have to interleave it back in to know which
         # discriminator index it claims.
-        all_names = list(declared_specs) + [_SHARED_VARIANT_NAME]
+        all_names = list(declared_specs) + [SHARED_VARIANT_NAME]
         sorted_names = sorted(all_names)
         self.variant_specs = list(declared_specs)
         self.variant_columns = []
         self._shared_variant_index = None
         for i, name in enumerate(sorted_names):
-            if name == _SHARED_VARIANT_NAME:
+            if name == SHARED_VARIANT_NAME:
                 self.variant_columns.append(
                     _make_byte_string(self._column_kwargs))
                 self._shared_variant_index = i

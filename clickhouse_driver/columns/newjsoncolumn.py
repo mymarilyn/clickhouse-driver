@@ -22,7 +22,10 @@ accepts the legacy V1/V2 mix on insert.
 from .arraycolumn import ArrayColumn
 from .base import Column
 from .dynamiccolumn import (
+    DYNAMIC_V2,
+    SHARED_VARIANT_NAME,
     DynamicColumn,
+    VARIANT_MODE_BASIC,
     decode_shared_value,
 )
 from .stringcolumn import ByteString, String
@@ -32,8 +35,8 @@ from ..reader import (
     read_binary_uint64,
 )
 from ..util.compat import json
-from ..varint import read_varint
-from ..writer import write_binary_uint8, write_binary_uint64
+from ..varint import read_varint, write_varint
+from ..writer import write_binary_uint64
 
 
 # ObjectSerializationVersion values (ClickHouse 25.5).
@@ -169,13 +172,14 @@ class NewJsonColumn(Column):
             del obj[key]
 
     # ------------------------------------------------------------------
-    # write path (legacy — kept from the original PR)
+    # write path
     # ------------------------------------------------------------------
 
     def write_state_prefix(self, buf):
-        # Read in binary format.
-        # Write in text format.
-        write_binary_uint8(2, buf)
+        # UInt64 LE: ObjectSerializationVersion::V2 (the server falls
+        # back to V1 itself if its client revision is too old, so we can
+        # write V2 unconditionally).
+        write_binary_uint64(OBJECT_V2, buf)
 
     def write_items(self, items, buf, depth=0):
         # Convert all items to dictionaries.
@@ -189,22 +193,22 @@ class NewJsonColumn(Column):
         self._write_values(paths, len(items), buf)
 
     def _write_paths(self, paths, buf):
-        """
-        Convert items into desired format and write them.
-        """
-        buf.write(b"\x00" * 7)
-        write_binary_uint8(len(paths), buf)
+        # VarUInt dynamic_paths_count + N × String path names.
+        write_varint(len(paths), buf)
         self.string_column.write_items(paths.keys(), buf)
 
     def _write_specs(self, paths, buf, depth=0):
-        """
-        Write values specs.
-        """
+        # SerializationDynamic state prefix per dynamic path:
+        #   UInt64 LE  DynamicSerializationVersion::V2
+        #   VarUInt    num_dynamic_types (excludes SharedVariant)
+        #   N × String variant type spec
+        # SerializationVariant prefix:
+        #   UInt64 LE  discriminators_mode (BASIC)
         for col in paths.values():
-            buf.write(b"\x02" + b"\x00" * 7)
-            write_binary_uint8(len(col), buf)
+            write_binary_uint64(DYNAMIC_V2, buf)
+            write_varint(len(col), buf)
             self.string_column.write_items(col.keys(), buf)
-            buf.write(b"\x00" * 8)
+            write_binary_uint64(VARIANT_MODE_BASIC, buf)
             for spec in col:
                 if spec.startswith("Tuple") and "JSON" in spec:
                     self._write_complex_tuple_header(
@@ -214,9 +218,12 @@ class NewJsonColumn(Column):
                         col, spec, depth + 1, buf)
 
     def _write_values(self, paths, rows, buf, depth=0):
-        """
-        Write values.
-        """
+        # SerializationVariant body per dynamic path:
+        #   n_items × UInt8 global discriminators
+        #   per declared variant in alphabetical order: column data
+        # Followed by the shared-data Array(Tuple(String, String))'s
+        # offsets — all zero because we never overflow into the
+        # SharedVariant on write.
         for col in paths.values():
             buf.write(self._get_row_posititons(col, rows))
             for spec in col:
@@ -361,17 +368,20 @@ class NewJsonColumn(Column):
             return "String"
 
     def _get_row_posititons(self, col, row_count):
+        # Compute each row's global discriminator. ``DataTypeVariant``
+        # sorts its variant list (which includes the implicit
+        # ``SharedVariant``) by ``getName()`` alphabetically; the global
+        # discriminator index is each variant's position in that sort.
+        sorted_with_shared = sorted(
+            list(col.keys()) + [SHARED_VARIANT_NAME])
+        spec_to_discriminator = {
+            spec: i for i, spec in enumerate(sorted_with_shared)
+        }
         result = [255] * row_count
-        count = 0
-        skip = len(col) - len(
-            [v for v in col.keys()
-             if v.startswith("String") or v.startswith("Tuple")])
-        for spec in col:
-            if count == skip:
-                count += 1
-            for pos in col[spec]["positions"]:
-                result[pos] = count
-            count += 1
+        for spec, data in col.items():
+            disc = spec_to_discriminator[spec]
+            for pos in data["positions"]:
+                result[pos] = disc
         return bytes(result)
 
     def _normalize_json(self, obj,):
