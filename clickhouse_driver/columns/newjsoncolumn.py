@@ -25,8 +25,8 @@ from .dynamiccolumn import (
     DYNAMIC_V2,
     SHARED_VARIANT_NAME,
     DynamicColumn,
+    SharedValueDecoder,
     VARIANT_MODE_BASIC,
-    decode_shared_value,
 )
 from .stringcolumn import ByteString, String
 from .tuplecolumn import TupleColumn
@@ -60,12 +60,14 @@ class NewJsonColumn(Column):
         self.sorted_dynamic_paths = []
         self.dynamic_columns = []
         self.shared_data_column = None
-        # Per-instance cache of scalar column readers used by
-        # ``decode_shared_value``. Shared data routinely produces
-        # 10k–100k decode calls per block for the same handful of
-        # primitive types; memoising the readers cuts the shared path
-        # by an order of magnitude vs reconstructing them every time.
-        self._shared_column_cache = {}
+        # One decoder per block. It owns the handler-per-type_spec
+        # cache, the scalar column-reader cache, and the reusable
+        # bytes reader. Both this column's top-level shared paths and
+        # every nested ``DynamicColumn``'s SharedVariant route their
+        # overflow values through the same decoder so all caches
+        # accumulate together.
+        self._shared_value_decoder = SharedValueDecoder(
+            column_by_spec_getter)
 
         super(NewJsonColumn, self).__init__(**kwargs)
 
@@ -104,7 +106,7 @@ class NewJsonColumn(Column):
         for _ in range(num_paths):
             col = DynamicColumn(
                 self.column_by_spec_getter,
-                shared_column_cache=self._shared_column_cache,
+                shared_value_decoder=self._shared_value_decoder,
                 **self._column_kwargs)
             col.read_state_prefix(buf)
             self.dynamic_columns.append(col)
@@ -153,12 +155,10 @@ class NewJsonColumn(Column):
                 if value is not None:
                     rows[row_idx][path] = _tuples_to_lists(value)
 
+        decode = self._shared_value_decoder.decode
         for row_idx, entries in enumerate(shared_rows or []):
             for path, encoded in entries:
-                value = decode_shared_value(
-                    encoded, self.column_by_spec_getter,
-                    self._shared_column_cache)
-                rows[row_idx][path] = _tuples_to_lists(value)
+                rows[row_idx][path] = _tuples_to_lists(decode(encoded))
 
         for row in rows:
             self._denormalize_dotted_paths(row)

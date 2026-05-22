@@ -7,9 +7,6 @@ hand-rolling Variant deserialization. The byte layout mirrors
 ``SerializationDynamic`` and ``SerializationVariant`` in ClickHouse 25.5.
 """
 
-import io
-from struct import Struct
-
 from .base import Column
 from ..reader import (
     read_binary_str,
@@ -49,10 +46,17 @@ class DynamicColumn(Column):
 
     py_types = (object,)
 
-    def __init__(self, column_by_spec_getter, shared_column_cache=None,
+    def __init__(self, column_by_spec_getter, shared_value_decoder=None,
                  **kwargs):
         self.column_by_spec_getter = column_by_spec_getter
-        self.shared_column_cache = shared_column_cache
+        # Pre-built decoder for the implicit SharedVariant. Sharing one
+        # across all DynamicColumns of a block (plus the JSON column
+        # itself) lets the handler/column caches accumulate across
+        # every overflow value in the block.
+        if shared_value_decoder is None:
+            shared_value_decoder = SharedValueDecoder(
+                column_by_spec_getter)
+        self.shared_value_decoder = shared_value_decoder
         self._column_kwargs = kwargs
         self.variant_specs = []
         self.variant_columns = []
@@ -123,9 +127,7 @@ class DynamicColumn(Column):
         return _read_variant_basic(
             n_items, self.variant_columns, buf,
             shared_variant_index=self._shared_variant_index,
-            shared_variant_decoder=lambda blob: decode_shared_value(
-                blob, self.column_by_spec_getter,
-                self.shared_column_cache))
+            shared_variant_decoder=self.shared_value_decoder.decode)
 
 
 def _make_byte_string(kwargs):
@@ -325,75 +327,128 @@ _PRIMITIVE_TYPE_NAMES = {
 }
 
 
+class SharedValueDecoder:
+    """
+    Per-block decoder for the ``encodeDataType + serializeBinary``
+    payloads found in a SharedVariant's underlying String column.
+
+    Two caches keep the hot path tight:
+      * ``_handler_cache`` maps a decoded type spec (e.g. ``"Int64"``,
+        ``"Array(Nullable(String))"``) to a precompiled callable that
+        reads only the value bytes — no per-value ``startswith`` chain
+        or recursive ``_decode_value_by_spec`` walk.
+      * ``_column_cache`` keeps the scalar column readers alive across
+        values so we don't reconstruct ``Int64Column`` / ``String``
+        for every overflow entry.
+
+    A single ``_SharedValueReader`` is reused for every value rather
+    than allocating an ``io.BytesIO`` + adapter pair per call.
+    """
+
+    __slots__ = (
+        '_column_by_spec_getter',
+        '_column_cache',
+        '_handler_cache',
+        '_reader',
+    )
+
+    def __init__(self, column_by_spec_getter):
+        self._column_by_spec_getter = column_by_spec_getter
+        self._column_cache = {}
+        self._handler_cache = {}
+        self._reader = _SharedValueReader()
+
+    def decode(self, blob):
+        if not blob:
+            return None
+        reader = self._reader
+        reader.reset(blob)
+        type_spec = _decode_type_spec(reader)
+        handler = self._handler_cache.get(type_spec)
+        if handler is None:
+            handler = self._build_handler(type_spec)
+            self._handler_cache[type_spec] = handler
+        return handler(reader)
+
+    def _build_handler(self, type_spec):
+        if type_spec == "Nothing":
+            return _nothing_handler
+
+        if type_spec.startswith("Nullable("):
+            inner_spec = type_spec[len("Nullable("):-1]
+            inner_handler = self._lookup_handler(inner_spec)
+
+            def nullable_handler(reader, _inner=inner_handler):
+                if reader.read_one():
+                    return None
+                return _inner(reader)
+            return nullable_handler
+
+        if type_spec.startswith("Array("):
+            inner_spec = type_spec[len("Array("):-1]
+            inner_handler = self._lookup_handler(inner_spec)
+
+            def array_handler(reader, _inner=inner_handler):
+                size = _read_varint_reader(reader)
+                return [_inner(reader) for _ in range(size)]
+            return array_handler
+
+        if type_spec.startswith("Tuple("):
+            elements = _split_tuple_elements(
+                type_spec[len("Tuple("):-1])
+            element_handlers = tuple(
+                self._lookup_handler(e) for e in elements)
+
+            def tuple_handler(reader, _handlers=element_handlers):
+                return tuple(h(reader) for h in _handlers)
+            return tuple_handler
+
+        # Scalar — bind the column reader once and let it handle bytes.
+        column = self._column_cache.get(type_spec)
+        if column is None:
+            column = self._column_by_spec_getter(type_spec)
+            self._column_cache[type_spec] = column
+
+        def scalar_handler(reader, _column=column):
+            return _column.read_items(1, reader)[0]
+        return scalar_handler
+
+    def _lookup_handler(self, type_spec):
+        handler = self._handler_cache.get(type_spec)
+        if handler is None:
+            handler = self._build_handler(type_spec)
+            self._handler_cache[type_spec] = handler
+        return handler
+
+
+def _nothing_handler(reader):
+    return None
+
+
+def _read_varint_reader(reader):
+    shift = 0
+    result = 0
+    while True:
+        b = reader.read_one()
+        result |= (b & 0x7F) << shift
+        shift += 7
+        if b < 0x80:
+            return result
+
+
 def decode_shared_value(blob, column_by_spec_getter, column_cache=None):
     """
-    Decode one ``encodeDataType + serializeBinary`` payload from a
-    SharedVariant.
+    Convenience entry point matching the historical free-function
+    signature. Allocates a fresh ``SharedValueDecoder``, which throws
+    away the handler cache after one call — callers in a hot loop
+    should hold a :class:`SharedValueDecoder` themselves.
 
-    ``serializeBinary`` is the single-field binary format, not the
-    column-bulk one — so we walk the encoded type and read the value
-    out by spec. Primitive scalar types delegate to the driver's
-    existing readers (their ``read_items(1, buf)`` happens to match
-    ``serializeBinary`` byte-for-byte). Array / Tuple / Nullable have to
-    be unwrapped manually because the column readers expect offsets
-    and nulls-maps that ``serializeBinary`` does not write.
-
-    ``column_cache`` is an optional mutable dict mapping ``type_spec`` →
-    column reader. Shared data is dominated by reconstructing the same
-    handful of scalar column readers for every overflow value, so
-    callers should pass a per-block dict to memoise them. The cache
-    only covers stateless scalar readers — composite types
-    (Array/Tuple/Nullable) are unwrapped before any reader is built.
+    ``column_cache`` is accepted for backward compatibility but
+    ignored; the decoder owns its own scalar-reader cache.
     """
-    if not blob:
-        return None
-    buf = io.BytesIO(blob)
-    type_spec = _decode_type_spec(buf)
-    return _decode_value_by_spec(
-        type_spec, buf, column_by_spec_getter, column_cache)
-
-
-def _decode_value_by_spec(type_spec, buf, column_by_spec_getter,
-                          column_cache):
-    if type_spec == "Nothing":
-        return None
-
-    if type_spec.startswith("Nullable("):
-        is_null = buf.read(1)
-        if is_null and is_null[0]:
-            return None
-        inner = type_spec[len("Nullable("):-1]
-        return _decode_value_by_spec(
-            inner, buf, column_by_spec_getter, column_cache)
-
-    if type_spec.startswith("Array("):
-        inner = type_spec[len("Array("):-1]
-        size = _read_varint_bytesio(buf)
-        return [
-            _decode_value_by_spec(
-                inner, buf, column_by_spec_getter, column_cache)
-            for _ in range(size)
-        ]
-
-    if type_spec.startswith("Tuple("):
-        elements = _split_tuple_elements(
-            type_spec[len("Tuple("):-1])
-        return tuple(
-            _decode_value_by_spec(
-                elem, buf, column_by_spec_getter, column_cache)
-            for elem in elements
-        )
-
-    # Scalar — let the driver's column reader handle it.
-    if column_cache is not None:
-        column = column_cache.get(type_spec)
-        if column is None:
-            column = column_by_spec_getter(type_spec)
-            column_cache[type_spec] = column
-    else:
-        column = column_by_spec_getter(type_spec)
-    value = column.read_items(1, _BytesIOReader(buf))
-    return list(value)[0]
+    del column_cache  # superseded by SharedValueDecoder's internal cache
+    decoder = SharedValueDecoder(column_by_spec_getter)
+    return decoder.decode(blob)
 
 
 def _split_tuple_elements(inner):
@@ -415,36 +470,56 @@ def _split_tuple_elements(inner):
     return parts
 
 
-class _BytesIOReader:
+class _SharedValueReader:
     """
-    Adapter that gives ``io.BytesIO`` the ``read_one`` method the Cython
-    ``read_varint`` expects when called from inside column readers.
+    Reusable reader over an in-memory bytes blob. Exposes the surface
+    the driver's column readers need (``read``, ``read_one``,
+    ``read_strings``) without allocating an ``io.BytesIO`` plus an
+    adapter every call — both are hot-loop overhead on the shared
+    path. The owning :class:`SharedValueDecoder` resets the underlying
+    bytes between values.
     """
 
-    _struct_one = Struct('<B')
+    __slots__ = ('_blob', '_pos')
 
-    __slots__ = ('_buf',)
+    def __init__(self):
+        self._blob = b''
+        self._pos = 0
 
-    def __init__(self, buf):
-        self._buf = buf
+    def reset(self, blob):
+        self._blob = blob
+        self._pos = 0
 
     def read(self, n):
-        return self._buf.read(n)
+        start = self._pos
+        end = start + n
+        self._pos = end
+        return self._blob[start:end]
 
     def read_one(self):
-        b = self._buf.read(1)
-        if not b:
-            raise EOFError("Unexpected end of shared value blob")
-        return b[0]
+        pos = self._pos
+        b = self._blob[pos]
+        self._pos = pos + 1
+        return b
 
     def read_strings(self, n_items, encoding=None):
-        # StringColumn delegates length-prefixed reads to read_strings on
-        # the buffered reader; fall back to inlining the loop here.
+        blob = self._blob
+        pos = self._pos
         out = []
         for _ in range(n_items):
-            length = _read_varint_bytesio(self._buf)
-            chunk = self._buf.read(length)
+            shift = 0
+            length = 0
+            while True:
+                b = blob[pos]
+                pos += 1
+                length |= (b & 0x7F) << shift
+                shift += 7
+                if b < 0x80:
+                    break
+            chunk = blob[pos:pos + length]
+            pos += length
             if encoding is not None:
                 chunk = chunk.decode(encoding)
             out.append(chunk)
+        self._pos = pos
         return out
