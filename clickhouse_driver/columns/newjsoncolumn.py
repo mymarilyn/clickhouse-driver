@@ -60,6 +60,12 @@ class NewJsonColumn(Column):
         self.sorted_dynamic_paths = []
         self.dynamic_columns = []
         self.shared_data_column = None
+        # Per-instance cache of scalar column readers used by
+        # ``decode_shared_value``. Shared data routinely produces
+        # 10k–100k decode calls per block for the same handful of
+        # primitive types; memoising the readers cuts the shared path
+        # by an order of magnitude vs reconstructing them every time.
+        self._shared_column_cache = {}
 
         super(NewJsonColumn, self).__init__(**kwargs)
 
@@ -97,7 +103,9 @@ class NewJsonColumn(Column):
         self.dynamic_columns = []
         for _ in range(num_paths):
             col = DynamicColumn(
-                self.column_by_spec_getter, **self._column_kwargs)
+                self.column_by_spec_getter,
+                shared_column_cache=self._shared_column_cache,
+                **self._column_kwargs)
             col.read_state_prefix(buf)
             self.dynamic_columns.append(col)
 
@@ -148,7 +156,8 @@ class NewJsonColumn(Column):
         for row_idx, entries in enumerate(shared_rows or []):
             for path, encoded in entries:
                 value = decode_shared_value(
-                    encoded, self.column_by_spec_getter)
+                    encoded, self.column_by_spec_getter,
+                    self._shared_column_cache)
                 rows[row_idx][path] = _tuples_to_lists(value)
 
         for row in rows:

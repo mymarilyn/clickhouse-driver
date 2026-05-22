@@ -49,8 +49,10 @@ class DynamicColumn(Column):
 
     py_types = (object,)
 
-    def __init__(self, column_by_spec_getter, **kwargs):
+    def __init__(self, column_by_spec_getter, shared_column_cache=None,
+                 **kwargs):
         self.column_by_spec_getter = column_by_spec_getter
+        self.shared_column_cache = shared_column_cache
         self._column_kwargs = kwargs
         self.variant_specs = []
         self.variant_columns = []
@@ -122,7 +124,8 @@ class DynamicColumn(Column):
             n_items, self.variant_columns, buf,
             shared_variant_index=self._shared_variant_index,
             shared_variant_decoder=lambda blob: decode_shared_value(
-                blob, self.column_by_spec_getter))
+                blob, self.column_by_spec_getter,
+                self.shared_column_cache))
 
 
 def _make_byte_string(kwargs):
@@ -322,7 +325,7 @@ _PRIMITIVE_TYPE_NAMES = {
 }
 
 
-def decode_shared_value(blob, column_by_spec_getter):
+def decode_shared_value(blob, column_by_spec_getter, column_cache=None):
     """
     Decode one ``encodeDataType + serializeBinary`` payload from a
     SharedVariant.
@@ -334,15 +337,24 @@ def decode_shared_value(blob, column_by_spec_getter):
     ``serializeBinary`` byte-for-byte). Array / Tuple / Nullable have to
     be unwrapped manually because the column readers expect offsets
     and nulls-maps that ``serializeBinary`` does not write.
+
+    ``column_cache`` is an optional mutable dict mapping ``type_spec`` →
+    column reader. Shared data is dominated by reconstructing the same
+    handful of scalar column readers for every overflow value, so
+    callers should pass a per-block dict to memoise them. The cache
+    only covers stateless scalar readers — composite types
+    (Array/Tuple/Nullable) are unwrapped before any reader is built.
     """
     if not blob:
         return None
     buf = io.BytesIO(blob)
     type_spec = _decode_type_spec(buf)
-    return _decode_value_by_spec(type_spec, buf, column_by_spec_getter)
+    return _decode_value_by_spec(
+        type_spec, buf, column_by_spec_getter, column_cache)
 
 
-def _decode_value_by_spec(type_spec, buf, column_by_spec_getter):
+def _decode_value_by_spec(type_spec, buf, column_by_spec_getter,
+                          column_cache):
     if type_spec == "Nothing":
         return None
 
@@ -351,13 +363,15 @@ def _decode_value_by_spec(type_spec, buf, column_by_spec_getter):
         if is_null and is_null[0]:
             return None
         inner = type_spec[len("Nullable("):-1]
-        return _decode_value_by_spec(inner, buf, column_by_spec_getter)
+        return _decode_value_by_spec(
+            inner, buf, column_by_spec_getter, column_cache)
 
     if type_spec.startswith("Array("):
         inner = type_spec[len("Array("):-1]
         size = _read_varint_bytesio(buf)
         return [
-            _decode_value_by_spec(inner, buf, column_by_spec_getter)
+            _decode_value_by_spec(
+                inner, buf, column_by_spec_getter, column_cache)
             for _ in range(size)
         ]
 
@@ -365,12 +379,19 @@ def _decode_value_by_spec(type_spec, buf, column_by_spec_getter):
         elements = _split_tuple_elements(
             type_spec[len("Tuple("):-1])
         return tuple(
-            _decode_value_by_spec(elem, buf, column_by_spec_getter)
+            _decode_value_by_spec(
+                elem, buf, column_by_spec_getter, column_cache)
             for elem in elements
         )
 
     # Scalar — let the driver's column reader handle it.
-    column = column_by_spec_getter(type_spec)
+    if column_cache is not None:
+        column = column_cache.get(type_spec)
+        if column is None:
+            column = column_by_spec_getter(type_spec)
+            column_cache[type_spec] = column
+    else:
+        column = column_by_spec_getter(type_spec)
     value = column.read_items(1, _BytesIOReader(buf))
     return list(value)[0]
 
