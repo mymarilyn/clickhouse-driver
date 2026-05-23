@@ -207,7 +207,7 @@ class NewJsonColumn(Column):
         paths = self._unfold_json(items, depth)
 
         self._write_paths(paths, buf)
-        self._write_specs(paths, buf)
+        self._write_dynamic_state_prefixes(paths, buf)
         self._write_values(paths, len(items), buf)
 
     def _write_paths(self, paths, buf):
@@ -215,7 +215,7 @@ class NewJsonColumn(Column):
         write_varint(len(paths), buf)
         self.string_column.write_items(paths.keys(), buf)
 
-    def _write_specs(self, paths, buf, depth=0):
+    def _write_dynamic_state_prefixes(self, paths, buf, depth=0):
         # SerializationDynamic state prefix per dynamic path:
         #   UInt64 LE  DynamicSerializationVersion::V2
         #   VarUInt    num_dynamic_types (excludes SharedVariant)
@@ -275,7 +275,7 @@ class NewJsonColumn(Column):
                 items = [item[i] for item in col[spec]["values"]]
                 paths = self._unfold_json(items, depth=depth)
                 self._write_paths(paths, buf)
-                self._write_specs(paths, buf, depth=depth)
+                self._write_dynamic_state_prefixes(paths, buf, depth=depth)
 
     def _write_complex_array_header(self, col, spec, depth, buf):
         self.write_state_prefix(buf)
@@ -284,7 +284,7 @@ class NewJsonColumn(Column):
             items += item
         paths = self._unfold_json(items, depth=depth)
         self._write_paths(paths, buf)
-        self._write_specs(paths, buf, depth=depth)
+        self._write_dynamic_state_prefixes(paths, buf, depth=depth)
 
     def _write_complex_tuple_values(self, col, spec, depth, buf):
         for i, subspec in enumerate(spec[6:-2].split("), ")):
