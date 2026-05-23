@@ -243,7 +243,7 @@ class NewJsonColumn(Column):
         # offsets — all zero because we never overflow into the
         # SharedVariant on write.
         for col in paths.values():
-            buf.write(self._get_row_posititons(col, rows))
+            buf.write(self._get_row_positions(col, rows))
             for spec in col:
                 if spec.startswith("Array"):
                     if "JSON" in spec:
@@ -385,7 +385,7 @@ class NewJsonColumn(Column):
         elif item is None:
             return "String"
 
-    def _get_row_posititons(self, col, row_count):
+    def _get_row_positions(self, col, row_count):
         # Compute each row's global discriminator. ``DataTypeVariant``
         # sorts its variant list (which includes the implicit
         # ``SharedVariant``) by ``getName()`` alphabetically; the global
