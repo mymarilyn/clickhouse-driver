@@ -339,6 +339,10 @@ class NewJsonColumn(Column):
         self._write_values(paths, len(items), buf, depth=depth)
 
     def _get_json_value_spec(self, item, depth):
+        """Infer the ClickHouse column spec for a Python value being
+        inserted into a JSON column. ``depth`` shrinks the per-level
+        ``max_dynamic_types`` / ``max_dynamic_paths`` budgets so nested
+        dicts stay within server limits."""
         if isinstance(item, int) and not isinstance(item, bool):
             return "Int64"
         elif isinstance(item, float):
@@ -414,6 +418,9 @@ class NewJsonColumn(Column):
         return bytes(result)
 
     def _normalize_json(self, obj,):
+        """Flatten a nested dict into a dict of dotted-path leaves, e.g.
+        ``{"a": {"b": 1}}`` → ``{"a.b": 1}``. Each non-dict leaf is
+        returned as ``{"": leaf}`` so callers can compose keys."""
         if isinstance(obj, dict):
             result = {}
             for k in obj:
@@ -426,6 +433,9 @@ class NewJsonColumn(Column):
             return {"": obj}
 
     def _unfold_json_item(self, obj, depth, result=None, row_count=0):
+        """Fold one row into the intermediary
+        ``{path: {spec: {values: [...], positions: [...]}}}`` layout
+        that the write path emits to the wire."""
         if result is None:
             result = {}
         for k in obj:
@@ -444,6 +454,9 @@ class NewJsonColumn(Column):
         return result
 
     def _unfold_json(self, items, depth):
+        """Build the intermediary layout for a whole INSERT block by
+        unfolding every input row and sorting paths/specs so the
+        on-wire order matches the server's alphabetical expectation."""
         result = {}
         for row, obj in enumerate(items):
             result = self._unfold_json_item(obj, depth, result, row)
