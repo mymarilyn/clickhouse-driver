@@ -525,17 +525,13 @@ _TUPLE_TO_LIST_CONTAINERS = (dict, tuple, list)
 
 def _tuples_to_lists(value):
     """
-    Normalise the Python types a JSON value comes back as so the surface
-    matches the historical behaviour of ``NewJsonColumn``:
-
-      * ``ArrayColumn`` already returns lists for ``Array(...)``.
-      * ``TupleColumn`` returns tuples for ``Tuple(...)`` variants.
-      * If any tuple contains a ``dict`` somewhere inside, ClickHouse
-        stored the value as ``Tuple(..., JSON, ...)`` to carry an
-        embedded JSON object — surface that as a Python ``list`` to
-        match the original ``_read_complex_tuple_values`` output.
-      * Tuples that do not contain a dict (e.g. fixed-shape ``Tuple(Int,
-        String, Array)``) are left as tuples.
+    Normalise the Python types a JSON value comes back as. ``Array``
+    values arrive as lists already; ``Tuple`` values arrive as tuples
+    from :class:`TupleColumn`. The rule below preserves that
+    distinction except when a tuple contains a ``dict`` — those came
+    from a ``Tuple(..., JSON, ...)`` and the user-facing shape has
+    always been a list. Changing it would be an API break for anyone
+    relying on this column today.
     """
     if not isinstance(value, _TUPLE_TO_LIST_CONTAINERS):
         return value
