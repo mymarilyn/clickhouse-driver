@@ -48,7 +48,9 @@ OBJECT_V2 = 2
 class NewJsonColumn(Column):
     py_types = (dict, )
 
-    # No NULL value actually
+    # JSON columns are non-nullable on the wire; supply an empty dict
+    # as the placeholder used by sparse/null helpers in the base
+    # column.
     null_value = {}
 
     def __init__(self, column_by_spec_getter, **kwargs):
