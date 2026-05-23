@@ -508,23 +508,29 @@ def _tuples_to_lists(value):
       * Tuples that do not contain a dict (e.g. fixed-shape ``Tuple(Int,
         String, Array)``) are left as tuples.
     """
+    return _tuples_to_lists_inner(value)[0]
+
+
+def _tuples_to_lists_inner(value):
+    """Single-pass transform that also reports whether the result has
+    a ``dict`` anywhere inside, so callers can decide whether a parent
+    tuple should be coerced to a list without re-walking the tree."""
     if isinstance(value, dict):
-        return {k: _tuples_to_lists(v) for k, v in value.items()}
+        out = {}
+        for k, v in value.items():
+            out[k] = _tuples_to_lists_inner(v)[0]
+        return out, True
     if isinstance(value, (tuple, list)):
-        items = [_tuples_to_lists(v) for v in value]
-        if isinstance(value, list) or any(
-                _contains_dict(item) for item in items):
-            return items
-        return tuple(items)
-    return value
-
-
-def _contains_dict(value):
-    if isinstance(value, dict):
-        return True
-    if isinstance(value, (list, tuple)):
-        return any(_contains_dict(v) for v in value)
-    return False
+        items = []
+        has_dict = False
+        for v in value:
+            sub, sub_has_dict = _tuples_to_lists_inner(v)
+            items.append(sub)
+            has_dict = has_dict or sub_has_dict
+        if isinstance(value, list) or has_dict:
+            return items, has_dict
+        return tuple(items), False
+    return value, False
 
 
 def create_newjson_column(spec, column_by_spec_getter, column_options):
