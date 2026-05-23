@@ -727,7 +727,9 @@ class Client(object):
 
             else:
                 message = self.connection.unexpected_packet_message(
-                    'EndOfStream, Log, Progress or Exception', packet.type
+                    'EndOfStream, Log, Progress, ProfileEvents, '
+                    'TimezoneUpdate or Exception',
+                    packet.type
                 )
                 raise errors.UnexpectedPacketFromServerError(message)
 
