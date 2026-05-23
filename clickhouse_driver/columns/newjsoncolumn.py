@@ -2,21 +2,21 @@
 ClickHouse ``JSON`` (a.k.a. ``Object('json')``) column reader.
 
 The wire format is the one introduced in ClickHouse 24.8+ and stabilised
-in 25.x. The deserialization is composed out of the existing column
+in 25.x. Both directions are composed out of the existing column
 readers rather than hand-rolled:
 
-  * ``DynamicColumn`` reads one dynamic path's body (a SerializationVariant
-    over the declared variant types plus an implicit ``SharedVariant``).
-  * ``ArrayColumn`` + ``TupleColumn`` + ``String`` reads the shared-data
+  * ``DynamicColumn`` reads one dynamic path's body (a
+    SerializationVariant over the declared variant types plus an
+    implicit ``SharedVariant``).
+  * ``ArrayColumn`` + ``TupleColumn`` + ``String`` reads the shared
     sub-column ``Array(Tuple(String, String))``.
   * Shared-variant blobs are decoded by walking ``encodeDataType`` and
     then delegating the value bytes to the appropriate column reader
     obtained via ``column_by_spec_getter``.
 
-The write side still uses the ad-hoc format the original PR introduced.
-Replacing it with a symmetric V2 writer is a separate piece of work; for
-the SELECT path the asymmetry is harmless because the server already
-accepts the legacy V1/V2 mix on insert.
+The write path emits an ``ObjectSerializationVersion::V2`` header
+unconditionally; the server transparently falls back to V1 framing
+when the client revision is too old for V2.
 """
 
 from .arraycolumn import ArrayColumn
