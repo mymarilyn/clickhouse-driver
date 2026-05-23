@@ -16,6 +16,18 @@ from ..reader import (
 from ..varint import read_varint
 
 
+__all__ = [
+    'DynamicColumn',
+    'SharedValueDecoder',
+    'DYNAMIC_V1',
+    'DYNAMIC_V2',
+    'VARIANT_MODE_BASIC',
+    'VARIANT_MODE_COMPACT',
+    'NULL_DISCRIMINATOR',
+    'SHARED_VARIANT_NAME',
+]
+
+
 # DynamicSerializationVersion enum (ClickHouse 25.5). Note these
 # numeric values differ from ObjectSerializationVersion in
 # newjsoncolumn — each enum is independent on the server side.
