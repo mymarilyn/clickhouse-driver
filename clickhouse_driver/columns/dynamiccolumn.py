@@ -136,72 +136,65 @@ class DynamicColumn(Column):
             column.read_state_prefix(buf)
 
     def read_items(self, n_items, buf):
+        """
+        Read ``n_items`` rows of the SerializationVariant body in BASIC
+        mode. Wire layout per ClickHouse 25.5:
+
+          * ``n_items × UInt8`` global discriminators (``255`` for
+            NULL).
+          * For each variant in global discriminator order, the
+            per-variant column data sized by how many rows landed in
+            that variant.
+
+        Rows that hit the SharedVariant slot are passed through
+        ``self.shared_value_decoder`` to recover their Python form.
+        """
         if self.discriminators_mode == VARIANT_MODE_COMPACT:
             raise NotImplementedError(
                 "Compact Variant discriminators are not supported yet")
-        return _read_variant_basic(
-            n_items, self.variant_columns, buf,
-            shared_variant=(
-                self._shared_variant_index,
-                self.shared_value_decoder.decode,
-            ))
 
+        variant_columns = self.variant_columns
+        shared_variant_index = self._shared_variant_index
+        shared_variant_decoder = self.shared_value_decoder.decode
 
-def _read_variant_basic(n_items, variant_columns, buf,
-                        shared_variant=None):
-    """
-    Read ``n_items`` rows of a SerializationVariant body in BASIC mode.
+        discriminators = buf.read(n_items)
+        if len(discriminators) != n_items:
+            raise EOFError(
+                "Variant discriminators truncated: got {} bytes, "
+                "want {}".format(len(discriminators), n_items))
 
-    On the wire (per ClickHouse 25.5):
-      - n_items × UInt8 global discriminators (``255`` for NULL)
-      - For each variant in global discriminator order, the per-variant
-        column's data, sized by how many rows landed in that variant.
+        # Count rows per variant (preserving wire-order row appearance).
+        per_variant_indices = [[] for _ in range(len(variant_columns))]
+        for row, disc in enumerate(discriminators):
+            if disc == NULL_DISCRIMINATOR:
+                continue
+            if disc >= len(variant_columns):
+                raise ValueError(
+                    "Variant discriminator {} out of range "
+                    "(have {} variants)".format(
+                        disc, len(variant_columns)))
+            per_variant_indices[disc].append(row)
 
-    ``shared_variant`` is an optional ``(index, decoder)`` tuple
-    identifying the SharedVariant slot and the callable used to decode
-    its blobs into Python values.
-    """
-    discriminators = buf.read(n_items)
-    if len(discriminators) != n_items:
-        raise EOFError(
-            "Variant discriminators truncated: got {} bytes, want {}".format(
-                len(discriminators), n_items))
+        values_by_row = [None] * n_items
+        for variant_idx, rows in enumerate(per_variant_indices):
+            if not rows:
+                continue
+            column = variant_columns[variant_idx]
+            # ``read_data`` handles nulls maps / nested column wiring;
+            # ``read_items`` is a thinner low-level API. Pick whichever
+            # the underlying column exposes — most primitives implement
+            # both.
+            if hasattr(column, 'read_data'):
+                chunk = column.read_data(len(rows), buf)
+            else:
+                chunk = column.read_items(len(rows), buf)
+            chunk = list(chunk)
+            if variant_idx == shared_variant_index:
+                chunk = [shared_variant_decoder(b) for b in chunk]
+            for row, value in zip(rows, chunk):
+                values_by_row[row] = value
 
-    shared_variant_index = (
-        shared_variant[0] if shared_variant is not None else None)
-    shared_variant_decoder = (
-        shared_variant[1] if shared_variant is not None else None)
-
-    # Count rows per variant (preserving wire-order row appearance).
-    per_variant_indices = [[] for _ in range(len(variant_columns))]
-    for row, disc in enumerate(discriminators):
-        if disc == NULL_DISCRIMINATOR:
-            continue
-        if disc >= len(variant_columns):
-            raise ValueError(
-                "Variant discriminator {} out of range (have {} variants)"
-                .format(disc, len(variant_columns)))
-        per_variant_indices[disc].append(row)
-
-    values_by_row = [None] * n_items
-    for variant_idx, rows in enumerate(per_variant_indices):
-        if not rows:
-            continue
-        column = variant_columns[variant_idx]
-        # ``read_data`` handles nulls maps / nested column wiring;
-        # ``read_items`` is a thinner low-level API. We pick whichever
-        # the underlying column exposes — most primitives implement both.
-        if hasattr(column, 'read_data'):
-            chunk = column.read_data(len(rows), buf)
-        else:
-            chunk = column.read_items(len(rows), buf)
-        chunk = list(chunk)
-        if variant_idx == shared_variant_index:
-            chunk = [shared_variant_decoder(b) for b in chunk]
-        for row, value in zip(rows, chunk):
-            values_by_row[row] = value
-
-    return values_by_row
+        return values_by_row
 
 
 # ----------------------------------------------------------------------
