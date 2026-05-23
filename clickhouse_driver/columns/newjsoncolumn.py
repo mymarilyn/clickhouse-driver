@@ -46,6 +46,15 @@ OBJECT_V2 = 2
 
 
 class NewJsonColumn(Column):
+    """
+    Reader/writer for the ClickHouse ``JSON`` type. SELECT returns
+    nested ``dict`` rows; INSERT accepts ``dict`` or JSON-text
+    ``str``. Wire framing is V1/V2 ``SerializationObject`` on read
+    and V2 on write; the format is composed from
+    :class:`DynamicColumn` + ``Array(Tuple(String, String))`` for
+    shared data rather than hand-rolled.
+    """
+
     py_types = (dict, )
 
     # JSON columns are non-nullable on the wire; supply an empty dict
