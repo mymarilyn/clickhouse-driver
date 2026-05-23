@@ -284,7 +284,10 @@ _PRIMITIVE_TYPE_NAMES = {
 def _decode_type_spec(buf):
     """
     Parse the ``encodeDataType`` byte stream into a ClickHouse type
-    string suitable for ``column_by_spec_getter``.
+    string suitable for ``column_by_spec_getter``. The string form is
+    intentional: it keeps the SharedVariant handler cache keyable by a
+    single hash and lets us reuse the driver's existing column-by-spec
+    machinery instead of reimplementing it on a parallel AST.
     """
     tag = buf.read(1)
     if not tag:
