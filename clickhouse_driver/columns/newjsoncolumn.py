@@ -167,15 +167,24 @@ class NewJsonColumn(Column):
 
     @staticmethod
     def _denormalize_dotted_paths(obj):
+        # Convert dotted top-level keys (``"a.b.c"``) into nested dicts.
+        # A scalar already living at a prefix of a dotted key would be
+        # incompatible with the nested layout; the server should never
+        # emit such a conflict for a single JSON row, but raise loudly
+        # rather than silently overwriting if it ever does.
         for key in list(obj.keys()):
             parts = key.split('.')
             if len(parts) <= 1:
                 continue
             parent = obj
             for part in parts[:-1]:
-                if part not in parent or not isinstance(
-                        parent[part], dict):
+                if part not in parent:
                     parent[part] = {}
+                elif not isinstance(parent[part], dict):
+                    raise ValueError(
+                        "Cannot denormalise dotted JSON path {!r}: "
+                        "prefix {!r} already holds a non-dict value "
+                        "{!r}".format(key, part, parent[part]))
                 parent = parent[part]
             parent[parts[-1]] = obj[key]
             del obj[key]
