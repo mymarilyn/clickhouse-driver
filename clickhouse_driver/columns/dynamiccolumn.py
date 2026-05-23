@@ -141,13 +141,14 @@ class DynamicColumn(Column):
                 "Compact Variant discriminators are not supported yet")
         return _read_variant_basic(
             n_items, self.variant_columns, buf,
-            shared_variant_index=self._shared_variant_index,
-            shared_variant_decoder=self.shared_value_decoder.decode)
+            shared_variant=(
+                self._shared_variant_index,
+                self.shared_value_decoder.decode,
+            ))
 
 
 def _read_variant_basic(n_items, variant_columns, buf,
-                        shared_variant_index=None,
-                        shared_variant_decoder=None):
+                        shared_variant=None):
     """
     Read ``n_items`` rows of a SerializationVariant body in BASIC mode.
 
@@ -155,12 +156,21 @@ def _read_variant_basic(n_items, variant_columns, buf,
       - n_items × UInt8 global discriminators (``255`` for NULL)
       - For each variant in global discriminator order, the per-variant
         column's data, sized by how many rows landed in that variant.
+
+    ``shared_variant`` is an optional ``(index, decoder)`` tuple
+    identifying the SharedVariant slot and the callable used to decode
+    its blobs into Python values.
     """
     discriminators = buf.read(n_items)
     if len(discriminators) != n_items:
         raise EOFError(
             "Variant discriminators truncated: got {} bytes, want {}".format(
                 len(discriminators), n_items))
+
+    shared_variant_index = (
+        shared_variant[0] if shared_variant is not None else None)
+    shared_variant_decoder = (
+        shared_variant[1] if shared_variant is not None else None)
 
     # Count rows per variant (preserving wire-order row appearance).
     per_variant_indices = [[] for _ in range(len(variant_columns))]
@@ -186,7 +196,7 @@ def _read_variant_basic(n_items, variant_columns, buf,
         else:
             chunk = column.read_items(len(rows), buf)
         chunk = list(chunk)
-        if variant_idx == shared_variant_index and shared_variant_decoder:
+        if variant_idx == shared_variant_index:
             chunk = [shared_variant_decoder(b) for b in chunk]
         for row, value in zip(rows, chunk):
             values_by_row[row] = value
