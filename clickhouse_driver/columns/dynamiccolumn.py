@@ -436,21 +436,6 @@ def _read_varint_reader(reader):
             return result
 
 
-def decode_shared_value(blob, column_by_spec_getter, column_cache=None):
-    """
-    Convenience entry point matching the historical free-function
-    signature. Allocates a fresh ``SharedValueDecoder``, which throws
-    away the handler cache after one call — callers in a hot loop
-    should hold a :class:`SharedValueDecoder` themselves.
-
-    ``column_cache`` is accepted for backward compatibility but
-    ignored; the decoder owns its own scalar-reader cache.
-    """
-    del column_cache  # superseded by SharedValueDecoder's internal cache
-    decoder = SharedValueDecoder(column_by_spec_getter)
-    return decoder.decode(blob)
-
-
 def _split_tuple_elements(inner):
     """Split a ``Tuple(...)`` body on top-level commas."""
     parts = []
