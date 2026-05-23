@@ -494,6 +494,11 @@ class NewJsonColumn(Column):
         return insert
 
 
+# Container types that need recursion in ``_tuples_to_lists``; scalars
+# (most JSON leaves) short-circuit at the boundary.
+_TUPLE_TO_LIST_CONTAINERS = (dict, tuple, list)
+
+
 def _tuples_to_lists(value):
     """
     Normalise the Python types a JSON value comes back as so the surface
@@ -508,6 +513,8 @@ def _tuples_to_lists(value):
       * Tuples that do not contain a dict (e.g. fixed-shape ``Tuple(Int,
         String, Array)``) are left as tuples.
     """
+    if not isinstance(value, _TUPLE_TO_LIST_CONTAINERS):
+        return value
     return _tuples_to_lists_inner(value)[0]
 
 
@@ -518,15 +525,22 @@ def _tuples_to_lists_inner(value):
     if isinstance(value, dict):
         out = {}
         for k, v in value.items():
-            out[k] = _tuples_to_lists_inner(v)[0]
+            if isinstance(v, _TUPLE_TO_LIST_CONTAINERS):
+                out[k] = _tuples_to_lists_inner(v)[0]
+            else:
+                out[k] = v
         return out, True
     if isinstance(value, (tuple, list)):
         items = []
         has_dict = False
         for v in value:
-            sub, sub_has_dict = _tuples_to_lists_inner(v)
-            items.append(sub)
-            has_dict = has_dict or sub_has_dict
+            if isinstance(v, _TUPLE_TO_LIST_CONTAINERS):
+                sub, sub_has_dict = _tuples_to_lists_inner(v)
+                items.append(sub)
+                if sub_has_dict:
+                    has_dict = True
+            else:
+                items.append(v)
         if isinstance(value, list) or has_dict:
             return items, has_dict
         return tuple(items), False
