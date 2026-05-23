@@ -240,6 +240,30 @@ def _read_binary_string(reader):
     return reader.read(length)
 
 
+_PRIMITIVE_TYPE_NAMES = {
+    _TAG_NOTHING: "Nothing",
+    _TAG_UINT8: "UInt8",
+    _TAG_UINT16: "UInt16",
+    _TAG_UINT32: "UInt32",
+    _TAG_UINT64: "UInt64",
+    _TAG_UINT128: "UInt128",
+    _TAG_UINT256: "UInt256",
+    _TAG_INT8: "Int8",
+    _TAG_INT16: "Int16",
+    _TAG_INT32: "Int32",
+    _TAG_INT64: "Int64",
+    _TAG_INT128: "Int128",
+    _TAG_INT256: "Int256",
+    _TAG_FLOAT32: "Float32",
+    _TAG_FLOAT64: "Float64",
+    _TAG_DATE: "Date",
+    _TAG_DATE32: "Date32",
+    _TAG_DATETIME_UTC: "DateTime",
+    _TAG_STRING: "String",
+    _TAG_BOOL: "Bool",
+}
+
+
 def _decode_type_spec(buf):
     """
     Parse the ``encodeDataType`` byte stream into a ClickHouse type
@@ -298,28 +322,27 @@ def _decode_type_spec(buf):
         .format(tag))
 
 
-_PRIMITIVE_TYPE_NAMES = {
-    _TAG_NOTHING: "Nothing",
-    _TAG_UINT8: "UInt8",
-    _TAG_UINT16: "UInt16",
-    _TAG_UINT32: "UInt32",
-    _TAG_UINT64: "UInt64",
-    _TAG_UINT128: "UInt128",
-    _TAG_UINT256: "UInt256",
-    _TAG_INT8: "Int8",
-    _TAG_INT16: "Int16",
-    _TAG_INT32: "Int32",
-    _TAG_INT64: "Int64",
-    _TAG_INT128: "Int128",
-    _TAG_INT256: "Int256",
-    _TAG_FLOAT32: "Float32",
-    _TAG_FLOAT64: "Float64",
-    _TAG_DATE: "Date",
-    _TAG_DATE32: "Date32",
-    _TAG_DATETIME_UTC: "DateTime",
-    _TAG_STRING: "String",
-    _TAG_BOOL: "Bool",
-}
+def _nothing_handler(reader):
+    return None
+
+
+def _split_tuple_elements(inner):
+    """Split a ``Tuple(...)`` body on top-level commas."""
+    parts = []
+    depth = 0
+    start = 0
+    for i, ch in enumerate(inner):
+        if ch == '(':
+            depth += 1
+        elif ch == ')':
+            depth -= 1
+        elif ch == ',' and depth == 0:
+            parts.append(inner[start:i].strip())
+            start = i + 1
+    last = inner[start:].strip()
+    if last:
+        parts.append(last)
+    return parts
 
 
 class SharedValueDecoder:
@@ -414,29 +437,6 @@ class SharedValueDecoder:
             handler = self._build_handler(type_spec)
             self._handler_cache[type_spec] = handler
         return handler
-
-
-def _nothing_handler(reader):
-    return None
-
-
-def _split_tuple_elements(inner):
-    """Split a ``Tuple(...)`` body on top-level commas."""
-    parts = []
-    depth = 0
-    start = 0
-    for i, ch in enumerate(inner):
-        if ch == '(':
-            depth += 1
-        elif ch == ')':
-            depth -= 1
-        elif ch == ',' and depth == 0:
-            parts.append(inner[start:i].strip())
-            start = i + 1
-    last = inner[start:].strip()
-    if last:
-        parts.append(last)
-    return parts
 
 
 class _SharedValueReader:
