@@ -174,10 +174,10 @@ def _read_variant_basic(n_items, variant_columns, buf,
         per_variant_indices[disc].append(row)
 
     values_by_row = [None] * n_items
-    for variant, rows in enumerate(per_variant_indices):
+    for variant_idx, rows in enumerate(per_variant_indices):
         if not rows:
             continue
-        column = variant_columns[variant]
+        column = variant_columns[variant_idx]
         # ``read_data`` handles nulls maps / nested column wiring;
         # ``read_items`` is a thinner low-level API. We pick whichever
         # the underlying column exposes — most primitives implement both.
@@ -186,7 +186,7 @@ def _read_variant_basic(n_items, variant_columns, buf,
         else:
             chunk = column.read_items(len(rows), buf)
         chunk = list(chunk)
-        if variant == shared_variant_index and shared_variant_decoder:
+        if variant_idx == shared_variant_index and shared_variant_decoder:
             chunk = [shared_variant_decoder(b) for b in chunk]
         for row, value in zip(rows, chunk):
             values_by_row[row] = value
