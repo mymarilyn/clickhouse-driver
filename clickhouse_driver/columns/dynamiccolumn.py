@@ -8,6 +8,7 @@ hand-rolling Variant deserialization. The byte layout mirrors
 """
 
 from .base import Column
+from .stringcolumn import ByteString
 from ..reader import (
     read_binary_str,
     read_binary_uint64,
@@ -100,7 +101,7 @@ class DynamicColumn(Column):
         for i, name in enumerate(sorted_names):
             if name == SHARED_VARIANT_NAME:
                 self.variant_columns.append(
-                    _make_byte_string(self._column_kwargs))
+                    ByteString(**self._column_kwargs))
                 self._shared_variant_index = i
             else:
                 self.variant_columns.append(
@@ -128,12 +129,6 @@ class DynamicColumn(Column):
             n_items, self.variant_columns, buf,
             shared_variant_index=self._shared_variant_index,
             shared_variant_decoder=self.shared_value_decoder.decode)
-
-
-def _make_byte_string(kwargs):
-    # Avoid a circular import at module top-level.
-    from .stringcolumn import ByteString
-    return ByteString(**kwargs)
 
 
 def _read_variant_basic(n_items, variant_columns, buf,
