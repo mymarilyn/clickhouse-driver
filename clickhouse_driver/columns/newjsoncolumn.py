@@ -405,7 +405,9 @@ class NewJsonColumn(Column):
         else:
             return {"": obj}
 
-    def _unfold_json_item(self, obj, depth, result={}, row_count=0):
+    def _unfold_json_item(self, obj, depth, result=None, row_count=0):
+        if result is None:
+            result = {}
         for k in obj:
             if obj[k] is not None:
                 obj_res = self._normalize_json(obj[k])
