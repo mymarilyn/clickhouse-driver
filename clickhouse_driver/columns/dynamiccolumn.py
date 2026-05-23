@@ -224,25 +224,25 @@ _TAG_NULLABLE = 0x23
 _TAG_BOOL = 0x2D
 
 
-def _read_varint_bytesio(buf):
-    """LEB128 reader for ``io.BytesIO`` (the Cython ``read_varint`` wants
-    a ``read_one`` method which ``BytesIO`` lacks)."""
+def _read_varint(reader):
+    """LEB128 decoder for any reader exposing ``read_one`` returning an
+    ``int`` byte. The Cython ``read_varint`` in ``..varint`` only works
+    against the driver's buffered reader; shared-value decoding works
+    against an in-memory blob, so we re-implement the trivial loop here
+    to keep the hot path free of adapter layers."""
     shift = 0
     result = 0
     while True:
-        byte = buf.read(1)
-        if not byte:
-            return result
-        b = byte[0]
+        b = reader.read_one()
         result |= (b & 0x7F) << shift
         shift += 7
         if b < 0x80:
             return result
 
 
-def _read_string_bytesio(buf):
-    length = _read_varint_bytesio(buf)
-    return buf.read(length)
+def _read_binary_string(reader):
+    length = _read_varint(reader)
+    return reader.read(length)
 
 
 def _decode_type_spec(buf):
@@ -260,20 +260,20 @@ def _decode_type_spec(buf):
         return name
 
     if tag == _TAG_FIXED_STRING:
-        n = _read_varint_bytesio(buf)
+        n = _read_varint(buf)
         return "FixedString({})".format(n)
 
     if tag == _TAG_DATETIME_TZ:
-        tz = _read_string_bytesio(buf).decode('utf-8')
+        tz = _read_binary_string(buf).decode('utf-8')
         return "DateTime('{}')".format(tz)
 
     if tag == _TAG_DATETIME64_UTC:
-        scale = _read_varint_bytesio(buf)
+        scale = _read_varint(buf)
         return "DateTime64({})".format(scale)
 
     if tag == _TAG_DATETIME64_TZ:
-        scale = _read_varint_bytesio(buf)
-        tz = _read_string_bytesio(buf).decode('utf-8')
+        scale = _read_varint(buf)
+        tz = _read_binary_string(buf).decode('utf-8')
         return "DateTime64({}, '{}')".format(scale, tz)
 
     if tag == _TAG_NULLABLE:
@@ -285,15 +285,15 @@ def _decode_type_spec(buf):
         return "Array({})".format(inner)
 
     if tag == _TAG_TUPLE_UNNAMED:
-        size = _read_varint_bytesio(buf)
+        size = _read_varint(buf)
         elems = [_decode_type_spec(buf) for _ in range(size)]
         return "Tuple({})".format(", ".join(elems))
 
     if tag == _TAG_TUPLE_NAMED:
-        size = _read_varint_bytesio(buf)
+        size = _read_varint(buf)
         parts = []
         for _ in range(size):
-            element_name = _read_string_bytesio(buf).decode('utf-8')
+            element_name = _read_binary_string(buf).decode('utf-8')
             element_type = _decode_type_spec(buf)
             parts.append("{} {}".format(element_name, element_type))
         return "Tuple({})".format(", ".join(parts))
@@ -389,7 +389,7 @@ class SharedValueDecoder:
             inner_handler = self._lookup_handler(inner_spec)
 
             def array_handler(reader, _inner=inner_handler):
-                size = _read_varint_reader(reader)
+                size = _read_varint(reader)
                 return [_inner(reader) for _ in range(size)]
             return array_handler
 
@@ -423,17 +423,6 @@ class SharedValueDecoder:
 
 def _nothing_handler(reader):
     return None
-
-
-def _read_varint_reader(reader):
-    shift = 0
-    result = 0
-    while True:
-        b = reader.read_one()
-        result |= (b & 0x7F) << shift
-        shift += 7
-        if b < 0x80:
-            return result
 
 
 def _split_tuple_elements(inner):
@@ -488,23 +477,11 @@ class _SharedValueReader:
         return b
 
     def read_strings(self, n_items, encoding=None):
-        blob = self._blob
-        pos = self._pos
         out = []
         for _ in range(n_items):
-            shift = 0
-            length = 0
-            while True:
-                b = blob[pos]
-                pos += 1
-                length |= (b & 0x7F) << shift
-                shift += 7
-                if b < 0x80:
-                    break
-            chunk = blob[pos:pos + length]
-            pos += length
+            length = _read_varint(self)
+            chunk = self.read(length)
             if encoding is not None:
                 chunk = chunk.decode(encoding)
             out.append(chunk)
-        self._pos = pos
         return out
