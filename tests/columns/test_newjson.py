@@ -876,3 +876,17 @@ class NewJSONTestCase(BaseTestCase):
                 ({"f": 3.5},),
                 ({},),
             ])
+
+    def test_nullable_json_round_trip(self):
+        with self.create_table("a Nullable(JSON)"):
+            data = [(None,), ({"x": 1},), (None,), ({"y": "two"},)]
+            self.client.execute("INSERT INTO test (a) VALUES", data)
+            result = self.client.execute("SELECT * FROM test")
+            self.assertEqual(result, data)
+
+    def test_non_nullable_json_coerces_none_to_empty_dict(self):
+        with self.create_table("a JSON"):
+            self.client.execute(
+                "INSERT INTO test (a) VALUES", [(None,), ({"x": 1},)])
+            result = self.client.execute("SELECT * FROM test")
+            self.assertEqual(result, [({},), ({"x": 1},)])

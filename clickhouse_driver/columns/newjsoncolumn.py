@@ -97,13 +97,12 @@ class NewJsonColumn(Column):
         # Then, shared_data state prefix (no bytes — Array/Tuple/String
         # do not emit prefixes).
         version = read_binary_uint64(buf)
-        if version == OBJECT_STRING:
-            self.serialization_version = OBJECT_STRING
-            return
-        if version not in (OBJECT_V1, OBJECT_V2):
+        if version not in (OBJECT_V1, OBJECT_STRING, OBJECT_V2):
             raise NotImplementedError(
                 "Unsupported JSON serialization version {}".format(version))
         self.serialization_version = version
+        if version == OBJECT_STRING:
+            return
 
         if version == OBJECT_V1:
             read_varint(buf)  # legacy max_dynamic_paths
@@ -205,21 +204,41 @@ class NewJsonColumn(Column):
     # ------------------------------------------------------------------
 
     def write_state_prefix(self, buf):
+        # The JSON column's state prefix is data-dependent (path list +
+        # per-path SerializationDynamic prefixes), so we cannot emit it
+        # here — items are only available once ``write_data`` is
+        # called. Emitting the full prefix inside ``write_data`` also
+        # lets the nulls map written by the base ``Column.write_data``
+        # for ``Nullable(JSON)`` land between the prefix and the body,
+        # matching the on-wire order the server expects.
+        pass
+
+    def write_data(self, items, buf, depth=0):
+        # ``_write_nulls_map`` keys off ``x is None``, so it has to see
+        # the original items before ``None`` is coerced to
+        # ``null_value`` for the body writer.
+        original_items = items if self.nullable else None
+        items = [self._normalise_write_item(x) for x in items]
+        paths = self._unfold_json(items, depth)
+        self._write_object_state_prefix(paths, buf, depth=depth)
+        if self.nullable:
+            self._write_nulls_map(original_items, buf)
+        self._write_values(paths, len(items), buf, depth=depth)
+
+    def _normalise_write_item(self, item):
+        if item is None:
+            return self.null_value
+        if isinstance(item, str):
+            return json.loads(item)
+        return item
+
+    def _write_object_state_prefix(self, paths, buf, depth=0):
         # UInt64 LE: ObjectSerializationVersion::V2 (the server falls
-        # back to V1 itself if its client revision is too old, so we can
+        # back to V1 itself if its client revision is too old, so we
         # write V2 unconditionally).
         write_binary_uint64(OBJECT_V2, buf)
-
-    def write_items(self, items, buf, depth=0):
-        # Convert all items to dictionaries.
-        items = [
-            x if not isinstance(x, str) else json.loads(x) for x in items]
-
-        paths = self._unfold_json(items, depth)
-
         self._write_paths(paths, buf)
-        self._write_dynamic_state_prefixes(paths, buf)
-        self._write_values(paths, len(items), buf)
+        self._write_dynamic_state_prefixes(paths, buf, depth=depth)
 
     def _write_paths(self, paths, buf):
         # VarUInt dynamic_paths_count + N × String path names.
@@ -282,20 +301,16 @@ class NewJsonColumn(Column):
     def _write_complex_tuple_header(self, col, spec, depth, buf):
         for i, subspec in enumerate(spec[6:-2].split("), ")):
             if subspec.startswith("JSON"):
-                self.write_state_prefix(buf)
                 items = [item[i] for item in col[spec]["values"]]
                 paths = self._unfold_json(items, depth=depth)
-                self._write_paths(paths, buf)
-                self._write_dynamic_state_prefixes(paths, buf, depth=depth)
+                self._write_object_state_prefix(paths, buf, depth=depth)
 
     def _write_complex_array_header(self, col, spec, depth, buf):
-        self.write_state_prefix(buf)
         items = []
         for item in col[spec]["values"]:
             items += item
         paths = self._unfold_json(items, depth=depth)
-        self._write_paths(paths, buf)
-        self._write_dynamic_state_prefixes(paths, buf, depth=depth)
+        self._write_object_state_prefix(paths, buf, depth=depth)
 
     def _write_complex_tuple_values(self, col, spec, depth, buf):
         for i, subspec in enumerate(spec[6:-2].split("), ")):
