@@ -73,9 +73,12 @@ class LowCardinalityTestCase(NumpyBaseTestCase):
             self.assertEqual(inserted, '\\N\n-1\n0\n1\n\\N\n')
 
             inserted = self.client.execute(query, columnar=True)
+            # pandas 3.x: Categorical.astype(str) preserves missing as NaN, and
+            # NaN != NaN. Substitute a sentinel so equality holds.
             self.assertArraysEqual(
-                inserted[0].astype(str),
-                pd.Categorical(data[0]).astype(str)
+                pd.Series(inserted[0]).astype(object).fillna('\\N').to_numpy(),
+                pd.Series(pd.Categorical(data[0]))
+                  .astype(object).fillna('\\N').to_numpy(),
             )
             self.assertIsInstance(inserted[0], pd.Categorical)
 
@@ -213,7 +216,11 @@ class LowCardinalityTestCase(NumpyBaseTestCase):
             )
 
             inserted = self.client.execute(query, columnar=True)
+            # pandas 3.x: Categorical.astype(str) preserves missing as NaN, and
+            # NaN != NaN. Substitute a sentinel so equality holds.
             self.assertArraysEqual(
-                inserted[0].astype(str), pd.Categorical(data[0]).astype(str)
+                pd.Series(inserted[0]).astype(object).fillna('\\N').to_numpy(),
+                pd.Series(pd.Categorical(data[0]))
+                  .astype(object).fillna('\\N').to_numpy(),
             )
             self.assertIsInstance(inserted[0], pd.Categorical)
