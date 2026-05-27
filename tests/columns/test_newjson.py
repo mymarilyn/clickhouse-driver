@@ -972,6 +972,50 @@ class NewJSONTestCase(BaseTestCase):
                 ({"floats": [1.5, 2.5]},),
             ])
 
+    def test_json_array_with_nested_tuple_and_object(self):
+        # Heterogeneous arrays infer a Tuple spec on the write path. When
+        # an element is itself such an array, the spec nests
+        # (Tuple(Tuple(...), JSON)); the write path has to split the spec
+        # paren-aware and recurse rather than mishandle the inner commas.
+        with self.create_table("a JSON"):
+            data = [
+                ({"v": [[[1], {"p": 1}], {"q": 2}]},),
+                ({"v": [[2, 3], {"p": 5}]},),
+            ]
+            self.client.execute("INSERT INTO test (a) VALUES", data)
+            result = self.client.execute("SELECT * FROM test")
+            self.assertEqual(result, data)
+
+    def test_json_nested_container_shapes(self):
+        # Each of these infers a different nested spec on the write path,
+        # exercising the paren-aware recursion through Tuple/Array
+        # elements that carry a JSON sub-column.
+        with self.create_table("a JSON"):
+            data = [
+                # Tuple(Array(JSON), Nullable(Int64))
+                ({"v": [[{"p": 1}], 5]},),
+                # Array(Tuple(Nullable(Int64), JSON))
+                ({"w": [[1, {"p": 1}], [2, {"q": 2}]]},),
+                # Array(Array(Array(JSON)))
+                ({"x": [[[{"p": 1}]]]},),
+            ]
+            self.client.execute("INSERT INTO test (a) VALUES", data)
+            result = self.client.execute("SELECT * FROM test ORDER BY a")
+            self.assertCountEqual(result, data)
+
+    def test_json_tuple_with_plain_tuple_element(self):
+        # A complex tuple whose first element is a Tuple that has no JSON
+        # is written via the non-JSON Tuple branch. On read, a tuple
+        # without a dict stays a Python tuple (the long-standing
+        # _tuples_to_lists surface), so the inner element comes back as a
+        # tuple rather than a list.
+        with self.create_table("a JSON"):
+            self.client.execute(
+                "INSERT INTO test (a) VALUES",
+                [({"v": [[[1], "x"], {"p": 1}]},)])
+            result = self.client.execute("SELECT * FROM test")
+            self.assertEqual(result, [({"v": [([1], "x"), {"p": 1}]},)])
+
     def test_json_shared_arrays_of_objects(self):
         # An array of objects forced into shared data serialises as
         # Array(JSON); the SharedVariant decoder has to recurse into the

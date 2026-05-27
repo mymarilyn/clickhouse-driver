@@ -27,6 +27,7 @@ from .dynamiccolumn import (
     DynamicColumn,
     SharedValueDecoder,
     VARIANT_MODE_BASIC,
+    _split_tuple_elements,
 )
 from .stringcolumn import ByteString, String
 from .tuplecolumn import TupleColumn
@@ -260,10 +261,10 @@ class NewJsonColumn(Column):
             for spec in col:
                 if spec.startswith("Tuple") and "JSON" in spec:
                     self._write_complex_tuple_header(
-                        col, spec, depth + 1, buf)
+                        col[spec]["values"], spec, depth + 1, buf)
                 elif spec.startswith("Array") and "JSON" in spec:
                     self._write_complex_array_header(
-                        col, spec, depth + 1, buf)
+                        col[spec]["values"], spec, depth + 1, buf)
 
     def _write_values(self, paths, rows, buf, depth=0):
         # SerializationVariant body per dynamic path:
@@ -278,7 +279,7 @@ class NewJsonColumn(Column):
                 if spec.startswith("Array"):
                     if "JSON" in spec:
                         self._write_complex_array_values(
-                            col, spec, depth + 1, buf)
+                            col[spec]["values"], spec, depth + 1, buf)
                     else:
                         insert = self._preprocess_array(
                             col[spec]["values"], spec[6:-1])
@@ -287,7 +288,7 @@ class NewJsonColumn(Column):
                 elif spec.startswith("Tuple"):
                     if "JSON" in spec:
                         self._write_complex_tuple_values(
-                            col, spec, depth + 1, buf)
+                            col[spec]["values"], spec, depth + 1, buf)
                     else:
                         writer = self.column_by_spec_getter(spec)
                         writer.write_items(col[spec]["values"], buf)
@@ -298,60 +299,82 @@ class NewJsonColumn(Column):
         # Write final padding.
         buf.write(b"\x00" * rows * 8)
 
-    def _write_complex_tuple_header(self, col, spec, depth, buf):
-        for i, subspec in enumerate(spec[6:-2].split("), ")):
+    def _write_complex_tuple_header(self, values, spec, depth, buf):
+        # ``spec`` is ``Tuple(e0, e1, ...)``; split the body on top-level
+        # commas (a naive ``split`` would break on the commas inside a
+        # nested ``Tuple``/``JSON`` element) and emit the state prefix for
+        # every element that contains a JSON sub-column.
+        for i, subspec in enumerate(_split_tuple_elements(spec[6:-1])):
+            if "JSON" not in subspec:
+                continue
+            sub_values = [row[i] for row in values]
             if subspec.startswith("JSON"):
-                items = [item[i] for item in col[spec]["values"]]
-                paths = self._unfold_json(items, depth=depth)
+                paths = self._unfold_json(sub_values, depth=depth)
                 self._write_object_state_prefix(paths, buf, depth=depth)
+            elif subspec.startswith("Tuple"):
+                self._write_complex_tuple_header(
+                    sub_values, subspec, depth, buf)
+            elif subspec.startswith("Array"):
+                self._write_complex_array_header(
+                    sub_values, subspec, depth, buf)
 
-    def _write_complex_array_header(self, col, spec, depth, buf):
+    def _write_complex_array_header(self, values, spec, depth, buf):
         items = []
-        for item in col[spec]["values"]:
+        for item in values:
             items += item
-        paths = self._unfold_json(items, depth=depth)
-        self._write_object_state_prefix(paths, buf, depth=depth)
+        inner = spec[6:-1]  # strip "Array(" ... ")"
+        if inner.startswith("Tuple"):
+            self._write_complex_tuple_header(items, inner, depth, buf)
+        elif inner.startswith("Array"):
+            self._write_complex_array_header(items, inner, depth, buf)
+        else:  # Array(JSON)
+            paths = self._unfold_json(items, depth=depth)
+            self._write_object_state_prefix(paths, buf, depth=depth)
 
-    def _write_complex_tuple_values(self, col, spec, depth, buf):
-        for i, subspec in enumerate(spec[6:-2].split("), ")):
-            is_simple = (
-                not subspec.startswith("Array")
-                and not subspec.startswith("Tuple")
-                and not subspec.startswith("JSON"))
-            if is_simple:
-                buf.write(b"\x00" * len(col[spec]["values"]))
-            for row in col[spec]["values"]:
-                if subspec.startswith("JSON"):
-                    items = [item[i] for item in col[spec]["values"]]
-                    paths = self._unfold_json(items, depth=depth)
-                    self._write_values(
-                        paths, len(items), buf, depth=depth)
-                    break
-                elif subspec.startswith("Array"):
-                    insert = self._preprocess_array(
-                        [row[i]], subspec[6:])
-                    writer = self.column_by_spec_getter(
-                        subspec + ")")
-                    writer.write_data(insert, buf)
-                elif subspec.startswith("Tuple"):
-                    writer = self.column_by_spec_getter(
-                        subspec[6:])
-                    writer.write_data([row[i]], buf)
+    def _write_complex_tuple_values(self, values, spec, depth, buf):
+        for i, subspec in enumerate(_split_tuple_elements(spec[6:-1])):
+            sub_values = [row[i] for row in values]
+            if subspec.startswith("JSON"):
+                paths = self._unfold_json(sub_values, depth=depth)
+                self._write_values(paths, len(sub_values), buf, depth=depth)
+            elif subspec.startswith("Tuple"):
+                if "JSON" in subspec:
+                    self._write_complex_tuple_values(
+                        sub_values, subspec, depth, buf)
                 else:
-                    writer = self.column_by_spec_getter(
-                        subspec[9:])
-                    writer.write_data([row[i]], buf)
+                    writer = self.column_by_spec_getter(subspec)
+                    writer.write_items(sub_values, buf)
+            elif subspec.startswith("Array"):
+                if "JSON" in subspec:
+                    self._write_complex_array_values(
+                        sub_values, subspec, depth, buf)
+                else:
+                    insert = self._preprocess_array(sub_values, subspec[6:-1])
+                    writer = self.column_by_spec_getter(subspec)
+                    writer.write_data(insert, buf)
+            else:
+                # Simple element, always wrapped in Nullable by
+                # _get_json_value_spec; its writer emits the null map and
+                # values columnar-style across every row.
+                writer = self.column_by_spec_getter(subspec)
+                writer.write_data(sub_values, buf)
 
-    def _write_complex_array_values(self, col, spec, depth, buf):
+    def _write_complex_array_values(self, values, spec, depth, buf):
         bound = 0
-        for v in col[spec]["values"]:
+        for v in values:
             bound = bound + len(v)
             write_binary_uint64(bound, buf)
         items = []
-        for item in col[spec]["values"]:
+        for item in values:
             items += item
-        paths = self._unfold_json(items, depth=depth)
-        self._write_values(paths, len(items), buf, depth=depth)
+        inner = spec[6:-1]  # strip "Array(" ... ")"
+        if inner.startswith("Tuple"):
+            self._write_complex_tuple_values(items, inner, depth, buf)
+        elif inner.startswith("Array"):
+            self._write_complex_array_values(items, inner, depth, buf)
+        else:  # Array(JSON)
+            paths = self._unfold_json(items, depth=depth)
+            self._write_values(paths, len(items), buf, depth=depth)
 
     def _get_json_value_spec(self, item, depth):
         """Infer the ClickHouse column spec for a Python value being
