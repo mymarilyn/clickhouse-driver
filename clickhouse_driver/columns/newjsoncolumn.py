@@ -579,7 +579,6 @@ def _tuples_to_lists_inner(value):
         if isinstance(value, list) or has_dict:
             return items, has_dict
         return tuple(items), False
-    return value, False
 
 
 def create_newjson_column(spec, column_by_spec_getter, column_options):

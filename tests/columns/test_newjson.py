@@ -890,3 +890,103 @@ class NewJSONTestCase(BaseTestCase):
                 "INSERT INTO test (a) VALUES", [(None,), ({"x": 1},)])
             result = self.client.execute("SELECT * FROM test")
             self.assertEqual(result, [({},), ({"x": 1},)])
+
+    def test_json_array_value_types(self):
+        # Each homogeneous array maps to a distinct Array spec on the
+        # write path (Int64 / Float64 / Bool / String), and round-trips
+        # back through the per-path Dynamic reader.
+        with self.create_table("a JSON"):
+            data = [
+                ({"ints": [1, 2, 3]},),
+                ({"floats": [1.5, 2.5]},),
+                ({"bools": [True, False]},),
+                ({"strings": ["a", "b"]},),
+            ]
+            self.client.execute("INSERT INTO test (a) VALUES", data)
+            result = self.client.execute("SELECT * FROM test")
+            self.assertEqual(result, data)
+
+    def test_json_array_mixed_numeric_coerced_to_string(self):
+        # A heterogeneous array has no common numeric type, so the
+        # server widens every element to String.
+        with self.create_table("a JSON"):
+            self.client.execute(
+                "INSERT INTO test (a) VALUES", [({"v": [1, "x", 2.5]},)])
+            result = self.client.execute("SELECT * FROM test")
+            self.assertEqual(result, [({"v": ["1", "x", "2.5"]},)])
+
+    def test_json_nested_arrays(self):
+        # Arrays whose elements are themselves arrays exercise the
+        # recursive Array spec inference / decoder.
+        with self.create_table("a JSON"):
+            data = [({"grid": [[1, 2], [3]]},)]
+            self.client.execute("INSERT INTO test (a) VALUES", data)
+            result = self.client.execute("SELECT * FROM test")
+            self.assertEqual(result, data)
+
+    def test_json_array_of_objects(self):
+        # An array of objects becomes a Tuple spec on the write path and
+        # a dynamic path on read.
+        with self.create_table("a JSON"):
+            data = [({"items": [{"p": 1}, {"p": 2}]},)]
+            self.client.execute("INSERT INTO test (a) VALUES", data)
+            result = self.client.execute("SELECT * FROM test")
+            self.assertEqual(result, data)
+
+    def test_json_deeply_nested_object(self):
+        with self.create_table("a JSON"):
+            data = [({"a": {"b": {"c": {"d": 1}}}},)]
+            self.client.execute("INSERT INTO test (a) VALUES", data)
+            result = self.client.execute("SELECT * FROM test")
+            self.assertEqual(result, data)
+
+    def test_json_string_value_input(self):
+        # A row given as a JSON string is parsed by the write path
+        # before serialization.
+        with self.create_table("a JSON"):
+            self.client.execute(
+                "INSERT INTO test (a) VALUES", [('{"x": 1, "y": "two"}',)])
+            result = self.client.execute("SELECT * FROM test")
+            self.assertEqual(result, [({"x": 1, "y": "two"},)])
+
+    def test_json_shared_arrays(self):
+        # Arrays forced into the shared-data sub-column exercise the
+        # SharedVariant Array / nested-Array decoders, which the typed
+        # dynamic-path reader never reaches.
+        spec = "id UInt32, a JSON(max_dynamic_paths=0, max_dynamic_types=0)"
+        template = "CREATE TABLE test ({}) ENGINE = MergeTree ORDER BY id"
+        with self.create_table(spec, template=template):
+            data = [
+                {"id": 0, "a": {"ints": [1, 2, 3]}},
+                {"id": 1, "a": {"nested": [[1, 2], [3]]}},
+                {"id": 2, "a": {"strings": ["a", "b"]}},
+                {"id": 3, "a": {"floats": [1.5, 2.5]}},
+            ]
+            self.client.execute("INSERT INTO test (id, a) VALUES", data)
+            self.client.execute("OPTIMIZE TABLE test FINAL")
+            result = self.client.execute("SELECT a FROM test ORDER BY id")
+            self.assertEqual(result, [
+                ({"ints": [1, 2, 3]},),
+                ({"nested": [[1, 2], [3]]},),
+                ({"strings": ["a", "b"]},),
+                ({"floats": [1.5, 2.5]},),
+            ])
+
+    def test_json_shared_arrays_of_objects(self):
+        # An array of objects forced into shared data serialises as
+        # Array(JSON); the SharedVariant decoder has to recurse into the
+        # nested JSON value (including dotted paths) to reconstruct it.
+        spec = "id UInt32, a JSON(max_dynamic_paths=0, max_dynamic_types=0)"
+        template = "CREATE TABLE test ({}) ENGINE = MergeTree ORDER BY id"
+        with self.create_table(spec, template=template):
+            data = [
+                {"id": 0, "a": {"items": [{"p": 1}, {"q": "x"}]}},
+                {"id": 1, "a": {"items": [{"nested": {"deep": 5}}]}},
+            ]
+            self.client.execute("INSERT INTO test (id, a) VALUES", data)
+            self.client.execute("OPTIMIZE TABLE test FINAL")
+            result = self.client.execute("SELECT a FROM test ORDER BY id")
+            self.assertEqual(result, [
+                ({"items": [{"p": 1}, {"q": "x"}]},),
+                ({"items": [{"nested": {"deep": 5}}]},),
+            ])

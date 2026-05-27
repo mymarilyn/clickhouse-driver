@@ -234,6 +234,7 @@ _TAG_TUPLE_UNNAMED = 0x1F
 _TAG_TUPLE_NAMED = 0x20
 _TAG_NULLABLE = 0x23
 _TAG_BOOL = 0x2D
+_TAG_JSON = 0x30
 
 
 def _read_varint(reader):
@@ -337,6 +338,29 @@ def _decode_type_spec(buf):
             parts.append("{} {}".format(element_name, element_type))
         return "Tuple({})".format(", ".join(parts))
 
+    if tag == _TAG_JSON:
+        # encodeDataType layout for JSON (ClickHouse 25.5):
+        #   UInt8   serialization version
+        #   VarUInt max_dynamic_paths
+        #   UInt8   max_dynamic_types
+        #   VarUInt typed_paths_count, then per path: String + type
+        #   VarUInt paths_to_skip_count, then per path: String
+        #   VarUInt path_regexps_count, then per regexp: String
+        # None of these parameters change how a JSON value is laid out on
+        # the wire (every path is dynamic), so the spec collapses to the
+        # bare "JSON" handler once the bytes are consumed.
+        buf.read_one()       # serialization version
+        _read_varint(buf)    # max_dynamic_paths
+        buf.read_one()       # max_dynamic_types
+        for _ in range(_read_varint(buf)):   # typed paths
+            _read_binary_string(buf)
+            _decode_type_spec(buf)
+        for _ in range(_read_varint(buf)):   # paths to skip
+            _read_binary_string(buf)
+        for _ in range(_read_varint(buf)):   # path regexps to skip
+            _read_binary_string(buf)
+        return "JSON"
+
     raise NotImplementedError(
         "Cannot decode binary type tag 0x{:02x} in shared JSON value"
         .format(tag))
@@ -344,6 +368,22 @@ def _decode_type_spec(buf):
 
 def _nothing_handler(reader):
     return None
+
+
+def _insert_dotted_path(obj, dotted, value):
+    """Place ``value`` into ``obj`` under a dotted JSON path, creating the
+    intermediate dicts. ``{"a.b": 1}`` becomes ``{"a": {"b": 1}}`` so a
+    nested JSON value read out of a SharedVariant matches the shape the
+    top-level reader produces."""
+    parts = dotted.split('.')
+    cursor = obj
+    for part in parts[:-1]:
+        child = cursor.get(part)
+        if not isinstance(child, dict):
+            child = {}
+            cursor[part] = child
+        cursor = child
+    cursor[parts[-1]] = value
 
 
 def _split_tuple_elements(inner):
@@ -401,6 +441,13 @@ class SharedValueDecoder:
             return None
         reader = self._reader
         reader.reset(blob)
+        return self._decode_dynamic_value(reader)
+
+    def _decode_dynamic_value(self, reader):
+        """Decode one ``encodeDataType + serializeBinary`` value from the
+        current reader position. Used both for a top-level SharedVariant
+        blob and, recursively, for each dynamic path of a nested JSON
+        value."""
         type_spec = _decode_type_spec(reader)
         handler = self._handler_cache.get(type_spec)
         if handler is None:
@@ -411,6 +458,20 @@ class SharedValueDecoder:
     def _build_handler(self, type_spec):
         if type_spec == "Nothing":
             return _nothing_handler
+
+        if type_spec == "JSON":
+            def json_handler(reader, _decode=self._decode_dynamic_value):
+                # VarUInt path count, then per path: String name + a
+                # dynamic value. Absent paths arrive as Nothing-typed
+                # values; drop them so the object matches its input.
+                obj = {}
+                for _ in range(_read_varint(reader)):
+                    path = _read_binary_string(reader).decode('utf-8')
+                    value = _decode(reader)
+                    if value is not None:
+                        _insert_dotted_path(obj, path, value)
+                return obj
+            return json_handler
 
         if type_spec.startswith("Nullable("):
             inner_spec = type_spec[len("Nullable("):-1]
