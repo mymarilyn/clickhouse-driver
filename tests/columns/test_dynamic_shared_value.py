@@ -282,6 +282,29 @@ class DynamicColumnStatePrefixTestCase(TestCase):
             # No variants declared, so any non-NULL discriminator is bogus.
             column.read_items(1, _ListReader([bytes([5])]))
 
+    def test_read_state_prefix_v1_then_all_null_items(self):
+        # End-to-end read of a Dynamic(Int64) column header in the legacy
+        # V1 framing, followed by a body with only NULL discriminators.
+        # Exercises the V1 legacy-slot read, the non-SharedVariant column
+        # construction and its state-prefix call, and the
+        # "no rows for this variant, skip" branch in read_items.
+        buf = _ListReader([
+            (1).to_bytes(8, 'little'),    # structure_version = DYNAMIC_V1
+            _varint(0),                    # legacy max_dynamic_types slot
+            _varint(1),                    # one declared variant
+            _binary_string("Int64"),       # variant type spec
+            (0).to_bytes(8, 'little'),    # discriminators_mode = BASIC
+        ])
+        column = DynamicColumn(_make_getter(self.ctx), context=self.ctx)
+        column.read_state_prefix(buf)
+        self.assertEqual(column.variant_specs, ["Int64"])
+        # "Int64" sorts before "SharedVariant", so the latter takes
+        # global discriminator 1 and the SharedVariant slot is the last.
+        self.assertEqual(column._shared_variant_index, 1)
+
+        result = column.read_items(2, _ListReader([bytes([0xFF, 0xFF])]))
+        self.assertEqual(result, [None, None])
+
     def test_read_items_routes_rows_to_variants(self):
         # Row 0 hits a variant exposing only read_items (the fallback
         # branch); row 1 hits the SharedVariant slot, whose bytes go
