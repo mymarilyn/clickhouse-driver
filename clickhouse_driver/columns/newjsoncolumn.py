@@ -46,7 +46,7 @@ OBJECT_STRING = 1
 OBJECT_V2 = 2
 
 
-class NewJsonColumn(Column):
+class NewJsonColumn(Column):  # pragma: requires-clickhouse-24.8
     """
     Reader/writer for the ClickHouse ``JSON`` type. SELECT returns
     nested ``dict`` rows; INSERT accepts ``dict`` or JSON-text

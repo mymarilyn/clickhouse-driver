@@ -713,13 +713,13 @@ class Client(object):
             elif packet.type == ServerPacketTypes.PROGRESS:
                 self.last_query.store_progress(packet.progress)
 
-            elif packet.type == ServerPacketTypes.PROFILE_EVENTS:
+            elif packet.type == ServerPacketTypes.PROFILE_EVENTS:  # noqa: E501  pragma: requires-clickhouse-25.0
                 # When ``receive_profile_events`` exited early (e.g. on
                 # a ``TimezoneUpdate``), the actual ``ProfileEvents``
                 # packet can land in this loop instead.
                 self.last_query.store_profile(packet.profile_info)
 
-            elif packet.type == ServerPacketTypes.TIMEZONE_UPDATE:
+            elif packet.type == ServerPacketTypes.TIMEZONE_UPDATE:  # noqa: E501  pragma: requires-clickhouse-25.0
                 pass
 
             elif packet.type == ServerPacketTypes.EXCEPTION:
@@ -757,7 +757,7 @@ class Client(object):
             elif packet.type == ServerPacketTypes.EXCEPTION:
                 raise packet.exception
 
-            elif packet.type == ServerPacketTypes.TIMEZONE_UPDATE:
+            elif packet.type == ServerPacketTypes.TIMEZONE_UPDATE:  # noqa: E501  pragma: requires-clickhouse-25.0
                 # ClickHouse 25.x sends ``TimezoneUpdate`` in the slot
                 # where 24.x sent ``ProfileEvents`` between blocks of
                 # ``INSERT ... SELECT FROM input(...)``. The server then

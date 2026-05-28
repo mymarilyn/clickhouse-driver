@@ -2,7 +2,7 @@ version: '3'
 
 services:
   clickhouse-server:
-    image: "$ORG/clickhouse-server:$VERSION"
+    image: "$ORG/clickhouse-server:$CLICKHOUSE_VERSION"
     container_name: test-clickhouse-server
     environment:
       - TZ=Europe/Moscow
@@ -15,7 +15,7 @@ services:
       - "./clickhouse_server_config/certs:/etc/clickhouse-server/certs"
 
   clickhouse-client:
-    image: "$ORG/clickhouse-server:$VERSION"
+    image: "$ORG/clickhouse-server:$CLICKHOUSE_VERSION"
     container_name: test-clickhouse-client
     entrypoint: /bin/sh
     command: [-c, 'while :; do sleep 1; done']

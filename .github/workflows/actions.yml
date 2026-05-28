@@ -3,6 +3,8 @@ name: build
 jobs:
   tests:
     runs-on: ubuntu-22.04
+    env:
+      CLICKHOUSE_VERSION: ${{ matrix.clickhouse-version }}
     strategy:
       matrix:
         use-numpy:
@@ -71,7 +73,6 @@ jobs:
         run: flake8
       - name: Start ClickHouse server and client containers
         run: |
-          echo "VERSION=${{ matrix.clickhouse-version }}" > tests/.env
           if [[ "21.7" = "`echo -e "21.7\n${{ matrix.clickhouse-version }}" | sort -V | head -n1`" ]]; then echo "ORG=clickhouse"; else echo "ORG=yandex" ; fi  >> tests/.env
           if [[ "21.10" = "`echo -e "21.10\n${{ matrix.clickhouse-version }}" | sort -V | head -n1`" ]]; then echo "TOP_LEVEL=clickhouse"; else echo "TOP_LEVEL=yandex" ; fi  >> tests/.env
           docker compose -f tests/docker-compose.yml up -d
@@ -143,12 +144,11 @@ jobs:
 #          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
       - name: Start ClickHouse server and client containers
         run: |
-          echo "VERSION=$VERSION" > tests/.env
-          if [[ "21.7" = "`echo -e "21.7\n$VERSION" | sort -V | head -n1`" ]]; then echo "ORG=clickhouse"; else echo "ORG=yandex" ; fi  >> tests/.env
-          if [[ "21.10" = "`echo -e "21.10\n$VERSION" | sort -V | head -n1`" ]]; then echo "TOP_LEVEL=clickhouse"; else echo "TOP_LEVEL=yandex" ; fi  >> tests/.env
+          if [[ "21.7" = "`echo -e "21.7\n$CLICKHOUSE_VERSION" | sort -V | head -n1`" ]]; then echo "ORG=clickhouse"; else echo "ORG=yandex" ; fi  >> tests/.env
+          if [[ "21.10" = "`echo -e "21.10\n$CLICKHOUSE_VERSION" | sort -V | head -n1`" ]]; then echo "TOP_LEVEL=clickhouse"; else echo "TOP_LEVEL=yandex" ; fi  >> tests/.env
           docker compose -f tests/docker-compose.yml up -d
         env:
-          VERSION: 20.3.7.46
+          CLICKHOUSE_VERSION: 20.3.7.46
       - name: Setup clickhouse-client proxy for docker
         run: |
           # Faking clickhouse-client real communication with container via docker exec.
