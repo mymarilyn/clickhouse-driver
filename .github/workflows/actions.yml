@@ -214,7 +214,7 @@ jobs:
   wheels-macos:
     name: Wheels for OS X
     needs: valgrind
-    runs-on: macos-13
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
