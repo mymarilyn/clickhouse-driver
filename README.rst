@@ -52,6 +52,7 @@ Features
   * Tuple(T1, T2, ...)
   * Nested
   * Map(key, value)
+  * JSON
 
 - Query progress information.
 

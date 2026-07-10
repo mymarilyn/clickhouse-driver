@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Native `JSON` support. Solves issue [#473](https://github.com/mymarilyn/clickhouse-driver/issues/473) and [#460](https://github.com/mymarilyn/clickhouse-driver/issues/460). Pull request [#503](https://github.com/mymarilyn/clickhouse-driver/pull/503/) by [khvn26](https://github.com/khvn26), [gsergey418](https://github.com/gsergey418).
+
 ## [0.2.10] - 2026-10-10
 ### Added
 - Wheels for Python 3.13 and 3.14.

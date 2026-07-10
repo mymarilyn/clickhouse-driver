@@ -713,12 +713,23 @@ class Client(object):
             elif packet.type == ServerPacketTypes.PROGRESS:
                 self.last_query.store_progress(packet.progress)
 
+            elif packet.type == ServerPacketTypes.PROFILE_EVENTS:  # noqa: E501  pragma: requires-clickhouse-25.0
+                # When ``receive_profile_events`` exited early (e.g. on
+                # a ``TimezoneUpdate``), the actual ``ProfileEvents``
+                # packet can land in this loop instead.
+                self.last_query.store_profile(packet.profile_info)
+
+            elif packet.type == ServerPacketTypes.TIMEZONE_UPDATE:  # noqa: E501  pragma: requires-clickhouse-25.0
+                pass
+
             elif packet.type == ServerPacketTypes.EXCEPTION:
                 raise packet.exception
 
             else:
                 message = self.connection.unexpected_packet_message(
-                    'EndOfStream, Log, Progress or Exception', packet.type
+                    'EndOfStream, Log, Progress, ProfileEvents, '
+                    'TimezoneUpdate or Exception',
+                    packet.type
                 )
                 raise errors.UnexpectedPacketFromServerError(message)
 
@@ -746,8 +757,17 @@ class Client(object):
             elif packet.type == ServerPacketTypes.EXCEPTION:
                 raise packet.exception
 
-            elif packet.type == ServerPacketTypes.TIMEZONE_UPDATE:
-                pass
+            elif packet.type == ServerPacketTypes.TIMEZONE_UPDATE:  # noqa: E501  pragma: requires-clickhouse-25.0
+                # ClickHouse 25.x sends ``TimezoneUpdate`` in the slot
+                # where 24.x sent ``ProfileEvents`` between blocks of
+                # ``INSERT ... SELECT FROM input(...)``. The server then
+                # waits for the next data block, so looping for a
+                # ``ProfileEvents`` we are never going to get would
+                # deadlock. Treat the timezone packet as "no profile
+                # events for this block" and let the caller continue.
+                # The ``receive_packet`` machinery has already applied
+                # the new session timezone.
+                break
 
             else:
                 message = self.connection.unexpected_packet_message(

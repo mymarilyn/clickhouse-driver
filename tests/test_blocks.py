@@ -85,10 +85,15 @@ class BlocksTestCase(BaseTestCase):
 class ProgressTestCase(BaseTestCase):
     def test_select_with_progress(self):
         progress = self.client.execute_with_progress('SELECT 2')
-        self.assertEqual(
-            list(progress),
-            [(1, 0), (1, 0)] if self.server_version > (20,) else [(1, 0)]
-        )
+        # CH 25 reports 1 byte per progress chunk for trivial selects;
+        # earlier versions reported 0.
+        if self.server_version >= (25,):
+            expected = [(1, 1), (1, 1)]
+        elif self.server_version > (20,):
+            expected = [(1, 0), (1, 0)]
+        else:
+            expected = [(1, 0)]
+        self.assertEqual(list(progress), expected)
         self.assertEqual(progress.get_result(), [(2,)])
         self.assertTrue(self.client.connection.connected)
 
@@ -102,7 +107,11 @@ class ProgressTestCase(BaseTestCase):
 
         self.assertEqual(progress.progress_totals.rows, 1)
         self.assertEqual(progress.progress_totals.bytes, 1)
-        self.assertEqual(progress.progress_totals.total_rows, 0)
+        # CH 25 sets total_rows for trivial selects to 1; earlier
+        # versions left it at 0.
+        expected_total_rows = 1 if self.server_version >= (25,) else 0
+        self.assertEqual(
+            progress.progress_totals.total_rows, expected_total_rows)
 
     def test_select_with_progress_error(self):
         with self.assertRaises(ServerException):

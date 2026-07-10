@@ -1,0 +1,15 @@
+<clickhouse>
+    <!-- Open the ``default`` user with an empty password from any
+         address; recent images lock it to ``::1`` / ``127.0.0.1``. -->
+    <users>
+        <default>
+            <password></password>
+            <networks>
+                <ip>::/0</ip>
+            </networks>
+            <profile>default</profile>
+            <quota>default</quota>
+            <access_management>1</access_management>
+        </default>
+    </users>
+</clickhouse>

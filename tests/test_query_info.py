@@ -33,7 +33,11 @@ class QueryInfoTestCase(BaseTestCase):
         self.assertIsNotNone(last_query.progress)
         self.assertEqual(last_query.progress.rows, 42)
         self.assertEqual(last_query.progress.bytes, 42)
-        self.assertEqual(last_query.progress.total_rows, 0)
+        # CH 25 fills total_rows with the actual row count;
+        # earlier versions left it at 0.
+        expected_total_rows = 42 if self.server_version >= (25,) else 0
+        self.assertEqual(
+            last_query.progress.total_rows, expected_total_rows)
         if self.server_version > (22, 8):
             self.assertGreater(last_query.progress.elapsed_ns, 0)
 
@@ -51,7 +55,11 @@ class QueryInfoTestCase(BaseTestCase):
         self.assertIsNotNone(last_query.progress)
         self.assertEqual(last_query.progress.rows, 42)
         self.assertEqual(last_query.progress.bytes, 42)
-        self.assertEqual(last_query.progress.total_rows, 0)
+        # CH 25 fills total_rows with the actual row count;
+        # earlier versions left it at 0.
+        expected_total_rows = 42 if self.server_version >= (25,) else 0
+        self.assertEqual(
+            last_query.progress.total_rows, expected_total_rows)
         if self.server_version > (22, 8):
             self.assertGreater(last_query.progress.elapsed_ns, 0)
 
@@ -71,7 +79,11 @@ class QueryInfoTestCase(BaseTestCase):
         self.assertIsNotNone(last_query.progress)
         self.assertEqual(last_query.progress.rows, 42)
         self.assertEqual(last_query.progress.bytes, 42)
-        self.assertEqual(last_query.progress.total_rows, 0)
+        # CH 25 fills total_rows with the actual row count;
+        # earlier versions left it at 0.
+        expected_total_rows = 42 if self.server_version >= (25,) else 0
+        self.assertEqual(
+            last_query.progress.total_rows, expected_total_rows)
         if self.server_version > (22, 8):
             self.assertGreater(last_query.progress.elapsed_ns, 0)
 

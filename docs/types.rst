@@ -500,3 +500,14 @@ SELECT type: :class:`dict`, :class:`str`.
 json during ``INSERT``.
 
 Set ``allow_experimental_object_type=1`` for to enable json support.
+
+JSON
+--------------
+
+*New in version 0.2.11.*
+
+INSERT types: :class:`dict`.
+
+SELECT type: :class:`dict`, :class:`str`.
+
+Set ``enable_json_type=1`` for to enable json support.
