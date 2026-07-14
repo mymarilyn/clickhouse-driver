@@ -540,6 +540,101 @@ As you can see float column ``b`` in ``bad_df`` has two ``NaN`` values.
 But ``NaN`` and ``None`` is not the same for float point numbers.
 ``NaN`` is ``float('nan')`` where ``None`` is representing ``NULL``.
 
+PyArrow support
+---------------
+
+*New in version 0.2.11.*
+
+Package can SELECT data as PyArrow objects. Additional packages are required
+for :ref:`installation-pyarrow-support`.
+
+`query_arrow` returns the whole result as a ``pyarrow.Table``:
+
+    .. code-block:: python
+
+        >>> client = Client('localhost')
+        >>> table = client.query_arrow(
+        ...     'SELECT number AS x, toString(number) AS y '
+        ...     'FROM system.numbers LIMIT 10000'
+        ... )
+        >>> table
+        pyarrow.Table
+        x: uint64
+        y: string
+        ...
+
+`query_arrow_stream` returns a ``pyarrow.RecordBatchReader`` that yields one
+``pyarrow.RecordBatch`` per ClickHouse block, so arbitrarily large results
+can be processed with constant memory usage:
+
+    .. code-block:: python
+
+        >>> client = Client('localhost')
+        >>> reader = client.query_arrow_stream(
+        ...     'SELECT number FROM system.numbers LIMIT 1000000'
+        ... )
+        >>> for batch in reader:
+        ...     process(batch)
+
+Block size can be controlled with the ``max_block_size`` setting:
+
+    .. code-block:: python
+
+        >>> reader = client.query_arrow_stream(
+        ...     'SELECT number FROM system.numbers LIMIT 1000000',
+        ...     settings={'max_block_size': 100000}
+        ... )
+
+``NULL`` values in ``Nullable(T)`` columns are returned as proper Arrow
+nulls (validity bitmap) and the column keeps its original type. For
+example ``Nullable(Int64)`` is returned as a nullable ``int64`` Arrow
+column, unlike pandas where such column is converted to ``object`` or
+``float64`` dtype.
+
+ClickHouse types are mapped to Arrow types as follows:
+
+  +--------------------------------+------------------------------------+
+  | ClickHouse type                | Arrow type                         |
+  +================================+====================================+
+  | [U]Int8/16/32/64               | [u]int8/16/32/64                   |
+  +--------------------------------+------------------------------------+
+  | Float32/64                     | float32/64                         |
+  +--------------------------------+------------------------------------+
+  | Bool                           | bool                               |
+  +--------------------------------+------------------------------------+
+  | String/FixedString(N)          | string (binary with                |
+  |                                | ``strings_as_bytes``)              |
+  +--------------------------------+------------------------------------+
+  | Date/Date32                    | date32                             |
+  +--------------------------------+------------------------------------+
+  | DateTime([tz])                 | timestamp('s'[, tz])               |
+  +--------------------------------+------------------------------------+
+  | DateTime64(P[, tz])            | timestamp(unit[, tz])              |
+  +--------------------------------+------------------------------------+
+  | Decimal(P, S)                  | decimal128(P, S)                   |
+  +--------------------------------+------------------------------------+
+  | Enum8/16                       | string                             |
+  +--------------------------------+------------------------------------+
+  | UUID                           | string                             |
+  +--------------------------------+------------------------------------+
+  | IPv4/IPv6                      | string                             |
+  +--------------------------------+------------------------------------+
+  | LowCardinality(T)              | same as T                          |
+  +--------------------------------+------------------------------------+
+  | Nullable(T)                    | same as T with validity bitmap     |
+  +--------------------------------+------------------------------------+
+  | Array(T)                       | list<T>                            |
+  +--------------------------------+------------------------------------+
+  | Map(K, V)                      | map<K, V>                          |
+  +--------------------------------+------------------------------------+
+
+Values of other types are converted with Arrow's type inference.
+
+When the client is created with ``use_numpy=True`` (see
+:ref:`installation-numpy-support`), columns are deserialized into NumPy
+arrays first and converted to Arrow without copying where possible, which
+is significantly faster on large numeric results.
+
 Automatic disposal
 ------------------
 

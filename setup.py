@@ -133,7 +133,8 @@ setup(
             'clickhouse-cityhash>=1.0.2.6'
         ],
         'zstd': ['zstd', 'clickhouse-cityhash>=1.0.2.6'],
-        'numpy': ['numpy>=1.12.0', 'pandas>=0.24.0']
+        'numpy': ['numpy>=1.12.0', 'pandas>=0.24.0'],
+        'arrow': ['pyarrow>=8.0.0']
     },
     test_suite='pytest'
 )

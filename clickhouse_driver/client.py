@@ -549,6 +549,78 @@ class Client(object):
             self.last_query.store_elapsed(time() - start_time)
             return rv
 
+    def query_arrow(
+            self, query, params=None, external_tables=None, query_id=None,
+            settings=None):
+        """
+        *New in version 0.2.11.*
+
+        Queries data as PyArrow Table with specified SELECT query.
+
+        :param query: query that will be send to server.
+        :param params: substitution parameters.
+                       Defaults to ``None`` (no parameters  or data).
+        :param external_tables: external tables to send.
+                                Defaults to ``None`` (no external tables).
+        :param query_id: the query identifier. If no query id specified
+                         ClickHouse server will generate it.
+        :param settings: dictionary of query settings.
+                         Defaults to ``None`` (no additional settings).
+        :return: pyarrow.Table.
+        """
+
+        return self.query_arrow_stream(
+            query, params=params, external_tables=external_tables,
+            query_id=query_id, settings=settings
+        ).read_all()
+
+    def query_arrow_stream(
+            self, query, params=None, external_tables=None, query_id=None,
+            settings=None):
+        """
+        *New in version 0.2.11.*
+
+        Queries data as PyArrow RecordBatchReader with specified SELECT
+        query. One record batch is yielded per ClickHouse block, so
+        arbitrarily large results can be processed with constant memory
+        usage. Block size can be controlled with ``max_block_size``
+        setting.
+
+        The reader must be fully consumed (or closed) before the next
+        query execution.
+
+        :param query: query that will be send to server.
+        :param params: substitution parameters.
+                       Defaults to ``None`` (no parameters  or data).
+        :param external_tables: external tables to send.
+                                Defaults to ``None`` (no external tables).
+        :param query_id: the query identifier. If no query id specified
+                         ClickHouse server will generate it.
+        :param settings: dictionary of query settings.
+                         Defaults to ``None`` (no additional settings).
+        :return: pyarrow.RecordBatchReader.
+        """
+
+        try:
+            import pyarrow  # noqa: F401
+        except ImportError:
+            raise RuntimeError('Extras for PyArrow must be installed')
+
+        from .arrow.convert import create_record_batch_reader
+
+        with self.disconnect_on_error(query, settings):
+            if params is not None:
+                query = self.substitute_params(
+                    query, params, self.connection.context
+                )
+
+            self.connection.send_query(query, query_id=query_id,
+                                       params=params)
+            self.connection.send_external_tables(external_tables)
+            return create_record_batch_reader(
+                self.packet_generator(), self.connection.context
+            )
+
     def process_ordinary_query_with_progress(
             self, query, params=None, with_column_types=False,
             external_tables=None, query_id=None,
