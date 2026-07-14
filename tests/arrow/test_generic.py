@@ -179,6 +179,22 @@ class ArrowNumpyPathTestCase(ArrowBaseTestCase):
 
         self.assertTrue(table.equals(numpy_table))
 
+    def test_long_strings_equal_with_use_numpy(self):
+        # Strings longer than the reader buffer exercise the
+        # buffer-spanning path of the Arrow string reader.
+        query = (
+            "SELECT concat('привет', repeat('x', 1000000), "
+            "repeat('y', 1000000), toString(number)) AS s "
+            'FROM system.numbers LIMIT 3'
+        )
+
+        table = self.client.query_arrow(query)
+
+        with self.created_client(settings={'use_numpy': True}) as client:
+            numpy_table = client.query_arrow(query)
+
+        self.assertTrue(table.equals(numpy_table))
+
     def test_nullable_results_equal_with_use_numpy(self):
         query = (
             'SELECT '

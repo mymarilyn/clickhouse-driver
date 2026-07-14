@@ -93,4 +93,7 @@ def create_numpy_low_cardinality_column(spec, column_by_spec_getter,
                                         column_options):
     inner = spec[15:-1]
     nested = column_by_spec_getter(inner)
+    # Dictionary values are consumed by pd.Categorical: real items are
+    # needed, not Arrow buffers.
+    nested.arrow_buffers_allowed = False
     return NumpyLowCardinalityColumn(nested, **column_options)

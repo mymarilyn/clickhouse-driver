@@ -10,6 +10,11 @@ try:
 except ImportError:
     pd = None
 
+try:
+    from ..columns.numpy.stringcolumn import ArrowStringBuffers
+except ImportError:
+    ArrowStringBuffers = None
+
 from ..protocol import ServerPacketTypes
 from .mapping import get_type_and_converter
 
@@ -95,6 +100,10 @@ def _block_to_batch(block, schema, fields):
 
 
 def _column_to_array(column, type_, converter):
+    if ArrowStringBuffers is not None and \
+            isinstance(column, ArrowStringBuffers):
+        return _string_buffers_to_array(column, type_)
+
     if np is not None and isinstance(column, np.ma.MaskedArray):
         return _masked_to_array(column, type_, converter)
 
@@ -117,6 +126,38 @@ def _column_to_array(column, type_, converter):
         column = [None if x is None else converter(x) for x in column]
 
     return pa.array(column, type=type_)
+
+
+def _string_buffers_to_array(column, type_):
+    """
+    Assembles a string/binary array directly from wire-format buffers:
+    concatenated bytes + offsets, no per-string Python objects. The
+    binary -> string cast validates UTF-8 in C.
+    """
+    n_items = len(column)
+    offsets = np.frombuffer(column.offsets, dtype=np.int64)
+
+    if offsets[-1] > 2 ** 31 - 1:
+        raise ValueError(
+            'Block string data exceeds 2GiB. '
+            'Lower max_block_size to stream it.'
+        )
+
+    validity = None
+    if column.nulls_map is not None:
+        validity = pa.py_buffer(
+            np.packbits(column.nulls_map == 0, bitorder='little')
+        )
+
+    binary = pa.Array.from_buffers(pa.binary(), n_items, [
+        validity,
+        pa.py_buffer(offsets.astype(np.int32)),
+        pa.py_buffer(column.data)
+    ])
+
+    if type_ is None or type_ == pa.string():
+        return binary.cast(pa.string())
+    return binary
 
 
 def _masked_to_array(column, type_, converter):
