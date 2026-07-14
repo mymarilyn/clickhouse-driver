@@ -32,10 +32,27 @@ DECIMAL_PRECISIONS = {
 }
 
 
-def _dump_json(value):
+#: Types with no default Arrow representation: an explicit
+#: ``arrow_types`` entry is required for such columns.
+UNSUPPORTED = object()
+
+
+def json_as_text(value):
+    """JSON column value to JSON text."""
+    # With output_format_native_write_json_as_string the server sends
+    # JSON text as is.
+    if isinstance(value, str):
+        return value or '{}'
     # Dynamic values inside JSON may be dates, UUIDs and other rich
     # types: fall back to their string form.
     return json.dumps(value, default=str)
+
+
+def json_as_object(value):
+    """JSON column value to python objects for structured types."""
+    if isinstance(value, str):
+        return json.loads(value) if value else {}
+    return value
 
 
 def get_type_and_converter(spec, strings_as_bytes=False):
@@ -57,9 +74,9 @@ def get_type_and_converter(spec, strings_as_bytes=False):
         return pa.string(), str
 
     if spec == 'JSON' or spec.startswith('JSON('):
-        # JSON values are returned as JSON text: a stable schema
-        # regardless of dynamic paths inside the column.
-        return pa.string(), _dump_json
+        # No default representation: dynamic paths make every implicit
+        # choice either lossy or unstable. Requires arrow_types.
+        return UNSUPPORTED, None
 
     if spec == 'String' or spec.startswith('FixedString'):
         if strings_as_bytes:
@@ -89,8 +106,8 @@ def get_type_and_converter(spec, strings_as_bytes=False):
         inner_type, inner_converter = get_type_and_converter(
             get_inner_spec('Array', spec), strings_as_bytes
         )
-        if inner_type is None:
-            return None, None
+        if inner_type is None or inner_type is UNSUPPORTED:
+            return inner_type, None
 
         if inner_converter is None:
             converter = None
@@ -110,8 +127,9 @@ def get_type_and_converter(spec, strings_as_bytes=False):
         value_type, value_converter = get_type_and_converter(
             value_spec, strings_as_bytes
         )
-        if key_type is None or value_type is None:
-            return None, None
+        for t in (key_type, value_type):
+            if t is None or t is UNSUPPORTED:
+                return t, None
 
         if key_converter is None and value_converter is None:
             converter = None

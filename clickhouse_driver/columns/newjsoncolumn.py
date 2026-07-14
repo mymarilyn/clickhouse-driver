@@ -146,6 +146,10 @@ class NewJsonColumn(Column):  # pragma: requires-clickhouse-24.8
     def _read_items_string(self, n_items, buf):
         # Each row is one String containing the JSON text.
         strings = buf.read_strings(n_items, encoding='utf-8')
+        if (self.context.client_settings or {}).get('use_arrow'):
+            # Raw JSON text: the Arrow layer parses it or passes it
+            # through depending on the declared type.
+            return strings
         return [json.loads(s) if s else {} for s in strings]
 
     def _build_shared_data_column(self):

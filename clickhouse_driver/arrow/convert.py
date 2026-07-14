@@ -17,7 +17,9 @@ except ImportError:
 
 from .. import errors
 from ..protocol import ServerPacketTypes
-from .mapping import get_type_and_converter
+from .mapping import (
+    UNSUPPORTED, get_type_and_converter, json_as_object, json_as_text
+)
 
 
 class ArrowStreamState(object):
@@ -36,7 +38,7 @@ class ArrowStreamState(object):
 
 
 def create_record_batch_reader(packet_generator, context, state=None,
-                               field_metadata=True):
+                               field_metadata=True, arrow_types=None):
     """
     Creates RecordBatchReader yielding one record batch per ClickHouse
     block. Schema is built from the header block, so it's available before
@@ -45,6 +47,10 @@ def create_record_batch_reader(packet_generator, context, state=None,
     Unless ``field_metadata`` is disabled, the original ClickHouse type
     of each column is attached to its Arrow field as ``clickhouse_type``
     metadata.
+
+    ``arrow_types`` maps column names to Arrow types, overriding the
+    default mapping. Columns of types without a default Arrow
+    representation (``JSON``) require an entry.
     """
     strings_as_bytes = context.client_settings.get('strings_as_bytes', False)
 
@@ -57,10 +63,9 @@ def create_record_batch_reader(packet_generator, context, state=None,
         return pa.RecordBatchReader.from_batches(pa.schema([]), iter([]))
 
     columns_with_types = first_block.columns_with_types
-    fields = [
-        get_type_and_converter(type_, strings_as_bytes)
-        for _, type_ in columns_with_types
-    ]
+    fields = _resolve_fields(
+        columns_with_types, strings_as_bytes, arrow_types
+    )
 
     # Header block contains no rows.
     buffered = [first_block] if first_block.num_rows else []
@@ -107,6 +112,38 @@ def create_record_batch_reader(packet_generator, context, state=None,
             state.finished = True
 
     return pa.RecordBatchReader.from_batches(schema, batches())
+
+
+def _is_json_spec(spec):
+    return spec == 'JSON' or spec.startswith('JSON(')
+
+
+def _resolve_fields(columns_with_types, strings_as_bytes, arrow_types):
+    fields = []
+    for name, spec in columns_with_types:
+        type_, converter = get_type_and_converter(spec, strings_as_bytes)
+
+        declared = (arrow_types or {}).get(name)
+        if declared is not None:
+            if _is_json_spec(spec):
+                if pa.types.is_string(declared) or \
+                        pa.types.is_large_string(declared):
+                    converter = json_as_text
+                else:
+                    converter = json_as_object
+            type_ = declared
+
+        elif type_ is UNSUPPORTED:
+            raise ValueError(
+                "Column '{0}' of type {1} has no default Arrow "
+                "representation. Pass arrow_types={{'{0}': "
+                "pyarrow.string()}} for JSON text, declare a struct "
+                'type for structured output, or transform the column '
+                'in the query (e.g. toJSONString).'.format(name, spec)
+            )
+
+        fields.append((type_, converter))
+    return fields
 
 
 def _data_blocks(packet_generator):

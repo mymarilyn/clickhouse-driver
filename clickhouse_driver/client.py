@@ -590,7 +590,7 @@ class Client(object):
 
     def query_arrow(
             self, query, params=None, external_tables=None, query_id=None,
-            settings=None, field_metadata=True):
+            settings=None, field_metadata=True, arrow_types=None):
         """
         *New in version 0.2.11.*
 
@@ -608,18 +608,23 @@ class Client(object):
         :param field_metadata: attach original ClickHouse column types
                                to Arrow fields as ``clickhouse_type``
                                metadata. Defaults to ``True``.
+        :param arrow_types: dictionary mapping column names to Arrow
+                            types, overriding the default mapping.
+                            Required for columns without a default
+                            Arrow representation (``JSON``).
+                            Defaults to ``None``.
         :return: pyarrow.Table.
         """
 
         return self.query_arrow_stream(
             query, params=params, external_tables=external_tables,
             query_id=query_id, settings=settings,
-            field_metadata=field_metadata
+            field_metadata=field_metadata, arrow_types=arrow_types
         ).read_all()
 
     def query_arrow_stream(
             self, query, params=None, external_tables=None, query_id=None,
-            settings=None, field_metadata=True):
+            settings=None, field_metadata=True, arrow_types=None):
         """
         *New in version 0.2.11.*
 
@@ -644,6 +649,11 @@ class Client(object):
         :param field_metadata: attach original ClickHouse column types
                                to Arrow fields as ``clickhouse_type``
                                metadata. Defaults to ``True``.
+        :param arrow_types: dictionary mapping column names to Arrow
+                            types, overriding the default mapping.
+                            Required for columns without a default
+                            Arrow representation (``JSON``).
+                            Defaults to ``None``.
         :return: pyarrow.RecordBatchReader.
         """
 
@@ -677,7 +687,8 @@ class Client(object):
             self._pending_arrow_stream = state
             return create_record_batch_reader(
                 self.packet_generator(), self.connection.context,
-                state=state, field_metadata=field_metadata
+                state=state, field_metadata=field_metadata,
+                arrow_types=arrow_types
             )
 
     def process_ordinary_query_with_progress(

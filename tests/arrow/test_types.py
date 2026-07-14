@@ -275,32 +275,97 @@ class JSONTestCase(ArrowBaseTestCase):
     def cli_client_kwargs(self):
         return {'enable_json_type': 1}
 
-    def test_json_as_string(self):
+    def test_json_requires_arrow_types(self):
         with self.create_table('a JSON'):
             self.client.execute(
-                'INSERT INTO test (a) VALUES',
-                [({'k': 1, 's': 'x'}, ), ({}, )]
+                'INSERT INTO test (a) VALUES', [({'k': 1}, )]
             )
-            table = self.client.query_arrow('SELECT a FROM test')
+            with self.assertRaises(ValueError) as e:
+                self.client.query_arrow('SELECT a FROM test')
+
+            self.assertIn('arrow_types', str(e.exception))
+            # client is not broken by the rejected query
+            self.assertEqual(self.client.execute('SELECT 1'), [(1, )])
+
+    def test_json_as_text(self):
+        # Memory engine returns blocks in nondeterministic order:
+        # an explicit ordering key is required.
+        with self.create_table('i UInt8, a JSON'):
+            self.client.execute(
+                'INSERT INTO test (i, a) VALUES',
+                [(1, {'k': 1, 's': 'x'}), (2, {})]
+            )
+            # paths appearing only in later blocks must not be lost
+            self.client.execute(
+                'INSERT INTO test (i, a) VALUES', [(3, {'b': 'y'})]
+            )
+            table = self.client.query_arrow(
+                'SELECT a FROM test ORDER BY i',
+                arrow_types={'a': pa.string()}
+            )
 
             self.assertEqual(table.schema.field('a').type, pa.string())
             values = [json.loads(x) for x in table.column('a').to_pylist()]
-            self.assertEqual(values, [{'k': 1, 's': 'x'}, {}])
+            self.assertEqual(values, [{'k': 1, 's': 'x'}, {}, {'b': 'y'}])
 
-    def test_json_dynamic_paths_across_blocks(self):
-        # Paths appearing only in later blocks must not be lost: JSON
-        # text keeps the schema stable however paths evolve.
+    def test_json_as_text_string_wire_format(self):
+        # output_format_native_write_json_as_string makes the server
+        # send JSON text which is passed through to Arrow as is.
         with self.create_table('a JSON'):
             self.client.execute(
-                'INSERT INTO test (a) VALUES', [({'a': 1}, )]
+                'INSERT INTO test (a) VALUES',
+                [({'k': 1}, ), ({'b': 'y'}, )]
             )
-            self.client.execute(
-                'INSERT INTO test (a) VALUES', [({'b': 'x'}, )]
+            table = self.client.query_arrow(
+                'SELECT a FROM test', arrow_types={'a': pa.string()},
+                settings={'output_format_native_write_json_as_string': 1}
             )
-            table = self.client.query_arrow('SELECT a FROM test')
 
             values = [json.loads(x) for x in table.column('a').to_pylist()]
-            self.assertEqual(values, [{'a': 1}, {'b': 'x'}])
+            self.assertEqual(values, [{'k': 1}, {'b': 'y'}])
+
+    def test_json_as_struct(self):
+        struct = pa.struct([('k', pa.int64()), ('s', pa.string())])
+
+        with self.create_table('i UInt8, a JSON'):
+            self.client.execute(
+                'INSERT INTO test (i, a) VALUES', [(1, {'k': 1, 's': 'x'})]
+            )
+            # declared schema contract: missing paths are null-filled
+            self.client.execute(
+                'INSERT INTO test (i, a) VALUES', [(2, {'k': 2})]
+            )
+            table = self.client.query_arrow(
+                'SELECT a FROM test ORDER BY i', arrow_types={'a': struct}
+            )
+
+            self.assertEqual(table.schema.field('a').type, struct)
+            self.assertEqual(table.column('a').to_pylist(), [
+                {'k': 1, 's': 'x'},
+                {'k': 2, 's': None},
+            ])
+
+
+class ArrowTypesOverrideTestCase(ArrowBaseTestCase):
+    def test_general_type_override(self):
+        table = self.client.query_arrow(
+            'SELECT CAST(number AS Int64) AS x '
+            'FROM system.numbers LIMIT 3',
+            arrow_types={'x': pa.int32()}
+        )
+
+        self.assertEqual(table.schema.field('x').type, pa.int32())
+        self.assertEqual(table.column('x').to_pylist(), [0, 1, 2])
+
+    def test_stream_schema_uses_declared_type(self):
+        reader = self.client.query_arrow_stream(
+            'SELECT CAST(number AS Int64) AS x '
+            'FROM system.numbers LIMIT 3',
+            arrow_types={'x': pa.float64()}
+        )
+
+        self.assertEqual(reader.schema.field('x').type, pa.float64())
+        reader.read_all()
 
 
 class MapTestCase(ArrowBaseTestCase):

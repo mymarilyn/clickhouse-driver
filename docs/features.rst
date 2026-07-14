@@ -630,12 +630,47 @@ ClickHouse types are mapped to Arrow types as follows:
   +--------------------------------+------------------------------------+
   | Map(K, V)                      | map<K, V>                          |
   +--------------------------------+------------------------------------+
-  | JSON                           | string (JSON text)                 |
-  +--------------------------------+------------------------------------+
 
 Values of other types are converted with Arrow's type inference on a
 best-effort basis: their Arrow representation may change in future
 versions.
+
+The default mapping can be overridden per column with ``arrow_types``.
+For most types the declared Arrow type is used as the conversion
+target:
+
+    .. code-block:: python
+
+        >>> client.query_arrow(
+        ...     'SELECT number FROM system.numbers LIMIT 10',
+        ...     arrow_types={'number': pa.int32()}
+        ... )
+
+``JSON`` columns have no default Arrow representation: dynamic paths
+make every implicit choice either lossy or unstable, so an
+``arrow_types`` entry is required. Declare ``pyarrow.string()`` to get
+JSON text:
+
+    .. code-block:: python
+
+        >>> client.query_arrow(
+        ...     'SELECT j FROM test', arrow_types={'j': pa.string()}
+        ... )
+
+or declare a struct type for structured output. With a declared
+struct, paths missing in a row become nulls, paths not declared in the
+struct are dropped and paths of varying types raise an error.
+
+For maximum JSON text throughput let the server serialize JSON to text
+with the ``output_format_native_write_json_as_string`` setting: the
+text is passed through to Arrow without parsing:
+
+    .. code-block:: python
+
+        >>> client.query_arrow(
+        ...     'SELECT j FROM test', arrow_types={'j': pa.string()},
+        ...     settings={'output_format_native_write_json_as_string': 1}
+        ... )
 
 The original ClickHouse type of every column is attached to its Arrow
 field as ``clickhouse_type`` metadata.
