@@ -8,7 +8,7 @@ tests_require = [
     'parameterized',
     'freezegun',
     'zstd',
-    'clickhouse-cityhash>=1.0.2.1'
+    'clickhouse-cityhash>=1.0.2.6'
 ]
 
 if sys.implementation.name == 'pypy':
