@@ -54,7 +54,10 @@ class BlocksTestCase(BaseTestCase):
 
             query = 'SELECT * FROM test ORDER BY a'
 
-            inserted = self.client.execute(query, columnar=True)
+            # One row per block even if the two parts get merged.
+            inserted = self.client.execute(
+                query, columnar=True, settings={'max_block_size': 1}
+            )
             self.assertEqual(inserted, [(1, 2)])
 
     def test_select_with_column_types(self):
