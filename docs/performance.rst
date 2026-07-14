@@ -370,6 +370,28 @@ Iteration over int rows with ``clickhouse-connect`` (16)
     :language: python
 
 
+PyArrow tables
+^^^^^^^^^^^^^^
+
+*New in version 0.2.11.*
+
+Get query result as PyArrow Table with ``clickhouse-driver`` in Native
+format (18)
+
+.. literalinclude:: ../perf/script_18.py
+    :language: python
+
+The same with NumPy fast paths enabled (19)
+
+.. literalinclude:: ../perf/script_19.py
+    :language: python
+
+Get query result as PyArrow Table with ``clickhouse-connect`` (20)
+
+.. literalinclude:: ../perf/script_20.py
+    :language: python
+
+
 Results
 -------
 
