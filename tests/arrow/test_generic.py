@@ -74,6 +74,28 @@ class QueryArrowTestCase(ArrowBaseTestCase):
 
         self.assertEqual(table.column('x').to_pylist(), [1, 2])
 
+    def test_field_metadata(self):
+        table = self.client.query_arrow(
+            'SELECT CAST(1 AS Nullable(Int32)) AS x, '
+            'toLowCardinality(toString(1)) AS lc'
+        )
+
+        self.assertEqual(
+            table.schema.field('x').metadata,
+            {b'clickhouse_type': b'Nullable(Int32)'}
+        )
+        self.assertEqual(
+            table.schema.field('lc').metadata,
+            {b'clickhouse_type': b'LowCardinality(String)'}
+        )
+
+    def test_field_metadata_opt_out(self):
+        table = self.client.query_arrow(
+            'SELECT 1 AS x', field_metadata=False
+        )
+
+        self.assertIsNone(table.schema.field('x').metadata)
+
     def test_several_blocks_concatenated(self):
         table = self.client.query_arrow(
             'SELECT number FROM system.numbers LIMIT 1000',
@@ -101,6 +123,17 @@ class QueryArrowStreamTestCase(ArrowBaseTestCase):
 
         self.assertEqual(reader.schema.field('x').type, pa.int32())
         reader.close()
+
+    def test_stream_field_metadata(self):
+        reader = self.client.query_arrow_stream(
+            'SELECT number FROM system.numbers LIMIT 10'
+        )
+
+        self.assertEqual(
+            reader.schema.field('number').metadata,
+            {b'clickhouse_type': b'UInt64'}
+        )
+        reader.read_all()
 
     def test_multiple_batches(self):
         reader = self.client.query_arrow_stream(

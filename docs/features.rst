@@ -631,7 +631,14 @@ ClickHouse types are mapped to Arrow types as follows:
   | Map(K, V)                      | map<K, V>                          |
   +--------------------------------+------------------------------------+
 
-Values of other types are converted with Arrow's type inference.
+Values of other types are converted with Arrow's type inference on a
+best-effort basis: their Arrow representation may change in future
+versions.
+
+The original ClickHouse type of every column is attached to its Arrow
+field as ``clickhouse_type`` metadata.
+
+Pass ``field_metadata=False`` to skip metadata generation.
 
 When the client is created with ``use_numpy=True`` (see
 :ref:`installation-numpy-support`), columns are converted to Arrow

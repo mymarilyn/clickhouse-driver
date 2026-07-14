@@ -590,7 +590,7 @@ class Client(object):
 
     def query_arrow(
             self, query, params=None, external_tables=None, query_id=None,
-            settings=None):
+            settings=None, field_metadata=True):
         """
         *New in version 0.2.11.*
 
@@ -605,17 +605,21 @@ class Client(object):
                          ClickHouse server will generate it.
         :param settings: dictionary of query settings.
                          Defaults to ``None`` (no additional settings).
+        :param field_metadata: attach original ClickHouse column types
+                               to Arrow fields as ``clickhouse_type``
+                               metadata. Defaults to ``True``.
         :return: pyarrow.Table.
         """
 
         return self.query_arrow_stream(
             query, params=params, external_tables=external_tables,
-            query_id=query_id, settings=settings
+            query_id=query_id, settings=settings,
+            field_metadata=field_metadata
         ).read_all()
 
     def query_arrow_stream(
             self, query, params=None, external_tables=None, query_id=None,
-            settings=None):
+            settings=None, field_metadata=True):
         """
         *New in version 0.2.11.*
 
@@ -637,6 +641,9 @@ class Client(object):
                          ClickHouse server will generate it.
         :param settings: dictionary of query settings.
                          Defaults to ``None`` (no additional settings).
+        :param field_metadata: attach original ClickHouse column types
+                               to Arrow fields as ``clickhouse_type``
+                               metadata. Defaults to ``True``.
         :return: pyarrow.RecordBatchReader.
         """
 
@@ -670,7 +677,7 @@ class Client(object):
             self._pending_arrow_stream = state
             return create_record_batch_reader(
                 self.packet_generator(), self.connection.context,
-                state=state
+                state=state, field_metadata=field_metadata
             )
 
     def process_ordinary_query_with_progress(

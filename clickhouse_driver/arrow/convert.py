@@ -35,11 +35,16 @@ class ArrowStreamState(object):
         self.cancelled = False
 
 
-def create_record_batch_reader(packet_generator, context, state=None):
+def create_record_batch_reader(packet_generator, context, state=None,
+                               field_metadata=True):
     """
     Creates RecordBatchReader yielding one record batch per ClickHouse
     block. Schema is built from the header block, so it's available before
     any data block is received.
+
+    Unless ``field_metadata`` is disabled, the original ClickHouse type
+    of each column is attached to its Arrow field as ``clickhouse_type``
+    metadata.
     """
     strings_as_bytes = context.client_settings.get('strings_as_bytes', False)
 
@@ -73,8 +78,11 @@ def create_record_batch_reader(packet_generator, context, state=None):
         fields = _infer_missing_types(fields, buffered)
 
     schema = pa.schema([
-        pa.field(name, type_)
-        for (name, _), (type_, _) in zip(columns_with_types, fields)
+        pa.field(
+            name, type_,
+            metadata={'clickhouse_type': spec} if field_metadata else None
+        )
+        for (name, spec), (type_, _) in zip(columns_with_types, fields)
     ])
 
     def batches():
