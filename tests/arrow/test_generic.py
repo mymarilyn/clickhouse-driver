@@ -160,7 +160,7 @@ class QueryArrowStreamTestCase(ArrowBaseTestCase):
             'SELECT number FROM system.numbers LIMIT 100000',
             settings={'max_block_size': 100}
         )
-        batch = next(reader)
+        batch = reader.read_next_batch()
         self.assertEqual(batch.num_rows, 100)
         reader.close()
 
@@ -172,7 +172,7 @@ class QueryArrowStreamTestCase(ArrowBaseTestCase):
             'SELECT number FROM system.numbers LIMIT 100000',
             settings={'max_block_size': 100}
         )
-        next(reader)
+        reader.read_next_batch()
         reader.close()
 
         table = self.client.query_arrow(
@@ -185,7 +185,7 @@ class QueryArrowStreamTestCase(ArrowBaseTestCase):
             'SELECT number FROM system.numbers LIMIT 100000',
             settings={'max_block_size': 100}
         )
-        next(reader)
+        reader.read_next_batch()
 
         self.client.execute('SELECT 1')
 
