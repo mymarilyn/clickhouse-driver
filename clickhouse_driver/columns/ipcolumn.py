@@ -67,6 +67,10 @@ class IPv4Column(UInt32Column):
 class IPv6Column(ByteFixedString):
     ch_type = "IPv6"
     py_types = (str, IPv6Address, bytes)
+    # Wire-format default: must be readable by after_read_items and
+    # writable by write_items as-is (sparse deserialization and
+    # LowCardinality pass it to both without conversion).
+    null_value = b'\x00' * 16
 
     def __init__(self, types_check=False, **kwargs):
         super(IPv6Column, self).__init__(16, types_check=types_check, **kwargs)
