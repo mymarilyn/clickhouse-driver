@@ -15,11 +15,27 @@ try:
 except ImportError:
     ArrowStringBuffers = None
 
+from .. import errors
 from ..protocol import ServerPacketTypes
 from .mapping import get_type_and_converter
 
 
-def create_record_batch_reader(packet_generator, context):
+class ArrowStreamState(object):
+    """
+    Tracks whether a streamed query was consumed to the end.
+    ``pyarrow.RecordBatchReader.close`` doesn't reach the underlying
+    generator, so the client uses this state to cancel unfinished
+    streams before the next query.
+    """
+    __slots__ = ('connection', 'finished', 'cancelled')
+
+    def __init__(self, connection):
+        self.connection = connection
+        self.finished = False
+        self.cancelled = False
+
+
+def create_record_batch_reader(packet_generator, context, state=None):
     """
     Creates RecordBatchReader yielding one record batch per ClickHouse
     block. Schema is built from the header block, so it's available before
@@ -31,6 +47,8 @@ def create_record_batch_reader(packet_generator, context):
 
     first_block = next(blocks, None)
     if first_block is None:
+        if state is not None:
+            state.finished = True
         return pa.RecordBatchReader.from_batches(pa.schema([]), iter([]))
 
     columns_with_types = first_block.columns_with_types
@@ -63,9 +81,22 @@ def create_record_batch_reader(packet_generator, context):
         for block in buffered:
             yield _block_to_batch(block, schema, fields)
 
-        for block in blocks:
+        while True:
+            # The stream may have been cancelled by a subsequent query
+            # on the same client. Reading further would consume packets
+            # of that query.
+            if state is not None and state.cancelled:
+                raise errors.PartiallyConsumedQueryError()
+
+            block = next(blocks, None)
+            if block is None:
+                break
+
             if block.num_rows:
                 yield _block_to_batch(block, schema, fields)
+
+        if state is not None:
+            state.finished = True
 
     return pa.RecordBatchReader.from_batches(schema, batches())
 

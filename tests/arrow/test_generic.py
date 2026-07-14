@@ -3,6 +3,7 @@ try:
 except ImportError:
     pa = None
 
+from clickhouse_driver import errors
 from tests.testcase import BaseTestCase
 from tests.arrow.testcase import ArrowBaseTestCase
 
@@ -143,6 +144,55 @@ class QueryArrowStreamTestCase(ArrowBaseTestCase):
 
         rv = self.client.execute('SELECT 1')
         self.assertEqual(rv, [(1, )])
+
+    def test_client_usable_after_close_before_consuming(self):
+        reader = self.client.query_arrow_stream(
+            'SELECT number FROM system.numbers LIMIT 100000',
+            settings={'max_block_size': 100}
+        )
+        reader.close()
+
+        rv = self.client.execute('SELECT 1')
+        self.assertEqual(rv, [(1, )])
+
+    def test_client_usable_after_close_after_one_batch(self):
+        reader = self.client.query_arrow_stream(
+            'SELECT number FROM system.numbers LIMIT 100000',
+            settings={'max_block_size': 100}
+        )
+        batch = next(reader)
+        self.assertEqual(batch.num_rows, 100)
+        reader.close()
+
+        rv = self.client.execute('SELECT 1')
+        self.assertEqual(rv, [(1, )])
+
+    def test_arrow_query_after_close_after_one_batch(self):
+        reader = self.client.query_arrow_stream(
+            'SELECT number FROM system.numbers LIMIT 100000',
+            settings={'max_block_size': 100}
+        )
+        next(reader)
+        reader.close()
+
+        table = self.client.query_arrow(
+            'SELECT number FROM system.numbers LIMIT 10'
+        )
+        self.assertEqual(table.column('number').to_pylist(), list(range(10)))
+
+    def test_abandoned_reader_raises_after_next_query(self):
+        reader = self.client.query_arrow_stream(
+            'SELECT number FROM system.numbers LIMIT 100000',
+            settings={'max_block_size': 100}
+        )
+        next(reader)
+
+        self.client.execute('SELECT 1')
+
+        # The streamed query was cancelled by the query above: reading
+        # further must fail loudly instead of consuming its packets.
+        with self.assertRaises(errors.PartiallyConsumedQueryError):
+            reader.read_all()
 
 
 class ArrowNumpyPathTestCase(ArrowBaseTestCase):

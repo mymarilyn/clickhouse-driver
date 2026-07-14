@@ -136,6 +136,7 @@ class Client(object):
 
         round_robin = kwargs.pop('round_robin', False)
         self.connections = deque([Connection(*args, **kwargs)])
+        self._pending_arrow_stream = None
 
         if round_robin and 'alt_hosts' in kwargs:
             alt_hosts = kwargs.pop('alt_hosts')
@@ -307,9 +308,47 @@ class Client(object):
 
             return
 
+    def _reset_pending_arrow_stream(self):
+        """
+        Cancels the previous streamed Arrow query if it wasn't consumed
+        to the end. RecordBatchReader.close() doesn't reach the
+        underlying generator, so cleanup happens on the next query:
+        drain the stream through END_OF_STREAM after Cancel, or reset
+        the connection.
+        """
+        state = self._pending_arrow_stream
+        self._pending_arrow_stream = None
+
+        if state is None or state.finished:
+            return
+
+        state.cancelled = True
+        connection = state.connection
+
+        if not connection.connected or not connection.is_query_executing:
+            return
+
+        try:
+            connection.send_cancel()
+            terminal_packets = (
+                ServerPacketTypes.END_OF_STREAM, ServerPacketTypes.EXCEPTION
+            )
+            while True:
+                packet = connection.receive_packet()
+                if packet.type in terminal_packets:
+                    break
+
+            # Exception packet leaves the query marked as executing.
+            if connection.is_query_executing:
+                connection.disconnect()
+
+        except (Exception, KeyboardInterrupt):
+            connection.disconnect()
+
     @contextmanager
     def disconnect_on_error(self, query, settings):
         try:
+            self._reset_pending_arrow_stream()
             self.establish_connection(settings)
             self.connection.server_info.session_timezone = None
 
@@ -586,8 +625,8 @@ class Client(object):
         usage. Block size can be controlled with ``max_block_size``
         setting.
 
-        The reader must be fully consumed (or closed) before the next
-        query execution.
+        The reader doesn't have to be consumed to the end: the streamed
+        query is cancelled when the next query on this client starts.
 
         :param query: query that will be send to server.
         :param params: substitution parameters.
@@ -606,7 +645,8 @@ class Client(object):
         except ImportError:
             raise RuntimeError('Extras for PyArrow must be installed')
 
-        from .arrow.convert import create_record_batch_reader
+        from .arrow.convert import ArrowStreamState, \
+            create_record_batch_reader
 
         with self.disconnect_on_error(query, settings):
             # Let columns return Arrow-friendly forms (e.g. NumPy masked
@@ -625,8 +665,12 @@ class Client(object):
             self.connection.send_query(query, query_id=query_id,
                                        params=params)
             self.connection.send_external_tables(external_tables)
+
+            state = ArrowStreamState(self.connection)
+            self._pending_arrow_stream = state
             return create_record_batch_reader(
-                self.packet_generator(), self.connection.context
+                self.packet_generator(), self.connection.context,
+                state=state
             )
 
     def process_ordinary_query_with_progress(

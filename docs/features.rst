@@ -585,6 +585,9 @@ Block size can be controlled with the ``max_block_size`` setting:
         ...     settings={'max_block_size': 100000}
         ... )
 
+The reader doesn't have to be consumed to the end: the streamed query
+is cancelled when the next query starts.
+
 ``NULL`` values in ``Nullable(T)`` columns are returned as proper Arrow
 nulls (validity bitmap) and the column keeps its original type. For
 example ``Nullable(Int64)`` is returned as a nullable ``int64`` Arrow
