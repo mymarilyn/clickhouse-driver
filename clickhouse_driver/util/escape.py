@@ -72,7 +72,7 @@ def escape_param(item, context, for_server=False):
         )
         # Server expects the whole collection literal as an escaped
         # string (Field dump format), not a bare [...] or (...).
-        if for_server:
+        if for_server:  # pragma: requires-clickhouse-22.8
             rv = "'%s'" % ''.join(escape_chars_map.get(c, c) for c in rv)
         return rv
 
