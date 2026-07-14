@@ -632,8 +632,10 @@ Values of other types are converted with Arrow's type inference.
 
 When the client is created with ``use_numpy=True`` (see
 :ref:`installation-numpy-support`), columns are deserialized into NumPy
-arrays first and converted to Arrow without copying where possible, which
-is significantly faster on large numeric results.
+arrays first and converted to Arrow without copying where possible. This
+is significantly faster for numeric, datetime, ``Nullable`` and
+``LowCardinality`` columns. Plain ``String`` columns are currently
+faster without ``use_numpy``.
 
 Automatic disposal
 ------------------

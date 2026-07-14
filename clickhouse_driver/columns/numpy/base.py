@@ -24,12 +24,23 @@ class NumpyColumn(Column):
     def _get_nulls_map(self, items):
         return [bool(x) for x in pd.isnull(items)]
 
+    def _read_nulls_map(self, n_items, buf):
+        # One byte per item on the wire. Vectorized read: consumers
+        # (np.place, np.ma.MaskedArray) treat non-zero bytes as True.
+        return np.frombuffer(buf.read(n_items), dtype=np.uint8,
+                             count=n_items)
+
     def _read_data(self, n_items, buf, nulls_map=None):
         items = self.read_items(n_items, buf)
 
         if self.after_read_items:
             return self.after_read_items(items, nulls_map)
         elif nulls_map is not None:
+            # Keep raw values and nulls map intact for Arrow: it stores
+            # them the same way (values buffer + validity bitmap).
+            if (self.context.client_settings or {}).get('use_arrow'):
+                return np.ma.MaskedArray(items, mask=nulls_map)
+
             items = np.array(items, dtype=object)
             np.place(items, nulls_map, None)
 

@@ -609,6 +609,14 @@ class Client(object):
         from .arrow.convert import create_record_batch_reader
 
         with self.disconnect_on_error(query, settings):
+            # Let columns return Arrow-friendly forms (e.g. NumPy masked
+            # arrays for Nullable). Reset by the next query's
+            # make_query_settings. Context returns a copy of settings:
+            # assignment is required for the flag to stick.
+            client_settings = self.connection.context.client_settings
+            client_settings['use_arrow'] = True
+            self.connection.context.client_settings = client_settings
+
             if params is not None:
                 query = self.substitute_params(
                     query, params, self.connection.context

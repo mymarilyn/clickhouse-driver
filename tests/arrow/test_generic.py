@@ -182,7 +182,14 @@ class ArrowNumpyPathTestCase(ArrowBaseTestCase):
     def test_nullable_results_equal_with_use_numpy(self):
         query = (
             'SELECT '
-            'CAST(if(number % 2 = 0, NULL, number) AS Nullable(Int64)) AS x '
+            'CAST(if(number % 2 = 0, NULL, number) AS Nullable(Int64)) '
+            'AS x, '
+            'CAST(if(number % 3 = 0, NULL, number / 7) '
+            'AS Nullable(Float64)) AS f, '
+            'CAST(if(number % 4 = 0, NULL, toString(number)) '
+            'AS Nullable(String)) AS s, '
+            "CAST(if(number % 5 = 0, NULL, toDateTime(number, 'UTC')) "
+            "AS Nullable(DateTime('UTC'))) AS dt "
             'FROM system.numbers LIMIT 10'
         )
 
