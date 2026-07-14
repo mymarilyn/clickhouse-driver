@@ -1,5 +1,3 @@
-import numpy as np
-
 from ... import defines
 from .base import NumpyColumn
 
@@ -14,8 +12,8 @@ class NumpyStringColumn(NumpyColumn):
         super(NumpyStringColumn, self).__init__(**kwargs)
 
     def read_items(self, n_items, buf):
-        return np.array(
-            buf.read_strings(n_items, encoding=self.encoding), dtype=self.dtype
+        return self._wrap_string_items(
+            buf.read_strings(n_items, encoding=self.encoding)
         )
 
     def write_items(self, items, buf):
@@ -26,7 +24,7 @@ class NumpyByteStringColumn(NumpyColumn):
     null_value = b''
 
     def read_items(self, n_items, buf):
-        return np.array(buf.read_strings(n_items), dtype=self.dtype)
+        return self._wrap_string_items(buf.read_strings(n_items))
 
     def write_items(self, items, buf):
         return buf.write_strings(items.tolist())
@@ -38,9 +36,9 @@ class NumpyFixedString(NumpyStringColumn):
         super(NumpyFixedString, self).__init__(**kwargs)
 
     def read_items(self, n_items, buf):
-        return np.array(buf.read_fixed_strings(
+        return self._wrap_string_items(buf.read_fixed_strings(
             n_items, self.length, encoding=self.encoding
-        ), dtype=self.dtype)
+        ))
 
     def write_items(self, items, buf):
         return buf.write_fixed_strings(
@@ -54,8 +52,8 @@ class NumpyByteFixedString(NumpyByteStringColumn):
         super(NumpyByteFixedString, self).__init__(**kwargs)
 
     def read_items(self, n_items, buf):
-        return np.array(
-            buf.read_fixed_strings(n_items, self.length), dtype=self.dtype
+        return self._wrap_string_items(
+            buf.read_fixed_strings(n_items, self.length)
         )
 
     def write_items(self, items, buf):

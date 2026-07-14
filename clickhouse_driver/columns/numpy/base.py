@@ -30,6 +30,19 @@ class NumpyColumn(Column):
         return np.frombuffer(buf.read(n_items), dtype=np.uint8,
                              count=n_items)
 
+    @property
+    def use_arrow(self):
+        return (self.context.client_settings or {}).get('use_arrow', False)
+
+    def _wrap_string_items(self, items):
+        # Wrapping strings into an ndarray re-encodes them (unicode
+        # dtype). Arrow consumes the raw tuple directly; the ndarray is
+        # only needed for numpy/pandas results and the nullable masked
+        # path.
+        if self.use_arrow and not self.nullable:
+            return items
+        return np.array(items, dtype=self.dtype)
+
     def _read_data(self, n_items, buf, nulls_map=None):
         items = self.read_items(n_items, buf)
 
@@ -38,7 +51,7 @@ class NumpyColumn(Column):
         elif nulls_map is not None:
             # Keep raw values and nulls map intact for Arrow: it stores
             # them the same way (values buffer + validity bitmap).
-            if (self.context.client_settings or {}).get('use_arrow'):
+            if self.use_arrow:
                 return np.ma.MaskedArray(items, mask=nulls_map)
 
             items = np.array(items, dtype=object)

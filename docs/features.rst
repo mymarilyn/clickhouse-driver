@@ -634,8 +634,8 @@ When the client is created with ``use_numpy=True`` (see
 :ref:`installation-numpy-support`), columns are deserialized into NumPy
 arrays first and converted to Arrow without copying where possible. This
 is significantly faster for numeric, datetime, ``Nullable`` and
-``LowCardinality`` columns. Plain ``String`` columns are currently
-faster without ``use_numpy``.
+``LowCardinality`` columns. ``String`` columns perform about the same
+with and without ``use_numpy``.
 
 Automatic disposal
 ------------------
