@@ -271,6 +271,50 @@ class ServerSideParametersSubstitutionTestCase(BaseTestCase):
         )
         self.assertEqual(rv, [("'", 1)])
 
+    def test_array(self):
+        rv = self.client.execute(
+            'SELECT {x:Array(String)}', {'x': ['a', 'b', 'c']}
+        )
+        self.assertEqual(rv, [(['a', 'b', 'c'], )])
+
+        rv = self.client.execute(
+            'SELECT {x:Array(UInt8)}', {'x': [1, 2, 3]}
+        )
+        self.assertEqual(rv, [([1, 2, 3], )])
+
+        rv = self.client.execute('SELECT {x:Array(String)}', {'x': []})
+        self.assertEqual(rv, [([], )])
+
+    def test_array_escaped(self):
+        rv = self.client.execute(
+            'SELECT {x:Array(String)}', {'x': ["a'b", 'c\\d', 'e\tf']}
+        )
+        self.assertEqual(rv, [(["a'b", 'c\\d', 'e\tf'], )])
+
+    def test_array_nullable(self):
+        rv = self.client.execute(
+            'SELECT {x:Array(Nullable(String))}', {'x': ['a', None]}
+        )
+        self.assertEqual(rv, [(['a', None], )])
+
+    def test_tuple(self):
+        rv = self.client.execute(
+            'SELECT {x:Tuple(UInt8, String)}', {'x': (1, 'a')}
+        )
+        self.assertEqual(rv, [((1, 'a'), )])
+
+    def test_nested(self):
+        rv = self.client.execute(
+            'SELECT {x:Array(Tuple(UInt8, String))}',
+            {'x': [(1, 'a'), (2, 'b')]}
+        )
+        self.assertEqual(rv, [([(1, 'a'), (2, 'b')], )])
+
+        rv = self.client.execute(
+            'SELECT {x:Array(Array(String))}', {'x': [["a'b"], []]}
+        )
+        self.assertEqual(rv, [([["a'b"], []], )])
+
 
 class NoServerSideParametersSubstitutionTestCase(BaseTestCase):
     def test_reserved_keywords(self):

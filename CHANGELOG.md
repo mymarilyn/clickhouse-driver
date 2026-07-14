@@ -4,6 +4,7 @@
 
 - Native `JSON` support. Solves issue [#473](https://github.com/mymarilyn/clickhouse-driver/issues/473) and [#460](https://github.com/mymarilyn/clickhouse-driver/issues/460). Pull request [#503](https://github.com/mymarilyn/clickhouse-driver/pull/503/) by [khvn26](https://github.com/khvn26), [gsergey418](https://github.com/gsergey418).
 - Minimum `clickhouse-cityhash` version raised to 1.0.2.6: first release that builds on Python 3.13+.
+- Escaping of `list`/`tuple` parameters with `server_side_params=True`: collections were sent in a form the server could not parse. Solves issue [#497](https://github.com/mymarilyn/clickhouse-driver/issues/497). Pull request [#507](https://github.com/mymarilyn/clickhouse-driver/pull/507) by [khvn26](https://github.com/khvn26).
 
 ## [0.2.10] - 2026-10-10
 ### Added
