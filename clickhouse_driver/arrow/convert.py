@@ -102,9 +102,13 @@ def _column_to_array(column, type_, converter):
         return pa.array(column, type=type_)
 
     if pd is not None and isinstance(column, pd.Categorical):
+        if converter is None:
+            # Categorical maps to Arrow dictionary array without
+            # iterating over values.
+            dictionary = pa.array(column)
+            return dictionary.cast(type_) if type_ is not None \
+                else dictionary
         column = [None if pd.isna(x) else x for x in column]
-    elif not isinstance(column, list):
-        column = list(column)
 
     if converter is not None:
         column = [None if x is None else converter(x) for x in column]
