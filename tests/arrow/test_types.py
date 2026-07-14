@@ -1,3 +1,4 @@
+import json
 from datetime import date, datetime, timezone
 from decimal import Decimal
 from uuid import UUID
@@ -263,6 +264,43 @@ class ArrayTestCase(ArrowBaseTestCase):
             'Array(Array(Int32))', pa.list_(pa.list_(pa.int32())),
             [[[1, 2], [3]], [[]]]
         )
+
+
+class JSONTestCase(ArrowBaseTestCase):
+    required_server_version = (24, 8, 0)
+
+    def client_kwargs(self, version):
+        return {'settings': {'enable_json_type': True}}
+
+    def cli_client_kwargs(self):
+        return {'enable_json_type': 1}
+
+    def test_json_as_string(self):
+        with self.create_table('a JSON'):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES',
+                [({'k': 1, 's': 'x'}, ), ({}, )]
+            )
+            table = self.client.query_arrow('SELECT a FROM test')
+
+            self.assertEqual(table.schema.field('a').type, pa.string())
+            values = [json.loads(x) for x in table.column('a').to_pylist()]
+            self.assertEqual(values, [{'k': 1, 's': 'x'}, {}])
+
+    def test_json_dynamic_paths_across_blocks(self):
+        # Paths appearing only in later blocks must not be lost: JSON
+        # text keeps the schema stable however paths evolve.
+        with self.create_table('a JSON'):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', [({'a': 1}, )]
+            )
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', [({'b': 'x'}, )]
+            )
+            table = self.client.query_arrow('SELECT a FROM test')
+
+            values = [json.loads(x) for x in table.column('a').to_pylist()]
+            self.assertEqual(values, [{'a': 1}, {'b': 'x'}])
 
 
 class MapTestCase(ArrowBaseTestCase):

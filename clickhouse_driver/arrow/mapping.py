@@ -1,3 +1,5 @@
+import json
+
 import pyarrow as pa
 
 from ..columns.util import get_inner_columns, get_inner_spec
@@ -30,6 +32,12 @@ DECIMAL_PRECISIONS = {
 }
 
 
+def _dump_json(value):
+    # Dynamic values inside JSON may be dates, UUIDs and other rich
+    # types: fall back to their string form.
+    return json.dumps(value, default=str)
+
+
 def get_type_and_converter(spec, strings_as_bytes=False):
     """
     Maps ClickHouse type spec into pair (Arrow type, converter).
@@ -47,6 +55,11 @@ def get_type_and_converter(spec, strings_as_bytes=False):
 
     if spec in STRINGIFIED_TYPES:
         return pa.string(), str
+
+    if spec == 'JSON' or spec.startswith('JSON('):
+        # JSON values are returned as JSON text: a stable schema
+        # regardless of dynamic paths inside the column.
+        return pa.string(), _dump_json
 
     if spec == 'String' or spec.startswith('FixedString'):
         if strings_as_bytes:

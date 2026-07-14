@@ -630,6 +630,8 @@ ClickHouse types are mapped to Arrow types as follows:
   +--------------------------------+------------------------------------+
   | Map(K, V)                      | map<K, V>                          |
   +--------------------------------+------------------------------------+
+  | JSON                           | string (JSON text)                 |
+  +--------------------------------+------------------------------------+
 
 Values of other types are converted with Arrow's type inference on a
 best-effort basis: their Arrow representation may change in future
