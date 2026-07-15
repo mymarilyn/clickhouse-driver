@@ -1073,7 +1073,12 @@ class JSONInContainerColumnsTestCase(BaseTestCase):
             self.client.execute(
                 "INSERT INTO test (a) VALUES",
                 [({"k": {"a": 1, "n": {"d": "deep"}}},)])
-            cli = self.emit_cli("SELECT toJSONString(a) FROM test")
+            # Integer quoting in JSON output defaults differently across
+            # server versions; pin it so the assertion is stable.
+            cli = self.emit_cli(
+                "SELECT toJSONString(a) FROM test",
+                output_format_json_quote_64bit_integers=0,
+            )
             self.assertEqual(cli, '{"k":{"a":1,"n":{"d":"deep"}}}\n')
 
     def test_map_of_json_string_value_input(self):
