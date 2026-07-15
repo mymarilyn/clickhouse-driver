@@ -646,10 +646,8 @@ target:
         ...     arrow_types={'number': pa.int32()}
         ... )
 
-``JSON`` columns have no default Arrow representation: dynamic paths
-make every implicit choice either lossy or unstable, so an
-``arrow_types`` entry is required. Declare ``pyarrow.string()`` to get
-JSON text:
+``JSON`` columns have no default Arrow representation.
+Declare ``pyarrow.string()`` to get JSON text:
 
     .. code-block:: python
 
