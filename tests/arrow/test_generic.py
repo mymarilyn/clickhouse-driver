@@ -287,6 +287,8 @@ class ArrowNumpyPathTestCase(ArrowBaseTestCase):
             'AS Nullable(Float64)) AS f, '
             'CAST(if(number % 4 = 0, NULL, toString(number)) '
             'AS Nullable(String)) AS s, '
+            'CAST(if(number % 6 = 0, NULL, toString(number % 10)) '
+            'AS Nullable(FixedString(2))) AS fs, '
             "CAST(if(number % 5 = 0, NULL, toDateTime(number, 'UTC')) "
             "AS Nullable(DateTime('UTC'))) AS dt "
             'FROM system.numbers LIMIT 10'

@@ -81,6 +81,26 @@ class StringTestCase(ArrowBaseTestCase):
             self.assertEqual(table.schema.field('a').type, pa.binary())
             self.assertEqual(table.column('a').to_pylist(), [b'ab', b'cd'])
 
+    def test_strings_as_bytes_with_numpy(self):
+        try:
+            import numpy  # noqa: F401
+            import pandas  # noqa: F401
+        except ImportError:
+            self.skipTest('NumPy package is not installed')
+
+        with self.create_table('a String'):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', [(b'ab', ), (b'cd', )]
+            )
+
+            with self.created_client(
+                    settings={'strings_as_bytes': True,
+                              'use_numpy': True}) as client:
+                table = client.query_arrow('SELECT a FROM test')
+
+            self.assertEqual(table.schema.field('a').type, pa.binary())
+            self.assertEqual(table.column('a').to_pylist(), [b'ab', b'cd'])
+
 
 class NullableTestCase(ArrowBaseTestCase):
     def test_nullable_int(self):
@@ -353,6 +373,22 @@ class JSONTestCase(ArrowBaseTestCase):
 
         self.assertEqual(records, [])
 
+    def test_json_as_struct_string_wire_format(self):
+        # Struct declaration must work whichever wire format arrives:
+        # with string serialization values are parsed on the client.
+        struct = pa.struct([('k', pa.int64())])
+
+        with self.create_table('a JSON'):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', [({'k': 1}, )]
+            )
+            table = self.client.query_arrow(
+                'SELECT a FROM test', arrow_types={'a': struct},
+                settings={'output_format_native_write_json_as_string': 1}
+            )
+
+            self.assertEqual(table.column('a').to_pylist(), [{'k': 1}])
+
     def test_json_as_text_string_wire_format(self):
         # output_format_native_write_json_as_string makes the server
         # send JSON text which is passed through to Arrow as is.
@@ -491,6 +527,30 @@ class NestedJSONTestCase(ArrowBaseTestCase):
                 self.client.query_arrow('SELECT a FROM test')
 
             self.assertIn('arrow_types', str(e.exception))
+
+
+class InferenceTestCase(ArrowBaseTestCase):
+    # Int128 has no explicit mapping: Arrow type is inferred from the
+    # first non-empty block.
+    required_server_version = (21, 6)
+
+    def test_unmapped_type_inferred_from_data(self):
+        table = self.client.query_arrow(
+            'SELECT CAST(number AS Int128) AS x '
+            'FROM system.numbers LIMIT 3'
+        )
+
+        self.assertEqual(table.schema.field('x').type, pa.int64())
+        self.assertEqual(table.column('x').to_pylist(), [0, 1, 2])
+
+    def test_unmapped_type_empty_result(self):
+        table = self.client.query_arrow(
+            'SELECT CAST(number AS Int128) AS x '
+            'FROM system.numbers LIMIT 0'
+        )
+
+        self.assertEqual(table.num_rows, 0)
+        self.assertEqual(table.schema.field('x').type, pa.null())
 
 
 class ArrowTypesOverrideTestCase(ArrowBaseTestCase):
