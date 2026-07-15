@@ -16,6 +16,7 @@ except ImportError:
     ArrowStringBuffers = None
 
 from .. import errors
+from ..columns.util import get_inner_columns, get_inner_spec
 from ..protocol import ServerPacketTypes
 from .mapping import (
     UNSUPPORTED, JsonTextConverter, get_type_and_converter, json_as_object
@@ -118,6 +119,54 @@ def _is_json_spec(spec):
     return spec == 'JSON' or spec.startswith('JSON(')
 
 
+def _json_declared_converter(spec, declared, name):
+    """
+    Composes JSON converters for a declared Arrow type, following
+    Nullable/Array/Map containers down to JSON positions. Returns
+    ``None`` when the spec contains no JSON at positions matched by
+    the declared type.
+    """
+    if _is_json_spec(spec):
+        if pa.types.is_string(declared) or \
+                pa.types.is_large_string(declared):
+            return JsonTextConverter(name)
+        return json_as_object
+
+    if spec.startswith('Nullable('):
+        return _json_declared_converter(
+            get_inner_spec('Nullable', spec), declared, name
+        )
+
+    if spec.startswith('Array(') and (
+            pa.types.is_list(declared) or pa.types.is_large_list(declared)):
+        inner = _json_declared_converter(
+            get_inner_spec('Array', spec), declared.value_type, name
+        )
+        if inner is None:
+            return None
+
+        def converter(value, _converter=inner):
+            return [None if x is None else _converter(x) for x in value]
+        return converter
+
+    if spec.startswith('Map(') and pa.types.is_map(declared):
+        _, value_spec = get_inner_columns(get_inner_spec('Map', spec))
+        value_converter = _json_declared_converter(
+            value_spec, declared.item_type, name
+        )
+        if value_converter is None:
+            return None
+
+        def converter(value, _vc=value_converter):
+            return [
+                (k, None if v is None else _vc(v))
+                for k, v in value.items()
+            ]
+        return converter
+
+    return None
+
+
 def _resolve_fields(columns_with_types, strings_as_bytes, arrow_types):
     fields = []
     for name, spec in columns_with_types:
@@ -125,12 +174,9 @@ def _resolve_fields(columns_with_types, strings_as_bytes, arrow_types):
 
         declared = (arrow_types or {}).get(name)
         if declared is not None:
-            if _is_json_spec(spec):
-                if pa.types.is_string(declared) or \
-                        pa.types.is_large_string(declared):
-                    converter = JsonTextConverter(name)
-                else:
-                    converter = json_as_object
+            json_converter = _json_declared_converter(spec, declared, name)
+            if json_converter is not None:
+                converter = json_converter
             type_ = declared
 
         elif type_ is UNSUPPORTED:

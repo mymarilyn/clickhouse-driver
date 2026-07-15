@@ -391,6 +391,104 @@ class JSONTestCase(ArrowBaseTestCase):
             ])
 
 
+class NestedJSONTestCase(ArrowBaseTestCase):
+    required_server_version = (24, 8, 0)
+
+    def client_kwargs(self, version):
+        return {'settings': {'enable_json_type': True,
+                             'flatten_nested': 0}}
+
+    def cli_client_kwargs(self):
+        return {'enable_json_type': 1, 'flatten_nested': 0}
+
+    def test_array_json_requires_arrow_types(self):
+        with self.create_table('a Array(JSON)'):
+            with self.assertRaises(ValueError) as e:
+                self.client.query_arrow('SELECT a FROM test')
+
+            self.assertIn('arrow_types', str(e.exception))
+
+    def test_array_json_as_text_elements(self):
+        with self.create_table('a Array(JSON)'):
+            # nested JSON inserts are not supported by the driver:
+            # insert via CLI
+            self.emit_cli(
+                'INSERT INTO test VALUES '
+                '([CAST(\'{"k":1}\' AS JSON), '
+                'CAST(\'{"b":"x"}\' AS JSON)])',
+                enable_json_type=1
+            )
+            table = self.client.query_arrow(
+                'SELECT a FROM test',
+                arrow_types={'a': pa.list_(pa.string())}
+            )
+
+            values = [
+                [json.loads(x) for x in row]
+                for row in table.column('a').to_pylist()
+            ]
+            self.assertEqual(values, [[{'k': 1}, {'b': 'x'}]])
+
+    def test_nullable_json_as_text(self):
+        with self.create_table('i UInt8, a Nullable(JSON)'):
+            self.client.execute(
+                'INSERT INTO test (i, a) VALUES',
+                [(1, {'k': 1}), (2, None)]
+            )
+            table = self.client.query_arrow(
+                'SELECT a FROM test ORDER BY i',
+                arrow_types={'a': pa.string()}
+            )
+
+            values = [
+                json.loads(x) if x is not None else None
+                for x in table.column('a').to_pylist()
+            ]
+            self.assertEqual(values, [{'k': 1}, None])
+
+    def test_map_json_as_text_values(self):
+        with self.create_table('a Map(String, JSON)'):
+            self.emit_cli(
+                'INSERT INTO test VALUES '
+                '(map(\'k\', CAST(\'{"n":1}\' AS JSON)))',
+                enable_json_type=1
+            )
+            table = self.client.query_arrow(
+                'SELECT a FROM test',
+                arrow_types={'a': pa.map_(pa.string(), pa.string())}
+            )
+
+            values = [
+                [(k, json.loads(v)) for k, v in row]
+                for row in table.column('a').to_pylist()
+            ]
+            self.assertEqual(values, [[('k', {'n': 1})]])
+
+    def test_nested_json_requires_arrow_types(self):
+        with self.create_table('a Nested(j JSON, n UInt8)'):
+            self.emit_cli(
+                'INSERT INTO test VALUES '
+                '([(CAST(\'{"k":1}\' AS JSON), 7)])',
+                enable_json_type=1, flatten_nested=0
+            )
+            with self.assertRaises(ValueError) as e:
+                self.client.query_arrow('SELECT a FROM test')
+
+            self.assertIn('arrow_types', str(e.exception))
+
+    def test_tuple_json_requires_arrow_types(self):
+        # Tuple has no explicit mapping, but JSON inside it must not
+        # leak into type inference.
+        with self.create_table('a Tuple(JSON, UInt8)'):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', [(({'k': 1}, 7), )]
+            )
+            with self.assertRaises(ValueError) as e:
+                self.client.query_arrow('SELECT a FROM test')
+
+            self.assertIn('arrow_types', str(e.exception))
+
+
 class ArrowTypesOverrideTestCase(ArrowBaseTestCase):
     def test_general_type_override(self):
         table = self.client.query_arrow(

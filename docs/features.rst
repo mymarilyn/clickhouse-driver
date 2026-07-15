@@ -659,6 +659,10 @@ or declare a struct type for structured output. With a declared
 struct, paths missing in a row become nulls, paths not declared in the
 struct are dropped and paths of varying types raise an error.
 
+The declared type is followed into nested containers: e.g. an
+``Array(JSON)`` column declared as ``pa.list_(pa.string())`` yields
+JSON text per array element.
+
 For maximum JSON text throughput let the server serialize JSON to text
 with the ``output_format_native_write_json_as_string`` setting: the
 text is passed through to Arrow without parsing. Without the setting
