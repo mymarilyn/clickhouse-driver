@@ -384,7 +384,11 @@ class JSONTestCase(ArrowBaseTestCase):
             )
             table = self.client.query_arrow(
                 'SELECT a FROM test', arrow_types={'a': struct},
-                settings={'output_format_native_write_json_as_string': 1}
+                settings={
+                    'output_format_native_write_json_as_string': 1,
+                    # default differs across server versions
+                    'output_format_json_quote_64bit_integers': 0
+                }
             )
 
             self.assertEqual(table.column('a').to_pylist(), [{'k': 1}])
