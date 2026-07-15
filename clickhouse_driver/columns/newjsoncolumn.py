@@ -56,12 +56,19 @@ class NewJsonColumn(Column):  # pragma: requires-clickhouse-24.8
     shared data rather than hand-rolled.
     """
 
-    py_types = (dict, )
+    py_types = (dict, str)
 
     # JSON columns are non-nullable on the wire; supply an empty dict
     # as the placeholder used by sparse/null helpers in the base
     # column.
     null_value = {}
+
+    # The object prefix (path list + per-path SerializationDynamic
+    # prefixes) is data-dependent; ``write_column`` and the container
+    # columns (Array/Tuple/Map) thread the block's items into
+    # ``write_state_prefix`` so it lands in the prefix stream position
+    # the server expects for nested columns.
+    prefix_needs_items = True
 
     def __init__(self, column_by_spec_getter, **kwargs):
         self.column_by_spec_getter = column_by_spec_getter
@@ -69,6 +76,7 @@ class NewJsonColumn(Column):  # pragma: requires-clickhouse-24.8
         self.string_column = String(**kwargs)
 
         self.serialization_version = None
+        self._write_paths_state = None
         self.sorted_dynamic_paths = []
         self.dynamic_columns = []
         self.shared_data_column = None
@@ -204,27 +212,23 @@ class NewJsonColumn(Column):  # pragma: requires-clickhouse-24.8
     # write path
     # ------------------------------------------------------------------
 
-    def write_state_prefix(self, buf):
-        # The JSON column's state prefix is data-dependent (path list +
-        # per-path SerializationDynamic prefixes), so we cannot emit it
-        # here — items are only available once ``write_data`` is
-        # called. Emitting the full prefix inside ``write_data`` also
-        # lets the nulls map written by the base ``Column.write_data``
-        # for ``Nullable(JSON)`` land between the prefix and the body,
-        # matching the on-wire order the server expects.
-        pass
-
-    def write_data(self, items, buf, depth=0):
-        # ``_write_nulls_map`` keys off ``x is None``, so it has to see
-        # the original items before ``None`` is coerced to
-        # ``null_value`` for the body writer.
-        original_items = items if self.nullable else None
+    def write_state_prefix(self, buf, items=None):
+        if items is None:
+            raise NotImplementedError(
+                'JSON columns can only be written when the block items '
+                'are threaded into write_state_prefix'
+            )
         items = [self._normalise_write_item(x) for x in items]
-        paths = self._unfold_json(items, depth)
-        self._write_object_state_prefix(paths, buf, depth=depth)
-        if self.nullable:
-            self._write_nulls_map(original_items, buf)
-        self._write_values(paths, len(items), buf, depth=depth)
+        self._write_paths_state = self._unfold_json(items, depth=0)
+        self._write_object_state_prefix(self._write_paths_state, buf)
+
+    def write_items(self, items, buf):
+        # The body is written from the paths computed over the same
+        # items in ``write_state_prefix``; ``items`` only supplies the
+        # row count here. For ``Nullable(JSON)`` the nulls map emitted
+        # by the callers lands between the prefix and this body,
+        # matching the on-wire order the server expects.
+        self._write_values(self._write_paths_state, len(items), buf)
 
     def _normalise_write_item(self, item):
         if item is None:

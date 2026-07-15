@@ -44,7 +44,7 @@ class LowCardinalityColumn(Column):
 
         read_binary_uint64(buf)
 
-    def write_state_prefix(self, buf):
+    def write_state_prefix(self, buf, items=None):
         super(LowCardinalityColumn, self).write_state_prefix(buf)
 
         # KeysSerializationVersion. See ClickHouse docs.

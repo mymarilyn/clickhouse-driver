@@ -506,8 +506,12 @@ JSON
 
 *New in version 0.2.11.*
 
-INSERT types: :class:`dict`.
+INSERT types: :class:`dict`, :class:`str` (JSON text).
 
 SELECT type: :class:`dict`, :class:`str`.
 
 Set ``enable_json_type=1`` for to enable json support.
+
+``JSON`` columns nested in container columns, e.g. ``Array(JSON)``,
+``Tuple(String, JSON)``, ``Map(String, JSON)`` and their compositions, can
+be written and read as well.

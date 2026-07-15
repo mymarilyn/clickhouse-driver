@@ -1034,3 +1034,115 @@ class NewJSONTestCase(BaseTestCase):
                 ({"items": [{"p": 1}, {"q": "x"}]},),
                 ({"items": [{"nested": {"deep": 5}}]},),
             ])
+
+
+class JSONInContainerColumnsTestCase(BaseTestCase):
+    """
+    JSON columns nested inside container column types. The object
+    prefix is data-dependent, so the write path threads the block's
+    items into ``write_state_prefix`` to emit it in the prefix stream
+    position the server expects for nested columns; inserts into
+    ``Map(String, JSON)`` used to deadlock and ``Array(JSON)`` raised
+    ``NotImplementedError`` (issue #511).
+    """
+
+    required_server_version = (24, 8, 0)
+
+    def client_kwargs(self, version):
+        return {"settings": {"enable_json_type": True}}
+
+    def cli_client_kwargs(self):
+        return {"enable_json_type": 1}
+
+    def test_map_of_json(self):
+        with self.create_table("a Map(String, JSON)"):
+            data = [
+                ({"k": {"a": 1}},),
+                ({"k": {"b": "x"}, "j": {"c": 2.5, "d": {"e": True}}},),
+                ({},),
+                ({"empty": {}},),
+            ]
+            self.client.execute("INSERT INTO test (a) VALUES", data)
+            result = self.client.execute("SELECT * FROM test")
+            self.assertEqual(result, data)
+
+    def test_map_of_json_server_side_view(self):
+        # The CLI view proves the bytes landed correctly on the server,
+        # not just that the client can read back its own encoding.
+        with self.create_table("a Map(String, JSON)"):
+            self.client.execute(
+                "INSERT INTO test (a) VALUES",
+                [({"k": {"a": 1, "n": {"d": "deep"}}},)])
+            cli = self.emit_cli("SELECT toJSONString(a) FROM test")
+            self.assertEqual(cli, '{"k":{"a":1,"n":{"d":"deep"}}}\n')
+
+    def test_map_of_json_string_value_input(self):
+        # JSON given as text is parsed by the write path, same as for
+        # top-level JSON columns.
+        with self.create_table("a Map(String, JSON)"):
+            self.client.execute(
+                "INSERT INTO test (a) VALUES", [({"k": '{"s": 1}'},)])
+            result = self.client.execute("SELECT * FROM test")
+            self.assertEqual(result, [({"k": {"s": 1}},)])
+
+    def test_array_of_json(self):
+        with self.create_table("a Array(JSON)"):
+            data = [
+                ([{"a": 1}, {"b": "x"}],),
+                ([],),
+                ([{"c": [1, 2, 3]}],),
+            ]
+            self.client.execute("INSERT INTO test (a) VALUES", data)
+            result = self.client.execute("SELECT * FROM test")
+            self.assertEqual(result, data)
+
+    def test_tuple_with_json(self):
+        with self.create_table("a Tuple(String, JSON)"):
+            data = [
+                (("s1", {"a": 1}),),
+                (("s2", {"b": {"c": "deep"}}),),
+            ]
+            self.client.execute("INSERT INTO test (a) VALUES", data)
+            result = self.client.execute("SELECT * FROM test")
+            self.assertEqual(result, data)
+
+    def test_map_of_array_of_json(self):
+        with self.create_table("a Map(String, Array(JSON))"):
+            data = [
+                ({"k": [{"a": 1}], "l": [{"b": 2}, {"c": 3}]},),
+                ({},),
+            ]
+            self.client.execute("INSERT INTO test (a) VALUES", data)
+            result = self.client.execute("SELECT * FROM test")
+            self.assertEqual(result, data)
+
+    def test_array_of_array_of_json(self):
+        with self.create_table("a Array(Array(JSON))"):
+            data = [
+                ([[{"a": 1}], [{"b": 2}, {"c": 3}]],),
+                ([[]],),
+            ]
+            self.client.execute("INSERT INTO test (a) VALUES", data)
+            result = self.client.execute("SELECT * FROM test")
+            self.assertEqual(result, data)
+
+    def test_map_of_nullable_json(self):
+        with self.create_table("a Map(String, Nullable(JSON))"):
+            data = [({"k": {"a": 1}, "n": None},)]
+            self.client.execute("INSERT INTO test (a) VALUES", data)
+            result = self.client.execute("SELECT * FROM test")
+            self.assertEqual(result, data)
+
+    def test_array_of_nullable_json(self):
+        with self.create_table("a Array(Nullable(JSON))"):
+            data = [([{"a": 1}, None, {"b": 2}],)]
+            self.client.execute("INSERT INTO test (a) VALUES", data)
+            result = self.client.execute("SELECT * FROM test")
+            self.assertEqual(result, data)
+
+    def test_map_of_map_of_json(self):
+        with self.create_table("a Map(String, Map(String, JSON))"):
+            data = [({"outer": {"inner": {"a": 1}}},)]
+            self.client.execute("INSERT INTO test (a) VALUES", data)
+            result = self.client.execute("SELECT * FROM test")
+            self.assertEqual(result, data)

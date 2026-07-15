@@ -17,6 +17,10 @@ class MapColumn(Column):
         self.key_column = key_column
         self.value_column = value_column
         super(MapColumn, self).__init__(**kwargs)
+        self.prefix_needs_items = (
+            key_column.prefix_needs_items or
+            value_column.prefix_needs_items
+        )
 
     def read_state_prefix(self, buf):
         super(MapColumn, self).read_state_prefix(buf)
@@ -24,11 +28,16 @@ class MapColumn(Column):
         self.key_column.read_state_prefix(buf)
         self.value_column.read_state_prefix(buf)
 
-    def write_state_prefix(self, buf):
+    def write_state_prefix(self, buf, items=None):
         super(MapColumn, self).write_state_prefix(buf)
 
-        self.key_column.write_state_prefix(buf)
-        self.value_column.write_state_prefix(buf)
+        key_items = value_items = None
+        if items is not None and self.key_column.prefix_needs_items:
+            key_items = [k for x in items for k in x]
+        if items is not None and self.value_column.prefix_needs_items:
+            value_items = [v for x in items for v in x.values()]
+        self.key_column.write_state_prefix(buf, key_items)
+        self.value_column.write_state_prefix(buf, value_items)
 
     def read_items(self, n_items, buf):
         if not n_items:
