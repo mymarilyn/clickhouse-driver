@@ -1,8 +1,8 @@
 import os
 import sys
 
-USE_NUMPY = bool(int(os.getenv('USE_NUMPY', '0')))
-USE_ARROW = bool(int(os.getenv('USE_ARROW', '0')))
+USE_NUMPY = bool(int(os.getenv('USE_NUMPY') or '0'))
+USE_ARROW = bool(int(os.getenv('USE_ARROW') or '0'))
 
 tests_require = [
     'pytest',
