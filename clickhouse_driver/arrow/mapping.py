@@ -1,51 +1,67 @@
 import json
+import logging
 
 import pyarrow as pa
 
 from ..columns.util import get_inner_columns, get_inner_spec
 
 SIMPLE_TYPES = {
-    'Int8': pa.int8(),
-    'Int16': pa.int16(),
-    'Int32': pa.int32(),
-    'Int64': pa.int64(),
-    'UInt8': pa.uint8(),
-    'UInt16': pa.uint16(),
-    'UInt32': pa.uint32(),
-    'UInt64': pa.uint64(),
-    'Float32': pa.float32(),
-    'Float64': pa.float64(),
-    'Date': pa.date32(),
-    'Date32': pa.date32(),
-    'Bool': pa.bool_(),
-    'Nothing': pa.null()
+    "Int8": pa.int8(),
+    "Int16": pa.int16(),
+    "Int32": pa.int32(),
+    "Int64": pa.int64(),
+    "UInt8": pa.uint8(),
+    "UInt16": pa.uint16(),
+    "UInt32": pa.uint32(),
+    "UInt64": pa.uint64(),
+    "Float32": pa.float32(),
+    "Float64": pa.float64(),
+    "Date": pa.date32(),
+    "Date32": pa.date32(),
+    "Bool": pa.bool_(),
+    "Nothing": pa.null(),
 }
 
 # Types represented by rich Python objects are stringified.
-STRINGIFIED_TYPES = {'UUID', 'IPv4', 'IPv6'}
+STRINGIFIED_TYPES = {"UUID", "IPv4", "IPv6"}
 
 DECIMAL_PRECISIONS = {
-    'Decimal32': 9,
-    'Decimal64': 18,
-    'Decimal128': 38,
-    'Decimal256': 76
+    "Decimal32": 9,
+    "Decimal64": 18,
+    "Decimal128": 38,
+    "Decimal256": 76,
 }
 
+
+logger = logging.getLogger(__name__)
 
 #: Types with no default Arrow representation: an explicit
 #: ``arrow_types`` entry is required for such columns.
 UNSUPPORTED = object()
 
 
-def json_as_text(value):
-    """JSON column value to JSON text."""
-    # With output_format_native_write_json_as_string the server sends
-    # JSON text as is.
-    if isinstance(value, str):
-        return value or '{}'
-    # Dynamic values inside JSON may be dates, UUIDs and other rich
-    # types: fall back to their string form.
-    return json.dumps(value, default=str)
+class JsonTextConverter(object):
+    def __init__(self, column_name):
+        self.column_name = column_name
+        self.warned = False
+
+    def __call__(self, value):
+        if isinstance(value, str):
+            return value or "{}"
+
+        if not self.warned:
+            self.warned = True
+            logger.warning(
+                "Column '%s': JSON is serialized to text on the "
+                "client. Set output_format_native_write_json_as_string"
+                "=1 to pass server-serialized JSON text through "
+                "instead.",
+                self.column_name,
+            )
+
+        # Dynamic values inside JSON may be dates, UUIDs and other
+        # rich types: fall back to their string form.
+        return json.dumps(value, default=str)
 
 
 def json_as_object(value):
@@ -73,38 +89,38 @@ def get_type_and_converter(spec, strings_as_bytes=False):
     if spec in STRINGIFIED_TYPES:
         return pa.string(), str
 
-    if spec == 'JSON' or spec.startswith('JSON('):
+    if spec == "JSON" or spec.startswith("JSON("):
         # No default representation: dynamic paths make every implicit
         # choice either lossy or unstable. Requires arrow_types.
         return UNSUPPORTED, None
 
-    if spec == 'String' or spec.startswith('FixedString'):
+    if spec == "String" or spec.startswith("FixedString"):
         if strings_as_bytes:
             return pa.binary(), None
         return pa.string(), None
 
-    if spec.startswith('Enum'):
+    if spec.startswith("Enum"):
         return pa.string(), None
 
-    if spec.startswith('Nullable('):
+    if spec.startswith("Nullable("):
         return get_type_and_converter(
-            get_inner_spec('Nullable', spec), strings_as_bytes
+            get_inner_spec("Nullable", spec), strings_as_bytes
         )
 
-    if spec.startswith('LowCardinality('):
+    if spec.startswith("LowCardinality("):
         return get_type_and_converter(
-            get_inner_spec('LowCardinality', spec), strings_as_bytes
+            get_inner_spec("LowCardinality", spec), strings_as_bytes
         )
 
-    if spec.startswith('SimpleAggregateFunction('):
-        inner_spec = get_inner_columns(
-            get_inner_spec('SimpleAggregateFunction', spec)
-        )[-1]
+    if spec.startswith("SimpleAggregateFunction("):
+        inner_spec = get_inner_columns(get_inner_spec("SimpleAggregateFunction", spec))[
+            -1
+        ]
         return get_type_and_converter(inner_spec, strings_as_bytes)
 
-    if spec.startswith('Array('):
+    if spec.startswith("Array("):
         inner_type, inner_converter = get_type_and_converter(
-            get_inner_spec('Array', spec), strings_as_bytes
+            get_inner_spec("Array", spec), strings_as_bytes
         )
         if inner_type is None or inner_type is UNSUPPORTED:
             return inner_type, None
@@ -112,18 +128,15 @@ def get_type_and_converter(spec, strings_as_bytes=False):
         if inner_converter is None:
             converter = None
         else:
+
             def converter(value, _converter=inner_converter):
-                return [
-                    None if x is None else _converter(x) for x in value
-                ]
+                return [None if x is None else _converter(x) for x in value]
 
         return pa.list_(inner_type), converter
 
-    if spec.startswith('Map('):
-        key_spec, value_spec = get_inner_columns(get_inner_spec('Map', spec))
-        key_type, key_converter = get_type_and_converter(
-            key_spec, strings_as_bytes
-        )
+    if spec.startswith("Map("):
+        key_spec, value_spec = get_inner_columns(get_inner_spec("Map", spec))
+        key_type, key_converter = get_type_and_converter(key_spec, strings_as_bytes)
         value_type, value_converter = get_type_and_converter(
             value_spec, strings_as_bytes
         )
@@ -134,24 +147,25 @@ def get_type_and_converter(spec, strings_as_bytes=False):
         if key_converter is None and value_converter is None:
             converter = None
         else:
+
             def converter(value, _kc=key_converter, _vc=value_converter):
                 return [
                     (
                         _kc(k) if _kc else k,
-                        (None if v is None else _vc(v)) if _vc else v
+                        (None if v is None else _vc(v)) if _vc else v,
                     )
                     for k, v in value.items()
                 ]
 
         return pa.map_(key_type, value_type), converter
 
-    if spec.startswith('Decimal'):
-        if spec.startswith('Decimal('):
+    if spec.startswith("Decimal"):
+        if spec.startswith("Decimal("):
             precision, scale = [
-                int(x) for x in get_inner_spec('Decimal', spec).split(',')
+                int(x) for x in get_inner_spec("Decimal", spec).split(",")
             ]
         else:
-            prefix = spec.split('(')[0]
+            prefix = spec.split("(")[0]
             if prefix not in DECIMAL_PRECISIONS:
                 return None, None
             precision = DECIMAL_PRECISIONS[prefix]
@@ -161,26 +175,26 @@ def get_type_and_converter(spec, strings_as_bytes=False):
             return pa.decimal128(precision, scale), None
         return pa.decimal256(precision, scale), None
 
-    if spec.startswith('DateTime64('):
-        params = get_inner_columns(get_inner_spec('DateTime64', spec))
+    if spec.startswith("DateTime64("):
+        params = get_inner_columns(get_inner_spec("DateTime64", spec))
         precision = int(params[0])
         tz = params[1].strip("'") if len(params) > 1 else None
 
         if precision == 0:
-            unit = 's'
+            unit = "s"
         elif precision <= 3:
-            unit = 'ms'
+            unit = "ms"
         elif precision <= 6:
-            unit = 'us'
+            unit = "us"
         else:
-            unit = 'ns'
+            unit = "ns"
 
         return pa.timestamp(unit, tz=tz), None
 
-    if spec.startswith('DateTime'):
+    if spec.startswith("DateTime"):
         tz = None
-        if spec.startswith('DateTime('):
-            tz = get_inner_spec('DateTime', spec).strip("'")
-        return pa.timestamp('s', tz=tz), None
+        if spec.startswith("DateTime("):
+            tz = get_inner_spec("DateTime", spec).strip("'")
+        return pa.timestamp("s", tz=tz), None
 
     return None, None

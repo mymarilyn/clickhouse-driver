@@ -18,7 +18,7 @@ except ImportError:
 from .. import errors
 from ..protocol import ServerPacketTypes
 from .mapping import (
-    UNSUPPORTED, get_type_and_converter, json_as_object, json_as_text
+    UNSUPPORTED, JsonTextConverter, get_type_and_converter, json_as_object
 )
 
 
@@ -128,7 +128,7 @@ def _resolve_fields(columns_with_types, strings_as_bytes, arrow_types):
             if _is_json_spec(spec):
                 if pa.types.is_string(declared) or \
                         pa.types.is_large_string(declared):
-                    converter = json_as_text
+                    converter = JsonTextConverter(name)
                 else:
                     converter = json_as_object
             type_ = declared

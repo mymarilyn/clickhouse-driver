@@ -661,7 +661,8 @@ struct are dropped and paths of varying types raise an error.
 
 For maximum JSON text throughput let the server serialize JSON to text
 with the ``output_format_native_write_json_as_string`` setting: the
-text is passed through to Arrow without parsing:
+text is passed through to Arrow without parsing. Without the setting
+JSON is serialized to text on the client and a warning is emitted:
 
     .. code-block:: python
 

@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import date, datetime, timezone
 from decimal import Decimal
 from uuid import UUID
@@ -307,6 +308,50 @@ class JSONTestCase(ArrowBaseTestCase):
             self.assertEqual(table.schema.field('a').type, pa.string())
             values = [json.loads(x) for x in table.column('a').to_pylist()]
             self.assertEqual(values, [{'k': 1, 's': 'x'}, {}, {'b': 'y'}])
+
+    def test_json_as_text_warns_once_per_query(self):
+        with self.create_table('a JSON'):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', [({'k': 1}, )]
+            )
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', [({'k': 2}, )]
+            )
+
+            with self.assertLogs(
+                    'clickhouse_driver.arrow.mapping',
+                    level='WARNING') as cm:
+                self.client.query_arrow(
+                    'SELECT a FROM test', arrow_types={'a': pa.string()}
+                )
+
+            self.assertEqual(len(cm.output), 1)
+            self.assertIn(
+                'output_format_native_write_json_as_string', cm.output[0]
+            )
+
+    def test_json_as_text_passthrough_does_not_warn(self):
+        records = []
+        handler = logging.Handler()
+        handler.emit = records.append
+        logger = logging.getLogger('clickhouse_driver.arrow.mapping')
+        logger.addHandler(handler)
+
+        try:
+            with self.create_table('a JSON'):
+                self.client.execute(
+                    'INSERT INTO test (a) VALUES', [({'k': 1}, )]
+                )
+                self.client.query_arrow(
+                    'SELECT a FROM test', arrow_types={'a': pa.string()},
+                    settings={
+                        'output_format_native_write_json_as_string': 1
+                    }
+                )
+        finally:
+            logger.removeHandler(handler)
+
+        self.assertEqual(records, [])
 
     def test_json_as_text_string_wire_format(self):
         # output_format_native_write_json_as_string makes the server
