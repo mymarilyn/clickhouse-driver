@@ -11,7 +11,7 @@ except ImportError:
     pd = None
 
 try:
-    from ..columns.numpy.stringcolumn import ArrowStringBuffers
+    from ..columns.arrow.stringcolumn import ArrowStringBuffers
 except ImportError:
     ArrowStringBuffers = None
 

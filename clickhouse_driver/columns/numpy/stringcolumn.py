@@ -1,23 +1,7 @@
+import numpy as np
+
 from ... import defines
-from ..base import CommonSerialization
 from .base import NumpyColumn
-
-
-class ArrowStringBuffers(object):
-    """
-    String column read into Arrow-style buffers: concatenated bytes
-    plus int64 offsets, no per-string Python objects. Assembled into
-    a pyarrow array by ``clickhouse_driver.arrow.convert``.
-    """
-    __slots__ = ('offsets', 'data', 'nulls_map')
-
-    def __init__(self, offsets, data, nulls_map=None):
-        self.offsets = offsets
-        self.data = data
-        self.nulls_map = nulls_map
-
-    def __len__(self):
-        return len(self.offsets) // 8 - 1
 
 
 class NumpyStringColumn(NumpyColumn):
@@ -25,56 +9,24 @@ class NumpyStringColumn(NumpyColumn):
 
     default_encoding = defines.STRINGS_ENCODING
 
-    # Reset for columns whose consumers need real items, e.g.
-    # LowCardinality dictionaries.
-    arrow_buffers_allowed = True
-
     def __init__(self, encoding=default_encoding, **kwargs):
         self.encoding = encoding
         super(NumpyStringColumn, self).__init__(**kwargs)
 
-    def _use_arrow_buffers(self, buf):
-        return (
-            self.arrow_buffers_allowed and
-            self.use_arrow and
-            self.encoding.lower() in ('utf-8', 'utf8') and
-            type(self.serialization) is CommonSerialization and
-            hasattr(buf, 'read_strings_arrow')
-        )
-
-    def _read_data(self, n_items, buf, nulls_map=None):
-        if self._use_arrow_buffers(buf):
-            offsets, data = buf.read_strings_arrow(n_items)
-            return ArrowStringBuffers(offsets, data, nulls_map=nulls_map)
-
-        return super(NumpyStringColumn, self)._read_data(
-            n_items, buf, nulls_map=nulls_map
-        )
-
     def read_items(self, n_items, buf):
-        return self._wrap_string_items(
-            buf.read_strings(n_items, encoding=self.encoding)
+        return np.array(
+            buf.read_strings(n_items, encoding=self.encoding), dtype=self.dtype
         )
 
     def write_items(self, items, buf):
         return buf.write_strings(items.tolist(), encoding=self.encoding)
 
 
-class NumpyByteStringColumn(NumpyStringColumn):
+class NumpyByteStringColumn(NumpyColumn):
     null_value = b''
 
-    def _use_arrow_buffers(self, buf):
-        # No decoding happens for byte strings: buffers can be used
-        # regardless of encoding.
-        return (
-            self.arrow_buffers_allowed and
-            self.use_arrow and
-            type(self.serialization) is CommonSerialization and
-            hasattr(buf, 'read_strings_arrow')
-        )
-
     def read_items(self, n_items, buf):
-        return self._wrap_string_items(buf.read_strings(n_items))
+        return np.array(buf.read_strings(n_items), dtype=self.dtype)
 
     def write_items(self, items, buf):
         return buf.write_strings(items.tolist())
@@ -85,15 +37,10 @@ class NumpyFixedString(NumpyStringColumn):
         self.length = length
         super(NumpyFixedString, self).__init__(**kwargs)
 
-    def _use_arrow_buffers(self, buf):
-        # Fixed strings are trimmed of zero bytes on read: buffers
-        # would keep the padding.
-        return False
-
     def read_items(self, n_items, buf):
-        return self._wrap_string_items(buf.read_fixed_strings(
+        return np.array(buf.read_fixed_strings(
             n_items, self.length, encoding=self.encoding
-        ))
+        ), dtype=self.dtype)
 
     def write_items(self, items, buf):
         return buf.write_fixed_strings(
@@ -106,12 +53,9 @@ class NumpyByteFixedString(NumpyByteStringColumn):
         self.length = length
         super(NumpyByteFixedString, self).__init__(**kwargs)
 
-    def _use_arrow_buffers(self, buf):
-        return False
-
     def read_items(self, n_items, buf):
-        return self._wrap_string_items(
-            buf.read_fixed_strings(n_items, self.length)
+        return np.array(
+            buf.read_fixed_strings(n_items, self.length), dtype=self.dtype
         )
 
     def write_items(self, items, buf):
