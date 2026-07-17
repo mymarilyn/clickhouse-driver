@@ -65,15 +65,16 @@ def escape_param(item, context, for_server=False):
             item = ''.join(escape_chars_map.get(c, c) for c in item)
         return "'%s'" % ''.join(escape_chars_map.get(c, c) for c in item)
 
-    elif isinstance(item, list):
-        return "[%s]" % ', '.join(
-            str(escape_param(x, context, for_server=for_server)) for x in item
+    elif isinstance(item, (list, tuple)):
+        brackets = '[%s]' if isinstance(item, list) else '(%s)'
+        rv = brackets % ', '.join(
+            str(escape_param(x, context)) for x in item
         )
-
-    elif isinstance(item, tuple):
-        return "(%s)" % ', '.join(
-            str(escape_param(x, context, for_server=for_server)) for x in item
-        )
+        # Server expects the whole collection literal as an escaped
+        # string (Field dump format), not a bare [...] or (...).
+        if for_server:  # pragma: requires-clickhouse-22.8
+            rv = "'%s'" % ''.join(escape_chars_map.get(c, c) for c in rv)
+        return rv
 
     elif isinstance(item, Enum):
         return escape_param(item.value, context, for_server=for_server)
