@@ -1,10 +1,19 @@
 from unittest import TestCase
 from uuid import UUID
 
+from clickhouse_driver.context import Context
+
 try:
     import pyarrow as pa
+
+    from clickhouse_driver.arrow import mapping
+    from clickhouse_driver.arrow.convert import (
+        ArrowStreamState, _json_declared_converter,
+        create_record_batch_reader
+    )
 except ImportError:
     pa = None
+    mapping = None
 
 
 class MappingTestCase(TestCase):
@@ -16,16 +25,13 @@ class MappingTestCase(TestCase):
         if pa is None:
             self.skipTest('PyArrow package is not installed')
 
-        from clickhouse_driver.arrow import mapping
-        self.mapping = mapping
-
     def get(self, spec, **kwargs):
-        return self.mapping.get_type_and_converter(spec, **kwargs)
+        return mapping.get_type_and_converter(spec, **kwargs)
 
     def test_object_json_unsupported(self):
         # Legacy JSON type: only served by pre-25 servers.
         type_, _ = self.get("Object('json')")
-        self.assertIs(type_, self.mapping.UNSUPPORTED)
+        self.assertIs(type_, mapping.UNSUPPORTED)
 
     def test_decimal_prefixed_specs(self):
         self.assertEqual(self.get('Decimal32(2)')[0], pa.decimal128(9, 2))
@@ -70,9 +76,9 @@ class MappingTestCase(TestCase):
         self.assertEqual(converter({'k': uid}), [('k', str(uid))])
 
     def test_json_as_object_parses_wire_strings(self):
-        self.assertEqual(self.mapping.json_as_object('{"a": 1}'), {'a': 1})
-        self.assertEqual(self.mapping.json_as_object(''), {})
-        self.assertEqual(self.mapping.json_as_object({'a': 1}), {'a': 1})
+        self.assertEqual(mapping.json_as_object('{"a": 1}'), {'a': 1})
+        self.assertEqual(mapping.json_as_object(''), {})
+        self.assertEqual(mapping.json_as_object({'a': 1}), {'a': 1})
 
 
 class ConvertTestCase(TestCase):
@@ -85,17 +91,11 @@ class ConvertTestCase(TestCase):
             self.skipTest('PyArrow package is not installed')
 
     def make_context(self):
-        from clickhouse_driver.context import Context
-
         context = Context()
         context.client_settings = {'strings_as_bytes': False}
         return context
 
     def test_empty_packet_stream(self):
-        from clickhouse_driver.arrow.convert import (
-            ArrowStreamState, create_record_batch_reader
-        )
-
         state = ArrowStreamState(connection=None)
         reader = create_record_batch_reader(
             iter([]), self.make_context(), state=state
@@ -105,8 +105,6 @@ class ConvertTestCase(TestCase):
         self.assertTrue(state.finished)
 
     def test_declared_converter_none_for_json_free_containers(self):
-        from clickhouse_driver.arrow.convert import _json_declared_converter
-
         self.assertIsNone(_json_declared_converter(
             'Array(Int32)', pa.list_(pa.int32()), 'x'
         ))
