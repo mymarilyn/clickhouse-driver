@@ -1,4 +1,11 @@
+from io import BytesIO
+from unittest import TestCase
+
 from tests.testcase import BaseTestCase
+from clickhouse_driver.bufferedreader import CompressedBufferedReader
+from clickhouse_driver.bufferedwriter import CompressedBufferedWriter
+from clickhouse_driver.columns.service import read_column, write_column
+from clickhouse_driver.context import Context
 
 
 class NewJSONTestCase(BaseTestCase):
@@ -1034,3 +1041,203 @@ class NewJSONTestCase(BaseTestCase):
                 ({"items": [{"p": 1}, {"q": "x"}]},),
                 ({"items": [{"nested": {"deep": 5}}]},),
             ])
+
+
+class JSONInContainerColumnsTestCase(BaseTestCase):
+    """
+    JSON columns nested inside container column types. The object
+    prefix is data-dependent, so the write path threads the block's
+    items into ``write_state_prefix`` to emit it in the prefix stream
+    position the server expects for nested columns; inserts into
+    ``Map(String, JSON)`` used to deadlock and ``Array(JSON)`` raised
+    ``NotImplementedError`` (issue #511).
+    """
+
+    required_server_version = (24, 8, 0)
+
+    def client_kwargs(self, version):
+        return {"settings": {"enable_json_type": True}}
+
+    def cli_client_kwargs(self):
+        return {"enable_json_type": 1}
+
+    def test_map_of_json(self):
+        with self.create_table("a Map(String, JSON)"):
+            data = [
+                ({"k": {"a": 1}},),
+                ({"k": {"b": "x"}, "j": {"c": 2.5, "d": {"e": True}}},),
+                ({},),
+                ({"empty": {}},),
+            ]
+            self.client.execute("INSERT INTO test (a) VALUES", data)
+            result = self.client.execute("SELECT * FROM test")
+            self.assertEqual(result, data)
+
+    def test_map_of_json_server_side_view(self):
+        # The CLI view proves the bytes landed correctly on the server,
+        # not just that the client can read back its own encoding.
+        with self.create_table("a Map(String, JSON)"):
+            self.client.execute(
+                "INSERT INTO test (a) VALUES",
+                [({"k": {"a": 1, "n": {"d": "deep"}}},)])
+            # Integer quoting in JSON output defaults differently across
+            # server versions; pin it so the assertion is stable.
+            cli = self.emit_cli(
+                "SELECT toJSONString(a) FROM test",
+                output_format_json_quote_64bit_integers=0,
+            )
+            self.assertEqual(cli, '{"k":{"a":1,"n":{"d":"deep"}}}\n')
+
+    def test_map_of_json_string_value_input(self):
+        # JSON given as text is parsed by the write path, same as for
+        # top-level JSON columns.
+        with self.create_table("a Map(String, JSON)"):
+            self.client.execute(
+                "INSERT INTO test (a) VALUES", [({"k": '{"s": 1}'},)])
+            result = self.client.execute("SELECT * FROM test")
+            self.assertEqual(result, [({"k": {"s": 1}},)])
+
+    def test_array_of_json(self):
+        with self.create_table("a Array(JSON)"):
+            data = [
+                ([{"a": 1}, {"b": "x"}],),
+                ([],),
+                ([{"c": [1, 2, 3]}],),
+            ]
+            self.client.execute("INSERT INTO test (a) VALUES", data)
+            result = self.client.execute("SELECT * FROM test")
+            self.assertEqual(result, data)
+
+    def test_tuple_with_json(self):
+        with self.create_table("a Tuple(String, JSON)"):
+            data = [
+                (("s1", {"a": 1}),),
+                (("s2", {"b": {"c": "deep"}}),),
+            ]
+            self.client.execute("INSERT INTO test (a) VALUES", data)
+            result = self.client.execute("SELECT * FROM test")
+            self.assertEqual(result, data)
+
+    def test_map_of_array_of_json(self):
+        with self.create_table("a Map(String, Array(JSON))"):
+            data = [
+                ({"k": [{"a": 1}], "l": [{"b": 2}, {"c": 3}]},),
+                ({},),
+            ]
+            self.client.execute("INSERT INTO test (a) VALUES", data)
+            result = self.client.execute("SELECT * FROM test")
+            self.assertEqual(result, data)
+
+    def test_array_of_array_of_json(self):
+        with self.create_table("a Array(Array(JSON))"):
+            data = [
+                ([[{"a": 1}], [{"b": 2}, {"c": 3}]],),
+                ([[]],),
+            ]
+            self.client.execute("INSERT INTO test (a) VALUES", data)
+            result = self.client.execute("SELECT * FROM test")
+            self.assertEqual(result, data)
+
+    def test_map_of_nullable_json(self):
+        with self.create_table("a Map(String, Nullable(JSON))"):
+            data = [({"k": {"a": 1}, "n": None},)]
+            self.client.execute("INSERT INTO test (a) VALUES", data)
+            result = self.client.execute("SELECT * FROM test")
+            self.assertEqual(result, data)
+
+    def test_array_of_nullable_json(self):
+        with self.create_table("a Array(Nullable(JSON))"):
+            data = [([{"a": 1}, None, {"b": 2}],)]
+            self.client.execute("INSERT INTO test (a) VALUES", data)
+            result = self.client.execute("SELECT * FROM test")
+            self.assertEqual(result, data)
+
+    def test_map_of_map_of_json(self):
+        with self.create_table("a Map(String, Map(String, JSON))"):
+            data = [({"outer": {"inner": {"a": 1}}},)]
+            self.client.execute("INSERT INTO test (a) VALUES", data)
+            result = self.client.execute("SELECT * FROM test")
+            self.assertEqual(result, data)
+
+
+class JSONWireRoundTripTestCase(TestCase):
+    # Which server versions run the integration tests above is a matrix
+    # choice, so the JSON write path would go uncovered on jobs against
+    # servers without JSON support. Serialize and deserialize a block
+    # locally so every line is exercised deterministically on every
+    # job. Wire compatibility itself is covered by the server-backed
+    # tests.
+
+    def make_context(self):
+        context = Context()
+        context.client_settings = {
+            'use_numpy': False,
+            'strings_as_bytes': False,
+        }
+        context.settings = {}
+        return context
+
+    def round_trip(self, spec, items):
+        context = self.make_context()
+
+        sink = BytesIO()
+        write_buf = CompressedBufferedWriter(sink, 1024)
+        # prepare_items mutates the list it is given (e.g. None ->
+        # null_value); write a copy so `items` stays comparable.
+        write_column(context, 'a', spec, list(items), write_buf)
+        write_buf.flush()
+
+        chunks = [sink.getvalue()]
+        read_buf = CompressedBufferedReader(
+            lambda: chunks.pop() if chunks else b'', 1024)
+        return list(read_column(context, spec, len(items), read_buf))
+
+    def test_json(self):
+        items = [
+            {'i': 1, 'f': 2.5, 's': 'x', 'b': True, 'n': {'d': 'deep'}},
+            {'list': [1, 2], 'strings': ['a', 'b']},
+            {},
+        ]
+        self.assertEqual(self.round_trip('JSON', items), items)
+
+    def test_nullable_json(self):
+        items = [None, {'x': 1}, None]
+        self.assertEqual(self.round_trip('Nullable(JSON)', items), items)
+
+    def test_map_of_json(self):
+        items = [
+            {'k': {'a': 1}, 'j': {'b': 'x'}},
+            {},
+            {'empty': {}},
+        ]
+        self.assertEqual(self.round_trip('Map(String, JSON)', items), items)
+
+    def test_array_of_json(self):
+        items = [
+            [{'a': 1}, {'b': 'x'}],
+            [],
+        ]
+        self.assertEqual(self.round_trip('Array(JSON)', items), items)
+
+    def test_array_of_nullable_json(self):
+        items = [[{'a': 1}, None]]
+        self.assertEqual(
+            self.round_trip('Array(Nullable(JSON))', items), items)
+
+    def test_tuple_with_json(self):
+        items = [('s1', {'a': 1}), ('s2', {'b': 2})]
+        self.assertEqual(
+            self.round_trip('Tuple(String, JSON)', items), items)
+
+    def test_map_of_array_of_json(self):
+        items = [{'k': [{'a': 1}], 'l': [{'b': 2}, {'c': 3}]}]
+        self.assertEqual(
+            self.round_trip('Map(String, Array(JSON))', items), items)
+
+    def test_write_state_prefix_requires_items(self):
+        from clickhouse_driver.columns.service import get_column_by_spec
+
+        column = get_column_by_spec(
+            'JSON', {'context': self.make_context()}, use_numpy=False)
+        with self.assertRaises(NotImplementedError):
+            column.write_state_prefix(BytesIO(), None)

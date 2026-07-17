@@ -1,5 +1,15 @@
-on: [push, pull_request]
+on:
+  push:
+    branches: [master]
+    tags: ['*']
+  pull_request:
 name: build-docs
+
+concurrency:
+  # One lane per workflow + PR; non-PR pushes fall back to run_id (never cancel each other)
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   tests:
     runs-on: ubuntu-22.04

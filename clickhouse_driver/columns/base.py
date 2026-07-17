@@ -70,6 +70,12 @@ class Column(object):
 
     null_value = 0
 
+    # True when ``write_state_prefix`` needs the block's items to emit
+    # the prefix (JSON: the path list is data-dependent). Container
+    # columns propagate the flag and thread flattened items through so
+    # ordinary columns never pay for the flattening.
+    prefix_needs_items = False
+
     def __init__(self, types_check=False, has_custom_serialization=False,
                  **kwargs):
         self.nullable = False
@@ -183,7 +189,7 @@ class Column(object):
             if use_custom_serialization:
                 self.serialization = SparseSerialization(self)
 
-    def write_state_prefix(self, buf):
+    def write_state_prefix(self, buf, items=None):
         pass
 
 

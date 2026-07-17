@@ -169,7 +169,7 @@ def write_column(context, column_name, column_spec, items, buf,
     column = get_column_by_spec(column_spec, column_options)
 
     try:
-        column.write_state_prefix(buf)
+        column.write_state_prefix(buf, items)
         column.write_data(items, buf)
 
     except column_exceptions.ColumnTypeMismatchException as e:
