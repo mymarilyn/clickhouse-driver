@@ -1,5 +1,4 @@
 import json
-import logging
 from datetime import date, datetime, timezone
 from decimal import Decimal
 from uuid import UUID
@@ -10,6 +9,7 @@ except ImportError:
     pa = None
 
 from tests.arrow.testcase import ArrowBaseTestCase
+from tests.util import capture_logging
 
 
 class IntTestCase(ArrowBaseTestCase):
@@ -351,13 +351,8 @@ class JSONTestCase(ArrowBaseTestCase):
             )
 
     def test_json_as_text_passthrough_does_not_warn(self):
-        records = []
-        handler = logging.Handler()
-        handler.emit = records.append
-        logger = logging.getLogger('clickhouse_driver.arrow.mapping')
-        logger.addHandler(handler)
-
-        try:
+        with capture_logging('clickhouse_driver.arrow.mapping',
+                             'INFO') as buffer:
             with self.create_table('a JSON'):
                 self.client.execute(
                     'INSERT INTO test (a) VALUES', [({'k': 1}, )]
@@ -368,10 +363,8 @@ class JSONTestCase(ArrowBaseTestCase):
                         'output_format_native_write_json_as_string': 1
                     }
                 )
-        finally:
-            logger.removeHandler(handler)
 
-        self.assertEqual(records, [])
+        self.assertEqual(buffer.getvalue(), '')
 
     def test_json_as_struct_string_wire_format(self):
         # Struct declaration must work whichever wire format arrives:
