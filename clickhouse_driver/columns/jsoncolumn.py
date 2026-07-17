@@ -16,7 +16,7 @@ class JsonColumn(Column):
         self.string_column = String(**kwargs)
         super(JsonColumn, self).__init__(**kwargs)
 
-    def write_state_prefix(self, buf):
+    def write_state_prefix(self, buf, items=None):
         # Read in binary format.
         # Write in text format.
         write_binary_uint8(1, buf)

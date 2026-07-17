@@ -34,6 +34,7 @@ class ArrayColumn(Column):
         self._write_depth_0_size = True
         super(ArrayColumn, self).__init__(**kwargs)
         self.null_value = []
+        self.prefix_needs_items = nested_column.prefix_needs_items
 
     def write_data(self, data, buf):
         # Column of Array(T) is stored in "compact" format and passed to server
@@ -115,10 +116,17 @@ class ArrayColumn(Column):
 
         self.nested_column.read_state_prefix(buf)
 
-    def write_state_prefix(self, buf):
+    def write_state_prefix(self, buf, items=None):
         super(ArrayColumn, self).write_state_prefix(buf)
 
-        self.nested_column.write_state_prefix(buf)
+        nested_items = None
+        if items is not None and self.nested_column.prefix_needs_items:
+            # One level of flattening per Array level, so the leaf
+            # column sees the same flat item list its data writer will
+            # receive.
+            nested_items = [x for item in items if item is not None
+                            for x in item]
+        self.nested_column.write_state_prefix(buf, nested_items)
 
     def _read(self, size, buf):
         slices_series = [[0, size]]

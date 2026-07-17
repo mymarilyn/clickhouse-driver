@@ -18,6 +18,9 @@ class TupleColumn(Column):
 
         super(TupleColumn, self).__init__(**kwargs)
         self.null_value = tuple(x.null_value for x in nested_columns)
+        self.prefix_needs_items = any(
+            x.prefix_needs_items for x in nested_columns
+        )
 
     def write_data(self, items, buf):
         items = self.prepare_items(items)
@@ -47,11 +50,14 @@ class TupleColumn(Column):
         for x in self.nested_columns:
             x.read_state_prefix(buf)
 
-    def write_state_prefix(self, buf):
+    def write_state_prefix(self, buf, items=None):
         super(TupleColumn, self).write_state_prefix(buf)
 
-        for x in self.nested_columns:
-            x.write_state_prefix(buf)
+        for i, x in enumerate(self.nested_columns):
+            nested_items = None
+            if items is not None and x.prefix_needs_items:
+                nested_items = [item[i] for item in items]
+            x.write_state_prefix(buf, nested_items)
 
 
 def create_tuple_column(spec, column_by_spec_getter, column_options):
