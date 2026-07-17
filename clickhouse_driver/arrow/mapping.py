@@ -1,5 +1,4 @@
 import json
-import logging
 
 import pyarrow as pa
 
@@ -35,40 +34,31 @@ DECIMAL_PRECISIONS = {
 }
 
 
-logger = logging.getLogger(__name__)
-
 #: Types with no default Arrow representation: an explicit
 #: ``arrow_types`` entry is required for such columns.
 UNSUPPORTED = object()
 
 
-class JsonTextConverter(object):
+def json_as_text(column_name):
     """
-    JSON column value to JSON text. With
-    output_format_native_write_json_as_string the server sends JSON
-    text which is passed through as is; otherwise values are
-    serialized on the client, which is slower.
+    JSON column value to JSON text. Requires
+    output_format_native_write_json_as_string=1: the server sends JSON
+    text which is passed through as is. There is deliberately no
+    client-side serialization fallback to avoid performance bottlenecks.
     """
-    def __init__(self, column_name):
-        self.column_name = column_name
-        self.warned = False
-
-    def __call__(self, value):
+    def converter(value):
         if isinstance(value, str):
             return value or '{}'
 
-        if not self.warned:
-            self.warned = True
-            logger.warning(
-                "Column '%s': JSON is serialized to text on the "
-                'client. Set output_format_native_write_json_as_string'
-                '=1 to pass server-serialized JSON text through '
-                'instead.', self.column_name
-            )
+        raise ValueError(
+            "Column '{0}': JSON text output requires server-side "
+            'serialization. Set '
+            'output_format_native_write_json_as_string=1 in query '
+            'settings (ClickHouse 24.10+) or transform the column in '
+            'the query with toJSONString().'.format(column_name)
+        )
 
-        # Dynamic values inside JSON may be dates, UUIDs and other
-        # rich types: fall back to their string form.
-        return json.dumps(value, default=str)
+    return converter
 
 
 def json_as_object(value):

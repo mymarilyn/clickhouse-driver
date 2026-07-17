@@ -19,7 +19,7 @@ from .. import errors
 from ..columns.util import get_inner_columns, get_inner_spec
 from ..protocol import ServerPacketTypes
 from .mapping import (
-    UNSUPPORTED, JsonTextConverter, get_type_and_converter, json_as_object
+    UNSUPPORTED, get_type_and_converter, json_as_object, json_as_text
 )
 
 
@@ -129,7 +129,7 @@ def _json_declared_converter(spec, declared, name):
     if _is_json_spec(spec):
         if pa.types.is_string(declared) or \
                 pa.types.is_large_string(declared):
-            return JsonTextConverter(name)
+            return json_as_text(name)
         return json_as_object
 
     if spec.startswith('Nullable('):

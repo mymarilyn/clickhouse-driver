@@ -647,26 +647,10 @@ target:
         ... )
 
 ``JSON`` columns have no default Arrow representation.
-Declare ``pyarrow.string()`` to get JSON text:
-
-    .. code-block:: python
-
-        >>> client.query_arrow(
-        ...     'SELECT j FROM test', arrow_types={'j': pa.string()}
-        ... )
-
-or declare a struct type for structured output. With a declared
-struct, paths missing in a row become nulls, paths not declared in the
-struct are dropped and paths of varying types raise an error.
-
-The declared type is followed into nested containers: e.g. an
-``Array(JSON)`` column declared as ``pa.list_(pa.string())`` yields
-JSON text per array element.
-
-For maximum JSON text throughput let the server serialize JSON to text
-with the ``output_format_native_write_json_as_string`` setting: the
-text is passed through to Arrow without parsing. Without the setting
-JSON is serialized to text on the client and a warning is emitted:
+Declare ``pyarrow.string()`` to get JSON text. Text output requires
+server-side JSON serialization with the
+``output_format_native_write_json_as_string`` setting (ClickHouse
+24.10 and newer): the text is passed through to Arrow without parsing.
 
     .. code-block:: python
 
@@ -674,6 +658,21 @@ JSON is serialized to text on the client and a warning is emitted:
         ...     'SELECT j FROM test', arrow_types={'j': pa.string()},
         ...     settings={'output_format_native_write_json_as_string': 1}
         ... )
+
+Without the setting the query raises ``ValueError``: there is
+deliberately no client-side serialization fallback, as it is an order
+of magnitude slower. On servers without the setting transform the
+column in the query instead: ``SELECT toJSONString(j)`` returns a
+plain ``String`` column and needs no ``arrow_types`` at all.
+
+Alternatively declare a struct type for structured output. With a
+declared struct, paths missing in a row become nulls, paths not
+declared in the struct are dropped and paths of varying types raise
+an error. Struct output works with or without the setting.
+
+The declared type is followed into nested containers: e.g. an
+``Array(JSON)`` column declared as ``pa.list_(pa.string())`` yields
+JSON text per array element.
 
 The original ClickHouse type of every column is attached to its Arrow
 field as ``clickhouse_type`` metadata.

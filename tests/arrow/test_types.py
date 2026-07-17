@@ -9,7 +9,7 @@ except ImportError:
     pa = None
 
 from tests.arrow.testcase import ArrowBaseTestCase
-from tests.util import capture_logging
+from tests.util import require_server_version
 
 
 class IntTestCase(ArrowBaseTestCase):
@@ -308,6 +308,7 @@ class JSONTestCase(ArrowBaseTestCase):
             # client is not broken by the rejected query
             self.assertEqual(self.client.execute('SELECT 1'), [(1, )])
 
+    @require_server_version(24, 10)
     def test_json_as_text(self):
         # Memory engine returns blocks in nondeterministic order:
         # an explicit ordering key is required.
@@ -316,56 +317,59 @@ class JSONTestCase(ArrowBaseTestCase):
                 'INSERT INTO test (i, a) VALUES',
                 [(1, {'k': 1, 's': 'x'}), (2, {})]
             )
-            # paths appearing only in later blocks must not be lost
             self.client.execute(
                 'INSERT INTO test (i, a) VALUES', [(3, {'b': 'y'})]
             )
             table = self.client.query_arrow(
                 'SELECT a FROM test ORDER BY i',
-                arrow_types={'a': pa.string()}
+                arrow_types={'a': pa.string()},
+                settings={
+                    'output_format_native_write_json_as_string': 1,
+                    # default differs across server versions
+                    'output_format_json_quote_64bit_integers': 0
+                }
             )
 
             self.assertEqual(table.schema.field('a').type, pa.string())
             values = [json.loads(x) for x in table.column('a').to_pylist()]
             self.assertEqual(values, [{'k': 1, 's': 'x'}, {}, {'b': 'y'}])
 
-    def test_json_as_text_warns_once_per_query(self):
+    def test_json_as_text_without_server_serialization_raises(self):
+        # Client-side JSON serialization is deliberately not provided:
+        # it would be an order of magnitude slower than the server-side one.
         with self.create_table('a JSON'):
             self.client.execute(
                 'INSERT INTO test (a) VALUES', [({'k': 1}, )]
             )
-            self.client.execute(
-                'INSERT INTO test (a) VALUES', [({'k': 2}, )]
-            )
 
-            with self.assertLogs(
-                    'clickhouse_driver.arrow.mapping',
-                    level='WARNING') as cm:
+            with self.assertRaises(ValueError) as e:
                 self.client.query_arrow(
                     'SELECT a FROM test', arrow_types={'a': pa.string()}
                 )
 
-            self.assertEqual(len(cm.output), 1)
             self.assertIn(
-                'output_format_native_write_json_as_string', cm.output[0]
+                'output_format_native_write_json_as_string',
+                str(e.exception)
+            )
+            # raised mid-stream, after the reader was created:
+            # client must survive
+            self.assertEqual(self.client.execute('SELECT 1'), [(1, )])
+
+    def test_json_as_text_without_server_serialization_raises_stream(self):
+        with self.create_table('a JSON'):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', [({'k': 1}, )]
             )
 
-    def test_json_as_text_passthrough_does_not_warn(self):
-        with capture_logging('clickhouse_driver.arrow.mapping',
-                             'INFO') as buffer:
-            with self.create_table('a JSON'):
-                self.client.execute(
-                    'INSERT INTO test (a) VALUES', [({'k': 1}, )]
-                )
-                self.client.query_arrow(
-                    'SELECT a FROM test', arrow_types={'a': pa.string()},
-                    settings={
-                        'output_format_native_write_json_as_string': 1
-                    }
-                )
+            reader = self.client.query_arrow_stream(
+                'SELECT a FROM test', arrow_types={'a': pa.string()}
+            )
+            with self.assertRaises(ValueError):
+                reader.read_all()
 
-        self.assertEqual(buffer.getvalue(), '')
+            self.assertEqual(self.client.execute('SELECT 1'), [(1, )])
 
+    @require_server_version(24, 10)
     def test_json_as_struct_string_wire_format(self):
         # Struct declaration must work whichever wire format arrives:
         # with string serialization values are parsed on the client.
@@ -385,26 +389,6 @@ class JSONTestCase(ArrowBaseTestCase):
             )
 
             self.assertEqual(table.column('a').to_pylist(), [{'k': 1}])
-
-    def test_json_as_text_string_wire_format(self):
-        # output_format_native_write_json_as_string makes the server
-        # send JSON text which is passed through to Arrow as is.
-        with self.create_table('a JSON'):
-            self.client.execute(
-                'INSERT INTO test (a) VALUES',
-                [({'k': 1}, ), ({'b': 'y'}, )]
-            )
-            table = self.client.query_arrow(
-                'SELECT a FROM test', arrow_types={'a': pa.string()},
-                settings={
-                    'output_format_native_write_json_as_string': 1,
-                    # default differs across server versions
-                    'output_format_json_quote_64bit_integers': 0
-                }
-            )
-
-            values = [json.loads(x) for x in table.column('a').to_pylist()]
-            self.assertEqual(values, [{'k': 1}, {'b': 'y'}])
 
     def test_json_as_struct(self):
         struct = pa.struct([('k', pa.int64()), ('s', pa.string())])
@@ -445,6 +429,7 @@ class NestedJSONTestCase(ArrowBaseTestCase):
 
             self.assertIn('arrow_types', str(e.exception))
 
+    @require_server_version(24, 10)
     def test_array_json_as_text_elements(self):
         with self.create_table('a Array(JSON)'):
             # nested JSON inserts are not supported by the driver:
@@ -457,7 +442,12 @@ class NestedJSONTestCase(ArrowBaseTestCase):
             )
             table = self.client.query_arrow(
                 'SELECT a FROM test',
-                arrow_types={'a': pa.list_(pa.string())}
+                arrow_types={'a': pa.list_(pa.string())},
+                settings={
+                    'output_format_native_write_json_as_string': 1,
+                    # default differs across server versions
+                    'output_format_json_quote_64bit_integers': 0
+                }
             )
 
             values = [
@@ -466,6 +456,7 @@ class NestedJSONTestCase(ArrowBaseTestCase):
             ]
             self.assertEqual(values, [[{'k': 1}, {'b': 'x'}]])
 
+    @require_server_version(24, 10)
     def test_nullable_json_as_text(self):
         with self.create_table('i UInt8, a Nullable(JSON)'):
             self.client.execute(
@@ -474,7 +465,12 @@ class NestedJSONTestCase(ArrowBaseTestCase):
             )
             table = self.client.query_arrow(
                 'SELECT a FROM test ORDER BY i',
-                arrow_types={'a': pa.string()}
+                arrow_types={'a': pa.string()},
+                settings={
+                    'output_format_native_write_json_as_string': 1,
+                    # default differs across server versions
+                    'output_format_json_quote_64bit_integers': 0
+                }
             )
 
             values = [
@@ -483,6 +479,7 @@ class NestedJSONTestCase(ArrowBaseTestCase):
             ]
             self.assertEqual(values, [{'k': 1}, None])
 
+    @require_server_version(24, 10)
     def test_map_json_as_text_values(self):
         with self.create_table('a Map(String, JSON)'):
             self.emit_cli(
@@ -492,7 +489,12 @@ class NestedJSONTestCase(ArrowBaseTestCase):
             )
             table = self.client.query_arrow(
                 'SELECT a FROM test',
-                arrow_types={'a': pa.map_(pa.string(), pa.string())}
+                arrow_types={'a': pa.map_(pa.string(), pa.string())},
+                settings={
+                    'output_format_native_write_json_as_string': 1,
+                    # default differs across server versions
+                    'output_format_json_quote_64bit_integers': 0
+                }
             )
 
             values = [
