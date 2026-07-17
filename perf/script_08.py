@@ -1,5 +1,12 @@
+# /// script
+# dependencies = [
+#     "requests==2.34.2",
+# ]
+# ///
 import sys
 import requests
+
+import timing
 
 cols = [
     'UniqueCarrier', 'Carrier', 'TailNum', 'FlightNum', 'Origin', 'OriginCityName', 'OriginState',

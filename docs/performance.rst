@@ -175,21 +175,20 @@ For fast json parsing we'll use ``ujson`` package:
 Installed packages: ::
 
     $ pip freeze
-    backports.zoneinfo==0.2.1
-    certifi==2022.12.7
-    charset-normalizer==3.0.1
-    clickhouse-connect==0.5.0
-    clickhouse-driver==0.2.5
-    idna==3.4
-    lz4==4.3.2
-    pytz==2022.7.1
-    pytz-deprecation-shim==0.1.0.post0
-    requests==2.28.2
-    tzdata==2022.7
-    tzlocal==4.2
-    ujson==5.7.0
-    urllib3==1.26.14
-    zstandard==0.19.0
+    certifi==2026.5.20
+    clickhouse-cityhash==1.0.2.5
+    clickhouse-connect==1.4.2
+    clickhouse-driver==0.2.11
+    lz4==4.4.5
+    numpy==2.4.6
+    pandas==3.0.3
+    pyarrow==25.0.0
+    pytz==2026.2
+    requests==2.34.2
+    tzlocal==5.3.1
+    ujson==5.13.0
+    urllib3==2.7.0
+    zstd==1.5.7.3
 
 For ``clickhouse-connect`` we need to turn off compression with
 ``compress=False`` for elimination decompression overhead. This package also
@@ -199,9 +198,11 @@ Let's disable it off with ``query_limit=None``.
 Versions
 --------
 
-Machine: Linux klebedev-ThinkPad-T460 5.15.0-57-generic #63-Ubuntu SMP Thu Nov 24 13:43:17 UTC 2022 x86_64 x86_64 x86_64 GNU/Linux
+Machine: Apple M2 Pro, 32 GiB RAM, macOS 15.1.1
 
-Python: Python 3.8.12 (default, Apr 13 2022, 21:16:23) [GCC 11.2.0]
+ClickHouse server: 25.12.11.4 Docker image, ran locally
+
+Python: Python 3.11.11 (CPython, arm64)
 
 
 Benchmarking
@@ -243,12 +244,18 @@ Scripts below can be benchmarked with following one-liner:
 
 .. code-block:: bash
 
-    for d in 2017-01-04 2017-01-10 2017-01-16 2017-02-01 2017-02-18; do /usr/bin/time -f "%e s / %M kB" python script.py $d; done
+    for d in 2017-01-04 2017-01-10 2017-01-16 2017-02-01 2017-02-18; do python perf/script.py $d; done
 
-Time will measure:
+Each script ends its imports with ``import timing``: the clock starts
+there and the result is printed on process exit. Measured are:
 
-* elapsed real (wall clock) time used by the process, in seconds;
-* maximum resident set size of the process during its lifetime, in kilobytes.
+* elapsed real (wall clock) time, in seconds — interpreter startup and
+  imports are excluded;
+* maximum resident set size of the process during its lifetime —
+  includes the imported packages.
+
+.. literalinclude:: ../perf/timing.py
+    :language: python
 
 Plain text without parsing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -392,6 +399,34 @@ Get query result as PyArrow Table with ``clickhouse-connect`` (20)
     :language: python
 
 
+PyArrow tables over typed columns
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Analytic extracts usually select a typed subset of columns instead of
+``SELECT *``. The same int and string column projections as in the
+iteration sections above, as PyArrow tables.
+
+Int columns with ``clickhouse-driver``, ``use_numpy`` (21)
+
+.. literalinclude:: ../perf/script_21.py
+    :language: python
+
+Int columns with ``clickhouse-connect`` (22)
+
+.. literalinclude:: ../perf/script_22.py
+    :language: python
+
+String columns with ``clickhouse-driver``, ``use_numpy`` (23)
+
+.. literalinclude:: ../perf/script_23.py
+    :language: python
+
+String columns with ``clickhouse-connect`` (24)
+
+.. literalinclude:: ../perf/script_24.py
+    :language: python
+
+
 Results
 -------
 
@@ -408,103 +443,143 @@ JSON in table is shorthand for JSONEachRow.
 +==================================+===========+===========+===========+===========+===========+
 |**Plain text without parsing: timing**                                                        |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|Naive requests.get TSV (1)        |    0.35 s |    0.56 s |    0.83 s |    1.15 s |    1.72 s |
+|Naive requests.get TSV (1)        |    0.13 s |    0.28 s |    0.45 s |    0.80 s |    1.26 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|Naive requests.get JSON (1)       |    0.99 s |    1.80 s |    2.77 s |    5.15 s |    7.80 s |
+|Naive requests.get JSON (1)       |    0.38 s |    1.07 s |    1.81 s |    3.95 s |    7.48 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
 |**Plain text without parsing: memory**                                                        |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|Naive requests.get TSV (1)        |     52 MB |    110 MB |    167 MB |    323 MB |    489 MB |
+|Naive requests.get TSV (1)        |     61 MB |    118 MB |    175 MB |    331 MB |    497 MB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|Naive requests.get JSON (1)       |    263 MB |    726 MB |   1.88 GB |   2.42 GB |   3.75 GB |
+|Naive requests.get JSON (1)       |    221 MB |    587 MB |    935 MB |   1.48 GB |   2.84 GB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
 |**Parsed rows: timing**                                                                       |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get TSV (2)              |    0.83 s |    1.97 s |    3.32 s |    7.90 s |   13.13 s |
+|requests.get TSV (2)              |    0.25 s |    0.64 s |    1.31 s |    3.81 s |    6.95 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get TSV with cast (2.5)  |    1.59 s |    4.31 s |    6.99 s |   15.60 s |   25.89 s |
+|requests.get TSV with cast (2.5)  |    0.67 s |    1.69 s |    3.07 s |    7.29 s |   12.35 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get JSON (3)             |    2.78 s |    5.55 s |    9.23 s |   21.45 s |   31.50 s |
+|requests.get JSON (3)             |    0.82 s |    2.53 s |    3.67 s |    8.05 s |   15.04 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|clickhouse-driver Native (4)      |    0.87 s |    1.50 s |    2.21 s |    4.20 s |    6.32 s |
+|clickhouse-driver Native (4)      |    0.18 s |    0.44 s |    0.67 s |    1.46 s |    2.28 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|clickhouse-connect (14)           |    0.89 s |    1.72 s |    2.46 s |    4.85 s |    7.19 s |
+|clickhouse-connect (14)           |    0.20 s |    0.50 s |    0.83 s |    1.70 s |    2.71 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
 |**Parsed rows: memory**                                                                       |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get TSV (2)              |    182 MB |    487 MB |    794 MB |   1.63 GB |   2.51 GB |
+|requests.get TSV (2)              |    183 MB |    473 MB |    765 MB |   1.52 GB |   2.33 GB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get TSV with cast (2.5)  |    138 MB |    359 MB |    579 MB |   1.18 GB |   1.82 GB |
+|requests.get TSV with cast (2.5)  |    142 MB |    358 MB |    536 MB |   1.12 GB |   1.73 GB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get JSON (3)             |    136 MB |    351 MB |    565 MB |   1.15 GB |   1.77 GB |
+|requests.get JSON (3)             |    136 MB |    303 MB |    532 MB |   1.05 GB |   1.61 GB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|clickhouse-driver Native (4)      |    155 MB |    343 MB |    530 MB |   1.04 GB |   1.58 GB |
+|clickhouse-driver Native (4)      |    167 MB |    372 MB |    548 MB |   1.03 GB |   1.47 GB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|clickhouse-connect (14)           |    139 MB |    333 MB |    524 MB |   1.05 GB |   1.61 GB |
+|clickhouse-connect (14)           |    172 MB |    384 MB |    577 MB |   1.01 GB |   1.21 GB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
 |**Iteration over rows: timing**                                                               |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get TSV (5)              |    0.48 s |    0.91 s |    1.28 s |    2.57 s |    3.72 s |
+|requests.get TSV (5)              |    0.22 s |    0.54 s |    0.80 s |    1.42 s |    2.12 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get TSV with cast (5.5)  |    1.25 s |    3.05 s |    4.77 s |    9.67 s |   15.04 s |
+|requests.get TSV with cast (5.5)  |    0.52 s |    1.42 s |    2.26 s |    4.59 s |    7.34 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get JSON (6)             |    1.80 s |    4.48 s |    7.10 s |   14.45 s |   22.17 s |
+|requests.get JSON (6)             |    0.72 s |    1.97 s |    3.13 s |    9.36 s |   10.45 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|clickhouse-driver Native (7)      |    0.72 s |    1.38 s |    2.01 s |    3.65 s |    5.45 s |
+|clickhouse-driver Native (7)      |    0.23 s |    0.56 s |    0.94 s |    1.98 s |    2.70 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|clickhouse-connect (17)           |    0.85 s |    1.62 s |    2.12 s |    4.12 s |    6.05 s |
+|clickhouse-connect (17)           |    0.23 s |    0.50 s |    0.78 s |    1.61 s |    2.50 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
 |**Iteration over rows: memory**                                                               |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get TSV (5)              |     22 MB |     22 MB |     22 MB |     22 MB |     22 MB |
+|requests.get TSV (5)              |     31 MB |     31 MB |     31 MB |     31 MB |     31 MB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get TSV with cast (5.5)  |     22 MB |     22 MB |     22 MB |     22 MB |     22 MB |
+|requests.get TSV with cast (5.5)  |     30 MB |     31 MB |     31 MB |     31 MB |     31 MB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get JSON (6)             |     24 MB |     24 MB |     24 MB |     24 MB |     24 MB |
+|requests.get JSON (6)             |     30 MB |     32 MB |     31 MB |     30 MB |     32 MB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|clickhouse-driver Native (7)      |     91 MB |     93 MB |     93 MB |     94 MB |     94 MB |
+|clickhouse-driver Native (7)      |    111 MB |    136 MB |    135 MB |    148 MB |    156 MB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|clickhouse-connect (17)           |     68 MB |     68 MB |     68 MB |     68 MB |     68 MB |
+|clickhouse-connect (17)           |    117 MB |    136 MB |    146 MB |    162 MB |    164 MB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
 |**Iteration over string rows: timing**                                                        |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get TSV (8)              |    0.44 s |    0.57 s |    0.77 s |    1.40 s |    1.94 s |
+|requests.get TSV (8)              |    0.11 s |    0.25 s |    0.36 s |    0.68 s |    1.17 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get JSON (9)             |    1.03 s |    2.46 s |    3.87 s |    7.76 s |   11.96 s |
+|requests.get JSON (9)             |    0.44 s |    1.19 s |    1.95 s |    3.35 s |    5.08 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|clickhouse-driver Native (10)     |    0.63 s |    1.06 s |    1.44 s |    2.45 s |    3.57 s |
+|clickhouse-driver Native (10)     |    0.11 s |    0.26 s |    0.41 s |    0.82 s |    1.33 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|clickhouse-connect (15)           |    0.62 s |    1.13 s |    1.53 s |    2.84 s |    4.00 s |
+|clickhouse-connect (15)           |    0.14 s |    0.34 s |    0.55 s |    1.23 s |    1.67 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
 |**Iteration over string rows: memory**                                                        |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get TSV (8)              |     22 MB |     22 MB |     22 MB |     22 MB |     22 MB |
+|requests.get TSV (8)              |     31 MB |     30 MB |     30 MB |     31 MB |     31 MB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get JSON (9)             |     24 MB |     24 MB |     24 MB |     24 MB |     24 MB |
+|requests.get JSON (9)             |     31 MB |     31 MB |     32 MB |     31 MB |     31 MB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|clickhouse-driver Native (10)     |     77 MB |     79 MB |     79 MB |     79 MB |     79 MB |
+|clickhouse-driver Native (10)     |     78 MB |     85 MB |     84 MB |     94 MB |     98 MB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|clickhouse-connect (15)           |     60 MB |     60 MB |     60 MB |     60 MB |     60 MB |
+|clickhouse-connect (15)           |     79 MB |    104 MB |    112 MB |    125 MB |    127 MB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
 |**Iteration over int rows: timing**                                                           |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get TSV (11)             |    0.81 s |    1.66 s |    2.61 s |    5.08 s |    7.91 s |
+|requests.get TSV (11)             |    0.27 s |    0.69 s |    1.08 s |    2.20 s |    3.40 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get JSON (12)            |    0.97 s |    2.02 s |    3.29 s |    6.50 s |   10.00 s |
+|requests.get JSON (12)            |    0.37 s |    1.00 s |    1.49 s |    2.86 s |    4.51 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|clickhouse-driver Native (13)     |    0.55 s |    0.78 s |    1.02 s |    1.73 s |    2.44 s |
+|clickhouse-driver Native (13)     |    0.13 s |    0.20 s |    0.31 s |    0.62 s |    1.00 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|clickhouse-connect (16)           |    0.54 s |    0.79 s |    1.01 s |    1.68 s |    2.20 s |
+|clickhouse-connect (16)           |    0.08 s |    0.15 s |    0.23 s |    0.47 s |    0.67 s |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
 |**Iteration over int rows: memory**                                                           |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get TSV (11)             |     22 MB |     22 MB |     22 MB |     22 MB |     22 MB |
+|requests.get TSV (11)             |     30 MB |     31 MB |     30 MB |     31 MB |     31 MB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|requests.get JSON (12)            |     24 MB |     24 MB |     24 MB |     24 MB |     24 MB |
+|requests.get JSON (12)            |     31 MB |     31 MB |     31 MB |     32 MB |     31 MB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|clickhouse-driver Native (13)     |     71 MB |     72 MB |     72 MB |     73 MB |     73 MB |
+|clickhouse-driver Native (13)     |     79 MB |     80 MB |     85 MB |     89 MB |    103 MB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
-|clickhouse-connect (16)           |     41 MB |     41 MB |     41 MB |     41 MB |     41 MB |
+|clickhouse-connect (16)           |     62 MB |     81 MB |     93 MB |    105 MB |     99 MB |
++----------------------------------+-----------+-----------+-----------+-----------+-----------+
+|**PyArrow tables: timing**                                                                    |
++----------------------------------+-----------+-----------+-----------+-----------+-----------+
+|clickhouse-driver Native (18)     |    0.51 s |    0.72 s |    0.93 s |    2.08 s |    2.96 s |
++----------------------------------+-----------+-----------+-----------+-----------+-----------+
+|clickhouse-driver use_numpy (19)  |    0.13 s |    0.34 s |    0.48 s |    0.93 s |    1.41 s |
++----------------------------------+-----------+-----------+-----------+-----------+-----------+
+|clickhouse-connect (20)           |    0.13 s |    0.25 s |    0.40 s |    0.87 s |    1.28 s |
++----------------------------------+-----------+-----------+-----------+-----------+-----------+
+|**PyArrow tables: memory**                                                                    |
++----------------------------------+-----------+-----------+-----------+-----------+-----------+
+|clickhouse-driver Native (18)     |    181 MB |    272 MB |    303 MB |    446 MB |    600 MB |
++----------------------------------+-----------+-----------+-----------+-----------+-----------+
+|clickhouse-driver use_numpy (19)  |    167 MB |    224 MB |    291 MB |    464 MB |    645 MB |
++----------------------------------+-----------+-----------+-----------+-----------+-----------+
+|clickhouse-connect (20)           |     97 MB |    170 MB |    240 MB |    435 MB |    639 MB |
++----------------------------------+-----------+-----------+-----------+-----------+-----------+
+|**PyArrow tables, int columns: timing**                                                       |
++----------------------------------+-----------+-----------+-----------+-----------+-----------+
+|clickhouse-driver use_numpy (21)  |    0.04 s |    0.08 s |    0.12 s |    0.21 s |    0.32 s |
++----------------------------------+-----------+-----------+-----------+-----------+-----------+
+|clickhouse-connect (22)           |    0.05 s |    0.09 s |    0.14 s |    0.27 s |    0.39 s |
++----------------------------------+-----------+-----------+-----------+-----------+-----------+
+|**PyArrow tables, int columns: memory**                                                       |
++----------------------------------+-----------+-----------+-----------+-----------+-----------+
+|clickhouse-driver use_numpy (21)  |    130 MB |    153 MB |    176 MB |    243 MB |    310 MB |
++----------------------------------+-----------+-----------+-----------+-----------+-----------+
+|clickhouse-connect (22)           |     74 MB |    106 MB |    136 MB |    218 MB |    306 MB |
++----------------------------------+-----------+-----------+-----------+-----------+-----------+
+|**PyArrow tables, string columns: timing**                                                    |
++----------------------------------+-----------+-----------+-----------+-----------+-----------+
+|clickhouse-driver use_numpy (23)  |    0.09 s |    0.22 s |    0.33 s |    0.83 s |    1.06 s |
++----------------------------------+-----------+-----------+-----------+-----------+-----------+
+|clickhouse-connect (24)           |    0.09 s |    0.20 s |    0.29 s |    0.59 s |    0.92 s |
++----------------------------------+-----------+-----------+-----------+-----------+-----------+
+|**PyArrow tables, string columns: memory**                                                    |
++----------------------------------+-----------+-----------+-----------+-----------+-----------+
+|clickhouse-driver use_numpy (23)  |    152 MB |    191 MB |    226 MB |    266 MB |    434 MB |
++----------------------------------+-----------+-----------+-----------+-----------+-----------+
+|clickhouse-connect (24)           |     81 MB |    121 MB |    162 MB |    272 MB |    390 MB |
 +----------------------------------+-----------+-----------+-----------+-----------+-----------+
 
 

@@ -1,5 +1,12 @@
+# /// script
+# dependencies = [
+#     "clickhouse-driver==0.2.11",
+# ]
+# ///
 import sys
 from clickhouse_driver import Client
+
+import timing
 
 cols = [
     'Year', 'Quarter', 'Month', 'DayofMonth', 'DayOfWeek', 'AirlineID', 'OriginAirportID', 'OriginAirportSeqID',

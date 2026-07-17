@@ -1,5 +1,12 @@
+# /// script
+# dependencies = [
+#     "requests==2.34.2",
+# ]
+# ///
 import sys
 import requests
+
+import timing
 
 cols = [
     'Year', 'Quarter', 'Month', 'DayofMonth', 'DayOfWeek', 'AirlineID', 'OriginAirportID', 'OriginAirportSeqID',
