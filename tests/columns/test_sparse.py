@@ -1,5 +1,6 @@
 from datetime import date
 from io import BytesIO
+from ipaddress import IPv6Address
 from unittest import TestCase
 
 from tests.testcase import BaseTestCase
@@ -101,6 +102,31 @@ class SparseTestCase(BaseTestCase):
                 '1\t(1,(1,0))\n'
                 '0\t(0,(0,0))\n'
                 '0\t(0,(0,0))\n'
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
+
+    def test_sparse_ipv6(self):
+        columns = 'a IPv6'
+
+        data = [
+            (IPv6Address('::'), ),
+            (IPv6Address('::'), ),
+            (IPv6Address('2001:db8::1'), ),
+        ]
+        with self.create_table(columns):
+            self.client.execute(
+                'INSERT INTO test VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted,
+                '::\n'
+                '::\n'
+                '2001:db8::1\n'
             )
 
             inserted = self.client.execute(query)
