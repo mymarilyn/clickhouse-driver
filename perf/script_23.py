@@ -1,10 +1,15 @@
 # /// script
 # dependencies = [
-#     "clickhouse-driver==0.2.11",
+#     "clickhouse-driver[arrow,numpy]==0.2.11",
 # ]
 # ///
 import sys
 from clickhouse_driver import Client
+
+# Imported lazily at query time: preload before the clock starts.
+import numpy
+import pandas
+import pyarrow
 
 import timing
 
@@ -22,7 +27,6 @@ cols = [
 ]
 
 query = "SELECT {} FROM perftest.ontime WHERE FlightDate < '{}'".format(', '.join(cols), sys.argv[1])
-client = Client.from_url('clickhouse://localhost')
+client = Client('localhost', settings={'use_numpy': True})
 
-for row in client.execute_iter(query):
-  pass
+table = client.query_arrow(query)

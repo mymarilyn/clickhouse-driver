@@ -1,6 +1,14 @@
+# /// script
+# dependencies = [
+#     "requests==2.34.2",
+#     "ujson==5.13.0",
+# ]
+# ///
 import sys
 import requests
 from ujson import loads
+
+import timing
 
 cols = [
     'Year', 'Quarter', 'Month', 'DayofMonth', 'DayOfWeek', 'AirlineID', 'OriginAirportID', 'OriginAirportSeqID',

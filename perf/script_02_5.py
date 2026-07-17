@@ -1,6 +1,13 @@
+# /// script
+# dependencies = [
+#     "requests==2.34.2",
+# ]
+# ///
 from datetime import date
 import sys
 import requests
+
+import timing
 
 
 def get_python_type(ch_type):
