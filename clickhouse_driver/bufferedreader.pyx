@@ -1,5 +1,5 @@
 from cpython cimport Py_INCREF, PyBytes_FromStringAndSize, PyBytes_AsString
-from cpython.bytearray cimport PyByteArray_AsString
+from cpython.bytearray cimport PyByteArray_AsString, PyByteArray_Resize
 # Using python's versions of pure c memory management functions for
 # proper memory statistics count.
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
@@ -175,6 +175,94 @@ cdef class BufferedReader(object):
             PyMem_Free(c_string)
 
         return items
+
+    def read_strings_arrow(self, unsigned long long n_items):
+        """
+        Reads ``n_items`` varint-prefixed strings into Arrow-style
+        buffers without creating per-string Python objects.
+
+        Returns (offsets, data) pair of bytearrays: ``offsets`` holds
+        ``n_items + 1`` little-endian int64 values, ``data`` holds
+        concatenated string bytes.
+        """
+        cdef unsigned long long i
+        # Buffer vars
+        cdef char* buffer_ptr = PyByteArray_AsString(self.buffer)
+        cdef unsigned long long right
+        # String length vars
+        cdef unsigned long long size, shift, bytes_read
+        cdef unsigned long long b
+
+        offsets = bytearray((n_items + 1) * 8)
+        cdef long long* offsets_ptr = <long long*> PyByteArray_AsString(
+            offsets
+        )
+        offsets_ptr[0] = 0
+
+        cdef unsigned long long data_size = 0
+        cdef unsigned long long data_capacity = 65536 if \
+            n_items * 8 < 65536 else n_items * 8
+        data = bytearray(data_capacity)
+        cdef char* data_ptr = PyByteArray_AsString(data)
+
+        for i in range(n_items):
+            shift = size = 0
+
+            # Read string size
+            while True:
+                if self.position == self.current_buffer_size:
+                    self.read_into_buffer()
+                    # `read_into_buffer` can override buffer
+                    buffer_ptr = PyByteArray_AsString(self.buffer)
+                    self.position = 0
+
+                b = buffer_ptr[self.position]
+                self.position += 1
+
+                size |= (b & 0x7f) << shift
+                if b < 0x80:
+                    break
+
+                shift += 7
+
+            if data_size + size > data_capacity:
+                while data_capacity < data_size + size:
+                    data_capacity *= 2
+                PyByteArray_Resize(data, data_capacity)
+                data_ptr = PyByteArray_AsString(data)
+
+            right = self.position + size
+
+            if right > self.current_buffer_size:
+                # String spans multiple reader buffers.
+                bytes_read = self.current_buffer_size - self.position
+                memcpy(&data_ptr[data_size], &buffer_ptr[self.position],
+                       bytes_read)
+
+                while bytes_read != size:
+                    self.position = size - bytes_read
+
+                    self.read_into_buffer()
+                    # `read_into_buffer` can override buffer
+                    buffer_ptr = PyByteArray_AsString(self.buffer)
+                    # There can be not enough data in buffer.
+                    self.position = min(
+                        self.position, self.current_buffer_size
+                    )
+                    memcpy(&data_ptr[data_size + bytes_read], buffer_ptr,
+                           self.position)
+                    bytes_read += self.position
+
+            else:
+                memcpy(&data_ptr[data_size], &buffer_ptr[self.position],
+                       size)
+                self.position = right
+
+            data_size += size
+            offsets_ptr[i + 1] = <long long> data_size
+
+        PyByteArray_Resize(data, data_size)
+        return offsets, data
 
     def read_fixed_strings_as_bytes(self, Py_ssize_t n_items,
                                     Py_ssize_t length):

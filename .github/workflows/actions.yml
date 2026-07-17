@@ -19,6 +19,8 @@ jobs:
       matrix:
         use-numpy:
           - 0
+        use-arrow:
+          - 0
         python-version:
           - "3.9"
           - "3.10"
@@ -61,8 +63,23 @@ jobs:
           - clickhouse-version: 20.3.20.6
             use-numpy: 1
             python-version: 3.9
+          # Oldest supported server + oldest pyarrow/numpy resolvable
+          # on Python 3.9.
+          - clickhouse-version: 20.3.20.6
+            use-numpy: 1
+            use-arrow: 1
+            python-version: 3.9
+          - clickhouse-version: 25.5.6.14
+            use-numpy: 1
+            use-arrow: 1
+            python-version: "3.12"
+          # PyArrow without numpy/pandas: plain conversion paths only.
+          - clickhouse-version: 25.5.6.14
+            use-numpy: 0
+            use-arrow: 1
+            python-version: "3.13"
 
-    name: ${{ matrix.python-version }} CH=${{ matrix.clickhouse-version }} NUMPY=${{ matrix.use-numpy }}
+    name: ${{ matrix.python-version }} CH=${{ matrix.clickhouse-version }} NUMPY=${{ matrix.use-numpy }} ARROW=${{ matrix.use-arrow }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -110,6 +127,7 @@ jobs:
           pip install pytest-timeout
         env:
           USE_NUMPY: ${{ matrix.use-numpy }}
+          USE_ARROW: ${{ matrix.use-arrow }}
       - name: Run tests
         run: coverage run -m pytest --timeout=10 -v
         timeout-minutes: 5
@@ -121,7 +139,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COVERALLS_PARALLEL: true
-          COVERALLS_FLAG_NAME: ${{ matrix.python-version }} CH=${{ matrix.clickhouse-version }} NUMPY=${{ matrix.use-numpy }}
+          COVERALLS_FLAG_NAME: ${{ matrix.python-version }} CH=${{ matrix.clickhouse-version }} NUMPY=${{ matrix.use-numpy }} ARROW=${{ matrix.use-arrow }}
 
   coveralls-finished:
     name: Indicate completion to coveralls.io

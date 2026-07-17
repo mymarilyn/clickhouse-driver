@@ -108,16 +108,20 @@ class NumpyDateTime64Column(NumpyDateTimeColumnBase):
         super(NumpyDateTime64Column, self).write_items(items, buf)
 
 
-def create_numpy_datetime_column(spec, column_options):
+def create_numpy_datetime_column(spec, column_options, column_classes=None):
+    datetime_column, datetime64_column = column_classes or (
+        NumpyDateTimeColumn, NumpyDateTime64Column
+    )
+
     if spec.startswith('DateTime64'):
-        cls = NumpyDateTime64Column
+        cls = datetime64_column
         spec = spec[11:-1]
         params = spec.split(',', 1)
         column_options['scale'] = int(params[0])
         if len(params) > 1:
             spec = params[1].strip() + ')'
     else:
-        cls = NumpyDateTimeColumn
+        cls = datetime_column
         spec = spec[9:]
 
     context = column_options['context']

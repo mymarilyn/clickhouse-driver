@@ -67,9 +67,19 @@ def get_column_by_spec(spec, column_options, use_numpy=None):
         use_numpy = context.client_settings['use_numpy'] if context else False
 
     if use_numpy:
-        from .numpy.service import get_numpy_column_by_spec
+        # Arrow queries use NumPy-derived columns tuned for zero-copy
+        # Arrow assembly (see columns/arrow/).
+        use_arrow = context.client_settings.get('use_arrow', False) \
+            if context else False
 
         try:
+            if use_arrow:
+                from .arrow.service import get_arrow_column_by_spec
+
+                return get_arrow_column_by_spec(spec, column_options)
+
+            from .numpy.service import get_numpy_column_by_spec
+
             return get_numpy_column_by_spec(spec, column_options)
         except errors.UnknownTypeError:
             use_numpy = False

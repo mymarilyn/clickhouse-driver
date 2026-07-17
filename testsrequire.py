@@ -1,7 +1,8 @@
 import os
 import sys
 
-USE_NUMPY = bool(int(os.getenv('USE_NUMPY', '0')))
+USE_NUMPY = bool(int(os.getenv('USE_NUMPY') or '0'))
+USE_ARROW = bool(int(os.getenv('USE_ARROW') or '0'))
 
 tests_require = [
     'pytest',
@@ -18,6 +19,9 @@ else:
 
 if USE_NUMPY:
     tests_require.extend(['numpy', 'pandas'])
+
+if USE_ARROW:
+    tests_require.append('pyarrow')
 
 try:
     from pip import main as pipmain

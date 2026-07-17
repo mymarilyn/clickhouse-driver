@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- PyArrow support: `query_arrow` returns `pyarrow.Table`, `query_arrow_stream` returns `pyarrow.RecordBatchReader`. Install with `pip install clickhouse-driver[arrow]`. Solves issue [#375](https://github.com/mymarilyn/clickhouse-driver/issues/375).
 - Native `JSON` support. Solves issue [#473](https://github.com/mymarilyn/clickhouse-driver/issues/473) and [#460](https://github.com/mymarilyn/clickhouse-driver/issues/460). Pull request [#503](https://github.com/mymarilyn/clickhouse-driver/pull/503/) by [khvn26](https://github.com/khvn26), [gsergey418](https://github.com/gsergey418).
 - Writing `JSON` columns nested in `Array`, `Tuple` and `Map` columns. Solves issue [#511](https://github.com/mymarilyn/clickhouse-driver/issues/511).
 - Minimum `clickhouse-cityhash` version raised to 1.0.2.6: first release that builds on Python 3.13+.

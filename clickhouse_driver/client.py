@@ -136,6 +136,7 @@ class Client(object):
 
         round_robin = kwargs.pop('round_robin', False)
         self.connections = deque([Connection(*args, **kwargs)])
+        self._pending_arrow_stream = None
 
         if round_robin and 'alt_hosts' in kwargs:
             alt_hosts = kwargs.pop('alt_hosts')
@@ -307,9 +308,47 @@ class Client(object):
 
             return
 
+    def _reset_pending_arrow_stream(self):
+        """
+        Cancels the previous streamed Arrow query if it wasn't consumed
+        to the end. RecordBatchReader.close() doesn't reach the
+        underlying generator, so cleanup happens on the next query:
+        drain the stream through END_OF_STREAM after Cancel, or reset
+        the connection.
+        """
+        state = self._pending_arrow_stream
+        self._pending_arrow_stream = None
+
+        if state is None or state.finished:
+            return
+
+        state.cancelled = True
+        connection = state.connection
+
+        if not connection.connected or not connection.is_query_executing:
+            return
+
+        try:
+            connection.send_cancel()
+            terminal_packets = (
+                ServerPacketTypes.END_OF_STREAM, ServerPacketTypes.EXCEPTION
+            )
+            while True:
+                packet = connection.receive_packet()
+                if packet.type in terminal_packets:
+                    break
+
+            # Exception packet leaves the query marked as executing.
+            if connection.is_query_executing:
+                connection.disconnect()
+
+        except (Exception, KeyboardInterrupt):
+            connection.disconnect()
+
     @contextmanager
     def disconnect_on_error(self, query, settings):
         try:
+            self._reset_pending_arrow_stream()
             self.establish_connection(settings)
             self.connection.server_info.session_timezone = None
 
@@ -548,6 +587,109 @@ class Client(object):
 
             self.last_query.store_elapsed(time() - start_time)
             return rv
+
+    def query_arrow(
+            self, query, params=None, external_tables=None, query_id=None,
+            settings=None, field_metadata=True, arrow_types=None):
+        """
+        *New in version 0.2.11.*
+
+        Queries data as PyArrow Table with specified SELECT query.
+
+        :param query: query that will be send to server.
+        :param params: substitution parameters.
+                       Defaults to ``None`` (no parameters  or data).
+        :param external_tables: external tables to send.
+                                Defaults to ``None`` (no external tables).
+        :param query_id: the query identifier. If no query id specified
+                         ClickHouse server will generate it.
+        :param settings: dictionary of query settings.
+                         Defaults to ``None`` (no additional settings).
+        :param field_metadata: attach original ClickHouse column types
+                               to Arrow fields as ``clickhouse_type``
+                               metadata. Defaults to ``True``.
+        :param arrow_types: dictionary mapping column names to Arrow
+                            types, overriding the default mapping.
+                            Required for columns without a default
+                            Arrow representation (``JSON``).
+                            Defaults to ``None``.
+        :return: pyarrow.Table.
+        """
+
+        return self.query_arrow_stream(
+            query, params=params, external_tables=external_tables,
+            query_id=query_id, settings=settings,
+            field_metadata=field_metadata, arrow_types=arrow_types
+        ).read_all()
+
+    def query_arrow_stream(
+            self, query, params=None, external_tables=None, query_id=None,
+            settings=None, field_metadata=True, arrow_types=None):
+        """
+        *New in version 0.2.11.*
+
+        Queries data as PyArrow RecordBatchReader with specified SELECT
+        query. One record batch is yielded per ClickHouse block, so
+        arbitrarily large results can be processed with constant memory
+        usage. Block size can be controlled with ``max_block_size``
+        setting.
+
+        The reader doesn't have to be consumed to the end: the streamed
+        query is cancelled when the next query on this client starts.
+
+        :param query: query that will be send to server.
+        :param params: substitution parameters.
+                       Defaults to ``None`` (no parameters  or data).
+        :param external_tables: external tables to send.
+                                Defaults to ``None`` (no external tables).
+        :param query_id: the query identifier. If no query id specified
+                         ClickHouse server will generate it.
+        :param settings: dictionary of query settings.
+                         Defaults to ``None`` (no additional settings).
+        :param field_metadata: attach original ClickHouse column types
+                               to Arrow fields as ``clickhouse_type``
+                               metadata. Defaults to ``True``.
+        :param arrow_types: dictionary mapping column names to Arrow
+                            types, overriding the default mapping.
+                            Required for columns without a default
+                            Arrow representation (``JSON``).
+                            Defaults to ``None``.
+        :return: pyarrow.RecordBatchReader.
+        """
+
+        try:
+            import pyarrow  # noqa: F401
+        except ImportError:
+            raise RuntimeError('Extras for PyArrow must be installed')
+
+        from .arrow.convert import ArrowStreamState, \
+            create_record_batch_reader
+
+        with self.disconnect_on_error(query, settings):
+            # Let columns return Arrow-friendly forms (e.g. NumPy masked
+            # arrays for Nullable). Reset by the next query's
+            # make_query_settings. Context returns a copy of settings:
+            # assignment is required for the flag to stick.
+            client_settings = self.connection.context.client_settings
+            client_settings['use_arrow'] = True
+            self.connection.context.client_settings = client_settings
+
+            if params is not None:
+                query = self.substitute_params(
+                    query, params, self.connection.context
+                )
+
+            self.connection.send_query(query, query_id=query_id,
+                                       params=params)
+            self.connection.send_external_tables(external_tables)
+
+            state = ArrowStreamState(self.connection)
+            self._pending_arrow_stream = state
+            return create_record_batch_reader(
+                self.packet_generator(), self.connection.context,
+                state=state, field_metadata=field_metadata,
+                arrow_types=arrow_types
+            )
 
     def process_ordinary_query_with_progress(
             self, query, params=None, with_column_types=False,

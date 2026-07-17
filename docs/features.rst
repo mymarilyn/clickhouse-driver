@@ -540,6 +540,153 @@ As you can see float column ``b`` in ``bad_df`` has two ``NaN`` values.
 But ``NaN`` and ``None`` is not the same for float point numbers.
 ``NaN`` is ``float('nan')`` where ``None`` is representing ``NULL``.
 
+PyArrow support
+---------------
+
+*New in version 0.2.11.*
+
+Package can SELECT data as PyArrow objects. Additional packages are required
+for :ref:`installation-pyarrow-support`.
+
+`query_arrow` returns the whole result as a ``pyarrow.Table``:
+
+    .. code-block:: python
+
+        >>> client = Client('localhost')
+        >>> table = client.query_arrow(
+        ...     'SELECT number AS x, toString(number) AS y '
+        ...     'FROM system.numbers LIMIT 10000'
+        ... )
+        >>> table
+        pyarrow.Table
+        x: uint64
+        y: string
+        ...
+
+`query_arrow_stream` returns a ``pyarrow.RecordBatchReader`` that yields one
+``pyarrow.RecordBatch`` per ClickHouse block, so arbitrarily large results
+can be processed with constant memory usage:
+
+    .. code-block:: python
+
+        >>> client = Client('localhost')
+        >>> reader = client.query_arrow_stream(
+        ...     'SELECT number FROM system.numbers LIMIT 1000000'
+        ... )
+        >>> for batch in reader:
+        ...     process(batch)
+
+Block size can be controlled with the ``max_block_size`` setting:
+
+    .. code-block:: python
+
+        >>> reader = client.query_arrow_stream(
+        ...     'SELECT number FROM system.numbers LIMIT 1000000',
+        ...     settings={'max_block_size': 100000}
+        ... )
+
+The reader doesn't have to be consumed to the end: the streamed query
+is cancelled when the next query starts.
+
+``NULL`` values in ``Nullable(T)`` columns are returned as proper Arrow
+nulls (validity bitmap) and the column keeps its original type. For
+example ``Nullable(Int64)`` is returned as a nullable ``int64`` Arrow
+column, unlike pandas where such column is converted to ``object`` or
+``float64`` dtype.
+
+ClickHouse types are mapped to Arrow types as follows:
+
+  +--------------------------------+------------------------------------+
+  | ClickHouse type                | Arrow type                         |
+  +================================+====================================+
+  | [U]Int8/16/32/64               | [u]int8/16/32/64                   |
+  +--------------------------------+------------------------------------+
+  | Float32/64                     | float32/64                         |
+  +--------------------------------+------------------------------------+
+  | Bool                           | bool                               |
+  +--------------------------------+------------------------------------+
+  | String/FixedString(N)          | string (binary with                |
+  |                                | ``strings_as_bytes``)              |
+  +--------------------------------+------------------------------------+
+  | Date/Date32                    | date32                             |
+  +--------------------------------+------------------------------------+
+  | DateTime([tz])                 | timestamp('s'[, tz])               |
+  +--------------------------------+------------------------------------+
+  | DateTime64(P[, tz])            | timestamp(unit[, tz])              |
+  +--------------------------------+------------------------------------+
+  | Decimal(P, S)                  | decimal128(P, S)                   |
+  +--------------------------------+------------------------------------+
+  | Enum8/16                       | string                             |
+  +--------------------------------+------------------------------------+
+  | UUID                           | string                             |
+  +--------------------------------+------------------------------------+
+  | IPv4/IPv6                      | string                             |
+  +--------------------------------+------------------------------------+
+  | LowCardinality(T)              | same as T                          |
+  +--------------------------------+------------------------------------+
+  | Nullable(T)                    | same as T with validity bitmap     |
+  +--------------------------------+------------------------------------+
+  | Array(T)                       | list<T>                            |
+  +--------------------------------+------------------------------------+
+  | Map(K, V)                      | map<K, V>                          |
+  +--------------------------------+------------------------------------+
+
+Values of other types are converted with Arrow's type inference on a
+best-effort basis: their Arrow representation may change in future
+versions.
+
+The default mapping can be overridden per column with ``arrow_types``.
+For most types the declared Arrow type is used as the conversion
+target:
+
+    .. code-block:: python
+
+        >>> client.query_arrow(
+        ...     'SELECT number FROM system.numbers LIMIT 10',
+        ...     arrow_types={'number': pa.int32()}
+        ... )
+
+``JSON`` columns have no default Arrow representation.
+Declare ``pyarrow.string()`` to get JSON text. Text output requires
+server-side JSON serialization with the
+``output_format_native_write_json_as_string`` setting (ClickHouse
+24.10 and newer): the text is passed through to Arrow without parsing.
+
+    .. code-block:: python
+
+        >>> client.query_arrow(
+        ...     'SELECT j FROM test', arrow_types={'j': pa.string()},
+        ...     settings={'output_format_native_write_json_as_string': 1}
+        ... )
+
+Without the setting the query raises ``ValueError``: there is
+deliberately no client-side serialization fallback, as it is an order
+of magnitude slower. On servers without the setting transform the
+column in the query instead: ``SELECT toJSONString(j)`` returns a
+plain ``String`` column and needs no ``arrow_types`` at all.
+
+Alternatively declare a struct type for structured output. With a
+declared struct, paths missing in a row become nulls, paths not
+declared in the struct are dropped and paths of varying types raise
+an error. Struct output works with or without the setting.
+
+The declared type is followed into nested containers: e.g. an
+``Array(JSON)`` column declared as ``pa.list_(pa.string())`` yields
+JSON text per array element.
+
+The original ClickHouse type of every column is attached to its Arrow
+field as ``clickhouse_type`` metadata.
+
+Pass ``field_metadata=False`` to skip metadata generation.
+
+When the client is created with ``use_numpy=True`` (see
+:ref:`installation-numpy-support`), columns are converted to Arrow
+without copying where possible: numeric and datetime columns are passed
+as NumPy arrays, ``String`` columns are read from the wire directly
+into Arrow offset/data buffers without creating intermediate Python
+strings. This is significantly faster than the plain client for most
+column types.
+
 Automatic disposal
 ------------------
 

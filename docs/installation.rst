@@ -93,6 +93,19 @@ You can install additional packages (NumPy and Pandas) if you need NumPy support
 NumPy supported versions are limited by ``numpy`` package python support.
 
 
+.. _installation-pyarrow-support:
+
+PyArrow support
+---------------
+
+You can install additional PyArrow package if you need to query data as
+``pyarrow.Table`` or ``pyarrow.RecordBatchReader``:
+
+    .. code-block:: bash
+
+       pip install clickhouse-driver[arrow]
+
+
 Installation from github
 ------------------------
 

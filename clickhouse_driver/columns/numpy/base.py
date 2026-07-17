@@ -24,6 +24,12 @@ class NumpyColumn(Column):
     def _get_nulls_map(self, items):
         return [bool(x) for x in pd.isnull(items)]
 
+    def _read_nulls_map(self, n_items, buf):
+        # One byte per item on the wire. Vectorized read: consumers
+        # (np.place, np.ma.MaskedArray) treat non-zero bytes as True.
+        return np.frombuffer(buf.read(n_items), dtype=np.uint8,
+                             count=n_items)
+
     def _read_data(self, n_items, buf, nulls_map=None):
         items = self.read_items(n_items, buf)
 
