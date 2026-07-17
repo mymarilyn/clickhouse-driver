@@ -6,6 +6,8 @@ from unittest import TestCase
 from tests.testcase import BaseTestCase
 from clickhouse_driver import errors
 from clickhouse_driver.columns.base import SparseSerialization
+from clickhouse_driver.columns.boolcolumn import BoolColumn
+from clickhouse_driver.context import Context
 from clickhouse_driver.varint import write_varint
 
 ErrorCodes = errors.ErrorCodes
@@ -155,6 +157,25 @@ class SparseTestCase(BaseTestCase):
             inserted = self.client.execute(query)
             self.assertEqual(inserted, data)
 
+    def test_sparse_bool(self):
+        columns = 'a Bool'
+
+        data = [(True, ), (False, ), (False, ), (False, )]
+        with self.create_table(columns):
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT * FROM test'
+            inserted = self.emit_cli(query)
+            self.assertEqual(inserted, 'true\nfalse\nfalse\nfalse\n')
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
+            # 0 == False in Python: check types explicitly.
+            for (value, ) in inserted:
+                self.assertIsInstance(value, bool)
+
 
 class FakeColumn(object):
     null_value = 0
@@ -200,3 +221,25 @@ class SparseSerializationTestCase(TestCase):
 
         self.assertEqual(n_items, 1)
         self.assertEqual(serialization.apply_sparse([105]), [105, 100])
+
+    def test_apply_sparse_bool_returns_real_bools(self):
+        # Default positions are filled with Column.null_value. BoolColumn
+        # used to inherit the int 0, yielding [0, 0, True, ...] instead of
+        # [False, False, True, ...]. assertEqual alone cannot catch this
+        # since 0 == False in Python: check types explicitly.
+        context = Context()
+        context.client_settings = {'input_format_null_as_default': False}
+        serialization = SparseSerialization(BoolColumn(context=context))
+
+        # Non-default items at positions 3 and 7 of 8 items.
+        buf = self.make_buf([2, 3, self.END_OF_GRANULE_FLAG | 1])
+        n_items = serialization.read_sparse(8, buf)
+        self.assertEqual(n_items, 2)
+
+        result = serialization.apply_sparse([True, True])
+        self.assertEqual(
+            result,
+            [False, False, True, False, False, False, True, False]
+        )
+        for value in result:
+            self.assertIsInstance(value, bool)
