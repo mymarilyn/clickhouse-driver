@@ -84,8 +84,10 @@ CityHash algorithm notes
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 Unfortunately ClickHouse server comes with built-in old version of CityHash algorithm (1.0.2).
-That's why we can't use original `CityHash <https://pypi.org/project/cityhash>`_ package.
-An older version is published separately at `PyPI <https://pypi.org/project/clickhouse-cityhash>`_.
+That's why we can't use the current `CityHash <https://pypi.org/project/cityhash>`_ package.
+The matching 1.0.2 implementation is bundled with the driver (vendored from the
+`clickhouse-cityhash <https://pypi.org/project/clickhouse-cityhash>`_ package), so
+compression works out of the box without any extra dependency.
 
 
 Secure connection

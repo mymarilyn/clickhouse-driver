@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 from codecs import open
 
 from setuptools import setup, find_packages
@@ -54,6 +55,31 @@ extensions = [
         ['clickhouse_driver/varint' + ext]
     )
 ]
+
+# Vendored CityHash 1.0.2 (used for block checksums). This is a C++ extension,
+# so it uses a .cpp fallback instead of the .c one the pure-C modules use.
+# Built unconditionally; a C++ compiler is required to build from source.
+cityhash_dir = 'clickhouse_driver/_cityhash'
+cityhash_ext = '.pyx' if USE_CYTHON else '.cpp'
+cityhash_compile_args = []
+if sys.platform != 'win32':
+    # We only need CityHash128, so SSE4.2 (-msse4.2) is intentionally omitted.
+    cityhash_compile_args = [
+        '-O3', '-Wno-unused-value', '-Wno-unused-function'
+    ]
+
+extensions.append(
+    Extension(
+        'clickhouse_driver._cityhash.cityhash',
+        [
+            cityhash_dir + '/cityhash' + cityhash_ext,
+            cityhash_dir + '/city.cc',
+        ],
+        language='c++',
+        include_dirs=[cityhash_dir],
+        extra_compile_args=cityhash_compile_args,
+    )
+)
 
 if USE_CYTHON:
     compiler_directives = {'language_level': '3'}
@@ -129,10 +155,9 @@ setup(
     extras_require={
         'lz4': [
             'lz4<=3.0.1; implementation_name=="pypy"',
-            'lz4; implementation_name!="pypy"',
-            'clickhouse-cityhash>=1.0.2.6'
+            'lz4; implementation_name!="pypy"'
         ],
-        'zstd': ['zstd', 'clickhouse-cityhash>=1.0.2.6'],
+        'zstd': ['zstd'],
         'numpy': ['numpy>=1.12.0', 'pandas>=0.24.0'],
         'arrow': ['pyarrow>=8.0.0']
     },

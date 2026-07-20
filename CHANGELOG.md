@@ -5,7 +5,7 @@
 - PyArrow support: `query_arrow` returns `pyarrow.Table`, `query_arrow_stream` returns `pyarrow.RecordBatchReader`. Install with `pip install clickhouse-driver[arrow]`. Solves issue [#375](https://github.com/mymarilyn/clickhouse-driver/issues/375).
 - Native `JSON` support. Solves issue [#473](https://github.com/mymarilyn/clickhouse-driver/issues/473) and [#460](https://github.com/mymarilyn/clickhouse-driver/issues/460). Pull request [#503](https://github.com/mymarilyn/clickhouse-driver/pull/503/) by [khvn26](https://github.com/khvn26), [gsergey418](https://github.com/gsergey418).
 - Writing `JSON` columns nested in `Array`, `Tuple` and `Map` columns. Solves issue [#511](https://github.com/mymarilyn/clickhouse-driver/issues/511).
-- Minimum `clickhouse-cityhash` version raised to 1.0.2.6: first release that builds on Python 3.13+.
+- Vendored the CityHash 1.0.2 algorithm (from `clickhouse-cityhash` 1.0.2.6) directly into the driver. The `clickhouse-cityhash` dependency is dropped from the `lz4`/`zstd` extras; compression now works out of the box. Building from source now requires a C++ compiler.
 - Escaping of `list`/`tuple` parameters with `server_side_params=True`: collections were sent in a form the server could not parse. Solves issue [#497](https://github.com/mymarilyn/clickhouse-driver/issues/497). Pull request [#507](https://github.com/mymarilyn/clickhouse-driver/pull/507) by [khvn26](https://github.com/khvn26).
 - Sparse deserialization of `IPv6` columns. Solves issue [#480](https://github.com/mymarilyn/clickhouse-driver/issues/480). Pull request [#508](https://github.com/mymarilyn/clickhouse-driver/pull/508) by [khvn26](https://github.com/khvn26).
 

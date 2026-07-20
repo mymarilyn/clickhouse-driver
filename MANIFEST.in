@@ -1,1 +1,2 @@
 recursive-include clickhouse_driver *.pyx
+recursive-include clickhouse_driver/_cityhash *.cc *.cpp *.h LICENSE

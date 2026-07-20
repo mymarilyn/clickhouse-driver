@@ -4,12 +4,7 @@ from ..reader import read_binary_uint32
 from ..writer import write_binary_uint8, write_binary_uint32
 from .. import errors
 
-try:
-    from clickhouse_cityhash.cityhash import CityHash128
-except ImportError:
-    raise RuntimeError(
-        'Package clickhouse-cityhash is required to use compression'
-    )
+from .._cityhash.cityhash import CityHash128
 
 
 class BaseCompressor(object):
