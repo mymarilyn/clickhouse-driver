@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+### Changed
+- Vendored the CityHash 1.0.2 algorithm (from `clickhouse-cityhash` 1.0.2.6) directly into the driver, ported to C. The `clickhouse-cityhash` dependency is dropped from the `lz4`/`zstd` extras; compression now works out of the box.
+
 ## [0.2.11] - 2026-07-17
 ### Added
 - PyArrow support. Install with `pip install clickhouse-driver[arrow]`. Solves issue [#375](https://github.com/mymarilyn/clickhouse-driver/issues/375).

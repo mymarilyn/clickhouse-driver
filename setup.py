@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 from codecs import open
 
 from setuptools import setup, find_packages
@@ -54,6 +55,25 @@ extensions = [
         ['clickhouse_driver/varint' + ext]
     )
 ]
+
+# Vendored CityHash 1.0.2 (used for block checksums), built unconditionally.
+cityhash_dir = 'clickhouse_driver/_cityhash'
+cityhash_compile_args = []
+if sys.platform != 'win32':
+    # city.c defines the full CityHash family but we only call CityHash128.
+    cityhash_compile_args = ['-Wno-unused-function']
+
+extensions.append(
+    Extension(
+        'clickhouse_driver._cityhash.cityhash',
+        [
+            cityhash_dir + '/cityhash' + ext,
+            cityhash_dir + '/city.c',
+        ],
+        include_dirs=[cityhash_dir],
+        extra_compile_args=cityhash_compile_args,
+    )
+)
 
 if USE_CYTHON:
     compiler_directives = {'language_level': '3'}
@@ -129,10 +149,9 @@ setup(
     extras_require={
         'lz4': [
             'lz4<=3.0.1; implementation_name=="pypy"',
-            'lz4; implementation_name!="pypy"',
-            'clickhouse-cityhash>=1.0.2.6'
+            'lz4; implementation_name!="pypy"'
         ],
-        'zstd': ['zstd', 'clickhouse-cityhash>=1.0.2.6'],
+        'zstd': ['zstd'],
         'numpy': ['numpy>=1.12.0', 'pandas>=0.24.0'],
         'arrow': ['pyarrow>=8.0.0']
     },

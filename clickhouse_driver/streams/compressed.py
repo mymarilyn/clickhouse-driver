@@ -1,12 +1,6 @@
 from io import BytesIO
 
-try:
-    from clickhouse_cityhash.cityhash import CityHash128
-except ImportError:
-    raise RuntimeError(
-        'Package clickhouse-cityhash is required to use compression'
-    )
-
+from .._cityhash.cityhash import CityHash128
 from .native import BlockOutputStream, BlockInputStream
 from ..bufferedreader import CompressedBufferedReader
 from ..bufferedwriter import CompressedBufferedWriter
