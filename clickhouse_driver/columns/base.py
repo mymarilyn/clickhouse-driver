@@ -123,7 +123,7 @@ class Column(object):
 
         nulls_map = [False] * len(items) if self.nullable else None
         for i, x in enumerate(items):
-            if x is None:
+            if x is None or x == '':
                 if nullable:
                     nulls_map[i] = True
                     x = null_value
