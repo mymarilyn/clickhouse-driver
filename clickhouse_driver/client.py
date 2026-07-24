@@ -265,6 +265,10 @@ class Client(object):
             self.last_query.store_profile(packet.profile_info)
             return True
 
+        elif packet.type == ServerPacketTypes.PROFILE_EVENTS:
+            self.last_query.store_profile_events(packet)
+            return True
+
         else:
             return True
 
@@ -833,7 +837,7 @@ class Client(object):
                 pass
 
             elif packet.type == ServerPacketTypes.PROFILE_EVENTS:
-                self.last_query.store_profile(packet.profile_info)
+                self.last_query.store_profile_events(packet)
 
             else:
                 message = self.connection.unexpected_packet_message(
@@ -887,7 +891,7 @@ class Client(object):
             packet = self.connection.receive_packet()
 
             if packet.type == ServerPacketTypes.PROFILE_EVENTS:
-                self.last_query.store_profile(packet.profile_info)
+                self.last_query.store_profile_events(packet)
                 break
 
             elif packet.type == ServerPacketTypes.PROGRESS:
