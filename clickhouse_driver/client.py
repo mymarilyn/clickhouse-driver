@@ -135,11 +135,12 @@ class Client(object):
             self.progress_query_result_cls = ProgressQueryResult
 
         round_robin = kwargs.pop('round_robin', False)
+        alt_hosts = kwargs.pop('alt_hosts', None) if round_robin else None
+
         self.connections = deque([Connection(*args, **kwargs)])
         self._pending_arrow_stream = None
 
-        if round_robin and 'alt_hosts' in kwargs:
-            alt_hosts = kwargs.pop('alt_hosts')
+        if alt_hosts:
             for host in alt_hosts.split(','):
                 url = urlparse('clickhouse://' + host)
 
