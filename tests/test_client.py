@@ -296,6 +296,26 @@ class ClientFromUrlTestCase(TestCase):
         )
         self.assertEqual(len(c.connections), 1)
 
+    def test_round_robin_first_connection_has_single_host(self):
+        # alt_hosts must not leak into the first connection's host list.
+        for c in [
+            Client(host='host', port=9000, round_robin=True,
+                   alt_hosts='host2:9001,host3:9002'),
+            Client('host', 9000, round_robin=True,
+                   alt_hosts='host2:9001,host3:9002'),
+            Client('host', port=9000, round_robin=True,
+                   alt_hosts='host2:9001,host3:9002'),
+        ]:
+            connections = [c.connection] + list(c.connections)
+            self.assertEqual(
+                [list(conn.hosts) for conn in connections],
+                [
+                    [('host', 9000)],
+                    [('host2', 9001)],
+                    [('host3', 9002)],
+                ]
+            )
+
     def test_tcp_keepalive(self):
         c = Client.from_url('clickhouse://host?tcp_keepalive=true')
         self.assertTrue(c.connection.tcp_keepalive)
