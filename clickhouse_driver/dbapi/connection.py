@@ -62,7 +62,7 @@ class Connection(object):
         connection. The same applies to all cursor objects trying to use the
         connection.
         """
-        for cursor in self.cursors:
+        for cursor in list(self.cursors):
             cursor.close()
 
         self.is_closed = True
