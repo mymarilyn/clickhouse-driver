@@ -220,6 +220,17 @@ class DBAPITestCase(DBAPITestCaseBase):
             cur.close()
             self.assertEqual(len(connection.cursors), 0)
 
+    def test_close_connection_closes_all_cursors(self):
+        connection = self.create_connection()
+        cursors = [connection.cursor() for _ in range(3)]
+        self.assertEqual(len(connection.cursors), 3)
+
+        connection.close()
+
+        for cursor in cursors:
+            self.assertEqual(cursor._state, cursor._states.CURSOR_CLOSED)
+        self.assertEqual(len(connection.cursors), 0)
+
 
 class StreamingTestCase(DBAPITestCaseBase):
     def test_fetchone(self):
