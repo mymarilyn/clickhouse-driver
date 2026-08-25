@@ -336,6 +336,47 @@ jobs:
           name: dist-windows
           path: wheelhouse/*.whl
 
+  wheels-windows-arm64:
+    name: Wheels for Windows ARM64
+    needs: valgrind
+    runs-on: windows-11-arm
+    steps:
+      - name: Set git to use repo line breaks
+        run: |
+          git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+          architecture: arm64
+      - name: Install cibuildwheel
+        run: |
+          pip install cibuildwheel==$env:VERSION
+        env:
+          VERSION: 3.2.1
+      - name: Build wheels
+        run: cibuildwheel --output-dir wheelhouse
+        env:
+          CIBW_BUILD: 'cp3{9,10,11,12,13,14}-*'
+          CIBW_ARCHS_WINDOWS: ARM64
+          CIBW_BEFORE_BUILD: pip install cython
+      - uses: ncipollo/release-action@v1
+        name: Upload wheels
+        if: ${{ github.ref_type == 'tag' }}
+        with:
+          artifacts: "wheelhouse/*"
+          allowUpdates: true
+          draft: true
+          tag: Windows ARM64
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-artifact@v4
+        name: Store wheels
+        if: ${{ github.ref_type == 'tag' }}
+        with:
+          name: dist-windows-arm64
+          path: wheelhouse/*.whl
+
   wheels-linux-non-x86:
     name: Wheels for Linux non-x86
     needs: valgrind
@@ -422,6 +463,7 @@ jobs:
       - wheels-linux
       - wheels-macos
       - wheels-windows
+      - wheels-windows-arm64
       - wheels-linux-non-x86
     runs-on: ubuntu-22.04
     environment: pypi
