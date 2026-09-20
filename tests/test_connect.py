@@ -92,6 +92,21 @@ class ConnectTestCase(BaseTestCase):
                 # Close newly created socket.
                 connection.socket.close()
 
+    def test_transport_skip_preflight_ping(self):
+        with self.created_client(skip_preflight_ping=True) as client:
+            # Create connection.
+            client.execute('SELECT 1')
+
+            connection = client.connection
+
+            with patch.object(connection, 'ping') as mocked_ping:
+                self.assertTrue(connection.connected)
+
+                rv = client.execute('SELECT 1')
+                self.assertEqual(rv, [(1, )])
+
+                mocked_ping.assert_not_called()
+
     def test_transport_disable_reconnect(self):
         with self.created_client(disable_reconnect=True) as client:
             # Create connection.
