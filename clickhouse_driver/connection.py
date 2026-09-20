@@ -153,6 +153,11 @@ class Connection(object):
                               failed ``ping``, helpful when every reconnect
                               need to be caught in calling code.
                               Defaults to ``False``.
+    :param skip_preflight_ping: do not ``ping`` an established connection
+                                before sending a query, saving a round trip.
+                                A socket that died while idle then fails the
+                                query instead, so calling code must retry.
+                                Defaults to ``False``.
     """
 
     def __init__(
@@ -175,6 +180,7 @@ class Connection(object):
             tcp_keepalive=False,
             client_revision=None,
             disable_reconnect=False,
+            skip_preflight_ping=False,
     ):
         if secure:
             default_port = defines.DEFAULT_SECURE_PORT
@@ -201,6 +207,7 @@ class Connection(object):
             client_revision or defines.CLIENT_REVISION, defines.CLIENT_REVISION
         )
         self.disable_reconnect = disable_reconnect
+        self.skip_preflight_ping = skip_preflight_ping
 
         self.secure_socket = secure
         self.verify_cert = verify
@@ -277,7 +284,7 @@ class Connection(object):
         if not self.connected:
             self.connect()
 
-        elif not self.ping():
+        elif not self.skip_preflight_ping and not self.ping():
             if self.disable_reconnect:
                 raise errors.NetworkError(
                     "Connection was closed, reconnect is disabled."
