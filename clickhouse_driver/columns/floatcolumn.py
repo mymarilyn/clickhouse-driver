@@ -5,6 +5,7 @@ from .base import FormatColumn
 
 class FloatColumn(FormatColumn):
     py_types = (float, int)
+    null_value = 0.0
 
 
 class Float32Column(FloatColumn):
