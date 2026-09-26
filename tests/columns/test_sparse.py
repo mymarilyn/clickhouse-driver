@@ -7,6 +7,7 @@ from tests.testcase import BaseTestCase
 from clickhouse_driver import errors
 from clickhouse_driver.columns.base import SparseSerialization
 from clickhouse_driver.columns.boolcolumn import BoolColumn
+from clickhouse_driver.columns.floatcolumn import Float32Column, Float64Column
 from clickhouse_driver.context import Context
 from clickhouse_driver.varint import write_varint
 
@@ -243,3 +244,22 @@ class SparseSerializationTestCase(TestCase):
         )
         for value in result:
             self.assertIsInstance(value, bool)
+
+    def test_apply_sparse_float_returns_real_floats(self):
+        # Same as Bool: FloatColumn inherited the int 0 as null_value, so
+        # sparse-serialized 0.0 defaults came back as int 0.
+        for column_cls in (Float32Column, Float64Column):
+            context = Context()
+            context.client_settings = {'input_format_null_as_default': False}
+            serialization = SparseSerialization(column_cls(context=context))
+
+            buf = self.make_buf([2, 3, self.END_OF_GRANULE_FLAG | 1])
+            n_items = serialization.read_sparse(8, buf)
+            self.assertEqual(n_items, 2)
+
+            result = serialization.apply_sparse([1.5, 2.5])
+            self.assertEqual(
+                result, [0.0, 0.0, 1.5, 0.0, 0.0, 0.0, 2.5, 0.0]
+            )
+            for value in result:
+                self.assertIsInstance(value, float)
