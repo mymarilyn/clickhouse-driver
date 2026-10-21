@@ -1,5 +1,6 @@
 from collections import namedtuple
 from itertools import islice
+from operator import index
 
 from ..errors import Error as DriverError
 from .errors import InterfaceError, OperationalError, ProgrammingError
@@ -161,7 +162,8 @@ class Cursor(object):
             if not self._rows:
                 return None
 
-            return self._rows.pop(0)
+            self._prepare_buffered_rows()
+            return self._rows.pop()
 
     def fetchmany(self, size=None):
         """
@@ -184,12 +186,18 @@ class Cursor(object):
                 return list(islice(self._rows, size))
 
         if size < 0:
-            rv = self._rows
-            self._rows = []
-        else:
-            rv = self._rows[:size]
-            self._rows = self._rows[size:]
+            return self._fetchall_buffered()
 
+        size = min(index(size), len(self._rows))
+        if not size:
+            return []
+        if size == len(self._rows):
+            return self._fetchall_buffered()
+
+        self._prepare_buffered_rows()
+        rv = self._rows[-size:]
+        del self._rows[-size:]
+        rv.reverse()
         return rv
 
     def fetchall(self):
@@ -204,9 +212,7 @@ class Cursor(object):
         if self._stream_results:
             return list(self._rows)
 
-        rv = self._rows
-        self._rows = []
-        return rv
+        return self._fetchall_buffered()
 
     def setinputsizes(self, sizes):
         # Do nothing.
@@ -306,6 +312,7 @@ class Cursor(object):
         return execute, execute_kwargs
 
     def _process_response(self, response, executemany=False):
+        self._rows_reversed = False
         if executemany:
             self._rowcount = response
             response = None
@@ -337,6 +344,21 @@ class Cursor(object):
 
         self._rows = rows
 
+    def _prepare_buffered_rows(self):
+        # Reverse once so incremental reads can pop from the end without
+        # shifting the remaining rows or retaining consumed row payloads.
+        if not self._rows_reversed:
+            self._rows.reverse()
+            self._rows_reversed = True
+
+    def _fetchall_buffered(self):
+        rows = self._rows
+        self._rows = []
+        if self._rows_reversed:
+            rows.reverse()
+            self._rows_reversed = False
+        return rows
+
     def _reset_state(self):
         """
         Resets query state and get ready for another query.
@@ -346,6 +368,7 @@ class Cursor(object):
         self._columns = None
         self._types = None
         self._rows = None
+        self._rows_reversed = False
         self._rowcount = -1
 
         self._stream_results = False

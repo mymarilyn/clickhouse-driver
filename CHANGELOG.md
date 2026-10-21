@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+### Fixed
+- Avoid quadratic buffered DB API cursor iteration and repeated small `fetchmany()` calls while releasing consumed row payloads.
+
 ## [0.2.11] - 2026-07-17
 ### Added
 - PyArrow support. Install with `pip install clickhouse-driver[arrow]`. Solves issue [#375](https://github.com/mymarilyn/clickhouse-driver/issues/375).
