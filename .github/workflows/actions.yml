@@ -60,6 +60,10 @@ jobs:
           - 19.9.2.4   # allow_suspicious_low_cardinality_types
           - 19.8.3.8   # SimpleAggregateFunction
         include:
+          - clickhouse-version: 25.5.6.14
+            use-numpy: 0
+            use-arrow: 0
+            python-version: "3.15"
           - clickhouse-version: 20.3.20.6
             use-numpy: 1
             python-version: 3.9
@@ -119,7 +123,7 @@ jobs:
         run: |
           # Newer coveralls do not work with github actions.
           pip install 'coveralls<4.0.0'
-          pip install 'cython<3.1.0'
+          pip install 'cython<3.1.0; python_version < "3.15"' 'cython>=3.3.0; python_version >= "3.15"'
           pip install -U 'setuptools<72.2'
           python testsrequire.py
           python setup.py develop
@@ -222,11 +226,11 @@ jobs:
           pip install --upgrade pip setuptools
           pip install cython cibuildwheel==$VERSION
         env:
-          VERSION: 3.2.1
+          VERSION: 4.3.3
       - name: Build wheels
         run: cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_BUILD: 'cp3{9,10,11,12,13,14}-* pp3{9,10,11}-*'
+          CIBW_BUILD: 'cp3{9,10,11,12,13,14,15}-* pp3{9,10,11}-*'
           CIBW_ENABLE: 'pypy pypy-eol'
           CIBW_BEFORE_BUILD: pip install cython
       - uses: ncipollo/release-action@v1
@@ -266,11 +270,11 @@ jobs:
           pip install --upgrade pip setuptools
           pip install cython cibuildwheel==$VERSION
         env:
-          VERSION: 3.2.1
+          VERSION: 4.3.3
       - name: Build wheels
         run: cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_BUILD: 'cp3{9,10,11,12,13,14}-* pp3{9,10,11}-*'
+          CIBW_BUILD: 'cp3{9,10,11,12,13,14,15}-* pp3{9,10,11}-*'
           CIBW_ENABLE: 'pypy pypy-eol'
           CIBW_BEFORE_BUILD: pip install cython
           CIBW_ARCHS_MACOS: x86_64 arm64
@@ -313,11 +317,11 @@ jobs:
         run: |
           pip install cibuildwheel==$env:VERSION
         env:
-          VERSION: 3.2.1
+          VERSION: 4.3.3
       - name: Build wheels
         run: cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_BUILD: 'cp3{9,10,11,12,13,14}-* pp3{9,10,11}-*'
+          CIBW_BUILD: 'cp3{9,10,11,12,13,14,15}-* pp3{9,10,11}-*'
           CIBW_ENABLE: 'pypy pypy-eol'
           CIBW_BEFORE_BUILD: pip install cython
       - uses: ncipollo/release-action@v1
@@ -369,11 +373,11 @@ jobs:
           pip install --upgrade pip setuptools
           pip install cibuildwheel==$VERSION
         env:
-          VERSION: 3.2.1
+          VERSION: 4.3.3
       - name: Build wheels
         run: cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_BUILD: 'cp3{9,10,11,12,13,14}-* pp3{9,10,11}-*'
+          CIBW_BUILD: 'cp3{9,10,11,12,13,14,15}-* pp3{9,10,11}-*'
           CIBW_ENABLE: 'pypy pypy-eol'
           CIBW_BEFORE_BUILD: pip install cython
           CIBW_ARCHS: ${{ matrix.arch }}
