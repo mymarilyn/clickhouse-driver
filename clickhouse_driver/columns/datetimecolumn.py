@@ -1,4 +1,5 @@
 from datetime import datetime
+from math import floor
 
 from pytz import timezone as get_timezone, utc
 from ..util.compat import get_localzone_name_compat
@@ -164,7 +165,7 @@ class DateTime64Column(DateTimeColumn):
                     item = item.astimezone(utc)
 
             items[i] = (
-                int(to_timestamp(item)) * scale +
+                floor(to_timestamp(item)) * scale +
                 int(item.microsecond / frac_scale)
             )
 

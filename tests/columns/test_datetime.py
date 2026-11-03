@@ -154,6 +154,28 @@ class DateTimeTestCase(BaseTestCase):
             )
 
     @require_server_version(21, 4)
+    def test_insert_datetime64_before_epoch_with_fraction(self):
+        with self.create_table('a DateTime64(3)'):
+            data = [
+                (datetime(1925, 1, 1, 0, 0, 0, 123000), ),
+                (datetime(1970, 1, 1, 2, 59, 59, 500000), )
+            ]
+            self.client.execute(
+                'INSERT INTO test (a) VALUES', data
+            )
+
+            query = 'SELECT a FROM test ORDER BY a'
+            inserted = self.emit_cli(query)
+            self.assertEqual(
+                inserted,
+                '1925-01-01 00:00:00.123\n'
+                '1970-01-01 02:59:59.500\n'
+            )
+
+            inserted = self.client.execute(query)
+            self.assertEqual(inserted, data)
+
+    @require_server_version(21, 4)
     def test_insert_datetime64_extended_range_pure_ints_out_of_range(self):
         with self.create_table('a DateTime64(0)'):
             self.client.execute(
