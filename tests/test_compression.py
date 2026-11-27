@@ -1,10 +1,18 @@
 from datetime import date, datetime
+from io import BytesIO
+from types import SimpleNamespace
 from unittest import TestCase
 
 from clickhouse_driver import errors
+from clickhouse_driver.block import RowOrientedBlock
 from clickhouse_driver.client import Client
 from clickhouse_driver.compression import get_compressor_cls
+from clickhouse_driver.compression.base import BaseCompressor
 from clickhouse_driver.compression.lz4 import Compressor
+from clickhouse_driver.defines import BUFFER_SIZE
+from clickhouse_driver.streams.compressed import (
+    CompressedBlockInputStream, CompressedBlockOutputStream
+)
 from .testcase import BaseTestCase, file_config
 
 
@@ -84,6 +92,88 @@ class MiscCompressionTestCase(TestCase):
         self.assertEqual(
             e.exception.code, errors.ErrorCodes.UNKNOWN_COMPRESSION_METHOD
         )
+
+
+class RecordingCompressor(BaseCompressor):
+    method_byte = None
+
+    def __init__(self):
+        super(RecordingCompressor, self).__init__()
+        self.input_sizes = []
+
+    def compress_data(self, data):
+        self.input_sizes.append(len(data))
+        return data
+
+
+class CompressedOutputStreamTestCase(TestCase):
+    def test_compression_input_is_bounded(self):
+        payload = b'x' * (2 * BUFFER_SIZE + 123)
+        stream = CompressedBlockOutputStream(
+            RecordingCompressor, BUFFER_SIZE, BytesIO(), None
+        )
+
+        stream.fout.write(payload)
+        stream.finalize()
+
+        self.assertEqual(
+            stream.compressor.input_sizes, [BUFFER_SIZE, BUFFER_SIZE, 123]
+        )
+
+    def test_compressed_chunks_roundtrip(self):
+        payload = b'x' * (2 * BUFFER_SIZE + 123)
+        output = BytesIO()
+        stream = CompressedBlockOutputStream(
+            Compressor, BUFFER_SIZE, output, None
+        )
+        stream.fout.write(payload)
+        stream.finalize()
+
+        compressed = BytesIO(output.getvalue())
+        reader = CompressedBlockInputStream(compressed, None)
+        chunks = []
+        while compressed.tell() < len(output.getvalue()):
+            chunks.append(reader.read_block())
+
+        self.assertEqual(
+            [len(chunk) for chunk in chunks], [BUFFER_SIZE, BUFFER_SIZE, 123]
+        )
+        self.assertEqual(b''.join(chunks), payload)
+
+    def test_native_block_roundtrip(self):
+        context = SimpleNamespace(
+            server_info=SimpleNamespace(used_revision=0),
+            client_settings={
+                'use_numpy': False,
+                'strings_as_bytes': False,
+                'strings_encoding': 'utf-8',
+            },
+        )
+        rows = [('x' * (2 * BUFFER_SIZE + 123),), ('tail',)]
+        output = BytesIO()
+        writer = CompressedBlockOutputStream(
+            Compressor, BUFFER_SIZE, output, context
+        )
+        writer.write(RowOrientedBlock([('value', 'String')], rows))
+
+        reader = CompressedBlockInputStream(
+            BytesIO(output.getvalue()), context
+        )
+        block = reader.read()
+        self.assertEqual(block.get_rows(), rows)
+
+    def test_no_empty_chunk_after_full_buffer(self):
+        output = BytesIO()
+        stream = CompressedBlockOutputStream(
+            Compressor, BUFFER_SIZE, output, None
+        )
+        stream.fout.write(b'x' * BUFFER_SIZE)
+        stream.finalize()
+
+        compressed = BytesIO(output.getvalue())
+        reader = CompressedBlockInputStream(compressed, None)
+        self.assertEqual(reader.read_block(), b'x' * BUFFER_SIZE)
+        self.assertEqual(compressed.tell(), len(output.getvalue()))
 
 
 class ReadByBlocksTestCase(BaseCompressionTestCase):

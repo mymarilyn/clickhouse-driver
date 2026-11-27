@@ -16,6 +16,14 @@ from ..reader import read_binary_uint8, read_binary_uint128
 from ..writer import write_binary_uint8, write_binary_uint128
 
 
+class _CompressedChunkWriter(object):
+    def __init__(self, stream):
+        self.stream = stream
+
+    def write(self, data):
+        self.stream.write_compressed(data)
+
+
 class CompressedBlockOutputStream(BlockOutputStream):
     def __init__(self, compressor_cls, compress_block_size, fout, context):
         self.compressor_cls = compressor_cls
@@ -23,7 +31,9 @@ class CompressedBlockOutputStream(BlockOutputStream):
         self.raw_fout = fout
 
         self.compressor = self.compressor_cls()
-        self.fout = CompressedBufferedWriter(self.compressor, BUFFER_SIZE)
+        self.fout = CompressedBufferedWriter(
+            _CompressedChunkWriter(self), BUFFER_SIZE
+        )
         super(CompressedBlockOutputStream, self).__init__(self.fout, context)
 
     def get_compressed_hash(self, data):
@@ -31,7 +41,13 @@ class CompressedBlockOutputStream(BlockOutputStream):
 
     def finalize(self):
         self.fout.flush()
+        self.raw_fout.flush()
 
+    def write_compressed(self, data):
+        if not data:
+            return
+
+        self.compressor.write(data)
         compressed = self.get_compressed()
         compressed_size = len(compressed)
 
@@ -44,8 +60,6 @@ class CompressedBlockOutputStream(BlockOutputStream):
         while i < compressed_size:
             self.raw_fout.write(compressed[i:i + block_size])
             i += block_size
-
-        self.raw_fout.flush()
 
     def get_compressed(self):
         compressed = BytesIO()
